@@ -4,31 +4,35 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/Components/Header";
 
-export default function Page3() {
+export default function Page4() {
   const router = useRouter();
 
-  const [appetite, setAppetite] =
+  const [discomfort, setDiscomfort] =
     useState("");
 
-  const [water, setWater] =
-    useState("");
+  const [discomfortAreas, setDiscomfortAreas] =
+    useState<string[]>([]);
 
-  const [waterGlasses, setWaterGlasses] =
+  const [otherDiscomfort, setOtherDiscomfort] =
     useState("");
 
   useEffect(() => {
-    setAppetite(
-      localStorage.getItem("appetite") ||
+    setDiscomfort(
+      localStorage.getItem("discomfort") ||
         ""
     );
 
-    setWater(
-      localStorage.getItem("water") || ""
+    setDiscomfortAreas(
+      JSON.parse(
+        localStorage.getItem(
+          "discomfortAreas"
+        ) || "[]"
+      )
     );
 
-    setWaterGlasses(
+    setOtherDiscomfort(
       localStorage.getItem(
-        "waterGlasses"
+        "otherDiscomfort"
       ) || ""
     );
   }, []);
@@ -38,7 +42,7 @@ export default function Page3() {
   ) => ({
     width: "100%",
     padding: "10px 14px",
-    marginBottom: "6px",
+    marginBottom: "8px",
     borderRadius: "10px",
     border: selected
       ? "2px solid #2563eb"
@@ -51,40 +55,73 @@ export default function Page3() {
     fontSize: "15px",
   });
 
+  const toggleArea = (
+    area: string
+  ) => {
+    if (
+      discomfortAreas.includes(area)
+    ) {
+      setDiscomfortAreas(
+        discomfortAreas.filter(
+          (item) => item !== area
+        )
+      );
+    } else {
+      setDiscomfortAreas([
+        ...discomfortAreas,
+        area,
+      ]);
+    }
+  };
+
   const handleNext = () => {
-    if (!appetite || !water) {
+    if (!discomfort) {
       alert(
-        "Please answer all questions."
+        "Please answer the question."
       );
       return;
     }
 
     if (
-      water === "yes" &&
-      !waterGlasses
+      discomfort === "yes" &&
+      discomfortAreas.length === 0
     ) {
       alert(
-        "Please select the number of glasses."
+        "Please select where you felt discomfort."
+      );
+      return;
+    }
+
+    if (
+      discomfortAreas.includes(
+        "Other"
+      ) &&
+      !otherDiscomfort.trim()
+    ) {
+      alert(
+        "Please specify the discomfort location."
       );
       return;
     }
 
     localStorage.setItem(
-      "appetite",
-      appetite
+      "discomfort",
+      discomfort
     );
 
     localStorage.setItem(
-      "water",
-      water
+      "discomfortAreas",
+      JSON.stringify(
+        discomfortAreas
+      )
     );
 
     localStorage.setItem(
-      "waterGlasses",
-      waterGlasses
+      "otherDiscomfort",
+      otherDiscomfort
     );
 
-    router.push("/self/page4");
+    router.push("/self/page5");
   };
 
   return (
@@ -103,7 +140,7 @@ export default function Page3() {
           margin: "0 auto",
         }}
       >
-        <Header currentPage={3} />
+        <Header currentPage={4} />
 
         <div
           style={{
@@ -120,91 +157,35 @@ export default function Page3() {
           <hr />
 
           <h3>
-            🍽 How is your appetite
-            today?
+            🤕 Did you feel any
+            discomfort today?
           </h3>
 
           <button
             style={optionStyle(
-              appetite === "normal"
-            )}
-            onClick={() =>
-              setAppetite("normal")
-            }
-          >
-            😊 Normal
-          </button>
-
-          <button
-            style={optionStyle(
-              appetite === "less"
-            )}
-            onClick={() =>
-              setAppetite("less")
-            }
-          >
-            😐 Eating Less
-          </button>
-
-          <button
-            style={optionStyle(
-              appetite === "poor"
-            )}
-            onClick={() =>
-              setAppetite("poor")
-            }
-          >
-            😟 Hardly Eating
-          </button>
-
-          <div
-            style={{
-              height: "12px",
-            }}
-          />
-
-          <h3>
-            💧 Have you been
-            drinking enough water
-            today?
-          </h3>
-
-          <button
-            style={optionStyle(
-              water === "yes"
-            )}
-            onClick={() =>
-              setWater("yes")
-            }
-          >
-            😊 Yes
-          </button>
-
-          <button
-            style={optionStyle(
-              water === "notsure"
+              discomfort === "no"
             )}
             onClick={() => {
-              setWater("notsure");
-              setWaterGlasses("");
+              setDiscomfort("no");
+              setDiscomfortAreas([]);
+              setOtherDiscomfort("");
             }}
           >
-            😐 Not Sure
+            😊 No
           </button>
 
           <button
             style={optionStyle(
-              water === "no"
+              discomfort === "yes"
             )}
-            onClick={() => {
-              setWater("no");
-              setWaterGlasses("");
-            }}
+            onClick={() =>
+              setDiscomfort("yes")
+            }
           >
-            😟 No
+            😟 Yes
           </button>
 
-          {water === "yes" && (
+          {discomfort === "yes" && (
             <>
               <div
                 style={{
@@ -213,34 +194,83 @@ export default function Page3() {
               />
 
               <h3>
-                🥛 Approximately how
-                many glasses of water
-                did you drink today?
+                📍 Where did you feel
+                discomfort?
               </h3>
 
               {[
-                "1",
-                "2",
-                "3",
-                "4",
-                "5+",
-                "Not Sure",
-              ].map((glass) => (
-                <button
-                  key={glass}
-                  style={optionStyle(
-                    waterGlasses ===
-                      glass
-                  )}
-                  onClick={() =>
-                    setWaterGlasses(
-                      glass
-                    )
-                  }
+                "Head",
+                "Eyes",
+                "Ears",
+                "Neck",
+                "Chest",
+                "Back",
+                "Stomach",
+                "Arms / Hands",
+                "Legs / Feet",
+                "Joints",
+                "Other",
+              ].map((area) => (
+                <label
+                  key={area}
+                  style={{
+                    display: "block",
+                    marginBottom: "10px",
+                    cursor: "pointer",
+                  }}
                 >
-                  {glass}
-                </button>
+                  <input
+                    type="checkbox"
+                    checked={discomfortAreas.includes(
+                      area
+                    )}
+                    onChange={() =>
+                      toggleArea(area)
+                    }
+                    style={{
+                      marginRight: "10px",
+                    }}
+                  />
+                  {area}
+                </label>
               ))}
+
+              {discomfortAreas.includes(
+                "Other"
+              ) && (
+                <div
+                  style={{
+                    marginTop: "10px",
+                  }}
+                >
+                  <label>
+                    Please specify:
+                  </label>
+
+                  <input
+                    type="text"
+                    value={
+                      otherDiscomfort
+                    }
+                    onChange={(e) =>
+                      setOtherDiscomfort(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Describe the location"
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      marginTop: "6px",
+                      borderRadius: "10px",
+                      border:
+                        "1px solid #ccc",
+                      boxSizing:
+                        "border-box",
+                    }}
+                  />
+                </div>
+              )}
             </>
           )}
 
@@ -248,13 +278,13 @@ export default function Page3() {
             style={{
               display: "flex",
               gap: "10px",
-              marginTop: "16px",
+              marginTop: "20px",
             }}
           >
             <button
               onClick={() =>
                 router.push(
-                  "/self/page2"
+                  "/self/page3"
                 )
               }
               style={{
@@ -287,6 +317,8 @@ export default function Page3() {
                   "10px",
                 fontWeight:
                   "bold",
+                cursor:
+                  "pointer",
               }}
             >
               Next →
