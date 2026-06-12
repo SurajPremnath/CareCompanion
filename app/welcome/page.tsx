@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
+import Header from "@/Components/Header";
 
 export default function WelcomePage() {
   const router = useRouter();

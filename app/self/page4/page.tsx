@@ -1,28 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
+import Header from "@/Components/Header";
 
-export default function Page4() {
+export default function Page3() {
   const router = useRouter();
 
-  const [pain, setPain] = useState(
-    localStorage.getItem("pain") || ""
-  );
+  const [appetite, setAppetite] =
+    useState("");
 
-  const [otherPain, setOtherPain] =
-    useState(
-      localStorage.getItem("otherPain") || ""
+  const [water, setWater] =
+    useState("");
+
+  const [waterGlasses, setWaterGlasses] =
+    useState("");
+
+  useEffect(() => {
+    setAppetite(
+      localStorage.getItem("appetite") ||
+        ""
     );
 
-  const [painAreas, setPainAreas] =
-    useState<string[]>(
-      JSON.parse(
-        localStorage.getItem("painAreas") ||
-          "[]"
-      )
+    setWater(
+      localStorage.getItem("water") || ""
     );
+
+    setWaterGlasses(
+      localStorage.getItem(
+        "waterGlasses"
+      ) || ""
+    );
+  }, []);
 
   const optionStyle = (
     selected: boolean
@@ -42,71 +51,40 @@ export default function Page4() {
     fontSize: "15px",
   });
 
-  const toggleArea = (
-    area: string
-  ) => {
-    if (painAreas.includes(area)) {
-      setPainAreas(
-        painAreas.filter(
-          (item) => item !== area
-        )
-      );
-    } else {
-      setPainAreas([
-        ...painAreas,
-        area,
-      ]);
-    }
-  };
-
-  const showPainAreas =
-    pain === "mild" ||
-    pain === "significant";
-
   const handleNext = () => {
-    if (!pain) {
+    if (!appetite || !water) {
       alert(
-        "Please answer the pain question."
+        "Please answer all questions."
       );
       return;
     }
 
     if (
-      showPainAreas &&
-      painAreas.length === 0
+      water === "yes" &&
+      !waterGlasses
     ) {
       alert(
-        "Please select where the pain is."
-      );
-      return;
-    }
-
-    if (
-      painAreas.includes("Other") &&
-      !otherPain.trim()
-    ) {
-      alert(
-        "Please specify the other pain location."
+        "Please select the number of glasses."
       );
       return;
     }
 
     localStorage.setItem(
-      "pain",
-      pain
+      "appetite",
+      appetite
     );
 
     localStorage.setItem(
-      "painAreas",
-      JSON.stringify(painAreas)
+      "water",
+      water
     );
 
     localStorage.setItem(
-      "otherPain",
-      otherPain
+      "waterGlasses",
+      waterGlasses
     );
 
-    router.push("/self/page5");
+    router.push("/self/page4");
   };
 
   return (
@@ -115,7 +93,8 @@ export default function Page4() {
         minHeight: "100vh",
         backgroundColor: "#f8fafc",
         padding: "15px",
-        fontFamily: "Arial, sans-serif",
+        fontFamily:
+          "Arial, sans-serif",
       }}
     >
       <div
@@ -124,7 +103,7 @@ export default function Page4() {
           margin: "0 auto",
         }}
       >
-        <Header currentPage={4} />
+        <Header currentPage={3} />
 
         <div
           style={{
@@ -141,47 +120,91 @@ export default function Page4() {
           <hr />
 
           <h3>
-            🤕 Are you experiencing any body pain today?
+            🍽 How is your appetite
+            today?
           </h3>
 
           <button
             style={optionStyle(
-              pain === "none"
+              appetite === "normal"
+            )}
+            onClick={() =>
+              setAppetite("normal")
+            }
+          >
+            😊 Normal
+          </button>
+
+          <button
+            style={optionStyle(
+              appetite === "less"
+            )}
+            onClick={() =>
+              setAppetite("less")
+            }
+          >
+            😐 Eating Less
+          </button>
+
+          <button
+            style={optionStyle(
+              appetite === "poor"
+            )}
+            onClick={() =>
+              setAppetite("poor")
+            }
+          >
+            😟 Hardly Eating
+          </button>
+
+          <div
+            style={{
+              height: "12px",
+            }}
+          />
+
+          <h3>
+            💧 Have you been
+            drinking enough water
+            today?
+          </h3>
+
+          <button
+            style={optionStyle(
+              water === "yes"
+            )}
+            onClick={() =>
+              setWater("yes")
+            }
+          >
+            😊 Yes
+          </button>
+
+          <button
+            style={optionStyle(
+              water === "notsure"
             )}
             onClick={() => {
-              setPain("none");
-              setPainAreas([]);
-              setOtherPain("");
+              setWater("notsure");
+              setWaterGlasses("");
             }}
           >
-            😊 No Pain
+            😐 Not Sure
           </button>
 
           <button
             style={optionStyle(
-              pain === "mild"
+              water === "no"
             )}
-            onClick={() =>
-              setPain("mild")
-            }
+            onClick={() => {
+              setWater("no");
+              setWaterGlasses("");
+            }}
           >
-            😐 Mild Pain
+            😟 No
           </button>
 
-          <button
-            style={optionStyle(
-              pain === "significant"
-            )}
-            onClick={() =>
-              setPain(
-                "significant"
-              )
-            }
-          >
-            😟 Significant Pain
-          </button>
-
-          {showPainAreas && (
+          {water === "yes" && (
             <>
               <div
                 style={{
@@ -190,79 +213,34 @@ export default function Page4() {
               />
 
               <h3>
-                📍 Where is the pain?
+                🥛 Approximately how
+                many glasses of water
+                did you drink today?
               </h3>
 
               {[
-                "Head",
-                "Eyes",
-                "Ears",
-                "Neck",
-                "Chest",
-                "Back",
-                "Stomach",
-                "Arms / Hands",
-                "Legs / Feet",
-                "Joints",
-                "Other",
-              ].map((area) => (
-                <label
-                  key={area}
-                  style={{
-                    display: "block",
-                    marginBottom: "10px",
-                    cursor: "pointer",
-                  }}
+                "1",
+                "2",
+                "3",
+                "4",
+                "5+",
+                "Not Sure",
+              ].map((glass) => (
+                <button
+                  key={glass}
+                  style={optionStyle(
+                    waterGlasses ===
+                      glass
+                  )}
+                  onClick={() =>
+                    setWaterGlasses(
+                      glass
+                    )
+                  }
                 >
-                  <input
-                    type="checkbox"
-                    checked={painAreas.includes(
-                      area
-                    )}
-                    onChange={() =>
-                      toggleArea(area)
-                    }
-                    style={{
-                      marginRight: "10px",
-                    }}
-                  />
-                  {area}
-                </label>
+                  {glass}
+                </button>
               ))}
-
-              {painAreas.includes(
-                "Other"
-              ) && (
-                <div
-                  style={{
-                    marginTop: "10px",
-                  }}
-                >
-                  <label>
-                    Please specify:
-                  </label>
-
-                  <input
-                    type="text"
-                    value={otherPain}
-                    onChange={(e) =>
-                      setOtherPain(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Describe pain location"
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      marginTop: "6px",
-                      borderRadius: "10px",
-                      border: "1px solid #ccc",
-                      boxSizing:
-                        "border-box",
-                    }}
-                  />
-                </div>
-              )}
             </>
           )}
 
@@ -275,7 +253,9 @@ export default function Page4() {
           >
             <button
               onClick={() =>
-                router.push("/self/page3")
+                router.push(
+                  "/self/page2"
+                )
               }
               style={{
                 flex: 1,
@@ -283,9 +263,12 @@ export default function Page4() {
                 backgroundColor:
                   "#e5e7eb",
                 border: "none",
-                borderRadius: "10px",
-                fontWeight: "bold",
-                cursor: "pointer",
+                borderRadius:
+                  "10px",
+                fontWeight:
+                  "bold",
+                cursor:
+                  "pointer",
               }}
             >
               ← Previous
@@ -300,9 +283,10 @@ export default function Page4() {
                   "#2563eb",
                 color: "white",
                 border: "none",
-                borderRadius: "10px",
-                fontWeight: "bold",
-                cursor: "pointer",
+                borderRadius:
+                  "10px",
+                fontWeight:
+                  "bold",
               }}
             >
               Next →

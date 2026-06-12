@@ -1,32 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
+import Header from "@/Components/Header";
 
 export default function Page5() {
   const router = useRouter();
 
-  const [walking, setWalking] = useState(
-    localStorage.getItem("walking") || ""
-  );
+  const [walking, setWalking] =
+    useState("");
 
   const [walkingHelp, setWalkingHelp] =
-    useState(
-      localStorage.getItem("walkingHelp") || ""
-    );
+    useState("");
 
   const [looseMotions, setLooseMotions] =
-    useState(
-      localStorage.getItem("looseMotions") || ""
-    );
+    useState("");
 
   const [looseMotionType, setLooseMotionType] =
-    useState(
+    useState("");
+
+  useEffect(() => {
+    setWalking(
+      localStorage.getItem("walking") || ""
+    );
+
+    setWalkingHelp(
+      localStorage.getItem(
+        "walkingHelp"
+      ) || ""
+    );
+
+    setLooseMotions(
+      localStorage.getItem(
+        "looseMotions"
+      ) || ""
+    );
+
+    setLooseMotionType(
       localStorage.getItem(
         "looseMotionType"
       ) || ""
     );
+  }, []);
 
   const optionStyle = (
     selected: boolean
@@ -358,8 +373,7 @@ export default function Page5() {
                 padding: "12px",
                 backgroundColor:
                   "#16a34a",
-                color:
-                  "white",
+                color: "white",
                 border: "none",
                 borderRadius:
                   "10px",

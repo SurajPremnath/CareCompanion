@@ -1,112 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
+import Header from "@/Components/Header";
 
-export default function Page2() {
+export default function SelfPage2() {
   const router = useRouter();
 
-  const [fever, setFever] = useState(
-    localStorage.getItem("fever") || ""
-  );
+  const [fever, setFever] = useState("");
+  const [temperatureChecked, setTemperatureChecked] = useState("");
+  const [temperatureReading, setTemperatureReading] = useState("");
+  const [temperatureUnit, setTemperatureUnit] = useState("F");
+  const [energy, setEnergy] = useState("");
+  const [appetite, setAppetite] = useState("");
+  const [water, setWater] = useState("");
+  const [waterGlasses, setWaterGlasses] = useState("");
 
-  const [temperatureChecked, setTemperatureChecked] =
-    useState(
-      localStorage.getItem(
-        "temperatureChecked"
-      ) || ""
+  // Load from localStorage only in browser
+  useEffect(() => {
+    setFever(localStorage.getItem("fever") || "");
+    setTemperatureChecked(
+      localStorage.getItem("temperatureChecked") || ""
     );
-
-  const [temperatureReading, setTemperatureReading] =
-    useState(
-      localStorage.getItem(
-        "temperatureReading"
-      ) || ""
+    setTemperatureReading(
+      localStorage.getItem("temperatureReading") || ""
     );
-
-  const [temperatureUnit, setTemperatureUnit] =
-    useState(
-      localStorage.getItem(
-        "temperatureUnit"
-      ) || "F"
+    setTemperatureUnit(
+      localStorage.getItem("temperatureUnit") || "F"
     );
+    setEnergy(localStorage.getItem("energy") || "");
+    setAppetite(localStorage.getItem("appetite") || "");
+    setWater(localStorage.getItem("water") || "");
+    setWaterGlasses(localStorage.getItem("waterGlasses") || "");
+  }, []);
 
-  const [energy, setEnergy] = useState(
-    localStorage.getItem("energy") || ""
-  );
-
-  const optionStyle = (
-    selected: boolean
-  ) => ({
+  const optionStyle = (selected: boolean) => ({
     width: "100%",
     padding: "10px 14px",
     marginBottom: "6px",
     borderRadius: "10px",
-    border: selected
-      ? "2px solid #2563eb"
-      : "1px solid #d1d5db",
-    backgroundColor: selected
-      ? "#eff6ff"
-      : "white",
+    border: selected ? "2px solid #2563eb" : "1px solid #d1d5db",
+    backgroundColor: selected ? "#eff6ff" : "white",
     cursor: "pointer",
     textAlign: "left" as const,
     fontSize: "15px",
   });
 
   const handleNext = () => {
-    if (!fever || !energy) {
-      alert(
-        "Please answer all questions."
-      );
+    if (!fever || !energy || !appetite || !water) {
+      alert("Please answer all questions.");
       return;
     }
 
-    if (
-      fever === "yes" &&
-      !temperatureChecked
-    ) {
-      alert(
-        "Please answer whether temperature was checked."
-      );
-      return;
-    }
-
-    if (
-      fever === "yes" &&
-      temperatureChecked === "yes" &&
-      !temperatureReading.trim()
-    ) {
-      alert(
-        "Please enter the temperature reading."
-      );
-      return;
-    }
-
-    localStorage.setItem(
-      "fever",
-      fever
-    );
-
-    localStorage.setItem(
-      "temperatureChecked",
-      temperatureChecked
-    );
-
-    localStorage.setItem(
-      "temperatureReading",
-      temperatureReading
-    );
-
-    localStorage.setItem(
-      "temperatureUnit",
-      temperatureUnit
-    );
-
-    localStorage.setItem(
-      "energy",
-      energy
-    );
+    localStorage.setItem("fever", fever);
+    localStorage.setItem("temperatureChecked", temperatureChecked);
+    localStorage.setItem("temperatureReading", temperatureReading);
+    localStorage.setItem("temperatureUnit", temperatureUnit);
+    localStorage.setItem("energy", energy);
+    localStorage.setItem("appetite", appetite);
+    localStorage.setItem("water", water);
+    localStorage.setItem("waterGlasses", waterGlasses);
 
     router.push("/self/page3");
   };
@@ -120,12 +73,7 @@ export default function Page2() {
         fontFamily: "Arial, sans-serif",
       }}
     >
-      <div
-        style={{
-          maxWidth: "700px",
-          margin: "0 auto",
-        }}
-      >
+      <div style={{ maxWidth: "700px", margin: "0 auto" }}>
         <Header currentPage={2} />
 
         <div
@@ -136,292 +84,196 @@ export default function Page2() {
             border: "1px solid #ddd",
           }}
         >
-          <h2
-            style={{
-              fontSize: "20px",
-              marginBottom: "12px",
-            }}
-          >
-            Health Check For Today
+          <h2 style={{ fontSize: "20px", marginBottom: "12px" }}>
+            Health Check – Part 2
           </h2>
 
           <hr />
 
-          <h3>
-            🌡 Do you feel feverish today?
+          <h3 style={{ fontSize: "18px", marginBottom: "6px" }}>
+            🤒 Do you feel feverish?
           </h3>
-
           <button
-            style={optionStyle(
-              fever === "no"
-            )}
-            onClick={() => {
-              setFever("no");
-              setTemperatureChecked("");
-              setTemperatureReading("");
-              setEnergy("");
-            }}
+            style={optionStyle(fever === "no")}
+            onClick={() => setFever("no")}
           >
             😊 No
           </button>
-
           <button
-            style={optionStyle(
-              fever === "yes"
-            )}
-            onClick={() => {
-              setFever("yes");
-
-              if (energy === "good") {
-                setEnergy("");
-              }
-            }}
+            style={optionStyle(fever === "yes")}
+            onClick={() => setFever("yes")}
           >
             😟 Yes
           </button>
 
           {fever === "yes" && (
             <>
-              <div
-                style={{
-                  height: "12px",
-                }}
-              />
-
-              <h3>
-                🌡 Was your temperature
-                checked today?
-              </h3>
-
-              <button
-                style={optionStyle(
-                  temperatureChecked ===
-                    "yes"
-                )}
-                onClick={() =>
-                  setTemperatureChecked(
-                    "yes"
-                  )
-                }
-              >
-                😊 Yes
-              </button>
-
-              <button
-                style={optionStyle(
-                  temperatureChecked ===
-                    "no"
-                )}
-                onClick={() =>
-                  setTemperatureChecked(
-                    "no"
-                  )
-                }
-              >
-                😐 No
-              </button>
-
-              {temperatureChecked ===
-                "yes" && (
-                <>
-                  <div
-                    style={{
-                      height:
-                        "10px",
-                    }}
-                  />
-
-                  <label>
-                    🌡 Latest
-                    Temperature
-                    Reading
-                  </label>
-
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={
-                      temperatureReading
-                    }
-                    onChange={(e) =>
-                      setTemperatureReading(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Enter reading"
-                    style={{
-                      width:
-                        "100%",
-                      padding:
-                        "12px",
-                      marginTop:
-                        "6px",
-                      borderRadius:
-                        "10px",
-                      border:
-                        "1px solid #ccc",
-                      boxSizing:
-                        "border-box",
-                    }}
-                  />
-
-                  <div
-                    style={{
-                      display:
-                        "flex",
-                      gap: "10px",
-                      marginTop:
-                        "10px",
-                    }}
-                  >
-                    <button
-                      style={{
-                        flex: 1,
-                        padding:
-                          "10px",
-                        borderRadius:
-                          "10px",
-                        border:
-                          temperatureUnit ===
-                          "F"
-                            ? "2px solid #2563eb"
-                            : "1px solid #d1d5db",
-                        backgroundColor:
-                          temperatureUnit ===
-                          "F"
-                            ? "#eff6ff"
-                            : "white",
-                      }}
-                      onClick={() =>
-                        setTemperatureUnit(
-                          "F"
-                        )
-                      }
-                    >
-                      °F
-                    </button>
-
-                    <button
-                      style={{
-                        flex: 1,
-                        padding:
-                          "10px",
-                        borderRadius:
-                          "10px",
-                        border:
-                          temperatureUnit ===
-                          "C"
-                            ? "2px solid #2563eb"
-                            : "1px solid #d1d5db",
-                        backgroundColor:
-                          temperatureUnit ===
-                          "C"
-                            ? "#eff6ff"
-                            : "white",
-                      }}
-                      onClick={() =>
-                        setTemperatureUnit(
-                          "C"
-                        )
-                      }
-                    >
-                      °C
-                    </button>
-                  </div>
-                </>
-              )}
+              <div style={{ marginTop: "10px" }}>
+                <label style={{ fontSize: "16px" }}>
+                  Was temperature taken?
+                </label>
+                <input
+                  type="text"
+                  value={temperatureChecked}
+                  onChange={(e) =>
+                    setTemperatureChecked(e.target.value)
+                  }
+                  placeholder="Yes / No"
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    border: "1px solid #ccc",
+                    marginTop: "6px",
+                  }}
+                />
+                <label style={{ fontSize: "16px", marginTop: "8px" }}>
+                  Latest temperature reading
+                </label>
+                <input
+                  type="text"
+                  value={temperatureReading}
+                  onChange={(e) =>
+                    setTemperatureReading(e.target.value)
+                  }
+                  placeholder="e.g. 101.4"
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    border: "1px solid #ccc",
+                    marginTop: "6px",
+                  }}
+                />
+                <select
+                  value={temperatureUnit}
+                  onChange={(e) =>
+                    setTemperatureUnit(e.target.value)
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    marginTop: "6px",
+                    borderRadius: "8px",
+                    border: "1px solid #ccc",
+                  }}
+                >
+                  <option value="F">°F</option>
+                  <option value="C">°C</option>
+                </select>
+              </div>
             </>
           )}
 
-          <div style={{ height: "12px" }} />
-
-          <h3>
-            ⚡ How is your energy today?
-          </h3>
-
-          {fever !== "yes" && (
+          <div style={{ marginTop: "12px" }}>
+            <h3 style={{ fontSize: "18px", marginBottom: "6px" }}>
+              ⚡ How is your energy today?
+            </h3>
             <button
-              style={optionStyle(
-                energy === "good"
-              )}
-              onClick={() =>
-                setEnergy("good")
-              }
+              style={optionStyle(energy === "good")}
+              onClick={() => setEnergy("good")}
             >
               😊 Good
             </button>
-          )}
-
-          <button
-            style={optionStyle(
-              energy === "tired"
-            )}
-            onClick={() =>
-              setEnergy("tired")
-            }
-          >
-            😐 Tired
-          </button>
-
-          <button
-            style={optionStyle(
-              energy === "verytired"
-            )}
-            onClick={() =>
-              setEnergy(
-                "verytired"
-              )
-            }
-          >
-            😟 Very Tired
-          </button>
-
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-              marginTop: "16px",
-            }}
-          >
             <button
-              onClick={() =>
-                router.push("/self")
-              }
-              style={{
-                flex: 1,
-                padding: "12px",
-                backgroundColor:
-                  "#e5e7eb",
-                border: "none",
-                borderRadius:
-                  "10px",
-                fontWeight:
-                  "bold",
-                cursor: "pointer",
-              }}
+              style={optionStyle(energy === "tired")}
+              onClick={() => setEnergy("tired")}
             >
-              ← Previous
+              😐 Tired
             </button>
-
             <button
-              onClick={handleNext}
-              style={{
-                flex: 1,
-                padding: "12px",
-                backgroundColor:
-                  "#2563eb",
-                color: "white",
-                border: "none",
-                borderRadius:
-                  "10px",
-                fontWeight:
-                  "bold",
-                cursor: "pointer",
-              }}
+              style={optionStyle(energy === "veryTired")}
+              onClick={() => setEnergy("veryTired")}
             >
-              Next →
+              😟 Very Tired
             </button>
           </div>
+
+          <div style={{ marginTop: "12px" }}>
+            <h3 style={{ fontSize: "18px", marginBottom: "6px" }}>
+              🍽 How is your appetite today?
+            </h3>
+            <button
+              style={optionStyle(appetite === "normal")}
+              onClick={() => setAppetite("normal")}
+            >
+              😊 Normal
+            </button>
+            <button
+              style={optionStyle(appetite === "less")}
+              onClick={() => setAppetite("less")}
+            >
+              😐 Less than usual
+            </button>
+            <button
+              style={optionStyle(appetite === "hardly")}
+              onClick={() => setAppetite("hardly")}
+            >
+              😟 Hardly Eating
+            </button>
+          </div>
+
+          <div style={{ marginTop: "12px" }}>
+            <h3 style={{ fontSize: "18px", marginBottom: "6px" }}>
+              💧 Did you drink enough water?
+            </h3>
+            <button
+              style={optionStyle(water === "yes")}
+              onClick={() => setWater("yes")}
+            >
+              😊 Yes
+            </button>
+            <button
+              style={optionStyle(water === "no")}
+              onClick={() => setWater("no")}
+            >
+              😟 No
+            </button>
+            <button
+              style={optionStyle(water === "notsure")}
+              onClick={() => setWater("notsure")}
+            >
+              😐 Not Sure
+            </button>
+
+            {water === "yes" && (
+              <input
+                type="number"
+                min={1}
+                max={10}
+                value={waterGlasses}
+                onChange={(e) =>
+                  setWaterGlasses(e.target.value)
+                }
+                placeholder="How many glasses?"
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  marginTop: "6px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                }}
+              />
+            )}
+          </div>
+
+          <button
+            onClick={handleNext}
+            style={{
+              width: "100%",
+              marginTop: "16px",
+              padding: "12px",
+              backgroundColor: "#2563eb",
+              color: "white",
+              border: "none",
+              borderRadius: "10px",
+              fontSize: "18px",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >
+            Next →
+          </button>
         </div>
       </div>
     </main>

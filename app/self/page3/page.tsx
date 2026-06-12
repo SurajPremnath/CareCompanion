@@ -1,24 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
+import Header from "@/Components/Header";
 
 export default function Page3() {
   const router = useRouter();
 
-  const [appetite, setAppetite] = useState(
-    localStorage.getItem("appetite") || ""
-  );
+  const [appetite, setAppetite] =
+    useState("");
 
-  const [water, setWater] = useState(
-    localStorage.getItem("water") || ""
-  );
+  const [water, setWater] =
+    useState("");
 
   const [waterGlasses, setWaterGlasses] =
-    useState(
-      localStorage.getItem("waterGlasses") || ""
+    useState("");
+
+  useEffect(() => {
+    setAppetite(
+      localStorage.getItem("appetite") ||
+        ""
     );
+
+    setWater(
+      localStorage.getItem("water") || ""
+    );
+
+    setWaterGlasses(
+      localStorage.getItem(
+        "waterGlasses"
+      ) || ""
+    );
+  }, []);
 
   const optionStyle = (
     selected: boolean

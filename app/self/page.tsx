@@ -1,24 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
+import Header from "@/Components/Header";
 
 export default function SelfAssessmentPage() {
   const router = useRouter();
 
-  const [breathing, setBreathing] = useState(
-    localStorage.getItem("breathing") || ""
-  );
+  const [breathing, setBreathing] =
+    useState("");
 
-  const [cough, setCough] = useState(
-    localStorage.getItem("cough") || ""
-  );
+  const [cough, setCough] =
+    useState("");
 
   const [bloodInCough, setBloodInCough] =
-    useState(
-      localStorage.getItem("bloodInCough") || ""
+    useState("");
+
+  useEffect(() => {
+    setBreathing(
+      localStorage.getItem("breathing") ||
+        ""
     );
+
+    setCough(
+      localStorage.getItem("cough") || ""
+    );
+
+    setBloodInCough(
+      localStorage.getItem(
+        "bloodInCough"
+      ) || ""
+    );
+  }, []);
 
   const optionStyle = (
     selected: boolean
@@ -124,7 +137,8 @@ export default function SelfAssessmentPage() {
               marginBottom: "6px",
             }}
           >
-            🫁 How is your breathing today?
+            🫁 How is your breathing
+            today?
           </h3>
 
           <button
@@ -143,7 +157,9 @@ export default function SelfAssessmentPage() {
               breathing === "slightly"
             )}
             onClick={() =>
-              setBreathing("slightly")
+              setBreathing(
+                "slightly"
+              )
             }
           >
             😐 Slightly Difficult
@@ -151,16 +167,23 @@ export default function SelfAssessmentPage() {
 
           <button
             style={optionStyle(
-              breathing === "difficult"
+              breathing ===
+                "difficult"
             )}
             onClick={() =>
-              setBreathing("difficult")
+              setBreathing(
+                "difficult"
+              )
             }
           >
             😟 Very Difficult
           </button>
 
-          <div style={{ height: "12px" }} />
+          <div
+            style={{
+              height: "12px",
+            }}
+          />
 
           <h3
             style={{
@@ -168,7 +191,8 @@ export default function SelfAssessmentPage() {
               marginBottom: "6px",
             }}
           >
-            🤧 Are you coughing today?
+            🤧 Are you coughing
+            today?
           </h3>
 
           <button
@@ -185,10 +209,13 @@ export default function SelfAssessmentPage() {
 
           <button
             style={optionStyle(
-              cough === "sometimes"
+              cough ===
+                "sometimes"
             )}
             onClick={() =>
-              setCough("sometimes")
+              setCough(
+                "sometimes"
+              )
             }
           >
             😐 Sometimes
@@ -196,10 +223,13 @@ export default function SelfAssessmentPage() {
 
           <button
             style={optionStyle(
-              cough === "frequent"
+              cough ===
+                "frequent"
             )}
             onClick={() =>
-              setCough("frequent")
+              setCough(
+                "frequent"
+              )
             }
           >
             😟 Frequently
@@ -215,20 +245,25 @@ export default function SelfAssessmentPage() {
 
               <h3
                 style={{
-                  fontSize: "18px",
-                  marginBottom: "6px",
+                  fontSize:
+                    "18px",
+                  marginBottom:
+                    "6px",
                 }}
               >
-                🩸 Have you coughed up
-                blood?
+                🩸 Have you coughed
+                up blood?
               </h3>
 
               <button
                 style={optionStyle(
-                  bloodInCough === "no"
+                  bloodInCough ===
+                    "no"
                 )}
                 onClick={() =>
-                  setBloodInCough("no")
+                  setBloodInCough(
+                    "no"
+                  )
                 }
               >
                 😊 No
@@ -236,10 +271,13 @@ export default function SelfAssessmentPage() {
 
               <button
                 style={optionStyle(
-                  bloodInCough === "yes"
+                  bloodInCough ===
+                    "yes"
                 )}
                 onClick={() =>
-                  setBloodInCough("yes")
+                  setBloodInCough(
+                    "yes"
+                  )
                 }
               >
                 😟 Yes
@@ -248,7 +286,9 @@ export default function SelfAssessmentPage() {
           )}
 
           <button
-            onClick={handleNext}
+            onClick={
+              handleNext
+            }
             style={{
               width: "100%",
               marginTop: "16px",
@@ -257,10 +297,13 @@ export default function SelfAssessmentPage() {
                 "#2563eb",
               color: "white",
               border: "none",
-              borderRadius: "10px",
+              borderRadius:
+                "10px",
               fontSize: "18px",
-              fontWeight: "bold",
-              cursor: "pointer",
+              fontWeight:
+                "bold",
+              cursor:
+                "pointer",
             }}
           >
             Next →
@@ -270,3 +313,4 @@ export default function SelfAssessmentPage() {
     </main>
   );
 }
+
