@@ -52,7 +52,7 @@ export default function SelfPage2() {
   ) => ({
     width: "100%",
     padding: "10px 14px",
-    marginBottom: "6px",
+    marginBottom: "8px",
     borderRadius: "10px",
     border: selected
       ? "2px solid #2563eb"
@@ -66,9 +66,37 @@ export default function SelfPage2() {
   });
 
   const handleNext = () => {
-    if (!fever || !energy) {
+    if (!fever) {
       alert(
-        "Please answer all questions."
+        "Please answer whether you feel feverish."
+      );
+      return;
+    }
+
+    if (
+      fever === "yes" &&
+      !temperatureChecked
+    ) {
+      alert(
+        "Please answer whether temperature was taken."
+      );
+      return;
+    }
+
+    if (
+      fever === "yes" &&
+      temperatureChecked === "yes" &&
+      !temperatureReading
+    ) {
+      alert(
+        "Please enter the temperature reading."
+      );
+      return;
+    }
+
+    if (!energy) {
+      alert(
+        "Please select your energy level."
       );
       return;
     }
@@ -138,22 +166,24 @@ export default function SelfPage2() {
 
           <hr />
 
-          <h3
-            style={{
-              fontSize: "18px",
-              marginBottom: "6px",
-            }}
-          >
-            🤒 Do you feel feverish?
+          <h3>
+            🤒 Do you feel feverish
+            today?
           </h3>
 
           <button
             style={optionStyle(
               fever === "no"
             )}
-            onClick={() =>
-              setFever("no")
-            }
+            onClick={() => {
+              setFever("no");
+              setTemperatureChecked(
+                ""
+              );
+              setTemperatureReading(
+                ""
+              );
+            }}
           >
             😊 No
           </button>
@@ -173,124 +203,148 @@ export default function SelfPage2() {
             <>
               <div
                 style={{
-                  marginTop: "10px",
+                  height: "12px",
+                }}
+              />
+
+              <h3>
+                🌡 Was your
+                temperature taken?
+              </h3>
+
+              <button
+                style={optionStyle(
+                  temperatureChecked ===
+                    "yes"
+                )}
+                onClick={() =>
+                  setTemperatureChecked(
+                    "yes"
+                  )
+                }
+              >
+                😊 Yes
+              </button>
+
+              <button
+                style={optionStyle(
+                  temperatureChecked ===
+                    "no"
+                )}
+                onClick={() => {
+                  setTemperatureChecked(
+                    "no"
+                  );
+                  setTemperatureReading(
+                    ""
+                  );
                 }}
               >
-                <label
-                  style={{
-                    fontSize: "16px",
-                  }}
-                >
-                  Was temperature taken?
-                </label>
+                😐 No
+              </button>
 
-                <input
-                  type="text"
-                  value={
-                    temperatureChecked
-                  }
-                  onChange={(e) =>
-                    setTemperatureChecked(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Yes / No"
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border:
-                      "1px solid #ccc",
-                    marginTop: "6px",
-                  }}
-                />
+              {temperatureChecked ===
+                "yes" && (
+                <>
+                  <div
+                    style={{
+                      marginTop:
+                        "12px",
+                    }}
+                  >
+                    <label>
+                      Latest
+                      temperature
+                      reading
+                    </label>
 
-                <label
-                  style={{
-                    fontSize: "16px",
-                    marginTop: "8px",
-                    display: "block",
-                  }}
-                >
-                  Latest temperature
-                  reading
-                </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={
+                        temperatureReading
+                      }
+                      onChange={(e) =>
+                        setTemperatureReading(
+                          e.target
+                            .value
+                        )
+                      }
+                      placeholder="e.g. 101.4"
+                      style={{
+                        width:
+                          "100%",
+                        padding:
+                          "12px",
+                        marginTop:
+                          "6px",
+                        borderRadius:
+                          "10px",
+                        border:
+                          "1px solid #ccc",
+                        boxSizing:
+                          "border-box",
+                      }}
+                    />
 
-                <input
-                  type="text"
-                  value={
-                    temperatureReading
-                  }
-                  onChange={(e) =>
-                    setTemperatureReading(
-                      e.target.value
-                    )
-                  }
-                  placeholder="e.g. 101.4"
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border:
-                      "1px solid #ccc",
-                    marginTop: "6px",
-                  }}
-                />
-
-                <select
-                  value={
-                    temperatureUnit
-                  }
-                  onChange={(e) =>
-                    setTemperatureUnit(
-                      e.target.value
-                    )
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    marginTop: "6px",
-                    borderRadius: "8px",
-                    border:
-                      "1px solid #ccc",
-                  }}
-                >
-                  <option value="F">
-                    °F
-                  </option>
-                  <option value="C">
-                    °C
-                  </option>
-                </select>
-              </div>
+                    <select
+                      value={
+                        temperatureUnit
+                      }
+                      onChange={(e) =>
+                        setTemperatureUnit(
+                          e.target
+                            .value
+                        )
+                      }
+                      style={{
+                        width:
+                          "100%",
+                        padding:
+                          "12px",
+                        marginTop:
+                          "8px",
+                        borderRadius:
+                          "10px",
+                        border:
+                          "1px solid #ccc",
+                      }}
+                    >
+                      <option value="F">
+                        °F
+                      </option>
+                      <option value="C">
+                        °C
+                      </option>
+                    </select>
+                  </div>
+                </>
+              )}
             </>
           )}
 
           <div
             style={{
-              marginTop: "12px",
+              marginTop: "20px",
             }}
           >
-            <h3
-              style={{
-                fontSize: "18px",
-                marginBottom: "6px",
-              }}
-            >
-              ⚡ How is your energy
-              today?
+            <h3>
+              ⚡ How is your
+              energy today?
             </h3>
 
-            <button
-              style={optionStyle(
-                energy === "good"
-              )}
-              onClick={() =>
-                setEnergy("good")
-              }
-            >
-              😊 Good
-            </button>
+            {fever !== "yes" && (
+              <button
+                style={optionStyle(
+                  energy === "good"
+                )}
+                onClick={() =>
+                  setEnergy("good")
+                }
+              >
+                😊 Good
+              </button>
+            )}
 
             <button
               style={optionStyle(
@@ -322,7 +376,7 @@ export default function SelfPage2() {
             onClick={handleNext}
             style={{
               width: "100%",
-              marginTop: "16px",
+              marginTop: "20px",
               padding: "12px",
               backgroundColor:
                 "#2563eb",
