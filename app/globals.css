@@ -1,26 +1,93 @@
-@import "tailwindcss";
-
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --border: #d1d5db;
+  --bg: #f8fafc;
+  --primary: #2563eb;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  padding: 0;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 16px;
+
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* FORCE READABLE TEXT ON ANDROID */
+body {
+  font-weight: 500;
+}
+
+/* HEADINGS */
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* LABELS */
+label,
+p,
+span,
+div {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* INPUTS */
+input,
+select,
+textarea {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* PLACEHOLDER FIX (ANDROID ISSUE) */
+input::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}
+
+/* BUTTON BASE */
+button {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-height: 44px;
+}
+
+/* MOBILE OPTIMIZATION */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 24px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  h3 {
+    font-size: 17px;
+  }
 }
