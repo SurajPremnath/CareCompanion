@@ -1,15 +1,4 @@
 import "./globals.css";
-import { Inter } from "next/font/google";
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-export const metadata = {
-  title: "CareCompanion",
-  description: "Daily health companion for families",
-};
 
 export default function RootLayout({
   children,
@@ -18,7 +7,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body
+        style={{
+          margin: 0,
+          padding: 0,
+          backgroundColor: "#f8fafc",
+          fontFamily:
+            "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial, sans-serif",
+          color: "#111827",
+        }}
+      >
         {children}
       </body>
     </html>

@@ -6,9 +6,7 @@ type HeaderProps = {
   currentPage?: number;
 };
 
-export default function Header({
-  currentPage = 0,
-}: HeaderProps) {
+export default function Header({ currentPage = 0 }: HeaderProps) {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [date, setDate] = useState("");
@@ -17,8 +15,7 @@ export default function Header({
     setName(localStorage.getItem("patientName") || "");
     setAge(localStorage.getItem("patientAge") || "");
 
-    const savedDate =
-      localStorage.getItem("assessmentDate");
+    const savedDate = localStorage.getItem("assessmentDate");
 
     if (savedDate) {
       setDate(savedDate);
@@ -33,40 +30,48 @@ export default function Header({
     }
   }, []);
 
-  const progress =
-    currentPage > 0
-      ? (currentPage / 5) * 100
-      : 0;
+  const progress = currentPage > 0 ? (currentPage / 5) * 100 : 0;
 
   return (
     <div style={{ marginBottom: "20px" }}>
+      {/* BRANDING */}
       <h1
         style={{
           textAlign: "center",
-          fontSize: "30px",
-          marginBottom: "10px",
+          fontSize: "28px",
+          fontWeight: "700",
+          marginBottom: "4px",
         }}
       >
         ❤️ CareCompanion
       </h1>
 
+      <p
+        style={{
+          textAlign: "center",
+          fontSize: "13px",
+          color: "#374151",
+          marginBottom: "10px",
+        }}
+      >
+        A simple daily health companion for your family
+      </p>
+
+      {/* USER INFO */}
       {name && (
         <div
           style={{
             textAlign: "center",
-            fontSize: "15px",
+            fontSize: "14px",
             color: "#555",
-            marginBottom: "12px",
+            marginBottom: "10px",
           }}
         >
-          👤 {name}
-          &nbsp;&nbsp;|&nbsp;&nbsp;
-          🎂 {age}
-          &nbsp;&nbsp;|&nbsp;&nbsp;
-          📅 {date}
+          👤 {name} &nbsp;|&nbsp; 🎂 {age} &nbsp;|&nbsp; 📅 {date}
         </div>
       )}
 
+      {/* PROGRESS BAR */}
       {currentPage > 0 && (
         <>
           <div
@@ -91,14 +96,30 @@ export default function Header({
           <div
             style={{
               textAlign: "center",
-              fontSize: "14px",
+              fontSize: "13px",
               color: "#666",
+              marginBottom: "10px",
             }}
           >
             Page {currentPage} of 5
           </div>
         </>
       )}
+
+      {/* COMPLIANCE FOOTER (INSIDE HEADER SYSTEM) */}
+      <div
+        style={{
+          textAlign: "center",
+          fontSize: "11px",
+          color: "#6b7280",
+          marginTop: "10px",
+          lineHeight: "1.4",
+        }}
+      >
+        ⚠ Wellness tracking only — not medical advice
+        <br />
+        © 2026 Suraj Premnath • v1.0.1
+      </div>
     </div>
   );
 }
