@@ -52,7 +52,7 @@ export default function HomePage() {
           </p>
 
           <div style={{ marginTop: "10px", fontSize: "13px", color: "#555" }}>
-            👤 {name || "—"} | 📅 {dateTime || "—"}
+            📅 {dateTime || "—"}
           </div>
         </div>
 
