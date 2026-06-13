@@ -148,6 +148,67 @@ export default function ReportPage() {
 
     const reportSummary: Row[] = [];
 
+const displayValue = (
+  field: string,
+  value: string
+): string => {
+  switch (field) {
+    case "breathing":
+      if (value === "normal") return "Normal";
+      if (value === "slightly") return "Slight Difficulty";
+      if (value === "difficult") return "Significant Difficulty";
+      break;
+
+    case "cough":
+      if (value === "no") return "No Cough";
+      if (value === "sometimes") return "Occasional Cough";
+      if (value === "frequent") return "Frequent Cough";
+      break;
+
+    case "fever":
+      if (value === "yes") return "Fever Reported";
+      if (value === "no") return "No Fever";
+      break;
+
+    case "energy":
+      if (value === "good") return "Good";
+      if (value === "tired") return "Tired";
+      if (value === "verytired") return "Very Tired";
+      break;
+
+    case "appetite":
+      if (value === "normal") return "Normal";
+      if (value === "less") return "Reduced";
+      if (value === "poor") return "Very Low";
+      break;
+
+    case "water":
+      if (value === "yes") return "Adequate";
+      if (value === "no") return "Insufficient";
+      if (value === "notsure") return "Not Sure";
+      break;
+
+    case "discomfort":
+      if (value === "yes") return "Reported";
+      if (value === "no") return "None Reported";
+      break;
+
+    case "walking":
+      if (value === "easy") return "Walked Easily";
+      if (value === "some") return "Some Difficulty";
+      if (value === "difficult")
+        return "Significant Difficulty";
+      break;
+
+    case "confusion":
+      if (value === "yes") return "Observed";
+      if (value === "no") return "Not Observed";
+      break;
+  }
+
+  return value || "Not Reported";
+};
+
     // PART 2 CONTINUES HERE
     // =========================
     // SCORING ENGINE
@@ -368,7 +429,7 @@ export default function ReportPage() {
       looseMotionType === "sticky"
     ) {
       observationList.push(
-        "🚽 Digestive changes were reported today (sticky stools)."
+        "💩 Changes in bowel movements were reported today (sticky stools)."
       );
 
       suggestionList.push(
@@ -404,7 +465,7 @@ export default function ReportPage() {
 
     if (confusion === "yes") {
       observationList.push(
-        "🧠 Increased confusion was reported today."
+        "🧠 Increased confusion or unusual disorientation was reported today."
       );
 
       suggestionList.push(
@@ -414,7 +475,7 @@ export default function ReportPage() {
 
     if (bloodInCough === "yes") {
       observationList.push(
-        "⚠ Blood was reported while coughing."
+        "⚠ Blood was reported while coughing today. This should be monitored carefully."
       );
 
       suggestionList.push(
@@ -437,55 +498,94 @@ export default function ReportPage() {
     // HEALTH SUMMARY
     // =========================
 
-    reportSummary.push(
-      { label: "Breathing", value: breathing || "Not Reported" },
-      { label: "Cough", value: cough || "Not Reported" },
-      { label: "Fever", value: fever || "Not Reported" },
-      { label: "Energy", value: energy || "Not Reported" },
-      { label: "Appetite", value: appetite || "Not Reported" },
-      {
-        label: "Water Intake",
-        value:
-          water +
-            (waterGlasses
-              ? ` (${waterGlasses} glasses)`
-              : "") || "Not Reported",
-      },
-      {
-        label: "Discomfort",
-        value: discomfort || "Not Reported",
-      },
-      {
-        label: "Discomfort Areas",
-        value:
-          discomfortAreas?.length > 0
-            ? discomfortAreas.join(", ")
-            : "None",
-      },
-      {
-        label: "Walking",
-        value: walking || "Not Reported",
-      }
-    );
+reportSummary.push(
+  {
+    label: "Breathing",
+    value: displayValue(
+      "breathing",
+      breathing
+    ),
+  },
+  {
+    label: "Cough",
+    value: displayValue(
+      "cough",
+      cough
+    ),
+  },
+  {
+    label: "Fever",
+    value: displayValue(
+      "fever",
+      fever
+    ),
+  },
+  {
+    label: "Energy",
+    value: displayValue(
+      "energy",
+      energy
+    ),
+  },
+  {
+    label: "Appetite",
+    value: displayValue(
+      "appetite",
+      appetite
+    ),
+  },
+  {
+    label: "Water Intake",
+    value:
+      displayValue("water", water) +
+      (waterGlasses
+        ? ` (${waterGlasses} glasses)`
+        : ""),
+  },
+  {
+    label: "Discomfort",
+    value: displayValue(
+      "discomfort",
+      discomfort
+    ),
+  },
+  {
+    label: "Discomfort Areas",
+    value:
+      discomfortAreas?.length > 0
+        ? discomfortAreas.join(", ")
+        : "None",
+  },
+  {
+    label: "Walking",
+    value: displayValue(
+      "walking",
+      walking
+    ),
+  }
+);
 
     if (type === "family") {
       reportSummary.push({
-        label: "Confusion",
-        value: confusion || "Not Reported",
-      });
+  label: "Confusion",
+  value: displayValue(
+    "confusion",
+    confusion
+  ),
+});
     }
 
     reportSummary.push({
-      label: "Loose Motions",
-      value:
-        looseMotions === "yes"
-          ? `Yes${
-              looseMotionType
-                ? ` (${looseMotionType})`
-                : ""
-            }`
-          : "No",
-    });
+  label: "Loose Motions",
+  value:
+    looseMotions === "yes"
+      ? looseMotionType === "sticky"
+        ? "Sticky Stool Reported"
+        : looseMotionType === "watery"
+        ? "Watery Stool Reported"
+        : "Changes Observed"
+      : "None Reported",
+});
 
     // =========================
     // EMPTY STATES
