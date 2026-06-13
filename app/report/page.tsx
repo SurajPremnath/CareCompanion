@@ -808,6 +808,30 @@ reportSummary.push(
             healthcare professional.
           </p>
 
+<hr
+  style={{
+    margin: "20px 0",
+  }}
+/>
+
+<div
+  style={{
+    textAlign: "center",
+    color: "#666",
+    fontSize: "14px",
+    lineHeight: "1.6",
+  }}
+>
+  <p>
+    Created by <strong>Suraj Premnath</strong>
+  </p>
+
+  <p>
+    © {new Date().getFullYear()} CareCompanion.
+    All Rights Reserved.
+  </p>
+</div>
+
           <button
             onClick={() =>
               router.push("/")
