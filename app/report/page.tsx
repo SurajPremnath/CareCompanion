@@ -3,142 +3,515 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Row = { label: string; value: string };
+type Row = {
+  label: string;
+  value: string;
+};
 
 export default function ReportPage() {
   const router = useRouter();
 
   const [loaded, setLoaded] = useState(false);
+
   const [score, setScore] = useState(0);
   const [status, setStatus] = useState("");
-  const [message, setMessage] = useState("");
-  const [summary, setSummary] = useState<Row[]>([]);
+  const [wellbeingSummary, setWellbeingSummary] = useState("");
+
+  const [summaryRows, setSummaryRows] = useState<Row[]>([]);
   const [observations, setObservations] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const [patientName, setPatientName] = useState("");
   const [patientAge, setPatientAge] = useState("");
   const [assessmentType, setAssessmentType] = useState("");
   const [assessmentDate, setAssessmentDate] = useState("");
+
   const [observerName, setObserverName] = useState("");
   const [observerRelationship, setObserverRelationship] = useState("");
 
   useEffect(() => {
-    const type = localStorage.getItem("assessmentType") || "self";
+    const type =
+      localStorage.getItem("assessmentType") || "self";
 
     setAssessmentType(type);
-    setPatientName(localStorage.getItem("patientName") || "");
-    setPatientAge(localStorage.getItem("patientAge") || "");
-    setAssessmentDate(localStorage.getItem("assessmentDate") || "");
-    setObserverName(localStorage.getItem("observerName") || "");
 
-    const rel =
-      localStorage.getItem("observerRelationship") === "Other"
-        ? localStorage.getItem("observerRelationshipOther") || "Other"
-        : localStorage.getItem("observerRelationship") || "";
+    setPatientName(
+      localStorage.getItem("patientName") || ""
+    );
 
-    setObserverRelationship(rel);
+    setPatientAge(
+      localStorage.getItem("patientAge") || ""
+    );
 
-    const breathing = localStorage.getItem("breathing") || "";
-    const cough = localStorage.getItem("cough") || "";
-    const bloodInCough = localStorage.getItem("bloodInCough") || "";
-    const fever = localStorage.getItem("fever") || "";
-    const temperatureReading = localStorage.getItem("temperatureReading") || "";
-    const temperatureUnit = localStorage.getItem("temperatureUnit") || "F";
-    const energy = localStorage.getItem("energy") || "";
-    const appetite = localStorage.getItem("appetite") || "";
-    const water = localStorage.getItem("water") || "";
-    const waterGlasses = localStorage.getItem("waterGlasses") || "";
-    const walking = localStorage.getItem("walking") || "";
-    const walkingHelp = localStorage.getItem("walkingHelp") || "";
-    const looseMotions = localStorage.getItem("looseMotions") || "";
-    const looseMotionType = localStorage.getItem("looseMotionType") || "";
+    setAssessmentDate(
+      localStorage.getItem("assessmentDate") ||
+        new Date().toLocaleString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+    );
+
+    setObserverName(
+      localStorage.getItem("observerName") || ""
+    );
+
+    const relationship =
+      localStorage.getItem(
+        "observerRelationship"
+      ) === "Other"
+        ? localStorage.getItem(
+            "observerRelationshipOther"
+          ) || "Other"
+        : localStorage.getItem(
+            "observerRelationship"
+          ) || "";
+
+    setObserverRelationship(relationship);
+
+    // COMMON QUESTIONS
+
+    const breathing =
+      localStorage.getItem("breathing") || "";
+
+    const cough =
+      localStorage.getItem("cough") || "";
+
+    const bloodInCough =
+      localStorage.getItem("bloodInCough") || "";
+
+    const fever =
+      localStorage.getItem("fever") || "";
+
+    const temperatureReading =
+      localStorage.getItem(
+        "temperatureReading"
+      ) || "";
+
+    const temperatureUnit =
+      localStorage.getItem(
+        "temperatureUnit"
+      ) || "F";
+
+    const energy =
+      localStorage.getItem("energy") || "";
+
+    const appetite =
+      localStorage.getItem("appetite") || "";
+
+    const water =
+      localStorage.getItem("water") || "";
+
+    const waterGlasses =
+      localStorage.getItem(
+        "waterGlasses"
+      ) || "";
+
+    const walking =
+      localStorage.getItem("walking") || "";
+
+    const walkingHelp =
+      localStorage.getItem(
+        "walkingHelp"
+      ) || "";
+
+    const looseMotions =
+      localStorage.getItem(
+        "looseMotions"
+      ) || "";
+
+    const looseMotionType =
+      localStorage.getItem(
+        "looseMotionType"
+      ) || "";
+
+    const discomfort =
+      localStorage.getItem(
+        "discomfort"
+      ) || "";
+
+    const discomfortAreas = JSON.parse(
+      localStorage.getItem(
+        "discomfortAreas"
+      ) || "[]"
+    );
+
+    const confusion =
+      localStorage.getItem("confusion") || "";
 
     let total = 0;
 
-    const obs: string[] = [];
+    const observationList: string[] = [];
+    const suggestionList: string[] = [];
+
+    const reportSummary: Row[] = [];
+
+    // PART 2 CONTINUES HERE
+    // =========================
+    // SCORING ENGINE
+    // =========================
+
+    if (breathing === "normal") total += 2;
+    else if (breathing === "slightly") total += 1;
+
+    if (cough === "no") total += 2;
+    else if (cough === "sometimes") total += 1;
+
+    if (fever === "no") total += 2;
+
+    if (energy === "good") total += 2;
+    else if (energy === "tired") total += 1;
+
+    if (appetite === "normal") total += 2;
+    else if (appetite === "less") total += 1;
+
+    if (water === "yes") total += 2;
+    else if (water === "notsure") total += 1;
+
+    if (walking === "easy") total += 2;
+    else if (walking === "some") total += 1;
+
+    if (looseMotions === "no") total += 2;
 
     if (type === "self") {
-      const pain = localStorage.getItem("pain") || "";
-      const painAreas = JSON.parse(localStorage.getItem("painAreas") || "[]");
-
-      if (breathing === "normal") total += 2; else if (breathing === "slightly") total += 1;
-      if (cough === "no") total += 2; else if (cough === "sometimes") total += 1;
-      if (fever === "no") total += 2;
-      if (energy === "good") total += 2; else if (energy === "tired") total += 1;
-      if (appetite === "normal") total += 2; else if (appetite === "less") total += 1;
-      if (water === "yes") total += 2; else if (water === "notsure") total += 1;
-      if (pain === "none") total += 2; else if (pain === "mild") total += 1;
-      if (walking === "easy") total += 2; else if (walking === "some") total += 1;
-      if (looseMotions === "no") total += 2;
-
-      setScore(Math.round((total / 18) * 20));
-
-      setSummary([
-        { label: "Breathing", value: breathing },
-        { label: "Cough", value: cough },
-        { label: "Fever", value: fever },
-        { label: "Energy", value: energy },
-        { label: "Appetite", value: appetite },
-        { label: "Water Intake", value: water + (waterGlasses ? ` (${waterGlasses} glasses)` : "") },
-        { label: "Body Pain", value: pain },
-        { label: "Pain Areas", value: painAreas.join(", ") || "None" },
-        { label: "Walking", value: walking },
-        { label: "Loose Motions", value: looseMotions + (looseMotionType ? ` (${looseMotionType})` : "") },
-      ]);
-    } else {
-      const discomfort = localStorage.getItem("discomfort") || "";
-      const discomfortAreas = JSON.parse(localStorage.getItem("discomfortAreas") || "[]");
-      const confusion = localStorage.getItem("confusion") || "";
-
-      if (breathing === "normal") total += 2;
-      if (cough === "no") total += 2;
-      if (fever === "no") total += 2;
-      if (energy === "good") total += 2;
-      if (appetite === "normal") total += 2;
-      if (water === "yes") total += 2;
       if (discomfort === "no") total += 2;
-      if (walking === "easy") total += 2;
-      if (looseMotions === "no") total += 2;
+      else if (discomfort === "yes") total += 1;
+
+      const convertedScore = Math.round(
+        (total / 18) * 20
+      );
+
+      setScore(convertedScore);
+    } else {
+      if (discomfort === "no") total += 2;
+
       if (confusion === "no") total += 2;
 
       setScore(total);
-
-      setSummary([
-        { label: "Breathing", value: breathing },
-        { label: "Cough", value: cough },
-        { label: "Fever", value: fever },
-        { label: "Energy", value: energy },
-        { label: "Appetite", value: appetite },
-        { label: "Water Intake", value: water + (waterGlasses ? ` (${waterGlasses} glasses)` : "") },
-        { label: "Discomfort", value: discomfort },
-        { label: "Discomfort Areas", value: discomfortAreas.join(", ") || "None" },
-        { label: "Walking", value: walking },
-        { label: "Confusion", value: confusion },
-      ]);
-
-      if (confusion === "yes") obs.push("⚠ Confusion observed");
-      if (discomfort === "yes") obs.push("⚠ Discomfort reported");
     }
 
-    if (bloodInCough === "yes") obs.push("⚠ Blood seen while coughing");
-    if (fever === "yes" && temperatureReading) obs.push(`⚠ Fever reported (${temperatureReading}°${temperatureUnit})`);
-    if (walkingHelp === "yes") obs.push("⚠ Walking assistance required");
-    if (breathing === "difficult") obs.push("⚠ Significant breathing difficulty");
+    const finalScore =
+      type === "self"
+        ? Math.round((total / 18) * 20)
+        : total;
 
-    setObservations(obs);
+    // =========================
+    // SCORE BAND LOGIC
+    // =========================
 
-    const finalScore = type === "self" ? Math.round((total / 18) * 20) : total;
-
-    if (finalScore >= 18) {
+    if (finalScore >= 19) {
       setStatus("🟢 Excellent");
-      setMessage("Continue daily monitoring and maintain hydration.");
+
+      setWellbeingSummary(
+        "Today's responses indicate encouraging signs of wellbeing. Current routines appear to be supporting overall health. Continue hydration, nutrition and regular monitoring."
+      );
+    } else if (finalScore >= 16) {
+      setStatus("🟢 Good");
+
+      setWellbeingSummary(
+        "Overall wellbeing appears stable today. A few areas may benefit from gentle attention, but today's responses remain largely encouraging."
+      );
     } else if (finalScore >= 12) {
       setStatus("🟡 Needs Attention");
-      setMessage("Monitor symptoms closely and consult a healthcare professional if symptoms worsen.");
+
+      setWellbeingSummary(
+        "A few areas deserve additional attention today. Monitoring symptoms and encouraging hydration, nutrition and rest may be helpful."
+      );
     } else {
-      setStatus("🔴 Attention Recommended");
-      setMessage("Seek medical attention promptly.");
+      setStatus(
+        "🔴 Immediate Attention Recommended"
+      );
+
+      setWellbeingSummary(
+        "Several responses suggest closer observation is needed today. If symptoms persist, worsen or cause concern, consider contacting a healthcare professional."
+      );
     }
+
+    // =========================
+    // WELLBEING OBSERVATIONS
+    // =========================
+
+    if (
+      fever === "yes" &&
+      temperatureReading
+    ) {
+      observationList.push(
+        `🌡 A raised temperature of ${temperatureReading}°${temperatureUnit} was reported today. Continue monitoring and encourage adequate hydration and rest.`
+      );
+
+      suggestionList.push(
+        "🌡 Continue monitoring temperature during the day."
+      );
+    }
+
+    if (energy === "tired") {
+      observationList.push(
+        "⚡ Energy levels appear lower than usual today. Additional rest may help support recovery."
+      );
+
+      suggestionList.push(
+        "😴 Encourage additional rest and avoid overexertion."
+      );
+    }
+
+    if (
+      energy === "verytired" ||
+      energy === "veryTired"
+    ) {
+      observationList.push(
+        "⚡ Significant fatigue was reported today. Extra rest and close observation may be beneficial."
+      );
+
+      suggestionList.push(
+        "😴 Prioritize rest and monitor energy levels closely."
+      );
+    }
+
+    if (water === "notsure") {
+      observationList.push(
+        "💧 Hydration may need additional attention today."
+      );
+
+      suggestionList.push(
+        "💧 Encourage regular fluid intake throughout the day."
+      );
+    }
+
+    if (water === "no") {
+      observationList.push(
+        "💧 Low fluid intake was reported today."
+      );
+
+      suggestionList.push(
+        "💧 Encourage water and fluids regularly to support wellbeing."
+      );
+    }
+
+    if (appetite === "less") {
+      observationList.push(
+        "🍽 Appetite was lower than usual today."
+      );
+
+      suggestionList.push(
+        "🍽 Smaller frequent meals may help support nutrition."
+      );
+    }
+
+    if (
+      appetite === "hardly" ||
+      appetite === "poor"
+    ) {
+      observationList.push(
+        "🍽 Eating appears to have been difficult today."
+      );
+
+      suggestionList.push(
+        "🍽 Encourage favourite foods and monitor food intake."
+      );
+    }
+
+    if (discomfort === "yes") {
+      observationList.push(
+        "🙂 Some discomfort was reported today."
+      );
+
+      if (
+        discomfortAreas &&
+        discomfortAreas.length > 0
+      ) {
+        observationList.push(
+          `📍 Areas affected: ${discomfortAreas.join(
+            ", "
+          )}`
+        );
+      }
+
+      suggestionList.push(
+        "🛌 Encourage comfort measures and adequate rest."
+      );
+    }
+
+    if (walking === "some") {
+      observationList.push(
+        "🚶 Some difficulty with mobility was reported today."
+      );
+
+      suggestionList.push(
+        "🚶 Encourage safe movement and avoid unnecessary strain."
+      );
+    }
+
+    if (walking === "difficult") {
+      observationList.push(
+        "🚶 Mobility appears more challenging today."
+      );
+
+      suggestionList.push(
+        "🚶 Additional support while walking may be beneficial."
+      );
+    }
+
+    if (walkingHelp === "yes") {
+      observationList.push(
+        "🚶 Assistance was needed while walking today."
+      );
+
+      suggestionList.push(
+        "🚶 Provide support during movement when needed."
+      );
+    }
+
+    if (
+      looseMotions === "yes" &&
+      looseMotionType === "sticky"
+    ) {
+      observationList.push(
+        "🚽 Digestive changes were reported today (sticky stools)."
+      );
+
+      suggestionList.push(
+        "🚽 Monitor digestive symptoms and hydration."
+      );
+    }
+
+    if (
+      looseMotions === "yes" &&
+      looseMotionType === "watery"
+    ) {
+      observationList.push(
+        "🚽 Loose watery stools were reported today."
+      );
+
+      suggestionList.push(
+        "🚽 Monitor closely for dehydration and encourage fluids."
+      );
+    }
+
+    if (
+      looseMotions === "yes" &&
+      looseMotionType === "notsure"
+    ) {
+      observationList.push(
+        "🚽 Changes in bowel movements were reported today."
+      );
+
+      suggestionList.push(
+        "🚽 Continue observing bowel movement patterns."
+      );
+    }
+
+    if (confusion === "yes") {
+      observationList.push(
+        "🧠 Increased confusion was reported today."
+      );
+
+      suggestionList.push(
+        "🧠 Additional observation and reassurance may be helpful."
+      );
+    }
+
+    if (bloodInCough === "yes") {
+      observationList.push(
+        "⚠ Blood was reported while coughing."
+      );
+
+      suggestionList.push(
+        "⚠ Consider seeking medical advice if symptoms continue."
+      );
+    }
+
+    if (breathing === "difficult") {
+      observationList.push(
+        "🫁 Breathing appeared more difficult than usual today."
+      );
+
+      suggestionList.push(
+        "🫁 Monitor breathing closely and seek medical advice if symptoms worsen."
+      );
+    }
+
+    // PART 3 CONTINUES HERE
+    // =========================
+    // HEALTH SUMMARY
+    // =========================
+
+    reportSummary.push(
+      { label: "Breathing", value: breathing || "Not Reported" },
+      { label: "Cough", value: cough || "Not Reported" },
+      { label: "Fever", value: fever || "Not Reported" },
+      { label: "Energy", value: energy || "Not Reported" },
+      { label: "Appetite", value: appetite || "Not Reported" },
+      {
+        label: "Water Intake",
+        value:
+          water +
+            (waterGlasses
+              ? ` (${waterGlasses} glasses)`
+              : "") || "Not Reported",
+      },
+      {
+        label: "Discomfort",
+        value: discomfort || "Not Reported",
+      },
+      {
+        label: "Discomfort Areas",
+        value:
+          discomfortAreas?.length > 0
+            ? discomfortAreas.join(", ")
+            : "None",
+      },
+      {
+        label: "Walking",
+        value: walking || "Not Reported",
+      }
+    );
+
+    if (type === "family") {
+      reportSummary.push({
+        label: "Confusion",
+        value: confusion || "Not Reported",
+      });
+    }
+
+    reportSummary.push({
+      label: "Loose Motions",
+      value:
+        looseMotions === "yes"
+          ? `Yes${
+              looseMotionType
+                ? ` (${looseMotionType})`
+                : ""
+            }`
+          : "No",
+    });
+
+    // =========================
+    // EMPTY STATES
+    // =========================
+
+    if (observationList.length === 0) {
+      observationList.push(
+        "✅ Today's responses indicate encouraging signs of wellbeing. Current routines appear to be supporting overall health."
+      );
+
+      suggestionList.push(
+        "💧 Continue regular hydration."
+      );
+
+      suggestionList.push(
+        "🥗 Maintain balanced nutrition."
+      );
+
+      suggestionList.push(
+        "🚶 Continue regular daily activity as comfortable."
+      );
+    }
+
+    setSummaryRows(reportSummary);
+    setObservations(observationList);
+    setSuggestions(suggestionList);
 
     setLoaded(true);
   }, []);
@@ -146,42 +519,210 @@ export default function ReportPage() {
   if (!loaded) return null;
 
   return (
-    <main style={{minHeight:"100vh",background:"#f8fafc",padding:"20px",fontFamily:"Arial"}}>
-      <div style={{maxWidth:"800px",margin:"0 auto"}}>
-        <div style={{background:"white",padding:"20px",borderRadius:"14px",border:"1px solid #ddd"}}>
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "#f8fafc",
+        padding: "20px",
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "850px",
+          margin: "0 auto",
+        }}
+      >
+        <div
+          style={{
+            background: "white",
+            padding: "24px",
+            borderRadius: "14px",
+            border: "1px solid #ddd",
+          }}
+        >
           <h1>❤️ CareCompanion</h1>
           <h2>Health Assessment Report</h2>
 
-          <p><b>Patient:</b> {patientName} ({patientAge})</p>
-          <p><b>Assessment:</b> {assessmentType === "family" ? "Family Observation" : "Self Assessment"}</p>
-          {assessmentType === "family" && <p><b>Completed By:</b> {observerName} ({observerRelationship})</p>}
-          <p><b>Date:</b> {assessmentDate}</p>
+          <p>
+            <strong>Patient:</strong>{" "}
+            {patientName} ({patientAge})
+          </p>
 
-          <hr />
+          <p>
+            <strong>Assessment:</strong>{" "}
+            {assessmentType === "family"
+              ? "Family Assessment"
+              : "Self Assessment"}
+          </p>
 
-          <h1>{score}/20</h1>
+          {assessmentType === "family" && (
+            <p>
+              <strong>Completed By:</strong>{" "}
+              {observerName}
+              {observerRelationship
+                ? ` (${observerRelationship})`
+                : ""}
+            </p>
+          )}
+
+          <p>
+            <strong>Date:</strong>{" "}
+            {assessmentDate}
+          </p>
+
+          <hr
+            style={{
+              margin: "20px 0",
+            }}
+          />
+
+          {/* SCORE */}
+
+          <h2>Overall Wellbeing Score</h2>
+
+          <h1
+            style={{
+              marginBottom: "10px",
+            }}
+          >
+            {score}/20
+          </h1>
+
           <h2>{status}</h2>
-          <p>{message}</p>
 
-          <hr />
+          <p
+            style={{
+              lineHeight: "1.7",
+            }}
+          >
+            {wellbeingSummary}
+          </p>
 
-          <h3>Key Observations</h3>
-          {observations.length === 0 ? <p>✅ No significant concerns reported today.</p> :
-            observations.map((o,i)=><p key={i}>{o}</p>)}
+          <hr
+            style={{
+              margin: "20px 0",
+            }}
+          />
 
-          <hr />
+          {/* OBSERVATIONS */}
 
-          <h3>Today's Health Summary</h3>
-          {summary.map((s,i)=>(
-            <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid #eee"}}>
-              <strong>{s.label}</strong>
-              <span>{s.value}</span>
-            </div>
-          ))}
+          <h2>Wellbeing Observations</h2>
+
+          {observations.map(
+            (item, index) => (
+              <p key={index}>
+                {item}
+              </p>
+            )
+          )}
+
+          <hr
+            style={{
+              margin: "20px 0",
+            }}
+          />
+
+          {/* SUGGESTIONS */}
+
+          <h2>Suggestions For Today</h2>
+
+          {suggestions.map(
+            (item, index) => (
+              <p key={index}>
+                {item}
+              </p>
+            )
+          )}
+
+          <hr
+            style={{
+              margin: "20px 0",
+            }}
+          />
+
+          {/* SUMMARY */}
+
+          <h2>Today's Health Summary</h2>
+
+          {summaryRows.map(
+            (row, index) => (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  gap: "20px",
+                  padding: "10px 0",
+                  borderBottom:
+                    "1px solid #eee",
+                }}
+              >
+                <strong>
+                  {row.label}
+                </strong>
+
+                <span>
+                  {row.value}
+                </span>
+              </div>
+            )
+          )}
+
+          <hr
+            style={{
+              margin: "20px 0",
+            }}
+          />
+
+          {/* DISCLAIMER */}
+
+          <h3>Disclaimer</h3>
+
+          <p
+            style={{
+              color: "#555",
+              lineHeight: "1.6",
+            }}
+          >
+            This assessment is designed
+            to support daily wellbeing
+            monitoring and early
+            identification of changes in
+            health status.
+          </p>
+
+          <p
+            style={{
+              color: "#555",
+              lineHeight: "1.6",
+            }}
+          >
+            It is not intended to
+            diagnose, treat or replace
+            professional medical advice.
+            If symptoms are severe,
+            worsening or causing concern,
+            please consult a qualified
+            healthcare professional.
+          </p>
 
           <button
-            onClick={() => router.push("/")}
-            style={{width:"100%",marginTop:"20px",padding:"14px",background:"#2563eb",color:"white",border:"none",borderRadius:"10px"}}
+            onClick={() =>
+              router.push("/")
+            }
+            style={{
+              width: "100%",
+              marginTop: "24px",
+              padding: "14px",
+              background: "#2563eb",
+              color: "white",
+              border: "none",
+              borderRadius: "10px",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
           >
             🏠 New Assessment
           </button>

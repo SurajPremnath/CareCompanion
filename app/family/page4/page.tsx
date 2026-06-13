@@ -73,7 +73,7 @@ export default function FamilyPage4() {
   };
 
   return (
-    <AssessmentLayout currentPage={2} assessmentType="family">      
+    <AssessmentLayout currentPage={4} assessmentType="family">      
      <div
         style={{
           backgroundColor: "white",

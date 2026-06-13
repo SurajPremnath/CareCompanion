@@ -13,7 +13,8 @@ export default function AssessmentLayout({
   assessmentType,
   children,
 }: Props) {
-  const progress = (currentPage / 5) * 100;
+  const safePage = currentPage ?? 1;
+  const progress = (safePage / 5) * 100;
 
   return (
     <main
@@ -21,16 +22,15 @@ export default function AssessmentLayout({
         minHeight: "100vh",
         backgroundColor: "#f8fafc",
         padding: "15px",
-        fontFamily:
-          "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto",
+        fontFamily: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto",
       }}
     >
       <div style={{ maxWidth: "700px", margin: "0 auto" }}>
         
-        {/* SINGLE HEADER FOR BOTH FLOWS */}
-        <Header/>
+        {/* HEADER (NOW CORRECTLY PASSED) */}
+        <Header assessmentType={assessmentType} />
 
-        {/* SINGLE PROGRESS BAR (COMMON) */}
+        {/* PROGRESS BAR (COMMON & FIXED) */}
         <div
           style={{
             width: "100%",
@@ -46,11 +46,12 @@ export default function AssessmentLayout({
               width: `${progress}%`,
               height: "100%",
               backgroundColor: "#2563eb",
+              transition: "width 0.3s ease",
             }}
           />
         </div>
 
-        {/* COMMON PAGE INDICATOR */}
+        {/* PAGE INDICATOR */}
         <div
           style={{
             textAlign: "center",
@@ -59,10 +60,10 @@ export default function AssessmentLayout({
             color: "#6b7280",
           }}
         >
-          Page {currentPage} of 5
+          Page {safePage} of 5
         </div>
 
-        {/* PAGE CONTENT */}
+        {/* CONTENT */}
         <div style={{ marginTop: "15px" }}>
           {children}
         </div>

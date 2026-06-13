@@ -2,32 +2,42 @@
 
 import { useEffect, useState } from "react";
 
-export default function Header() {
+export default function Header({
+  assessmentType,
+}: {
+  assessmentType: "self" | "family";
+}) {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [time, setTime] = useState("");
-  const [assessmentType, setAssessmentType] = useState("");
 
+  // 🔥 FIX: refresh on every route change
   useEffect(() => {
-    setName(localStorage.getItem("patientName") || "");
-    setAge(localStorage.getItem("patientAge") || "");
+    const update = () => {
+      setName(localStorage.getItem("patientName") || "");
+      setAge(localStorage.getItem("patientAge") || "");
 
-    setAssessmentType(
-      localStorage.getItem("assessmentType") || ""
-    );
+      setTime(
+        new Date().toLocaleString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      );
+    };
 
-    setTime(
-      new Date().toLocaleString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    );
+    update();
+
+    // update again when page changes (important fix)
+    window.addEventListener("focus", update);
+    return () => window.removeEventListener("focus", update);
   }, []);
 
   return (
     <div style={{ textAlign: "center" }}>
+      
+      {/* APP NAME ALWAYS FIXED */}
       <h1
         style={{
           fontSize: "28px",
@@ -48,6 +58,7 @@ export default function Header() {
         A simple daily health companion for your family
       </p>
 
+      {/* FIXED LABEL */}
       <p
         style={{
           fontSize: "13px",
@@ -60,13 +71,14 @@ export default function Header() {
           : "Family Assessment"}
       </p>
 
+      {/* ONLY TIME (NO NAME/AGE IN HEADER NOW IF YOU WANT CLEAN UI) */}
       <p
         style={{
           fontSize: "12px",
           color: "#666",
         }}
       >
-        👤 {name} | 🎂 {age} | 🕒 {time}
+        🕒 {time}
       </p>
     </div>
   );
