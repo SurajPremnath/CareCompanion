@@ -100,7 +100,7 @@ export default function Page3() {
           margin: "0 auto",
         }}
       >
-        <Header currentPage={3} />
+        <Header/>
 
         <div
           style={{

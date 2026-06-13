@@ -135,7 +135,7 @@ export default function Page5() {
           margin: "0 auto",
         }}
       >
-        <Header currentPage={5} />
+        <Header/>
 
         <div
           style={{

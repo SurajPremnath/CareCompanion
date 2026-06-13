@@ -104,7 +104,7 @@ export default function FamilyPage3() {
   };
 
   return (
-    <AssessmentLayout currentPage={2}>
+    <AssessmentLayout currentPage={2} assessmentType="family">
       <div
         style={{
           backgroundColor: "white",

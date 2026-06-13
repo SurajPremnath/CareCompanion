@@ -145,7 +145,7 @@ export default function SelfPage2() {
           margin: "0 auto",
         }}
       >
-        <Header currentPage={2} />
+        <Header/>
 
         <div
           style={{
@@ -161,7 +161,7 @@ export default function SelfPage2() {
               marginBottom: "12px",
             }}
           >
-            Health Check – Part 2
+            Health Check for today
           </h2>
 
           <hr />

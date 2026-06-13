@@ -140,7 +140,7 @@ export default function Page4() {
           margin: "0 auto",
         }}
       >
-        <Header currentPage={4} />
+        <Header/>
 
         <div
           style={{

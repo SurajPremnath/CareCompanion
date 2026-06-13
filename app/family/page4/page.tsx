@@ -73,8 +73,8 @@ export default function FamilyPage4() {
   };
 
   return (
-    <AssessmentLayout currentPage={3}>
-      <div
+    <AssessmentLayout currentPage={2} assessmentType="family">      
+     <div
         style={{
           backgroundColor: "white",
           borderRadius: "14px",
