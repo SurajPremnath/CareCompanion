@@ -1,5 +1,7 @@
 "use client";
 
+import Header from "@/Components/Header";
+
 type Props = {
   currentPage: number;
   children: React.ReactNode;
@@ -28,7 +30,41 @@ export default function AssessmentLayout({
           margin: "0 auto",
         }}
       >
-        {/* PAGE CONTENT ONLY */}
+        {/* HEADER (NOW CENTRALIZED) */}
+        <Header />
+
+        {/* PROGRESS BAR */}
+        <div
+          style={{
+            width: "100%",
+            height: "8px",
+            backgroundColor: "#e5e7eb",
+            borderRadius: "10px",
+            overflow: "hidden",
+            marginBottom: "8px",
+          }}
+        >
+          <div
+            style={{
+              width: `${progress}%`,
+              height: "100%",
+              backgroundColor: "#2563eb",
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: "12px",
+            color: "#666",
+            marginBottom: "15px",
+          }}
+        >
+          Page {currentPage} of 5
+        </div>
+
+        {/* PAGE CONTENT */}
         {children}
       </div>
     </main>
