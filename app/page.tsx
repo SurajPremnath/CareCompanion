@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function WelcomePage() {
+export default function HomePage() {
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -25,13 +25,6 @@ export default function WelcomePage() {
     );
   }, []);
 
-  const hour = new Date().getHours();
-
-  let greeting = "Hello";
-  if (hour < 12) greeting = "Good Morning";
-  else if (hour < 17) greeting = "Good Afternoon";
-  else greeting = "Good Evening";
-
   return (
     <main
       style={{
@@ -40,12 +33,11 @@ export default function WelcomePage() {
         padding: "20px",
         fontFamily:
           "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial, sans-serif",
-        color: "#111827",
       }}
     >
       <div style={{ maxWidth: "800px", margin: "0 auto" }}>
         
-        {/* BRAND HEADER */}
+        {/* HEADER */}
         <div style={{ textAlign: "center", marginTop: "20px" }}>
           <h1 style={{ fontSize: "32px", fontWeight: "700" }}>
             ❤️ CareCompanion
@@ -59,24 +51,25 @@ export default function WelcomePage() {
             Let&apos;s spend one minute checking your health.
           </p>
 
-          <div style={{ marginTop: "10px", fontSize: "14px", color: "#555" }}>
-            👤 {name || "—"} {" | "} 📅 {dateTime || "—"}
+          <div style={{ marginTop: "10px", fontSize: "13px", color: "#555" }}>
+            👤 {name || "—"} | 📅 {dateTime || "—"}
           </div>
         </div>
 
-        {/* GREETING */}
+        {/* BRAND IDENTITY (NEW CHANGE YOU ASKED FOR) */}
         <h2
           style={{
             textAlign: "center",
-            fontSize: "26px",
-            marginTop: "25px",
-            fontWeight: "700",
+            fontSize: "20px",
+            marginTop: "18px",
+            fontWeight: "600",
+            color: "#111827",
           }}
         >
-          {greeting} {name || "there"} 👋
+          Created by Suraj Premnath
         </h2>
 
-        {/* MAIN CARD */}
+        {/* CARD */}
         <div
           style={{
             marginTop: "30px",
@@ -90,7 +83,6 @@ export default function WelcomePage() {
             Who is completing today&apos;s health check?
           </h3>
 
-          {/* SELF */}
           <button
             onClick={() => router.push("/self")}
             style={{
@@ -110,7 +102,6 @@ export default function WelcomePage() {
             </div>
           </button>
 
-          {/* FAMILY */}
           <button
             onClick={() => router.push("/family")}
             style={{
