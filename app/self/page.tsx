@@ -1,316 +1,106 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/Components/Header";
 
-export default function SelfAssessmentPage() {
+export default function SelfPage() {
   const router = useRouter();
 
-  const [breathing, setBreathing] =
-    useState("");
+  const [name, setName] = useState("");
+  const [age, setAge] = useState("");
 
-  const [cough, setCough] =
-    useState("");
-
-  const [bloodInCough, setBloodInCough] =
-    useState("");
-
-  useEffect(() => {
-    setBreathing(
-      localStorage.getItem("breathing") ||
-        ""
-    );
-
-    setCough(
-      localStorage.getItem("cough") || ""
-    );
-
-    setBloodInCough(
-      localStorage.getItem(
-        "bloodInCough"
-      ) || ""
-    );
-  }, []);
-
-  const optionStyle = (
-    selected: boolean
-  ) => ({
-    width: "100%",
-    padding: "10px 14px",
-    marginBottom: "6px",
-    borderRadius: "10px",
-    border: selected
-      ? "2px solid #2563eb"
-      : "1px solid #d1d5db",
-    backgroundColor: selected
-      ? "#eff6ff"
-      : "white",
-    cursor: "pointer",
-    textAlign: "left" as const,
-    fontSize: "15px",
-  });
-
-  const handleNext = () => {
-    if (!breathing || !cough) {
-      alert(
-        "Please answer all questions."
-      );
+  const startAssessment = () => {
+    if (!name || !age) {
+      alert("Please enter name and age");
       return;
     }
 
-    const needsBloodQuestion =
-      cough === "sometimes" ||
-      cough === "frequent";
+    localStorage.setItem("patientName", name);
+    localStorage.setItem("patientAge", age);
+    localStorage.setItem("assessmentType", "self");
 
-    if (
-      needsBloodQuestion &&
-      !bloodInCough
-    ) {
-      alert(
-        "Please answer the blood in cough question."
-      );
-      return;
-    }
-
-    localStorage.setItem(
-      "breathing",
-      breathing
-    );
-
-    localStorage.setItem(
-      "cough",
-      cough
-    );
-
-    localStorage.setItem(
-      "bloodInCough",
-      bloodInCough
-    );
-
-    router.push("/self/page2");
+    router.push("/self/page1");
   };
-
-  const showBloodQuestion =
-    cough === "sometimes" ||
-    cough === "frequent";
 
   return (
     <main
       style={{
         minHeight: "100vh",
         backgroundColor: "#f8fafc",
-        padding: "15px",
-        fontFamily: "Arial, sans-serif",
+        padding: "20px",
+        fontFamily:
+          "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial, sans-serif",
       }}
     >
       <div
         style={{
-          maxWidth: "700px",
+          maxWidth: "600px",
           margin: "0 auto",
+          backgroundColor: "white",
+          padding: "20px",
+          borderRadius: "12px",
+          border: "1px solid #ddd",
         }}
       >
-        <Header currentPage={1} />
+        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
+          Self Assessment Details
+        </h2>
 
-        <div
+        {/* NAME */}
+        <label style={{ fontSize: "14px", fontWeight: 600 }}>
+          Your Name
+        </label>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter your name"
           style={{
-            backgroundColor: "white",
-            borderRadius: "14px",
-            padding: "18px",
-            border: "1px solid #ddd",
+            width: "100%",
+            padding: "10px",
+            marginTop: "6px",
+            marginBottom: "15px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+          }}
+        />
+
+        {/* AGE */}
+        <label style={{ fontSize: "14px", fontWeight: 600 }}>
+          Your Age
+        </label>
+        <input
+          value={age}
+          onChange={(e) => setAge(e.target.value)}
+          placeholder="Enter your age"
+          type="number"
+          style={{
+            width: "100%",
+            padding: "10px",
+            marginTop: "6px",
+            marginBottom: "20px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+          }}
+        />
+
+        {/* START BUTTON */}
+        <button
+          onClick={startAssessment}
+          style={{
+            width: "100%",
+            padding: "12px",
+            backgroundColor: "#2563eb",
+            color: "white",
+            border: "none",
+            borderRadius: "10px",
+            fontSize: "16px",
+            fontWeight: "bold",
+            cursor: "pointer",
           }}
         >
-          <h2
-            style={{
-              fontSize: "20px",
-              marginBottom: "12px",
-            }}
-          >
-            Health Check For Today
-          </h2>
-
-          <hr />
-
-          <h3
-            style={{
-              fontSize: "18px",
-              marginBottom: "6px",
-            }}
-          >
-            🫁 How is your breathing
-            today?
-          </h3>
-
-          <button
-            style={optionStyle(
-              breathing === "normal"
-            )}
-            onClick={() =>
-              setBreathing("normal")
-            }
-          >
-            😊 Normal
-          </button>
-
-          <button
-            style={optionStyle(
-              breathing === "slightly"
-            )}
-            onClick={() =>
-              setBreathing(
-                "slightly"
-              )
-            }
-          >
-            😐 Slightly Difficult
-          </button>
-
-          <button
-            style={optionStyle(
-              breathing ===
-                "difficult"
-            )}
-            onClick={() =>
-              setBreathing(
-                "difficult"
-              )
-            }
-          >
-            😟 Very Difficult
-          </button>
-
-          <div
-            style={{
-              height: "12px",
-            }}
-          />
-
-          <h3
-            style={{
-              fontSize: "18px",
-              marginBottom: "6px",
-            }}
-          >
-            🤧 Are you coughing
-            today?
-          </h3>
-
-          <button
-            style={optionStyle(
-              cough === "no"
-            )}
-            onClick={() => {
-              setCough("no");
-              setBloodInCough("");
-            }}
-          >
-            😊 No
-          </button>
-
-          <button
-            style={optionStyle(
-              cough ===
-                "sometimes"
-            )}
-            onClick={() =>
-              setCough(
-                "sometimes"
-              )
-            }
-          >
-            😐 Sometimes
-          </button>
-
-          <button
-            style={optionStyle(
-              cough ===
-                "frequent"
-            )}
-            onClick={() =>
-              setCough(
-                "frequent"
-              )
-            }
-          >
-            😟 Frequently
-          </button>
-
-          {showBloodQuestion && (
-            <>
-              <div
-                style={{
-                  height: "12px",
-                }}
-              />
-
-              <h3
-                style={{
-                  fontSize:
-                    "18px",
-                  marginBottom:
-                    "6px",
-                }}
-              >
-                🩸 Have you coughed
-                up blood?
-              </h3>
-
-              <button
-                style={optionStyle(
-                  bloodInCough ===
-                    "no"
-                )}
-                onClick={() =>
-                  setBloodInCough(
-                    "no"
-                  )
-                }
-              >
-                😊 No
-              </button>
-
-              <button
-                style={optionStyle(
-                  bloodInCough ===
-                    "yes"
-                )}
-                onClick={() =>
-                  setBloodInCough(
-                    "yes"
-                  )
-                }
-              >
-                😟 Yes
-              </button>
-            </>
-          )}
-
-          <button
-            onClick={
-              handleNext
-            }
-            style={{
-              width: "100%",
-              marginTop: "16px",
-              padding: "12px",
-              backgroundColor:
-                "#2563eb",
-              color: "white",
-              border: "none",
-              borderRadius:
-                "10px",
-              fontSize: "18px",
-              fontWeight:
-                "bold",
-              cursor:
-                "pointer",
-            }}
-          >
-            Next →
-          </button>
-        </div>
+          Start Assessment →
+        </button>
       </div>
     </main>
   );
 }
-
