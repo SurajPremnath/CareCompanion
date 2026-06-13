@@ -1,185 +1,160 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Home() {
+export default function WelcomePage() {
   const router = useRouter();
 
-  const today = new Date();
+  const [name, setName] = useState("");
+  const [dateTime, setDateTime] = useState("");
 
-  const formattedDate = today.toLocaleDateString(
-    "en-IN",
-    {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }
-  );
+  useEffect(() => {
+    setName(localStorage.getItem("patientName") || "");
 
-  const resetAssessment = () => {
-    localStorage.clear();
-  };
+    const now = new Date();
 
-  const startSelf = () => {
-    resetAssessment();
-
-    localStorage.setItem(
-      "assessmentType",
-      "self"
+    setDateTime(
+      now.toLocaleString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
     );
+  }, []);
 
-    router.push("/checkin");
-  };
+  const hour = new Date().getHours();
 
-  const startFamily = () => {
-    resetAssessment();
-
-    localStorage.setItem(
-      "assessmentType",
-      "family"
-    );
-
-    router.push("/checkin");
-  };
+  let greeting = "Hello";
+  if (hour < 12) greeting = "Good Morning";
+  else if (hour < 17) greeting = "Good Afternoon";
+  else greeting = "Good Evening";
 
   return (
     <main
       style={{
         minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#f8fafc",
+        backgroundColor: "#f8fafc",
         padding: "20px",
-        fontFamily: "Arial",
+        fontFamily:
+          "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial, sans-serif",
+        color: "#111827",
       }}
     >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "700px",
-          textAlign: "center",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "46px",
-            marginBottom: "10px",
-          }}
-        >
-          ❤️ CareCompanion
-        </h1>
+      <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+        
+        {/* BRAND HEADER */}
+        <div style={{ textAlign: "center", marginTop: "20px" }}>
+          <h1 style={{ fontSize: "32px", fontWeight: "700" }}>
+            ❤️ CareCompanion
+          </h1>
 
-        <p
-          style={{
-            color: "#666",
-            marginBottom: "10px",
-          }}
-        >
-          A simple daily health companion
-          for the people you love.
-        </p>
+          <p style={{ fontSize: "14px", color: "#374151" }}>
+            A simple daily health companion for the people you love.
+          </p>
 
-        <p
-          style={{
-            fontSize: "18px",
-            marginBottom: "20px",
-          }}
-        >
-          Let's spend one minute checking
-          your health.
-        </p>
+          <p style={{ marginTop: "8px" }}>
+            Let&apos;s spend one minute checking your health.
+          </p>
 
-        <div
-          style={{
-            marginBottom: "30px",
-            fontSize: "18px",
-          }}
-        >
-          📅 {formattedDate}
+          <div style={{ marginTop: "10px", fontSize: "14px", color: "#555" }}>
+            👤 {name || "—"} {" | "} 📅 {dateTime || "—"}
+          </div>
         </div>
 
-        <div
+        {/* GREETING */}
+        <h2
           style={{
-            background: "white",
-            borderRadius: "16px",
-            border: "1px solid #ddd",
-            padding: "30px",
+            textAlign: "center",
+            fontSize: "26px",
+            marginTop: "25px",
+            fontWeight: "700",
           }}
         >
-          <h2
-            style={{
-              marginBottom: "25px",
-            }}
-          >
-            Who is completing today's health
-            check?
-          </h2>
+          {greeting} {name || "there"} 👋
+        </h2>
 
+        {/* MAIN CARD */}
+        <div
+          style={{
+            marginTop: "30px",
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "14px",
+            border: "1px solid #ddd",
+          }}
+        >
+          <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
+            Who is completing today&apos;s health check?
+          </h3>
+
+          {/* SELF */}
           <button
-            onClick={startSelf}
+            onClick={() => router.push("/self")}
             style={{
               width: "100%",
-              padding: "20px",
-              marginBottom: "15px",
+              padding: "18px",
+              marginBottom: "12px",
               borderRadius: "12px",
               border: "1px solid #ddd",
-              background: "white",
-              cursor: "pointer",
               textAlign: "left",
+              backgroundColor: "white",
+              cursor: "pointer",
             }}
           >
-            <div
-              style={{
-                fontSize: "28px",
-                fontWeight: "bold",
-              }}
-            >
-              👤 Myself
-            </div>
-
-            <div
-              style={{
-                color: "#666",
-                marginTop: "5px",
-              }}
-            >
-              Answer questions about how I
-              feel today.
+            👤 <b>Myself</b>
+            <div style={{ fontSize: "13px", color: "#666" }}>
+              Answer questions about how I feel today.
             </div>
           </button>
 
+          {/* FAMILY */}
           <button
-            onClick={startFamily}
+            onClick={() => router.push("/family")}
             style={{
               width: "100%",
-              padding: "20px",
+              padding: "18px",
               borderRadius: "12px",
               border: "1px solid #ddd",
-              background: "white",
-              cursor: "pointer",
               textAlign: "left",
+              backgroundColor: "white",
+              cursor: "pointer",
             }}
           >
-            <div
-              style={{
-                fontSize: "28px",
-                fontWeight: "bold",
-              }}
-            >
-              👨‍👩‍👧‍👦 Family Member
-            </div>
-
-            <div
-              style={{
-                color: "#666",
-                marginTop: "5px",
-              }}
-            >
-              Answer questions based on what
-              I observed today.
+            👨‍👩‍👧‍👦 <b>Family Member</b>
+            <div style={{ fontSize: "13px", color: "#666" }}>
+              Answer questions based on what I observed today.
             </div>
           </button>
+        </div>
+
+        {/* DISCLAIMER */}
+        <div
+          style={{
+            marginTop: "25px",
+            fontSize: "11px",
+            color: "#6b7280",
+            textAlign: "center",
+            lineHeight: "1.4",
+          }}
+        >
+          ⚠ CareCompanion is a wellness tracking tool and is not intended to
+          provide medical advice, diagnosis, or treatment. Always consult a
+          qualified healthcare professional for medical concerns.
+        </div>
+
+        {/* FOOTER */}
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: "11px",
+            color: "#9ca3af",
+            marginTop: "10px",
+          }}
+        >
+          © 2026 Suraj Premnath • v1.0.1
         </div>
       </div>
     </main>
