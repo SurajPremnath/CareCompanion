@@ -15,11 +15,26 @@ export default function SelfPage() {
       return;
     }
 
+    // ✅ RESET OLD SESSION (important fix you requested earlier)
+    localStorage.clear();
+
+    // Save fresh patient data
     localStorage.setItem("patientName", name);
     localStorage.setItem("patientAge", age);
     localStorage.setItem("assessmentType", "self");
 
-    router.push("/self/page1");
+    // Initialize empty assessment state (prevents stale values)
+    localStorage.setItem("breathing", "");
+    localStorage.setItem("cough", "");
+    localStorage.setItem("bloodInCough", "");
+    localStorage.setItem("energy", "");
+    localStorage.setItem("water", "");
+    localStorage.setItem("appetite", "");
+    localStorage.setItem("pain", "");
+    localStorage.setItem("walking", "");
+
+    // ✅ CORRECT ROUTE (FIXED)
+    router.push("/self/page2");
   };
 
   return (
