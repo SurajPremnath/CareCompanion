@@ -5,6 +5,12 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useRouter } from "next/navigation";
 
+import {
+  saveAssessment,
+  hasAssessmentBeenSaved,
+  markAssessmentSaved,
+} from "@/lib/reportStorage";
+
 type Row = {
   label: string;
   value: string;
@@ -262,32 +268,35 @@ const displayValue = (
         ? Math.round((total / 18) * 20)
         : total;
 
+    let finalStatus = "";
     // =========================
     // SCORE BAND LOGIC
     // =========================
 
     if (finalScore >= 19) {
-      setStatus("🟢 Excellent");
+      finalStatus = "🟢 Excellent";
+      setStatus(finalStatus);
 
       setWellbeingSummary(
         "Today's responses indicate encouraging signs of wellbeing. Current routines appear to be supporting overall health. Continue hydration, nutrition and regular monitoring."
       );
     } else if (finalScore >= 16) {
-      setStatus("🟢 Good");
+      finalStatus = "🟢 Good";
+      setStatus(finalStatus);
 
       setWellbeingSummary(
         "Overall wellbeing appears stable today. A few areas may benefit from gentle attention, but today's responses remain largely encouraging."
       );
     } else if (finalScore >= 12) {
-      setStatus("🟡 Needs Attention");
+      finalStatus = "🟡 Needs Attention";
+      setStatus(finalStatus);
 
       setWellbeingSummary(
         "A few areas deserve additional attention today. Monitoring symptoms and encouraging hydration, nutrition and rest may be helpful."
       );
     } else {
-      setStatus(
-        "🔴 Immediate Attention Recommended"
-      );
+      finalStatus = "🔴 Immediate Attention Recommended";
+      setStatus(finalStatus);
 
       setWellbeingSummary(
         "Several responses suggest closer observation is needed today. If symptoms persist, worsen or cause concern, consider contacting a healthcare professional."
@@ -612,6 +621,47 @@ reportSummary.push(
         "🚶 Continue regular daily activity as comfortable."
       );
     }
+
+if (!hasAssessmentBeenSaved()) {
+  saveAssessment({
+    id: crypto.randomUUID(),
+
+    patientName:
+      localStorage.getItem(
+        "patientName"
+      ) || "Unknown",
+
+    patientAge:
+      localStorage.getItem(
+        "patientAge"
+      ) || "",
+
+    assessmentType: type,
+
+    score: finalScore,
+
+    status: finalStatus,
+
+    observerName:
+      localStorage.getItem(
+        "observerName"
+      ) || "",
+
+    assessmentDate:
+      localStorage.getItem(
+        "assessmentDate"
+      ) || "",
+
+    createdAt:
+      new Date().toISOString(),
+
+    energy,
+    appetite,
+    walking,
+  });
+
+  markAssessmentSaved();
+}
 
     setSummaryRows(reportSummary);
     setObservations(observationList);

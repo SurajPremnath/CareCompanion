@@ -1,3 +1,5 @@
+import { clearAssessmentSavedFlag } from "./reportStorage";
+
 export const clearAssessmentData = () => {
   const assessmentKeys = [
     // Assessment Metadata
@@ -41,4 +43,6 @@ export const clearAssessmentData = () => {
   assessmentKeys.forEach((key) => {
     localStorage.removeItem(key);
   });
+
+  clearAssessmentSavedFlag();
 };
