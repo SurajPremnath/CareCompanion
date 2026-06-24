@@ -1,68 +1,69 @@
 "use client";
-
-import { useState } from "react";
+import { clearAssessmentData } from "@/lib/assessmentStorage";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+type LoggedInUser = {
+  id: string;
+  name: string;
+  age: number;
+  username: string;
+};
+
+type Patient = {
+  id: string;
+  ownerUserId: string;
+  name: string;
+  age: number;
+  gender: string;
+  relationship: string;
+  createdAt: string;
+};
 
 export default function FamilyPage() {
   const router = useRouter();
 
-  const [patientName, setPatientName] =
+  const [loggedInUser, setLoggedInUser] =
+    useState<LoggedInUser | null>(null);
+
+  const [patients, setPatients] =
+    useState<Patient[]>([]);
+
+  const [selectedPatientId, setSelectedPatientId] =
     useState("");
 
-  const [patientAge, setPatientAge] =
-    useState("");
+  useEffect(() => {
+    const user = JSON.parse(
+      localStorage.getItem("loggedInUser") || "null"
+    );
 
-  const [observerName, setObserverName] =
-    useState("");
-
-  const [
-    relationship,
-    setRelationship,
-  ] = useState("");
-
-  const [
-    otherRelationship,
-    setOtherRelationship,
-  ] = useState("");
-
-  const handleStart = () => {
-    if (!patientName.trim()) {
-      alert(
-        "Please enter patient name."
-      );
+    if (!user) {
+      router.push("/login");
       return;
     }
 
-    if (!patientAge.trim()) {
-      alert(
-        "Please enter patient age."
-      );
-      return;
-    }
+    setLoggedInUser(user);
 
-    if (!observerName.trim()) {
-      alert(
-        "Please enter your name."
-      );
-      return;
-    }
+    const allPatients: Patient[] = JSON.parse(
+      localStorage.getItem("patients") || "[]"
+    );
 
-    if (!relationship) {
-      alert(
-        "Please select relationship."
-      );
-      return;
-    }
+    const myPatients = allPatients.filter(
+      (patient) => patient.ownerUserId === user.id
+    );
 
-    if (
-      relationship === "Other" &&
-      !otherRelationship.trim()
-    ) {
-      alert(
-        "Please specify relationship."
-      );
-      return;
-    }
+    setPatients(myPatients);
+  }, [router]);
+
+  const selectedPatient =
+    patients.find(
+      (patient) =>
+        patient.id === selectedPatientId
+    ) || null;
+
+  const startAssessment = () => {
+    if (!loggedInUser) return;
+    if (!selectedPatient) return;
 
     localStorage.setItem(
       "assessmentType",
@@ -71,43 +72,37 @@ export default function FamilyPage() {
 
     localStorage.setItem(
       "patientName",
-      patientName
+      selectedPatient.name
     );
 
     localStorage.setItem(
       "patientAge",
-      patientAge
+      String(selectedPatient.age)
     );
 
     localStorage.setItem(
       "observerName",
-      observerName
+      loggedInUser.name
     );
 
     localStorage.setItem(
       "observerRelationship",
-      relationship
-    );
-
-    localStorage.setItem(
-      "observerRelationshipOther",
-      otherRelationship
+      selectedPatient.relationship
     );
 
     localStorage.setItem(
       "assessmentDate",
-      new Date().toLocaleDateString(
-        "en-IN",
-        {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        }
-      )
+      new Date().toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
     );
 
     router.push("/family/page2");
   };
+
+  if (!loggedInUser) return null;
 
   return (
     <main
@@ -115,246 +110,226 @@ export default function FamilyPage() {
         minHeight: "100vh",
         backgroundColor: "#f8fafc",
         padding: "20px",
-        fontFamily:
-          "Arial, sans-serif",
+        fontFamily: "Inter, Arial, sans-serif",
       }}
     >
       <div
         style={{
-          maxWidth: "700px",
+          maxWidth: "800px",
           margin: "0 auto",
         }}
       >
         <div
           style={{
-            textAlign: "center",
-            marginBottom: "25px",
+            background: "#ffffff",
+            border: "1px solid #d1d5db",
+            borderRadius: "16px",
+            padding: "32px",
+            boxShadow:
+              "0 2px 8px rgba(0,0,0,0.05)",
           }}
         >
           <h1
             style={{
               fontSize: "42px",
-              marginBottom: "8px",
+              marginBottom: "10px",
             }}
           >
             ❤️ CareCompanion
           </h1>
 
+          <h2>Family Assessment</h2>
+
           <p
             style={{
-              color: "#666",
+              fontWeight: "bold",
+              marginBottom: "8px",
             }}
           >
-            Family Assessment
+            Welcome, {loggedInUser.name}
           </p>
-        </div>
 
-        <div
-          style={{
-            backgroundColor: "white",
-            borderRadius: "16px",
-            border: "1px solid #ddd",
-            padding: "30px",
-          }}
-        >
-          <h2
+          <p
             style={{
-              marginBottom: "20px",
+              color: "#555",
+              marginBottom: "25px",
             }}
           >
-            Assessment Details
-          </h2>
+            Select a patient to begin assessment.
+          </p>
 
-          <label>
-            Patient Name
-          </label>
+          {patients.length === 0 ? (
+            <>
+              <div
+                style={{
+                  background: "#fef3c7",
+                  border: "1px solid #fcd34d",
+                  padding: "16px",
+                  borderRadius: "12px",
+                  marginBottom: "20px",
+                }}
+              >
+                No patients found.
+                Please add a patient first.
+              </div>
 
-          <input
-            type="text"
-            value={patientName}
-            onChange={(e) =>
-              setPatientName(
-                e.target.value
-              )
-            }
-            placeholder="Enter patient name"
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "6px",
-              marginBottom: "18px",
-              border:
-                "1px solid #ccc",
-              borderRadius: "10px",
-              boxSizing:
-                "border-box",
-            }}
-          />
+              <button
+                onClick={() =>
+                  router.push("/add-patient")
+                }
+                style={primaryButton}
+              >
+                ➕ Add Patient
+              </button>
+            </>
+          ) : (
+            <>
+              <label
+                style={{
+                  display: "block",
+                  fontWeight: "bold",
+                  marginBottom: "8px",
+                }}
+              >
+                Select Patient
+              </label>
 
-          <label>
-            Patient Age
-          </label>
+              <select
+                value={selectedPatientId}
+                onChange={(e) =>
+                  setSelectedPatientId(
+                    e.target.value
+                  )
+                }
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  borderRadius: "10px",
+                  border: "1px solid #d1d5db",
+                  marginBottom: "20px",
+                  fontSize: "16px",
+                }}
+              >
+                <option value="">
+                  Select Patient
+                </option>
 
-          <input
-            type="number"
-            value={patientAge}
-            onChange={(e) =>
-              setPatientAge(
-                e.target.value
-              )
-            }
-            placeholder="Enter patient age"
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "6px",
-              marginBottom: "18px",
-              border:
-                "1px solid #ccc",
-              borderRadius: "10px",
-              boxSizing:
-                "border-box",
-            }}
-          />
+                {patients.map((patient) => (
+                  <option
+                    key={patient.id}
+                    value={patient.id}
+                  >
+                    {patient.name}
+                  </option>
+                ))}
+              </select>
 
-          <label>
-            Your Name
-          </label>
+              {selectedPatient && (
+                <div
+                  style={{
+                    background: "#eff6ff",
+                    border: "1px solid #bfdbfe",
+                    borderRadius: "12px",
+                    padding: "16px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  <div>
+                    <strong>Name:</strong>{" "}
+                    {selectedPatient.name}
+                  </div>
 
-          <input
-            type="text"
-            value={observerName}
-            onChange={(e) =>
-              setObserverName(
-                e.target.value
-              )
-            }
-            placeholder="Enter your name"
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "6px",
-              marginBottom: "18px",
-              border:
-                "1px solid #ccc",
-              borderRadius: "10px",
-              boxSizing:
-                "border-box",
-            }}
-          />
+                  <div>
+                    <strong>Age:</strong>{" "}
+                    {selectedPatient.age}
+                  </div>
 
-          <label>
-            Relationship To Patient
-          </label>
+                  <div>
+                    <strong>Gender:</strong>{" "}
+                    {selectedPatient.gender}
+                  </div>
 
-          <select
-            value={relationship}
-            onChange={(e) =>
-              setRelationship(
-                e.target.value
-              )
-            }
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "6px",
-              border:
-                "1px solid #ccc",
-              borderRadius: "10px",
-            }}
-          >
-            <option value="">
-              Select Relationship
-            </option>
+                  <div>
+                    <strong>Relationship:</strong>{" "}
+                    {selectedPatient.relationship}
+                  </div>
+                </div>
+              )}
 
-            <option value="Son">
-              Son
-            </option>
-
-            <option value="Daughter">
-              Daughter
-            </option>
-
-            <option value="Spouse">
-              Spouse
-            </option>
-
-            <option value="Brother">
-              Brother
-            </option>
-
-            <option value="Sister">
-              Sister
-            </option>
-
-            <option value="Parent">
-              Parent
-            </option>
-
-            <option value="Caregiver">
-              Caregiver
-            </option>
-
-            <option value="Friend">
-              Friend
-            </option>
-
-            <option value="Neighbour">
-              Neighbour
-            </option>
-
-            <option value="Other">
-              Other
-            </option>
-          </select>
-
-          {relationship ===
-            "Other" && (
-            <input
-              type="text"
-              placeholder="Specify relationship"
-              value={
-                otherRelationship
-              }
-              onChange={(e) =>
-                setOtherRelationship(
-                  e.target.value
-                )
-              }
-              style={{
-                width: "100%",
-                padding: "12px",
-                marginTop: "15px",
-                border:
-                  "1px solid #ccc",
-                borderRadius:
-                  "10px",
-                boxSizing:
-                  "border-box",
-              }}
-            />
+              <button
+                onClick={startAssessment}
+                disabled={!selectedPatient}
+                style={{
+                  ...primaryButton,
+                  opacity: selectedPatient
+                    ? 1
+                    : 0.5,
+                  cursor: selectedPatient
+                    ? "pointer"
+                    : "not-allowed",
+                }}
+              >
+                Start Assessment →
+              </button>
+            </>
           )}
 
           <button
-            onClick={handleStart}
+            onClick={() =>
+              router.push("/add-patient")
+            }
+            style={secondaryButton}
+          >
+            ➕ Add New Patient
+          </button>
+
+          <button
+            onClick={() =>
+              router.push("/dashboard")
+            }
+            style={secondaryButton}
+          >
+            ← Back To Dashboard
+          </button>
+
+          <div
             style={{
-              width: "100%",
-              marginTop: "25px",
-              padding: "14px",
-              backgroundColor:
-                "#2563eb",
-              color: "white",
-              border: "none",
-              borderRadius: "12px",
-              fontSize: "18px",
-              fontWeight: "bold",
-              cursor: "pointer",
+              marginTop: "30px",
+              textAlign: "center",
+              fontSize: "12px",
+              color: "#6b7280",
             }}
           >
-            Start Assessment →
-          </button>
+            Created by Suraj Premnath
+          </div>
         </div>
       </div>
     </main>
   );
 }
+
+const primaryButton: React.CSSProperties = {
+  width: "100%",
+  padding: "14px",
+  background: "#2563eb",
+  color: "white",
+  border: "none",
+  borderRadius: "10px",
+  fontWeight: "bold",
+  cursor: "pointer",
+  marginBottom: "12px",
+  fontSize: "16px",
+};
+
+const secondaryButton: React.CSSProperties = {
+  width: "100%",
+  padding: "14px",
+  background: "#ffffff",
+  color: "#111827",
+  border: "1px solid #d1d5db",
+  borderRadius: "10px",
+  fontWeight: "bold",
+  cursor: "pointer",
+  marginBottom: "12px",
+  fontSize: "16px",
+};

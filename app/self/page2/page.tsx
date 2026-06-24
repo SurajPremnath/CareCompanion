@@ -1,5 +1,5 @@
 "use client";
-
+import { clearAssessmentData } from "@/lib/assessmentStorage";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AssessmentLayout from "@/Components/AssessmentLayout";
@@ -195,7 +195,7 @@ export default function SelfPage2() {
   }}
 >
   <button
-    onClick={() => router.push("/self")}
+    onClick={() => router.push("/dashboard")}
     style={{
       flex: 1,
       padding: "12px",

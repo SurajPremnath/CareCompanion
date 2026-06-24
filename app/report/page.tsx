@@ -768,11 +768,8 @@ pdf.save(
 
           {assessmentType === "family" && (
             <p>
-              <strong>Completed By:</strong>{" "}
+              <strong>Assessor:</strong>{" "}
               {observerName}
-              {observerRelationship
-                ? ` (${observerRelationship})`
-                : ""}
             </p>
           )}
 
