@@ -1,4 +1,5 @@
 "use client";
+
 import { clearAssessmentData } from "@/lib/assessmentStorage";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -53,6 +54,10 @@ export default function FamilyPage() {
     );
 
     setPatients(myPatients);
+
+    if (myPatients.length > 0) {
+      setSelectedPatientId(myPatients[0].id);
+    }
   }, [router]);
 
   const selectedPatient =
@@ -64,6 +69,8 @@ export default function FamilyPage() {
   const startAssessment = () => {
     if (!loggedInUser) return;
     if (!selectedPatient) return;
+
+    clearAssessmentData();
 
     localStorage.setItem(
       "assessmentType",
@@ -210,10 +217,6 @@ export default function FamilyPage() {
                   fontSize: "16px",
                 }}
               >
-                <option value="">
-                  Select Patient
-                </option>
-
                 {patients.map((patient) => (
                   <option
                     key={patient.id}
@@ -258,30 +261,21 @@ export default function FamilyPage() {
 
               <button
                 onClick={startAssessment}
-                disabled={!selectedPatient}
-                style={{
-                  ...primaryButton,
-                  opacity: selectedPatient
-                    ? 1
-                    : 0.5,
-                  cursor: selectedPatient
-                    ? "pointer"
-                    : "not-allowed",
-                }}
+                style={primaryButton}
               >
                 Start Assessment →
               </button>
+
+              <button
+                onClick={() =>
+                  router.push("/add-patient")
+                }
+                style={secondaryButton}
+              >
+                ➕ Add New Patient
+              </button>
             </>
           )}
-
-          <button
-            onClick={() =>
-              router.push("/add-patient")
-            }
-            style={secondaryButton}
-          >
-            ➕ Add New Patient
-          </button>
 
           <button
             onClick={() =>
