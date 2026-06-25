@@ -188,9 +188,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() =>
-              alert(
-                "Reports module will be available in Phase 3."
-              )
+              router.push("/reports")
             }
             style={actionButton}
           >
