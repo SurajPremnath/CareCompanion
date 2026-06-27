@@ -191,6 +191,8 @@ COMMENT ON TABLE public.assessment_reports IS
 -- DAILY CARE
 -- ==========================================================
 
+DROP TABLE IF EXISTS public.daily_care CASCADE;
+
 CREATE TABLE public.daily_care (
 
     id UUID PRIMARY KEY
@@ -204,40 +206,91 @@ CREATE TABLE public.daily_care (
         REFERENCES public.patients(id)
         ON DELETE CASCADE,
 
-    care_date DATE
-        NOT NULL DEFAULT CURRENT_DATE,
-
-    has_fever BOOLEAN
-        NOT NULL DEFAULT FALSE,
-
-    temperature NUMERIC(4,1)
-        CHECK (
-            temperature IS NULL
-            OR temperature BETWEEN 90.0 AND 110.0
-        ),
-
-    is_on_medication BOOLEAN
-        NOT NULL DEFAULT FALSE,
-
-    medication_taken app_enum.medication_status_type,
-
-    feeling app_enum.feeling_type,
-
-    requires_attention BOOLEAN
-        NOT NULL DEFAULT FALSE,
-
-    notes TEXT,
-
     recorded_at TIMESTAMPTZ
         NOT NULL DEFAULT NOW(),
+
+    temperature NUMERIC(4,1)
+        NOT NULL
+        CHECK (
+            temperature BETWEEN 30.0 AND 45.0
+        ),
+
+    systolic INTEGER
+        CHECK (
+            systolic IS NULL
+            OR systolic BETWEEN 50 AND 250
+        ),
+
+    diastolic INTEGER
+        CHECK (
+            diastolic IS NULL
+            OR diastolic BETWEEN 30 AND 150
+        ),
+
+    pulse INTEGER
+        CHECK (
+            pulse IS NULL
+            OR pulse BETWEEN 20 AND 250
+        ),
+
+    spo2 INTEGER
+        CHECK (
+            spo2 IS NULL
+            OR spo2 BETWEEN 50 AND 100
+        ),
+
+    symptoms JSONB
+        NOT NULL DEFAULT '[]'::jsonb,
+
+    pain_locations JSONB
+        NOT NULL DEFAULT '[]'::jsonb,
+
+    medications JSONB
+        NOT NULL DEFAULT '[]'::jsonb,
+
+    notes TEXT,
 
     created_at TIMESTAMPTZ
         NOT NULL DEFAULT NOW(),
 
     updated_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW()
+        NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT chk_daily_care_pain_locations
+    CHECK (
+        jsonb_array_length(pain_locations) = 0
+        OR symptoms ? 'BODY_PAIN'
+    )
 
 );
 
 COMMENT ON TABLE public.daily_care IS
-'Daily caregiver check-ins';
+'Stores caregiver daily observations, vitals, symptoms, medications and notes.';
+
+-- ==========================================================
+-- INDEXES
+-- ==========================================================
+
+CREATE INDEX idx_daily_care_user
+ON public.daily_care(user_id);
+
+CREATE INDEX idx_daily_care_patient
+ON public.daily_care(patient_id);
+
+CREATE INDEX idx_daily_care_recorded_at
+ON public.daily_care(recorded_at DESC);
+
+CREATE INDEX idx_daily_care_patient_recorded_at
+ON public.daily_care(
+    patient_id,
+    recorded_at DESC
+);
+
+-- ==========================================================
+-- UPDATED AT TRIGGER
+-- ==========================================================
+
+CREATE TRIGGER trg_daily_care_updated_at
+BEFORE UPDATE ON public.daily_care
+FOR EACH ROW
+EXECUTE FUNCTION public.update_updated_at_column();

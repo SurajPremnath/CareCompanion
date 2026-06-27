@@ -1,0 +1,1157 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+import { patientStorage } from "@/lib/storage/patientStorage";
+
+import type { Patient } from "@/lib/types/patient";
+import type {
+  DailyCareSymptom,
+  PainLocation,
+} from "@/lib/types/dailyCare";
+
+import PatientCard from "./PatientCard";
+import TemperatureCard from "./TemperatureCard";
+import VitalsCard from "./VitalsCard";
+import SymptomsCard from "./SymptomsCard";
+import PainLocationCard from "./PainLocationCard";
+import ActionButtons from "./ActionButtons";
+import { dailyCareStorage } from "@/lib/storage/DailyCareStorage";
+
+//------------------------------------------------------------
+// Types
+//------------------------------------------------------------
+
+type TemperatureUnit = "F" | "C";
+
+interface DailyCareFormState {
+
+  patientId: string;
+
+  date: string;
+
+  time: string;
+
+  temperature: string;
+
+  temperatureUnit: TemperatureUnit;
+
+  systolic: string;
+
+  diastolic: string;
+
+  pulse: string;
+
+  spo2: string;
+
+  symptoms: DailyCareSymptom[];
+
+  painLocations: PainLocation[];
+
+}
+
+//------------------------------------------------------------
+// Helpers
+//------------------------------------------------------------
+
+function getCurrentDate(): string {
+
+  return new Date()
+    .toISOString()
+    .split("T")[0];
+
+}
+
+function getCurrentTime(): string {
+
+  const now =
+    new Date();
+
+  const hours =
+    String(now.getHours())
+      .padStart(2, "0");
+
+  const minutes =
+    String(now.getMinutes())
+      .padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+
+}
+
+function createInitialForm(): DailyCareFormState {
+
+  return {
+
+    patientId: "",
+
+    date: getCurrentDate(),
+
+    time: getCurrentTime(),
+
+    temperature: "",
+
+    temperatureUnit: "F",
+
+    systolic: "",
+
+    diastolic: "",
+
+    pulse: "",
+
+    spo2: "",
+
+    symptoms: [],
+
+    painLocations: []
+
+  };
+
+}
+
+//------------------------------------------------------------
+// Component
+//------------------------------------------------------------
+
+export default function DailyCareForm() {
+
+  //------------------------------------------------------------
+  // State
+  //------------------------------------------------------------
+
+  const [patients, setPatients] =
+    useState<Patient[]>([]);
+
+  const [loadingPatients, setLoadingPatients] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [showVitals, setShowVitals] =
+    useState(false);
+
+  const [showSymptoms, setShowSymptoms] =
+    useState(false);
+
+  const [formData, setFormData] =
+    useState<DailyCareFormState>(
+      createInitialForm()
+    );
+
+  //------------------------------------------------------------
+  // Load Patients
+  //------------------------------------------------------------
+
+  useEffect(() => {
+
+    const loadPatients = async () => {
+
+      setLoadingPatients(true);
+
+      try {
+
+        const result =
+          await patientStorage.getPatients();
+
+        if (result.success) {
+
+          setPatients(
+            result.data ?? []
+          );
+
+        }
+
+      }
+      finally {
+
+        setLoadingPatients(false);
+
+      }
+
+    };
+
+    loadPatients();
+
+  }, []);
+
+  //------------------------------------------------------------
+  // Field Updates
+  //------------------------------------------------------------
+
+  function updateField<
+    K extends keyof DailyCareFormState
+  >(
+    field: K,
+    value: DailyCareFormState[K]
+  ) {
+
+    setFormData(previous => ({
+
+      ...previous,
+
+      [field]: value
+
+    }));
+
+  }
+
+  //------------------------------------------------------------
+  // Toggle Symptoms
+  //------------------------------------------------------------
+
+  function toggleSymptom(
+    symptom: DailyCareSymptom
+  ) {
+
+    const exists =
+      formData.symptoms.includes(symptom);
+
+    if (exists) {
+
+      const updatedSymptoms =
+        formData.symptoms.filter(
+          s => s !== symptom
+        );
+
+      updateField(
+        "symptoms",
+        updatedSymptoms
+      );
+
+      if (symptom === "BODY_PAIN") {
+
+        updateField(
+          "painLocations",
+          []
+        );
+
+      }
+
+      return;
+
+    }
+
+    updateField(
+      "symptoms",
+      [
+        ...formData.symptoms,
+        symptom
+      ]
+    );
+
+  }
+
+  //------------------------------------------------------------
+  // Toggle Pain Location
+  //------------------------------------------------------------
+
+  function togglePainLocation(
+    location: PainLocation
+  ) {
+
+    const exists =
+      formData.painLocations.includes(location);
+
+    if (exists) {
+
+      updateField(
+
+        "painLocations",
+
+        formData.painLocations.filter(
+          p => p !== location
+        )
+
+      );
+
+      return;
+
+    }
+
+    updateField(
+
+      "painLocations",
+
+      [
+        ...formData.painLocations,
+        location
+      ]
+
+    );
+
+  }
+
+  //------------------------------------------------------------
+  // Reset Form
+  //------------------------------------------------------------
+
+  function resetForm() {
+
+    const patientId =
+      formData.patientId;
+
+    const unit =
+      formData.temperatureUnit;
+
+    setFormData({
+
+      ...createInitialForm(),
+
+      patientId,
+
+      temperatureUnit: unit
+
+    });
+
+  }
+
+
+
+  //------------------------------------------------------------
+  // JSX Continues In Part 2
+  //------------------------------------------------------------
+
+return (
+
+  <>
+
+    {/*--------------------------------------------------------
+      Patient Information
+    --------------------------------------------------------*/}
+
+    <section style={cardStyle}>
+
+      <h3 style={sectionTitle}>
+        👤 Patient Information
+      </h3>
+
+      <label style={labelStyle}>
+        Patient *
+      </label>
+
+      <select
+        value={formData.patientId}
+        disabled={loadingPatients || saving}
+        onChange={(e) =>
+          updateField(
+            "patientId",
+            e.target.value
+          )
+        }
+        style={inputStyle}
+      >
+
+        <option value="">
+          Select Patient
+        </option>
+
+        {patients.map((patient) => (
+
+          <option
+            key={patient.id}
+            value={patient.id}
+          >
+            {patient.fullName}
+          </option>
+
+        ))}
+
+      </select>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "16px",
+          marginTop: "20px",
+        }}
+      >
+
+        <div>
+
+          <label style={labelStyle}>
+            Date *
+          </label>
+
+          <input
+            type="date"
+            value={formData.date}
+            onChange={(e) =>
+              updateField(
+                "date",
+                e.target.value
+              )
+            }
+            style={inputStyle}
+          />
+
+        </div>
+
+        <div>
+
+          <label style={labelStyle}>
+            Time *
+          </label>
+
+          <input
+            type="time"
+            value={formData.time}
+            onChange={(e) =>
+              updateField(
+                "time",
+                e.target.value
+              )
+            }
+            style={inputStyle}
+          />
+
+        </div>
+
+      </div>
+
+    </section>
+
+    {/*--------------------------------------------------------
+      Temperature
+    --------------------------------------------------------*/}
+
+    <section style={cardStyle}>
+
+      <h3 style={sectionTitle}>
+        🌡 Temperature
+      </h3>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "2fr 1fr",
+          gap: "16px",
+          alignItems: "end",
+        }}
+      >
+
+        <div>
+
+          <label style={labelStyle}>
+            Temperature *
+          </label>
+
+          <input
+            type="number"
+            step="0.1"
+            placeholder="Enter Temperature"
+            value={formData.temperature}
+            onChange={(e) =>
+              updateField(
+                "temperature",
+                e.target.value
+              )
+            }
+            style={inputStyle}
+          />
+
+        </div>
+
+        <div>
+
+          <label style={labelStyle}>
+            Unit
+          </label>
+
+          <select
+            value={formData.temperatureUnit}
+            onChange={(e) =>
+              updateField(
+                "temperatureUnit",
+                e.target.value as TemperatureUnit
+              )
+            }
+            style={inputStyle}
+          >
+
+            <option value="F">
+              °F
+            </option>
+
+            <option value="C">
+              °C
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    {/*--------------------------------------------------------
+      Additional Vitals
+    --------------------------------------------------------*/}
+
+    <section style={cardStyle}>
+
+      <button
+        type="button"
+        onClick={() =>
+          setShowVitals(
+            !showVitals
+          )
+        }
+        style={collapseButton}
+      >
+
+        {showVitals ? "▼" : "▶"} Additional Vitals
+
+      </button>
+
+      {showVitals && (
+
+        <>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit,minmax(180px,1fr))",
+              gap: "16px",
+              marginTop: "20px",
+            }}
+          >
+
+            <div>
+
+              <label style={labelStyle}>
+                Blood Pressure - Upper (Systolic)
+              </label>
+
+              <input
+                type="number"
+                value={formData.systolic}
+                onChange={(e) =>
+                  updateField(
+                    "systolic",
+                    e.target.value
+                  )
+                }
+                style={inputStyle}
+              />
+
+            </div>
+
+            <div>
+
+              <label style={labelStyle}>
+                Blood Pressure - Lower (Diastolic)
+              </label>
+
+              <input
+                type="number"
+                value={formData.diastolic}
+                onChange={(e) =>
+                  updateField(
+                    "diastolic",
+                    e.target.value
+                  )
+                }
+                style={inputStyle}
+              />
+
+            </div>
+
+            <div>
+
+              <label style={labelStyle}>
+                Pulse
+              </label>
+
+              <input
+                type="number"
+                value={formData.pulse}
+                onChange={(e) =>
+                  updateField(
+                    "pulse",
+                    e.target.value
+                  )
+                }
+                style={inputStyle}
+              />
+
+            </div>
+
+            <div>
+
+              <label style={labelStyle}>
+                SpO₂
+              </label>
+
+              <input
+                type="number"
+                value={formData.spo2}
+                onChange={(e) =>
+                  updateField(
+                    "spo2",
+                    e.target.value
+                  )
+                }
+                style={inputStyle}
+              />
+
+            </div>
+
+          </div>
+
+        </>
+
+      )}
+
+    </section>
+
+    {/*--------------------------------------------------------
+      Symptoms
+    --------------------------------------------------------*/}
+
+    <section style={cardStyle}>
+
+      <button
+        type="button"
+        onClick={() =>
+          setShowSymptoms(!showSymptoms)
+        }
+        style={collapseButton}
+      >
+        {showSymptoms ? "▼" : "▶"} Symptoms
+      </button>
+
+      {showSymptoms && (
+
+        <div
+          style={{
+            marginTop: "20px",
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(220px,1fr))",
+            gap: "12px"
+          }}
+        >
+
+          {[
+            ["FEVER", "Fever"],
+            ["WEAKNESS", "Weakness"],
+            ["BODY_PAIN", "Body Pain"],
+            ["COUGH", "Cough"],
+            ["BLOOD_IN_COUGH", "Blood In Cough"],
+            ["BREATHLESSNESS", "Breathlessness"],
+            ["WALKING_DIFFICULTY", "Walking Difficulty"],
+            ["LOSS_OF_APPETITE", "Loss Of Appetite"],
+            ["LOOSE_MOTIONS", "Loose Motions"],
+            ["VOMITING", "Vomiting"],
+            ["DRY_MOUTH", "Dry Mouth"],
+            ["OTHER", "Other"]
+          ].map(([value, label]) => (
+
+            <label
+              key={value}
+              style={checkboxLabel}
+            >
+
+              <input
+                type="checkbox"
+                checked={
+                  formData.symptoms.includes(
+                    value as DailyCareSymptom
+                  )
+                }
+                onChange={() =>
+                  toggleSymptom(
+                    value as DailyCareSymptom
+                  )
+                }
+              />
+
+              <span>
+
+                {label}
+
+              </span>
+
+            </label>
+
+          ))}
+
+        </div>
+
+      )}
+
+    </section>
+
+    {/*--------------------------------------------------------
+      Pain Location
+    --------------------------------------------------------*/}
+
+    {formData.symptoms.includes("BODY_PAIN") && (
+
+      <section style={cardStyle}>
+
+        <h3 style={sectionTitle}>
+          Pain Location
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(200px,1fr))",
+            gap: "12px"
+          }}
+        >
+
+          {[
+            ["HEAD","Head"],
+            ["NECK","Neck"],
+            ["CHEST","Chest"],
+            ["ABDOMEN","Abdomen"],
+            ["BACK","Back"],
+            ["SHOULDER","Shoulder"],
+            ["ARM","Arm"],
+            ["THIGH","Thigh"],
+            ["KNEE","Knee"],
+            ["CALF","Calf"],
+            ["FEET","Feet"],
+            ["OTHER","Other"]
+          ].map(([value,label]) => (
+
+            <label
+              key={value}
+              style={checkboxLabel}
+            >
+
+              <input
+                type="checkbox"
+                checked={
+                  formData.painLocations.includes(
+                    value as PainLocation
+                  )
+                }
+                onChange={() =>
+                  togglePainLocation(
+                    value as PainLocation
+                  )
+                }
+              />
+
+              <span>
+
+                {label}
+
+              </span>
+
+            </label>
+
+          ))}
+
+        </div>
+
+      </section>
+
+    )}
+
+    {/*--------------------------------------------------------
+      Actions
+    --------------------------------------------------------*/}
+
+    <div
+      style={{
+        display: "flex",
+        gap: "16px",
+        marginTop: "32px"
+      }}
+    >
+
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={saving}
+        style={{
+          ...primaryButton,
+          flex: 1,
+          opacity: saving ? 0.7 : 1
+        }}
+      >
+
+        {saving
+          ? "Saving..."
+          : "💾 Save Reading"}
+
+      </button>
+
+<button
+    type="button"
+    disabled={saving}
+    onClick={() => window.location.href = "/dashboard"}
+    style={{
+        ...secondaryButton,
+        flex: 1
+    }}
+>
+    🏠 Back to Dashboard
+</button>
+
+    </div>
+
+  </>
+
+);
+
+  //------------------------------------------------------------
+  // Save
+  //------------------------------------------------------------
+
+//------------------------------------------------------------
+// Validation
+//------------------------------------------------------------
+
+function validateForm(): boolean {
+
+  if (!formData.patientId.trim()) {
+
+    alert("Please select a patient.");
+
+    return false;
+
+  }
+
+  if (!formData.temperature.trim()) {
+
+    alert("Please enter temperature.");
+
+    return false;
+
+  }
+
+  const temperature =
+    Number(formData.temperature);
+
+  if (Number.isNaN(temperature)) {
+
+    alert("Temperature is invalid.");
+
+    return false;
+
+  }
+
+  if (
+    formData.systolic &&
+    Number.isNaN(Number(formData.systolic))
+  ) {
+
+    alert("Blood Pressure is invalid.");
+
+    return false;
+
+  }
+
+  if (
+    formData.diastolic &&
+    Number.isNaN(Number(formData.diastolic))
+  ) {
+
+    alert("Blood Pressure is invalid.");
+
+    return false;
+
+  }
+
+  if (
+    formData.pulse &&
+    Number.isNaN(Number(formData.pulse))
+  ) {
+
+    alert("Pulse Rate is invalid.");
+
+    return false;
+
+  }
+
+  if (
+    formData.spo2 &&
+    Number.isNaN(Number(formData.spo2))
+  ) {
+
+    alert("SpO₂ is invalid.");
+
+    return false;
+
+  }
+
+  return true;
+
+}
+
+//------------------------------------------------------------
+// Save Reading
+//------------------------------------------------------------
+
+async function handleSave() {
+
+  if (saving) {
+
+    return;
+
+  }
+
+  if (!validateForm()) {
+
+    return;
+
+  }
+
+  setSaving(true);
+
+  try {
+
+    const reading = {
+
+      patientId:
+        formData.patientId,
+
+      recordedAt:
+        `${formData.date}T${formData.time}:00`,
+
+      temperature:
+        Number(formData.temperature),
+
+      temperatureUnit:
+        formData.temperatureUnit,
+
+      systolic:
+        formData.systolic
+          ? Number(formData.systolic)
+          : null,
+
+      diastolic:
+        formData.diastolic
+          ? Number(formData.diastolic)
+          : null,
+
+      pulse:
+        formData.pulse
+          ? Number(formData.pulse)
+          : null,
+
+      spo2:
+        formData.spo2
+          ? Number(formData.spo2)
+          : null,
+
+      symptoms:
+        formData.symptoms,
+
+      painLocations:
+        formData.painLocations
+
+    };
+
+const result =
+  await dailyCareStorage.save(reading);
+
+if (!result.success) {
+
+  throw new Error(result.error);
+
+}
+ 
+    resetForm();
+
+    alert(
+      "Reading saved successfully."
+    );
+
+  }
+
+catch (error) {
+
+  console.error(
+    "Daily Care Save Error:",
+    error
+  );
+
+  if (error instanceof Error) {
+
+    alert(error.message);
+
+  } else {
+
+    alert("Unable to save reading.");
+
+  }
+
+}
+  finally {
+
+    setSaving(false);
+
+  }
+
+}
+
+}
+
+//------------------------------------------------------------
+// Styles
+//------------------------------------------------------------
+
+const cardStyle: React.CSSProperties = {
+
+  background: "#ffffff",
+
+  border: "1px solid #d1d5db",
+
+  borderRadius: "12px",
+
+  padding: "24px",
+
+  marginBottom: "24px",
+
+  boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
+
+};
+
+const sectionTitle: React.CSSProperties = {
+
+  margin: 0,
+
+  marginBottom: "20px",
+
+  fontSize: "22px",
+
+  fontWeight: 700,
+
+  color: "#111827"
+
+};
+
+const labelStyle: React.CSSProperties = {
+
+  display: "block",
+
+  marginBottom: "8px",
+
+  marginTop: "16px",
+
+  fontWeight: 600,
+
+  color: "#111827",
+
+  fontSize: "15px"
+
+};
+
+const inputStyle: React.CSSProperties = {
+
+  width: "100%",
+
+  padding: "14px",
+
+  border: "1px solid #d1d5db",
+
+  borderRadius: "10px",
+
+  fontSize: "16px",
+
+  boxSizing: "border-box",
+
+  background: "#ffffff",
+
+  outline: "none"
+
+};
+
+const collapseButton: React.CSSProperties = {
+
+  width: "100%",
+
+  background: "transparent",
+
+  border: "none",
+
+  padding: 0,
+
+  margin: 0,
+
+  textAlign: "left",
+
+  fontSize: "20px",
+
+  fontWeight: 700,
+
+  cursor: "pointer",
+
+  color: "#111827"
+
+};
+
+const checkboxLabel: React.CSSProperties = {
+
+  display: "flex",
+
+  alignItems: "center",
+
+  gap: "10px",
+
+  padding: "6px 0",
+
+  cursor: "pointer",
+
+  fontSize: "15px",
+
+  color: "#111827"
+
+};
+
+const primaryButton: React.CSSProperties = {
+
+  padding: "16px",
+
+  background: "#2563eb",
+
+  color: "#ffffff",
+
+  border: "none",
+
+  borderRadius: "10px",
+
+  fontSize: "16px",
+
+  fontWeight: 700,
+
+  cursor: "pointer",
+
+  transition: "0.2s"
+
+};
+
+const secondaryButton: React.CSSProperties = {
+
+  padding: "16px",
+
+  background: "#ffffff",
+
+  color: "#111827",
+
+  border: "1px solid #d1d5db",
+
+  borderRadius: "10px",
+
+  fontSize: "16px",
+
+  fontWeight: 700,
+
+  cursor: "pointer",
+
+  transition: "0.2s"
+
+};

@@ -1,0 +1,176 @@
+"use client";
+
+import {
+  cardStyle,
+  collapseButton,
+  fourColumnGrid,
+  inputStyle,
+  labelStyle
+} from "../styles";
+
+interface VitalsCardProps {
+
+  expanded: boolean;
+
+  disabled?: boolean;
+
+  systolic: string;
+
+  diastolic: string;
+
+  pulse: string;
+
+  spo2: string;
+
+  onToggle: () => void;
+
+  onSystolicChange: (value: string) => void;
+
+  onDiastolicChange: (value: string) => void;
+
+  onPulseChange: (value: string) => void;
+
+  onSpo2Change: (value: string) => void;
+
+}
+
+export default function VitalsCard({
+
+  expanded,
+
+  disabled = false,
+
+  systolic,
+
+  diastolic,
+
+  pulse,
+
+  spo2,
+
+  onToggle,
+
+  onSystolicChange,
+
+  onDiastolicChange,
+
+  onPulseChange,
+
+  onSpo2Change
+
+}: VitalsCardProps) {
+
+  return (
+
+    <section style={cardStyle}>
+
+      <button
+        type="button"
+        onClick={onToggle}
+        style={collapseButton}
+      >
+
+        {expanded ? "▼" : "▶"} Additional Vitals
+
+      </button>
+
+      {expanded && (
+
+        <div
+          style={{
+            ...fourColumnGrid,
+            marginTop: "20px"
+          }}
+        >
+
+<h3>🩺 Blood Pressure</h3>
+
+          <div>
+
+            <label style={labelStyle}>
+              Upper (Systolic)
+            </label>
+
+            <input
+              type="number"
+              value={systolic}
+              disabled={disabled}
+              onChange={(e) =>
+                onSystolicChange(
+                  e.target.value
+                )
+              }
+              style={inputStyle}
+            />
+
+          </div>
+
+          <div>
+
+            <label style={labelStyle}>
+              Lower (Diastolic)
+            </label>
+
+            <input
+              type="number"
+              value={diastolic}
+              disabled={disabled}
+              onChange={(e) =>
+                onDiastolicChange(
+                  e.target.value
+                )
+              }
+              style={inputStyle}
+            />
+
+          </div>
+
+          <div>
+
+            <label style={labelStyle}>
+              Pulse Rate
+            </label>
+
+            <input
+              type="number"
+              value={pulse}
+              disabled={disabled}
+              onChange={(e) =>
+                onPulseChange(
+                  e.target.value
+                )
+              }
+              style={inputStyle}
+            />
+
+          </div>
+
+          <div>
+
+            <label style={labelStyle}>
+              SpO₂
+            </label>
+
+            <input
+              type="number"
+              value={spo2}
+              disabled={disabled}
+              onChange={(e) =>
+                onSpo2Change(
+                  e.target.value
+                )
+              }
+              style={inputStyle}
+            />
+
+          </div>
+
+        </div>
+
+      )}
+
+    </section>
+
+  );
+
+}

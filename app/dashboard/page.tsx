@@ -163,6 +163,12 @@ export default function DashboardPage() {
 
     };
 
+    const openDailyCare = () => {
+
+        router.push("/daily-care");
+
+    };
+
     if (loading) {
 
         return (
@@ -231,80 +237,115 @@ export default function DashboardPage() {
 
                 </h2>
 
-                <p
-                    style={{
-                        color: "#555",
-                        marginBottom: "30px",
-                    }}
-                >
-                    Choose an assessment option
-                </p>
+<h3
+    style={{
+        marginTop: "24px",
+        marginBottom: "16px",
+        fontSize: "22px",
+        fontWeight: 700,
+        color: "#111827",
+    }}
+>
+    🌡 Daily Care
+</h3>
 
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns:
-                            "1fr 1fr",
-                        gap: "16px",
-                        marginBottom: "16px",
-                    }}
-                >
+<button
+    onClick={openDailyCare}
+    style={{
+        ...actionButton,
+        width: "100%",
+        marginBottom: "28px",
+    }}
+>
+    ❤️
+    <br />
+    Daily Care
+</button>
 
-                    <button
-                        onClick={
-                            startFamilyAssessment
-                        }
-                        style={actionButton}
-                    >
-                        👨‍👩‍👧
-                        <br />
-                        Family Assessment
-                    </button>
+<h3
+    style={{
+        marginBottom: "16px",
+        fontSize: "22px",
+        fontWeight: 700,
+        color: "#111827",
+    }}
+>
+    🩺 Assessment
+</h3>
 
-                    <button
-                        onClick={
-                            startSelfAssessment
-                        }
-                        style={actionButton}
-                    >
-                        🧍
-                        <br />
-                        Self Assessment
-                    </button>
+<div
+    style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "16px",
+        marginBottom: "30px",
+    }}
+>
 
-                </div>
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: "16px",
-                        marginBottom: "30px",
-                    }}
-                >
+    <button
+        onClick={startFamilyAssessment}
+        style={actionButton}
+    >
+        👨‍👩‍👧
+        <br />
+        Family Assessment
+    </button>
 
-                    <button
-                        onClick={() =>
-                            router.push("/add-patient")
-                        }
-                        style={actionButton}
-                    >
-                        ➕
-                        <br />
-                        Add Patient
-                    </button>
+    <button
+        onClick={startSelfAssessment}
+        style={actionButton}
+    >
+        🧍
+        <br />
+        Self Assessment
+    </button>
 
-                    <button
-                        onClick={() =>
-                            router.push("/reports")
-                        }
-                        style={actionButton}
-                    >
-                        📄
-                        <br />
-                        Reports
-                    </button>
+</div>
 
-                </div>
+<h3
+    style={{
+        marginTop: "16px",
+        marginBottom: "16px",
+        fontSize: "22px",
+        fontWeight: 700,
+        color: "#111827",
+    }}
+>
+    📁 Patient Management
+</h3>
+
+<div
+    style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "16px",
+        marginBottom: "30px",
+    }}
+>
+
+    <button
+        onClick={() =>
+            router.push("/add-patient")
+        }
+        style={actionButton}
+    >
+        ➕
+        <br />
+        Add Patient
+    </button>
+
+    <button
+        onClick={() =>
+            router.push("/reports")
+        }
+        style={actionButton}
+    >
+        📄
+        <br />
+        Reports
+    </button>
+
+</div>
 
                 <button
                     onClick={logout}

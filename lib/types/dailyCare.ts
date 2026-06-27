@@ -1,12 +1,7 @@
-export type MedicationStatus =
-  | "YES"
-  | "PARTIAL"
-  | "NO";
-
-export type Feeling =
-  | "BETTER"
-  | "SAME"
-  | "WORSE";
+// ==========================================================
+// CareCompanion
+// Daily Care Domain Types
+// ==========================================================
 
 export interface DailyCare {
 
@@ -16,25 +11,116 @@ export interface DailyCare {
 
   patientId: string;
 
-  careDate: string;
-
-  hasFever: boolean;
-
-  temperature: number | null;
-
-  isOnMedication: boolean;
-
-  medicationTaken: MedicationStatus | null;
-
-  feeling: Feeling | null;
-
-  requiresAttention: boolean;
-
-  notes: string | null;
-
+  /**
+   * ISO timestamp when the observation was recorded.
+   */
   recordedAt: string;
+
+  /**
+   * Body temperature in Celsius.
+   */
+  temperature: number;
+
+  temperatureUnit: "F" | "C";
+
+  /**
+   * Blood pressure (optional)
+   */
+  systolic: number | null;
+
+  diastolic: number | null;
+
+  /**
+   * Pulse rate (beats per minute)
+   */
+  pulse: number | null;
+
+  /**
+   * Oxygen saturation (%)
+   */
+  spo2: number | null;
+
+  /**
+   * Selected symptoms.
+   */
+  symptoms: DailyCareSymptom[];
+
+  /**
+   * Selected pain locations.
+   */
+  painLocations: PainLocation[];
+
+  /**
+   * Medicines administered.
+   */
+  medications?: unknown[];
+
+  notes?: string | null;
 
   createdAt: string;
 
   updatedAt: string;
+
+}
+
+export type DailyCareSymptom =
+    | "FEVER"
+    | "WEAKNESS"
+    | "BODY_PAIN"
+    | "COUGH"
+    | "BLOOD_IN_COUGH"
+    | "BREATHLESSNESS"
+    | "WALKING_DIFFICULTY"
+    | "LOSS_OF_APPETITE"
+    | "LOOSE_MOTIONS"
+    | "VOMITING"
+    | "DRY_MOUTH"
+    | "OTHER";
+
+export type PainLocation =
+    | "HEAD"
+    | "NECK"
+    | "CHEST"
+    | "ABDOMEN"
+    | "BACK"
+    | "SHOULDER"
+    | "ARM"
+    | "THIGH"
+    | "KNEE"
+    | "CALF"
+    | "FEET"
+    | "OTHER";
+
+export interface MedicationEntry {
+
+  medicine: string;
+
+  dose: string;
+
+  remarks: string;
+
+}
+
+export interface CreateDailyCareRequest {
+
+  patientId: string;
+
+  recordedAt: string;
+
+  temperature: number;
+
+  temperatureUnit: "F" | "C";
+
+  systolic: number | null;
+
+  diastolic: number | null;
+
+  pulse: number | null;
+
+  spo2: number | null;
+
+  symptoms: DailyCareSymptom[];
+
+  painLocations: PainLocation[];
+
 }
