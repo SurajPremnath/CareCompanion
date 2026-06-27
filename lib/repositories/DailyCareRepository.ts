@@ -34,11 +34,6 @@ export class DailyCareRepository {
       .select()
       .single();
 
-console.log("Daily Care Payload:", payload);
-
-console.log("Supabase Data:", data);
-
-console.log("Supabase Error:", error);
 
 if (error) {
 
