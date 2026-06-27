@@ -1,197 +1,254 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type User = {
-  id: string;
-  name: string;
-  age: number;
-  username: string;
-  password: string;
-  createdAt: string;
-};
+import { authService } from "@/lib/auth/authService";
 
 export default function LoginPage() {
-  const router = useRouter();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+    const router = useRouter();
 
-  useEffect(() => {
-    const loggedInUser =
-      localStorage.getItem("loggedInUser");
+    const [email, setEmail] = useState("");
 
-    if (loggedInUser) {
-      router.push("/dashboard");
-    }
-  }, [router]);
+    const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    const trimmedUsername =
-      username.trim().toLowerCase();
+    const [loading, setLoading] = useState(false);
 
-    if (!trimmedUsername || !password) {
-      alert("Please enter username and password.");
-      return;
-    }
+    const [error, setError] = useState("");
 
-    const users: User[] = JSON.parse(
-      localStorage.getItem("users") || "[]"
-    );
+    const handleLogin = async () => {
 
-    const matchedUser = users.find(
-      (user) =>
-        user.username.toLowerCase() ===
-          trimmedUsername &&
-        user.password === password
-    );
+        setError("");
 
-    if (!matchedUser) {
-      alert("Invalid username or password.");
-      return;
-    }
+        if (!email.trim()) {
+            setError("Email is required.");
+            return;
+        }
 
-    const loggedInUser = {
-      id: matchedUser.id,
-      name: matchedUser.name,
-      age: matchedUser.age,
-      username: matchedUser.username,
-      createdAt: matchedUser.createdAt,
+        if (!password) {
+            setError("Password is required.");
+            return;
+        }
+
+        try {
+
+            setLoading(true);
+
+            await authService.login(
+                email.trim(),
+                password
+            );
+
+            router.replace("/dashboard");
+
+        } catch (err) {
+
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Unable to login.";
+
+            setError(message);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
     };
 
-    localStorage.setItem(
-      "loggedInUser",
-      JSON.stringify(loggedInUser)
+    return (
+
+        <main style={containerStyle}>
+
+            <div style={cardStyle}>
+
+                <div style={logoStyle}>
+                    ❤️ CareCompanion
+                </div>
+
+                <h1 style={titleStyle}>
+                    Welcome Back
+                </h1>
+
+                <p style={subtitleStyle}>
+                    Sign in to continue
+                </p>
+
+                {error && (
+
+                    <div style={errorStyle}>
+                        {error}
+                    </div>
+
+                )}
+
+                <label style={labelStyle}>
+                    Email Address
+                </label>
+
+                <input
+                    type="email"
+                    value={email}
+                    onChange={(e) =>
+                        setEmail(e.target.value)
+                    }
+                    placeholder="Enter your email"
+                    style={inputStyle}
+                    disabled={loading}
+                />
+
+                <label style={labelStyle}>
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    value={password}
+                    onChange={(e) =>
+                        setPassword(e.target.value)
+                    }
+                    placeholder="Enter your password"
+                    style={inputStyle}
+                    disabled={loading}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            handleLogin();
+                        }
+                    }}
+                />
+
+                <button
+                    onClick={handleLogin}
+                    disabled={loading}
+                    style={{
+                        ...primaryButtonStyle,
+                        opacity: loading ? 0.7 : 1,
+                        cursor: loading
+                            ? "not-allowed"
+                            : "pointer"
+                    }}
+                >
+                    {loading
+                        ? "Signing In..."
+                        : "Sign In"}
+                </button>
+
+                <button
+                    onClick={() =>
+                        router.replace("/register")
+                    }
+                    disabled={loading}
+                    style={secondaryButtonStyle}
+                >
+                    Create New Account
+                </button>
+
+                <div style={footerStyle}>
+                    Created by Suraj Premnath
+                </div>
+
+            </div>
+
+        </main>
+
     );
 
-    router.push("/dashboard");
-  };
-
-  return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#f8fafc",
-        padding: "20px",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        fontFamily:
-          "Inter, Arial, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "650px",
-          background: "#ffffff",
-          padding: "32px",
-          borderRadius: "16px",
-          border: "1px solid #d1d5db",
-          boxShadow:
-            "0 2px 8px rgba(0,0,0,0.05)",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "42px",
-            marginBottom: "10px",
-          }}
-        >
-          ❤️ CareCompanion
-        </h1>
-
-        <h2
-          style={{
-            marginBottom: "24px",
-          }}
-        >
-          Login
-        </h2>
-
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) =>
-            setUsername(e.target.value)
-          }
-          style={inputStyle}
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-          style={inputStyle}
-        />
-
-        <button
-          onClick={handleLogin}
-          style={buttonStyle}
-        >
-          Login
-        </button>
-
-        <button
-          onClick={() =>
-            router.push("/register")
-          }
-          style={secondaryButtonStyle}
-        >
-          Create New Account
-        </button>
-
-        <div
-          style={{
-            marginTop: "24px",
-            textAlign: "center",
-            fontSize: "12px",
-            color: "#6b7280",
-          }}
-        >
-          Created by Suraj Premnath
-        </div>
-      </div>
-    </main>
-  );
 }
 
+const containerStyle: React.CSSProperties = {
+    minHeight: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "#f8fafc",
+    padding: "24px",
+    fontFamily: "Inter, Arial, sans-serif"
+};
+
+const cardStyle: React.CSSProperties = {
+    width: "100%",
+    maxWidth: "600px",
+    background: "#ffffff",
+    borderRadius: "16px",
+    padding: "36px",
+    border: "1px solid #d1d5db",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+};
+
+const logoStyle: React.CSSProperties = {
+    fontSize: "42px",
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: "16px"
+};
+
+const titleStyle: React.CSSProperties = {
+    textAlign: "center",
+    marginBottom: "8px"
+};
+
+const subtitleStyle: React.CSSProperties = {
+    textAlign: "center",
+    color: "#6b7280",
+    marginBottom: "28px"
+};
+
+const labelStyle: React.CSSProperties = {
+    display: "block",
+    marginTop: "16px",
+    marginBottom: "8px",
+    fontWeight: 600
+};
+
 const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "14px",
-  marginBottom: "14px",
-  border: "1px solid #d1d5db",
-  borderRadius: "10px",
-  fontSize: "16px",
+    width: "100%",
+    padding: "14px",
+    border: "1px solid #d1d5db",
+    borderRadius: "10px",
+    fontSize: "16px",
+    boxSizing: "border-box"
 };
 
-const buttonStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "14px",
-  background: "#2563eb",
-  color: "white",
-  border: "none",
-  borderRadius: "10px",
-  fontWeight: "bold",
-  cursor: "pointer",
-  fontSize: "16px",
+const primaryButtonStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "14px",
+    marginTop: "28px",
+    background: "#2563eb",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "10px",
+    fontSize: "16px",
+    fontWeight: "bold"
 };
 
-const secondaryButtonStyle: React.CSSProperties =
-{
-  width: "100%",
-  padding: "14px",
-  marginTop: "12px",
-  background: "#ffffff",
-  color: "#2563eb",
-  border: "1px solid #2563eb",
-  borderRadius: "10px",
-  fontWeight: "bold",
-  cursor: "pointer",
-  fontSize: "16px",
+const secondaryButtonStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "14px",
+    marginTop: "12px",
+    background: "#ffffff",
+    color: "#2563eb",
+    border: "1px solid #2563eb",
+    borderRadius: "10px",
+    fontSize: "16px",
+    fontWeight: "bold",
+    cursor: "pointer"
+};
+
+const errorStyle: React.CSSProperties = {
+    background: "#fee2e2",
+    color: "#991b1b",
+    padding: "12px",
+    borderRadius: "10px",
+    marginBottom: "20px",
+    border: "1px solid #fecaca"
+};
+
+const footerStyle: React.CSSProperties = {
+    marginTop: "28px",
+    textAlign: "center",
+    color: "#6b7280",
+    fontSize: "12px"
 };

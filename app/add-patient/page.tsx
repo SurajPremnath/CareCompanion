@@ -1,35 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-type LoggedInUser = {
-  id: string;
-  name: string;
-  age: number;
-  username: string;
-};
-
-type Patient = {
-  id: string;
-  ownerUserId: string;
-  name: string;
-  age: number;
-  gender: string;
-  relationship: string;
-  createdAt: string;
-};
+import { authService } from "@/lib/auth/authService";
+import { patientStorage } from "@/lib/storage/patientStorage";
 
 export default function AddPatientPage() {
+
   const router = useRouter();
 
-  const [loggedInUser, setLoggedInUser] =
-    useState<LoggedInUser | null>(null);
+  //------------------------------------------------------------
+  // Page State
+  //------------------------------------------------------------
 
-  const [patientName, setPatientName] =
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [currentUserName, setCurrentUserName] =
     useState("");
 
-  const [patientAge, setPatientAge] =
+  //------------------------------------------------------------
+  // Patient Details
+  //------------------------------------------------------------
+
+  const [fullName, setFullName] =
+    useState("");
+
+  const [dateOfBirth, setDateOfBirth] =
     useState("");
 
   const [gender, setGender] =
@@ -38,169 +39,309 @@ export default function AddPatientPage() {
   const [relationship, setRelationship] =
     useState("");
 
+  //------------------------------------------------------------
+  // Authentication
+  //------------------------------------------------------------
+
   useEffect(() => {
-    const user = JSON.parse(
-      localStorage.getItem("loggedInUser") ||
-        "null"
-    );
 
-    if (!user) {
-      router.push("/login");
-      return;
-    }
+    const loadUser = async () => {
 
-    setLoggedInUser(user);
-  }, [router]);
+console.log("Loading user....");
 
-  const savePatient = () => {
-    if (
-      !patientName.trim() ||
-      !patientAge.trim() ||
-      !gender ||
-      !relationship
-    ) {
-      alert(
-        "Please complete all patient details."
-      );
-      return;
-    }
 
-    const patients: Patient[] =
-      JSON.parse(
-        localStorage.getItem("patients") ||
-          "[]"
-      );
+      try {
 
-    const duplicatePatient =
-      patients.find(
-        (patient) =>
-          patient.ownerUserId ===
-            loggedInUser?.id &&
-          patient.name
-            .trim()
-            .toLowerCase() ===
-            patientName
-              .trim()
-              .toLowerCase()
-      );
+        const user =
+          await authService.getCurrentUser();
 
-    if (duplicatePatient) {
-      alert(
-        "A patient with this name already exists."
-      );
-      return;
-    }
+console.log("Supabase User:", user);
 
-    const newPatient: Patient = {
-      id: crypto.randomUUID(),
-      ownerUserId:
-        loggedInUser?.id || "",
-      name: patientName.trim(),
-      age: Number(patientAge),
-      gender,
-      relationship,
-      createdAt:
-        new Date().toISOString(),
+        if (!user) {
+
+console.log("No authenticated user");
+
+          router.replace("/login");
+
+          return;
+
+        }
+
+console.log("Authenticated");
+
+        setCurrentUserName(
+          user.user_metadata?.full_name ??
+          user.email ??
+          "User"
+        );
+
+      }
+      catch (error) {
+
+console.error("Load user failed:", error);
+
+        router.replace("/login");
+
+        return;
+
+      }
+      finally {
+
+        setLoading(false);
+
+      }
+
     };
 
-    patients.push(newPatient);
+    loadUser();
 
-    localStorage.setItem(
-      "patients",
-      JSON.stringify(patients)
+  }, [router]);
+
+  //------------------------------------------------------------
+  // Age Calculation
+  //------------------------------------------------------------
+
+  const calculatedAge =
+    useMemo(() => {
+
+      if (!dateOfBirth) {
+
+        return "";
+
+      }
+
+      const dob =
+        new Date(dateOfBirth);
+
+      const today =
+        new Date();
+
+      let age =
+        today.getFullYear() -
+        dob.getFullYear();
+
+      const monthDifference =
+        today.getMonth() -
+        dob.getMonth();
+
+      if (
+        monthDifference < 0 ||
+        (
+          monthDifference === 0 &&
+          today.getDate() < dob.getDate()
+        )
+      ) {
+
+        age--;
+
+      }
+
+      return age >= 0
+        ? `${age} Years`
+        : "";
+
+    }, [dateOfBirth]);
+
+  //------------------------------------------------------------
+  // Save Patient
+  //------------------------------------------------------------
+
+  const handleSavePatient =
+    async () => {
+
+      if (saving) {
+
+        return;
+
+      }
+
+      setSaving(true);
+
+      try {
+
+        const result =
+          await patientStorage.savePatient({
+
+            fullName:
+              fullName.trim(),
+
+            dateOfBirth,
+
+            gender:
+              gender as
+                | "Male"
+                | "Female"
+                | "Other"
+                | "Prefer not to say",
+
+            relationship,
+
+            status: "ACTIVE"
+
+          });
+
+        if (!result.success) {
+
+          alert(
+            result.message ??
+            "Unable to save patient."
+          );
+
+          return;
+
+        }
+
+        alert(
+          result.message ??
+          "Patient added successfully."
+        );
+
+        router.push("/dashboard");
+
+      }
+      catch {
+
+        alert(
+          "Something went wrong while saving the patient."
+        );
+
+      }
+      finally {
+
+        setSaving(false);
+
+      }
+
+    };
+
+  //------------------------------------------------------------
+  // Loading Screen
+  //------------------------------------------------------------
+
+  if (loading) {
+
+    return (
+
+      <main
+        style={loadingContainer}
+      >
+
+        <h2>
+
+          Loading...
+
+        </h2>
+
+      </main>
+
     );
 
-    alert(
-      "Patient added successfully."
-    );
+  }
 
-    router.push("/dashboard");
-  };
+  //------------------------------------------------------------
+  // JSX Continues In Part 2
+  //------------------------------------------------------------
+    return (
 
-  if (!loggedInUser) return null;
-
-  return (
     <main
       style={{
         minHeight: "100vh",
         background: "#f8fafc",
-        padding: "20px",
-        fontFamily:
-          "Inter, Arial, sans-serif",
+        padding: "24px",
+        fontFamily: "Inter, Arial, sans-serif",
       }}
     >
       <div
         style={{
-          maxWidth: "800px",
+          maxWidth: "760px",
           margin: "0 auto",
           background: "#ffffff",
-          padding: "32px",
           borderRadius: "16px",
+          padding: "32px",
           border: "1px solid #d1d5db",
-          boxShadow:
-            "0 2px 8px rgba(0,0,0,0.05)",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
         }}
       >
         <h1
           style={{
-            fontSize: "42px",
-            marginBottom: "10px",
+            fontSize: "40px",
+            marginBottom: "8px",
           }}
         >
           ❤️ CareCompanion
         </h1>
 
-        <h2>Add New Patient</h2>
+        <h2
+          style={{
+            marginBottom: "10px",
+          }}
+        >
+          Add New Patient
+        </h2>
 
         <p
           style={{
-            fontWeight: "bold",
-            marginBottom: "8px",
+            color: "#6b7280",
+            marginBottom: "28px",
           }}
         >
-          Welcome, {loggedInUser.name}
+          Welcome <strong>{currentUserName}</strong>
         </p>
 
-        <p
+        <hr
           style={{
-            color: "#555",
-            marginBottom: "24px",
+            marginBottom: "30px",
           }}
-        >
-          Add a patient that you
-          regularly monitor and assess.
-        </p>
+        />
+
+        <label style={labelStyle}>
+          Full Name *
+        </label>
 
         <input
           type="text"
-          placeholder="Patient Name"
-          value={patientName}
+          placeholder="Enter patient's full name"
+          value={fullName}
           onChange={(e) =>
-            setPatientName(
-              e.target.value
-            )
+            setFullName(e.target.value)
           }
           style={inputStyle}
         />
 
+        <label style={labelStyle}>
+          Date of Birth *
+        </label>
+
         <input
-          type="number"
-          placeholder="Age"
-          value={patientAge}
+          type="date"
+          value={dateOfBirth}
           onChange={(e) =>
-            setPatientAge(
-              e.target.value
-            )
+            setDateOfBirth(e.target.value)
           }
           style={inputStyle}
         />
+
+        {dateOfBirth && (
+          <div
+            style={{
+              marginTop: "-8px",
+              marginBottom: "20px",
+              color: "#2563eb",
+              fontWeight: 600,
+            }}
+          >
+            Age : {calculatedAge}
+          </div>
+        )}
+
+        <label style={labelStyle}>
+          Gender *
+        </label>
 
         <select
           value={gender}
           onChange={(e) =>
-            setGender(
-              e.target.value
-            )
+            setGender(e.target.value)
           }
           style={inputStyle}
         >
@@ -219,14 +360,20 @@ export default function AddPatientPage() {
           <option value="Other">
             Other
           </option>
+
+          <option value="Prefer not to say">
+            Prefer not to say
+          </option>
         </select>
+
+        <label style={labelStyle}>
+          Relationship *
+        </label>
 
         <select
           value={relationship}
           onChange={(e) =>
-            setRelationship(
-              e.target.value
-            )
+            setRelationship(e.target.value)
           }
           style={inputStyle}
         >
@@ -234,76 +381,59 @@ export default function AddPatientPage() {
             Select Relationship
           </option>
 
-          <option value="Father">
-            Father
-          </option>
+          <option>Father</option>
 
-          <option value="Mother">
-            Mother
-          </option>
+          <option>Mother</option>
 
-          <option value="Spouse">
-            Spouse
-          </option>
+          <option>Spouse</option>
 
-          <option value="Brother">
-            Brother
-          </option>
+          <option>Brother</option>
 
-          <option value="Sister">
-            Sister
-          </option>
+          <option>Sister</option>
 
-          <option value="Son">
-            Son
-          </option>
+          <option>Son</option>
 
-          <option value="Daughter">
-            Daughter
-          </option>
+          <option>Daughter</option>
 
-          <option value="Grandfather">
-            Grandfather
-          </option>
+          <option>Grandfather</option>
 
-          <option value="Grandmother">
-            Grandmother
-          </option>
+          <option>Grandmother</option>
 
-          <option value="Uncle">
-            Uncle
-          </option>
+          <option>Uncle</option>
 
-          <option value="Aunt">
-            Aunt
-          </option>
+          <option>Aunt</option>
 
-          <option value="Friend">
-            Friend
-          </option>
+          <option>Friend</option>
 
-          <option value="Neighbour">
-            Neighbour
-          </option>
+          <option>Neighbour</option>
 
-          <option value="Other">
-            Other
-          </option>
+          <option>Other</option>
+
         </select>
 
         <button
-          onClick={savePatient}
-          style={primaryButton}
+          onClick={handleSavePatient}
+          disabled={saving}
+          style={{
+            ...primaryButton,
+
+            opacity: saving ? 0.7 : 1,
+
+            cursor: saving
+              ? "not-allowed"
+              : "pointer",
+          }}
         >
-          💾 Save Patient
+          {saving
+            ? "Saving Patient..."
+            : "💾 Save Patient"}
         </button>
 
         <button
           onClick={() =>
-            router.push(
-              "/dashboard"
-            )
+            router.push("/dashboard")
           }
+          disabled={saving}
           style={secondaryButton}
         >
           ← Back To Dashboard
@@ -311,55 +441,73 @@ export default function AddPatientPage() {
 
         <div
           style={{
-            marginTop: "30px",
+            marginTop: "32px",
             textAlign: "center",
-            fontSize: "12px",
             color: "#6b7280",
+            fontSize: "12px",
           }}
         >
           Created by Suraj Premnath
         </div>
-      </div>
+
+    </div>
+
     </main>
+
   );
 }
 
-const inputStyle: React.CSSProperties =
-  {
-    width: "100%",
-    padding: "14px",
-    marginBottom: "14px",
-    border:
-      "1px solid #d1d5db",
-    borderRadius: "10px",
-    fontSize: "16px",
-    boxSizing: "border-box",
-  };
+const loadingContainer: React.CSSProperties = {
+  minHeight: "100vh",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  background: "#f8fafc",
+  fontFamily: "Inter, Arial, sans-serif",
+};
 
-const primaryButton: React.CSSProperties =
-  {
-    width: "100%",
-    padding: "14px",
-    background: "#2563eb",
-    color: "white",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    marginBottom: "12px",
-    fontSize: "16px",
-  };
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  marginBottom: "8px",
+  marginTop: "18px",
+  fontWeight: 600,
+  color: "#111827",
+  fontSize: "15px",
+};
 
-const secondaryButton: React.CSSProperties =
-  {
-    width: "100%",
-    padding: "14px",
-    background: "#ffffff",
-    color: "#111827",
-    border:
-      "1px solid #d1d5db",
-    borderRadius: "10px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    fontSize: "16px",
-  };
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "14px",
+  border: "1px solid #d1d5db",
+  borderRadius: "10px",
+  fontSize: "16px",
+  boxSizing: "border-box",
+  marginBottom: "8px",
+  background: "#ffffff",
+};
+
+const primaryButton: React.CSSProperties = {
+  width: "100%",
+  padding: "14px",
+  marginTop: "30px",
+  background: "#2563eb",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "10px",
+  fontSize: "16px",
+  fontWeight: "bold",
+  transition: "0.2s",
+};
+
+const secondaryButton: React.CSSProperties = {
+  width: "100%",
+  padding: "14px",
+  marginTop: "12px",
+  background: "#ffffff",
+  color: "#111827",
+  border: "1px solid #d1d5db",
+  borderRadius: "10px",
+  fontSize: "16px",
+  fontWeight: "bold",
+  cursor: "pointer",
+};

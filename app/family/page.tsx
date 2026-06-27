@@ -1,31 +1,30 @@
 "use client";
 
-import { clearAssessmentData } from "@/lib/assessmentStorage";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-type LoggedInUser = {
-  id: string;
-  name: string;
-  age: number;
-  username: string;
-};
+import { clearAssessmentData } from "@/lib/assessmentStorage";
 
-type Patient = {
+import { authService } from "@/lib/auth/authService";
+import { profileRepository } from "@/lib/repositories/profileRepository";
+import { patientStorage } from "@/lib/storage/patientStorage";
+
+import type { Patient } from "@/lib/types/patient";
+
+type UserProfile = {
   id: string;
-  ownerUserId: string;
-  name: string;
-  age: number;
-  gender: string;
-  relationship: string;
-  createdAt: string;
+  fullName: string;
 };
 
 export default function FamilyPage() {
   const router = useRouter();
 
-  const [loggedInUser, setLoggedInUser] =
-    useState<LoggedInUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [error, setError] = useState<string | null>(null);
+
+  const [currentUser, setCurrentUser] =
+    useState<UserProfile | null>(null);
 
   const [patients, setPatients] =
     useState<Patient[]>([]);
@@ -34,41 +33,180 @@ export default function FamilyPage() {
     useState("");
 
   useEffect(() => {
-    const user = JSON.parse(
-      localStorage.getItem("loggedInUser") || "null"
-    );
+    let mounted = true;
 
-    if (!user) {
-      router.push("/login");
-      return;
-    }
+    const loadPage = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    setLoggedInUser(user);
+        const user =
+          await authService.getCurrentUser();
 
-    const allPatients: Patient[] = JSON.parse(
-      localStorage.getItem("patients") || "[]"
-    );
+        if (!user) {
+          router.replace("/login");
+          return;
+        }
 
-    const myPatients = allPatients.filter(
-      (patient) => patient.ownerUserId === user.id
-    );
+        const profile =
+          await profileRepository.getCurrentProfile();
 
-    setPatients(myPatients);
+        if (!mounted) return;
 
-    if (myPatients.length > 0) {
-      setSelectedPatientId(myPatients[0].id);
-    }
+        if (!profile) {
+          setError(
+            "Unable to load your profile. Please sign in again."
+          );
+          return;
+        }
+
+        setCurrentUser({
+          id: profile.id,
+          fullName: profile.fullName,
+        });
+
+        const result =
+          await patientStorage.getPatients();
+
+        if (!mounted) return;
+
+        if (!result.success) {
+          setError(
+            result.message ??
+              "Unable to load patients. Please try again."
+          );
+          return;
+        }
+
+        const loadedPatients =
+          result.data ?? [];
+
+        setPatients(loadedPatients);
+
+        if (loadedPatients.length > 0) {
+          setSelectedPatientId(
+            loadedPatients[0].id
+          );
+        }
+      } catch (err) {
+        console.error(err);
+
+        if (!mounted) return;
+
+        setError(
+          "Something went wrong while loading this page. Please refresh and try again."
+        );
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadPage();
+
+    return () => {
+      mounted = false;
+    };
   }, [router]);
 
-  const selectedPatient =
-    patients.find(
-      (patient) =>
-        patient.id === selectedPatientId
-    ) || null;
+  const selectedPatient = useMemo(() => {
+    return (
+      patients.find(
+        (patient) =>
+          patient.id === selectedPatientId
+      ) ?? null
+    );
+  }, [patients, selectedPatientId]);
+
+  if (loading) {
+    return (
+      <main
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#f8fafc",
+          fontFamily:
+            "Inter, Arial, sans-serif",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "18px",
+            fontWeight: 600,
+          }}
+        >
+          Loading...
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main
+        style={{
+          minHeight: "100vh",
+          backgroundColor: "#f8fafc",
+          padding: "20px",
+          fontFamily:
+            "Inter, Arial, sans-serif",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "800px",
+            margin: "0 auto",
+          }}
+        >
+          <div
+            style={{
+              background: "#ffffff",
+              border: "1px solid #fecaca",
+              borderRadius: "16px",
+              padding: "32px",
+            }}
+          >
+            <h2
+              style={{
+                marginBottom: "16px",
+              }}
+            >
+              Unable to Continue
+            </h2>
+
+            <p
+              style={{
+                marginBottom: "24px",
+              }}
+            >
+              {error}
+            </p>
+
+            <button
+              onClick={() =>
+                router.push("/dashboard")
+              }
+              style={secondaryButton}
+            >
+              ← Back To Dashboard
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!currentUser) {
+    return null;
+  }
 
   const startAssessment = () => {
-    if (!loggedInUser) return;
-    if (!selectedPatient) return;
+    if (!currentUser || !selectedPatient) {
+      return;
+    }
 
     clearAssessmentData();
 
@@ -79,22 +217,31 @@ export default function FamilyPage() {
 
     localStorage.setItem(
       "patientName",
-      selectedPatient.name
+      selectedPatient.fullName
     );
+
+    const patientAge =
+      selectedPatient.dateOfBirth
+        ? String(
+            calculateAge(
+              selectedPatient.dateOfBirth
+            )
+          )
+        : "";
 
     localStorage.setItem(
       "patientAge",
-      String(selectedPatient.age)
+      patientAge
     );
 
     localStorage.setItem(
       "observerName",
-      loggedInUser.name
+      currentUser.fullName
     );
 
     localStorage.setItem(
       "observerRelationship",
-      selectedPatient.relationship
+      selectedPatient.relationship ?? ""
     );
 
     localStorage.setItem(
@@ -108,8 +255,6 @@ export default function FamilyPage() {
 
     router.push("/family/page2");
   };
-
-  if (!loggedInUser) return null;
 
   return (
     <main
@@ -153,7 +298,7 @@ export default function FamilyPage() {
               marginBottom: "8px",
             }}
           >
-            Welcome, {loggedInUser.name}
+            Welcome, {currentUser.fullName}
           </p>
 
           <p
@@ -222,7 +367,7 @@ export default function FamilyPage() {
                     key={patient.id}
                     value={patient.id}
                   >
-                    {patient.name}
+                    {patient.fullName}
                   </option>
                 ))}
               </select>
@@ -239,22 +384,28 @@ export default function FamilyPage() {
                 >
                   <div>
                     <strong>Name:</strong>{" "}
-                    {selectedPatient.name}
+                    {selectedPatient.fullName}
                   </div>
 
                   <div>
                     <strong>Age:</strong>{" "}
-                    {selectedPatient.age}
+                    {selectedPatient.dateOfBirth
+                      ? calculateAge(
+                          selectedPatient.dateOfBirth
+                        )
+                      : "-"}
                   </div>
 
                   <div>
                     <strong>Gender:</strong>{" "}
-                    {selectedPatient.gender}
+                    {selectedPatient.gender ??
+                      "-"}
                   </div>
 
                   <div>
                     <strong>Relationship:</strong>{" "}
-                    {selectedPatient.relationship}
+                    {selectedPatient.relationship ??
+                      "-"}
                   </div>
                 </div>
               )}
@@ -300,13 +451,40 @@ export default function FamilyPage() {
       </div>
     </main>
   );
+
+  function calculateAge(
+    dateOfBirth: string
+  ): number {
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+
+    let age =
+      today.getFullYear() -
+      dob.getFullYear();
+
+    const monthDifference =
+      today.getMonth() -
+      dob.getMonth();
+
+    if (
+      monthDifference < 0 ||
+      (monthDifference === 0 &&
+        today.getDate() <
+          dob.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  }
+
 }
 
 const primaryButton: React.CSSProperties = {
   width: "100%",
   padding: "14px",
   background: "#2563eb",
-  color: "white",
+  color: "#ffffff",
   border: "none",
   borderRadius: "10px",
   fontWeight: "bold",

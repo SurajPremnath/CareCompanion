@@ -1,287 +1,438 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type User = {
-  id: string;
-  name: string;
-  age: number;
-  username: string;
-  password: string;
-  createdAt: string;
-};
+import { authService } from "@/lib/auth/authService";
 
 export default function RegisterPage() {
-  const router = useRouter();
 
-  const [name, setName] = useState("");
-  const [age, setAge] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
+    const router = useRouter();
 
-  const handleRegister = () => {
-    const trimmedName = name.trim();
-    const trimmedUsername =
-      username.trim().toLowerCase();
+    const [fullName, setFullName] = useState("");
 
-    // Required fields
+    const [email, setEmail] = useState("");
 
-    if (
-      !trimmedName ||
-      !age ||
-      !trimmedUsername ||
-      !password ||
-      !confirmPassword
-    ) {
-      alert("Please complete all fields.");
-      return;
-    }
+    const [password, setPassword] = useState("");
 
-    // Age validation
+    const [confirmPassword, setConfirmPassword] = useState("");
 
-    const ageNumber = Number(age);
+    const [loading, setLoading] = useState(false);
 
-    if (
-      Number.isNaN(ageNumber) ||
-      ageNumber < 1 ||
-      ageNumber > 120
-    ) {
-      alert(
-        "Please enter a valid age between 1 and 120."
-      );
-      return;
-    }
+    const [error, setError] = useState("");
 
-    // Username validation
+    const [success, setSuccess] = useState("");
 
-    if (trimmedUsername.length < 4) {
-      alert(
-        "Username must be at least 4 characters long."
-      );
-      return;
-    }
+    const validateForm = (): boolean => {
 
-    // Password validation
+        setError("");
 
-    if (password.length < 6) {
-      alert(
-        "Password must be at least 6 characters long."
-      );
-      return;
-    }
+        setSuccess("");
 
-    // Confirm password validation
+        if (!fullName.trim()) {
 
-    if (password !== confirmPassword) {
-      alert("Passwords do not match.");
-      return;
-    }
+            setError("Full name is required.");
 
-    // Existing users
+            return false;
 
-    const users: User[] = JSON.parse(
-      localStorage.getItem("users") || "[]"
-    );
+        }
 
-    // Duplicate username check
+        const emailRegex =
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const existingUser = users.find(
-      (user) =>
-        user.username.toLowerCase() ===
-        trimmedUsername
-    );
+        if (!emailRegex.test(email.trim())) {
 
-    if (existingUser) {
-      alert(
-        "Username already exists. Please choose another username."
-      );
-      return;
-    }
+            setError("Please enter a valid email address.");
 
-    // Create user
+            return false;
 
-    const newUser: User = {
-      id: `U${Date.now()}`,
-      name: trimmedName,
-      age: ageNumber,
-      username: trimmedUsername,
-      password,
-      createdAt: new Date().toISOString(),
+        }
+
+        if (password.length < 6) {
+
+            setError(
+                "Password must contain at least 6 characters."
+            );
+
+            return false;
+
+        }
+
+        if (password !== confirmPassword) {
+
+            setError("Passwords do not match.");
+
+            return false;
+
+        }
+
+        return true;
+
     };
 
-    users.push(newUser);
+    const handleRegister = async () => {
 
-    localStorage.setItem(
-      "users",
-      JSON.stringify(users)
+        if (!validateForm()) {
+            return;
+        }
+
+        try {
+
+            setLoading(true);
+
+            setError("");
+
+            setSuccess("");
+
+            const result =
+                await authService.register(
+                    fullName.trim(),
+                    email.trim(),
+                    password
+                );
+
+            if (result.session) {
+
+                router.replace("/dashboard");
+
+                return;
+
+            }
+
+            setSuccess(
+                "Account created successfully. Please check your email to verify your account before logging in."
+            );
+
+            setTimeout(() => {
+
+                router.replace("/login");
+
+            }, 2500);
+
+        } catch (err) {
+
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Unable to create your account.";
+
+            setError(message);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+    return (
+
+        <main style={containerStyle}>
+
+            <div style={cardStyle}>
+
+                <div style={logoStyle}>
+                    ❤️ CareCompanion
+                </div>
+
+                <h1 style={titleStyle}>
+                    Create Your Account
+                </h1>
+
+                <p style={subtitleStyle}>
+                    Register once to securely manage your family's health records.
+                </p>
+
+                {error && (
+
+                    <div style={errorStyle}>
+
+                        {error}
+
+                    </div>
+
+                )}
+
+                {success && (
+
+                    <div style={successStyle}>
+
+                        {success}
+
+                    </div>
+
+                )}
+
+                <label style={labelStyle}>
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) =>
+                        setFullName(e.target.value)
+                    }
+                    placeholder="Enter your full name"
+                    style={inputStyle}
+                />
+
+                <label style={labelStyle}>
+                    Email Address
+                </label>
+
+                <input
+                    type="email"
+                    value={email}
+                    onChange={(e) =>
+                        setEmail(e.target.value)
+                    }
+                    placeholder="Enter your email"
+                    style={inputStyle}
+                />
+
+                <label style={labelStyle}>
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    value={password}
+                    onChange={(e) =>
+                        setPassword(e.target.value)
+                    }
+                    placeholder="Create a password"
+                    style={inputStyle}
+                />
+
+                <label style={labelStyle}>
+                    Confirm Password
+                </label>
+
+                <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) =>
+                        setConfirmPassword(e.target.value)
+                    }
+                    placeholder="Re-enter password"
+                    style={inputStyle}
+                />
+                <button
+                    onClick={handleRegister}
+                    disabled={loading}
+                    style={{
+                        ...primaryButtonStyle,
+                        opacity: loading ? 0.7 : 1,
+                        cursor: loading ? "not-allowed" : "pointer",
+                    }}
+                >
+                    {loading
+                        ? "Creating Account..."
+                        : "Create Account"}
+                </button>
+
+                <button
+                    onClick={() => router.replace("/login")}
+                    disabled={loading}
+                    style={secondaryButtonStyle}
+                >
+                    Already have an account? Login
+                </button>
+
+                <div style={footerStyle}>
+                    Created by Suraj Premnath
+                </div>
+
+            </div>
+
+        </main>
+
     );
 
-    alert(
-      "Account created successfully. Please login."
-    );
-
-    router.push("/login");
-  };
-
-  return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#f8fafc",
-        padding: "20px",
-        fontFamily:
-          "Inter, Arial, sans-serif",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "650px",
-          background: "#ffffff",
-          padding: "32px",
-          borderRadius: "16px",
-          border: "1px solid #d1d5db",
-          boxShadow:
-            "0 2px 8px rgba(0,0,0,0.05)",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "42px",
-            marginBottom: "10px",
-          }}
-        >
-          ❤️ CareCompanion
-        </h1>
-
-        <h2
-          style={{
-            marginBottom: "24px",
-          }}
-        >
-          Create Account
-        </h2>
-
-        <input
-          type="text"
-          placeholder="Full Name"
-          value={name}
-          onChange={(e) =>
-            setName(e.target.value)
-          }
-          style={inputStyle}
-        />
-
-        <input
-          type="number"
-          placeholder="Age"
-          value={age}
-          onChange={(e) =>
-            setAge(e.target.value)
-          }
-          style={inputStyle}
-        />
-
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) =>
-            setUsername(e.target.value)
-          }
-          style={inputStyle}
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-          style={inputStyle}
-        />
-
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) =>
-            setConfirmPassword(
-              e.target.value
-            )
-          }
-          style={inputStyle}
-        />
-
-        <button
-          onClick={handleRegister}
-          style={buttonStyle}
-        >
-          Create Account
-        </button>
-
-        <button
-          onClick={() =>
-            router.push("/login")
-          }
-          style={secondaryButtonStyle}
-        >
-          Already have an account? Login
-        </button>
-
-        <div
-          style={{
-            marginTop: "24px",
-            textAlign: "center",
-            fontSize: "12px",
-            color: "#6b7280",
-          }}
-        >
-          Created by Suraj Premnath
-        </div>
-      </div>
-    </main>
-  );
 }
 
+const containerStyle: React.CSSProperties = {
+
+    minHeight: "100vh",
+
+    display: "flex",
+
+    justifyContent: "center",
+
+    alignItems: "center",
+
+    background: "#f8fafc",
+
+    padding: "24px",
+
+    fontFamily: "Inter, Arial, sans-serif"
+
+};
+
+const cardStyle: React.CSSProperties = {
+
+    width: "100%",
+
+    maxWidth: "650px",
+
+    background: "#ffffff",
+
+    borderRadius: "16px",
+
+    padding: "36px",
+
+    border: "1px solid #d1d5db",
+
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+
+};
+
+const logoStyle: React.CSSProperties = {
+
+    fontSize: "40px",
+
+    fontWeight: "bold",
+
+    marginBottom: "12px",
+
+    textAlign: "center"
+
+};
+
+const titleStyle: React.CSSProperties = {
+
+    textAlign: "center",
+
+    marginBottom: "8px"
+
+};
+
+const subtitleStyle: React.CSSProperties = {
+
+    textAlign: "center",
+
+    color: "#6b7280",
+
+    marginBottom: "28px"
+
+};
+
+const labelStyle: React.CSSProperties = {
+
+    display: "block",
+
+    marginTop: "16px",
+
+    marginBottom: "8px",
+
+    fontWeight: 600
+
+};
+
 const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "14px",
-  marginBottom: "14px",
-  border: "1px solid #d1d5db",
-  borderRadius: "10px",
-  fontSize: "16px",
+
+    width: "100%",
+
+    padding: "14px",
+
+    borderRadius: "10px",
+
+    border: "1px solid #d1d5db",
+
+    fontSize: "16px",
+
+    boxSizing: "border-box"
+
 };
 
-const buttonStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "14px",
-  background: "#2563eb",
-  color: "white",
-  border: "none",
-  borderRadius: "10px",
-  fontWeight: "bold",
-  cursor: "pointer",
-  fontSize: "16px",
+const primaryButtonStyle: React.CSSProperties = {
+
+    width: "100%",
+
+    padding: "14px",
+
+    marginTop: "28px",
+
+    border: "none",
+
+    borderRadius: "10px",
+
+    background: "#2563eb",
+
+    color: "#ffffff",
+
+    fontWeight: "bold",
+
+    fontSize: "16px"
+
 };
 
-const secondaryButtonStyle: React.CSSProperties =
-{
-  width: "100%",
-  padding: "14px",
-  marginTop: "12px",
-  background: "#ffffff",
-  color: "#2563eb",
-  border: "1px solid #2563eb",
-  borderRadius: "10px",
-  fontWeight: "bold",
-  cursor: "pointer",
-  fontSize: "16px",
+const secondaryButtonStyle: React.CSSProperties = {
+
+    width: "100%",
+
+    padding: "14px",
+
+    marginTop: "12px",
+
+    borderRadius: "10px",
+
+    border: "1px solid #2563eb",
+
+    background: "#ffffff",
+
+    color: "#2563eb",
+
+    fontWeight: "bold",
+
+    fontSize: "16px",
+
+    cursor: "pointer"
+
+};
+
+const errorStyle: React.CSSProperties = {
+
+    background: "#fee2e2",
+
+    color: "#991b1b",
+
+    padding: "12px",
+
+    borderRadius: "10px",
+
+    marginBottom: "20px",
+
+    border: "1px solid #fecaca"
+
+};
+
+const successStyle: React.CSSProperties = {
+
+    background: "#dcfce7",
+
+    color: "#166534",
+
+    padding: "12px",
+
+    borderRadius: "10px",
+
+    marginBottom: "20px",
+
+    border: "1px solid #bbf7d0"
+
+};
+
+const footerStyle: React.CSSProperties = {
+
+    marginTop: "28px",
+
+    textAlign: "center",
+
+    color: "#6b7280",
+
+    fontSize: "12px"
+
 };
