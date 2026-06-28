@@ -8,7 +8,7 @@ import { clearAssessmentData } from "@/lib/assessmentStorage";
 import { authService } from "@/lib/auth/authService";
 import { profileRepository } from "@/lib/repositories/profileRepository";
 import { patientStorage } from "@/lib/storage/patientStorage";
-
+import AppHeader from "@/app/components/AppHeader";
 import type { Patient } from "@/lib/types/patient";
 
 type UserProfile = {
@@ -287,34 +287,21 @@ localStorage.setItem(
               "0 2px 8px rgba(0,0,0,0.05)",
           }}
         >
-          <h1
-            style={{
-              fontSize: "42px",
-              marginBottom: "10px",
-            }}
-          >
-            ❤️ CareCompanion
-          </h1>
 
-          <h2>Family Assessment</h2>
+<AppHeader
+  pageTitle="Family Assessment"
+  pageIcon="👨‍👩‍👧"
+  currentUserName={currentUser.fullName}
+/>
 
-          <p
-            style={{
-              fontWeight: "bold",
-              marginBottom: "8px",
-            }}
-          >
-            Welcome, {currentUser.fullName}
-          </p>
-
-          <p
-            style={{
-              color: "#555",
-              marginBottom: "25px",
-            }}
-          >
-            Select a patient to begin assessment.
-          </p>
+<p
+  style={{
+    color: "#6b7280",
+    marginBottom: "25px",
+  }}
+>
+  Select a patient to begin assessment.
+</p>
 
           {patients.length === 0 ? (
             <>

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AppHeader from "@/app/components/AppHeader";
+
 
 export default function SelfPage() {
   const router = useRouter();
@@ -36,29 +38,11 @@ export default function SelfPage() {
       <div style={{ maxWidth: "600px", margin: "0 auto" }}>
         
         {/* ONLY APP NAME */}
-        <h1
-          style={{
-            textAlign: "center",
-            fontSize: "28px",
-            fontWeight: 700,
-            marginBottom: "6px",
-          }}
-        >
-          ❤️ CareCompanion
-        </h1>
 
-        {/* ONLY SELF LABEL */}
-        <p
-          style={{
-            textAlign: "center",
-            fontSize: "14px",
-            fontWeight: 600,
-            color: "#374151",
-            marginBottom: "20px",
-          }}
-        >
-          Self Assessment
-        </p>
+<AppHeader
+  pageTitle="Self Assessment"
+  pageIcon="👤"
+/>
 
         {/* FORM CARD */}
         <div
