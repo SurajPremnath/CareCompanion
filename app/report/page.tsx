@@ -4,12 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useRouter } from "next/navigation";
-
-import {
-  saveAssessment,
-  hasAssessmentBeenSaved,
-  markAssessmentSaved,
-} from "@/lib/reportStorage";
+import { assessmentStorage } from "@/lib/storage/assessmentStorage";
+import type { AssessmentInput } from "@/lib/types/assessment";
 
 type Row = {
   label: string;
@@ -621,47 +617,6 @@ reportSummary.push(
         "🚶 Continue regular daily activity as comfortable."
       );
     }
-
-if (!hasAssessmentBeenSaved()) {
-  saveAssessment({
-    id: crypto.randomUUID(),
-
-    patientName:
-      localStorage.getItem(
-        "patientName"
-      ) || "Unknown",
-
-    patientAge:
-      localStorage.getItem(
-        "patientAge"
-      ) || "",
-
-    assessmentType: type,
-
-    score: finalScore,
-
-    status: finalStatus,
-
-    observerName:
-      localStorage.getItem(
-        "observerName"
-      ) || "",
-
-    assessmentDate:
-      localStorage.getItem(
-        "assessmentDate"
-      ) || "",
-
-    createdAt:
-      new Date().toISOString(),
-
-    energy,
-    appetite,
-    walking,
-  });
-
-  markAssessmentSaved();
-}
 
     setSummaryRows(reportSummary);
     setObservations(observationList);

@@ -23,18 +23,21 @@ export class AssessmentStorage {
 
     try {
 
-      if (!request.patientId) {
+if (
+  request.assessmentType === "FAMILY" &&
+  !request.patientId
+) {
 
-        return {
+  return {
 
-          success: false,
+    success: false,
 
-          error:
-            "Patient is required."
+    error:
+      "Patient is required for Family Assessments."
 
-        };
+  };
 
-      }
+}
 
       if (!request.answers) {
 
