@@ -236,8 +236,6 @@ setProfile(profile);
 
 </div>
 
-
-
             <div>
 
               <strong>Assessment Date</strong>

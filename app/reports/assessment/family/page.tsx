@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 import { patientStorage } from "@/lib/storage/patientStorage";
+import type { Patient } from "@/lib/types/patient";
+
 
 import type {
   AssessmentRecord,
   AssessmentStatus,
   AssessmentRecommendation,
 } from "@/lib/types/assessment";
-
-import type { Patient } from "@/lib/types/patient";
 
 export default function FamilyAssessmentHistoryPage() {
 
@@ -154,6 +154,12 @@ export default function FamilyAssessmentHistoryPage() {
     loadHistory();
 
   }, [selectedPatientId]);
+
+const selectedPatient =
+  patients.find(
+    (patient) =>
+      patient.id === selectedPatientId
+  );
 
   //------------------------------------------------------------
   // Helpers
@@ -330,6 +336,18 @@ export default function FamilyAssessmentHistoryPage() {
                 columnGap: "28px",
               }}
             >
+
+<div>
+
+  <strong>
+    Patient
+  </strong>
+
+  <br />
+
+  {selectedPatient?.fullName ?? "-"}
+
+</div>
 
               <div>
 

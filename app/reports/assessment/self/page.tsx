@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 
+import { profileRepository } from "@/lib/repositories/profileRepository";
+
+import type { Profile } from "@/lib/types/profile";
+
 import type {
   AssessmentRecord,
   AssessmentRecommendation,
@@ -30,6 +34,9 @@ export default function SelfAssessmentHistoryPage() {
 
   const [history, setHistory] =
     useState<AssessmentRecord[]>([]);
+
+const [profile, setProfile] =
+  useState<Profile | null>(null);
 
   //------------------------------------------------------------
   // Load History
@@ -61,6 +68,11 @@ export default function SelfAssessmentHistoryPage() {
               assessment.assessmentType ===
               "SELF"
           );
+
+const currentProfile =
+  await profileRepository.getCurrentProfile();
+
+setProfile(currentProfile);
 
         if (records.length === 0) {
 
@@ -212,6 +224,18 @@ export default function SelfAssessmentHistoryPage() {
                 columnGap:"28px",
               }}
             >
+
+<div>
+
+  <strong>
+    Name
+  </strong>
+
+  <br />
+
+  {profile?.fullName ?? "-"}
+
+</div>
 
               <div>
 
