@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import AppHeader from "@/app/components/AppHeader";
 
 export default function AssessmentReportsPage() {
   const router = useRouter();
@@ -8,16 +9,11 @@ export default function AssessmentReportsPage() {
   return (
     <main style={pageStyle}>
       <div style={containerStyle}>
-        <h1>📋 Assessment Reports</h1>
 
-        <p
-          style={{
-            color: "#6b7280",
-            marginBottom: "32px",
-          }}
-        >
-          View completed assessment history for yourself or family members.
-        </p>
+<AppHeader
+  pageTitle="Assessment Reports"
+  pageIcon="📋"
+/>
 
         {/* Family Assessments */}
 

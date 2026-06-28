@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import AppHeader from "@/app/components/AppHeader";
 
 export default function ReportsPage() {
   const router = useRouter();
@@ -30,24 +31,10 @@ export default function ReportsPage() {
           margin: "0 auto",
         }}
       >
-        <h1
-          style={{
-            fontSize: "42px",
-            marginBottom: "8px",
-          }}
-        >
-          📊 Reports
-        </h1>
-
-        <p
-          style={{
-            color: "#6b7280",
-            marginBottom: "32px",
-          }}
-        >
-          View previously saved Daily Care records and Assessments.
-        </p>
-
+<AppHeader
+  pageTitle="Reports"
+  pageIcon="📊"
+/>
         <div
           style={{
             display: "grid",

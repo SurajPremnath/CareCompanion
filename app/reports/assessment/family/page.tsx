@@ -14,6 +14,8 @@ import type {
   AssessmentRecommendation,
 } from "@/lib/types/assessment";
 
+import AppHeader from "@/app/components/AppHeader";
+
 export default function FamilyAssessmentHistoryPage() {
 
   const router = useRouter();
@@ -225,20 +227,10 @@ const selectedPatient =
 
       <div style={containerStyle}>
 
-        <h1>
-
-          📋 Family Assessment Reports
-
-        </h1>
-
-        <p
-          style={{
-            color: "#6b7280",
-            marginBottom: "28px",
-          }}
-        >
-          Review completed assessments for the selected patient.
-        </p>
+<AppHeader
+  pageTitle="Family Assessment Reports"
+  pageIcon="👨‍👩‍👧"
+ />
 
         {/* Patient Selector */}
 

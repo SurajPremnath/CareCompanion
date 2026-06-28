@@ -15,6 +15,8 @@ import type {
   AssessmentStatus,
 } from "@/lib/types/assessment";
 
+import AppHeader from "@/app/components/AppHeader";
+
 export default function SelfAssessmentHistoryPage() {
 
   const router = useRouter();
@@ -168,20 +170,10 @@ setProfile(currentProfile);
 
       <div style={containerStyle}>
 
-        <h1>
-
-          🧑 Self Assessment Reports
-
-        </h1>
-
-        <p
-          style={{
-            color:"#6b7280",
-            marginBottom:"28px",
-          }}
-        >
-          Review your completed self assessments.
-        </p>
+<AppHeader
+  pageTitle="Self Assessment Reports"
+  pageIcon="👤"
+/>
 
         {error && (
 

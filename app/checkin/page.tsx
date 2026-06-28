@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import AppBrand from "@/app/components/AppBrand";
 
 export default function CheckinPage() {
   const router = useRouter();
@@ -184,22 +185,21 @@ export default function CheckinPage() {
             marginBottom: "25px",
           }}
         >
-          <h1
-            style={{
-              fontSize: "42px",
-              marginBottom: "8px",
-            }}
-          >
-            ❤️ CareCompanion
-          </h1>
 
-          <p
-            style={{
-              color: "#666",
-            }}
-          >
-            Assessment Details
-          </p>
+<AppBrand />
+
+<h2
+  style={{
+    textAlign: "center",
+    marginTop: "20px",
+    marginBottom: "24px",
+    fontSize: "28px",
+    fontWeight: 700,
+  }}
+>
+  Assessment Details
+</h2>
+
         </div>
 
         <div

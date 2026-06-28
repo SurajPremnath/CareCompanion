@@ -3,7 +3,10 @@
 import { useEffect, useState, useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+
 import { useRouter } from "next/navigation";
+import AppBrand from "@/app/components/AppBrand";
+
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 import type { AssessmentInput } from "@/lib/types/assessment";
 
@@ -793,7 +796,7 @@ for (let i = 1; i <= totalPages; i++) {
   );
 
   pdf.text(
-    `© ${new Date().getFullYear()} CareCompanion. All Rights Reserved.`,
+    `© ${new Date().getFullYear()} CareVR. All Rights Reserved.`,
     105,
     292,
     { align: "center" }
@@ -808,7 +811,7 @@ for (let i = 1; i <= totalPages; i++) {
 */
 
 pdf.save(
-  `CareCompanion_Report_${patient}_${today}.pdf`
+  `CareVR_Report_${patient}_${today}.pdf`
 );
 };
   if (!loaded) return null;
@@ -837,8 +840,20 @@ pdf.save(
             border: "1px solid #ddd",
           }}
         >
-          <h1>❤️ CareCompanion</h1>
-          <h2>Health Assessment Report</h2>
+
+<AppBrand />
+
+<h2
+  style={{
+    fontSize: "32px",
+    fontWeight: 700,
+    color: "#111827",
+    marginTop: "24px",
+    marginBottom: "24px",
+  }}
+>
+  📄 Health Assessment Report
+</h2>
 
           <p>
             <strong>Patient:</strong>{" "}
@@ -1020,7 +1035,7 @@ pdf.save(
   </p>
 
   <p>
-    © {new Date().getFullYear()} CareCompanion.
+    © {new Date().getFullYear()} CareVR.
     All Rights Reserved.
   </p>
 </div>
