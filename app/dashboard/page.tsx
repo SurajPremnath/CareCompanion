@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { clearAssessmentData } from "@/lib/assessmentStorage";
 import { authService } from "@/lib/auth/authService";
 import { profileRepository } from "@/lib/repositories/profileRepository";
+import AppHeader from "@/app/components/AppHeader";
 
 type DashboardUser = {
     id: string;
@@ -222,20 +223,11 @@ export default function DashboardPage() {
                 }}
             >
 
-                <h1
-                    style={{
-                        fontSize: "42px",
-                        marginBottom: "10px",
-                    }}
-                >
-                    ❤️ CareCompanion
-                </h1>
-
-                <h2>
-
-                    Welcome {user.fullName}
-
-                </h2>
+<AppHeader
+    pageTitle="Dashboard"
+    pageIcon="🏠"
+    currentUserName={user.fullName}
+/>
 
 <h3
     style={{
