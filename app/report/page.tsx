@@ -618,12 +618,93 @@ reportSummary.push(
       );
     }
 
+
+const assessment: Omit<AssessmentInput, "userId"> = {
+  patientId:
+    type === "family"
+      ? localStorage.getItem("patientId")
+      : null,
+
+  assessmentType:
+    type === "family"
+      ? "FAMILY"
+      : "SELF",
+
+  assessmentDate: new Date(),
+
+  rawScore: total,
+
+  normalizedScore: finalScore,
+
+  status: "GOOD",
+
+  recommendation: "MONITOR_CLOSELY",
+
+  answers: {
+    breathing: "",
+    cough: false,
+    bloodInCough: false,
+    fever: false,
+    temperature: null,
+    energy: "",
+    appetite: "",
+    waterIntake: "",
+    pain: false,
+    painAreas: [],
+    walkingDifficulty: false,
+    looseMotions: false,
+  },
+
+  assessmentVersion: 1,
+
+  dailyCareId: null,
+};
+
+void (async () => {
+  const result =
+    await assessmentStorage.save(
+      assessment
+    );
+
+  if (!result.success) {
+    console.error(
+      "Assessment Save Failed",
+      result.error
+    );
+
+    return;
+  }
+
+  console.log(
+    "Assessment Saved Successfully"
+  );
+})();
+
     setSummaryRows(reportSummary);
     setObservations(observationList);
     setSuggestions(suggestionList);
 
     setLoaded(true);
   }, []);
+
+async function saveAssessmentToDatabase(
+  assessment: Omit<AssessmentInput, "userId">
+): Promise<void> {
+  const result =
+    await assessmentStorage.save(assessment);
+
+  if (!result.success) {
+    console.error(
+      "Failed to save assessment:",
+      result.error
+    );
+    return;
+  }
+
+  console.log(
+    "Assessment saved successfully.",
+  );
+}
 
 const downloadPDF = async () => {
   if (!reportRef.current) return;
