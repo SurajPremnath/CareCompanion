@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { authService } from "@/lib/auth/authService";
+import AppBrand from "@/app/components/AppBrand";
 
 export default function LoginPage() {
 
@@ -65,17 +66,15 @@ export default function LoginPage() {
 
             <div style={cardStyle}>
 
-                <div style={logoStyle}>
-                    ❤️ CareCompanion
-                </div>
+ <AppBrand />
 
-                <h1 style={titleStyle}>
-                    Welcome Back
-                </h1>
+<h1 style={titleStyle}>
+    Welcome Back
+</h1>
 
-                <p style={subtitleStyle}>
-                    Sign in to continue
-                </p>
+<p style={subtitleStyle}>
+    Sign in to continue
+</p>
 
                 {error && (
 
@@ -176,13 +175,6 @@ const cardStyle: React.CSSProperties = {
     padding: "36px",
     border: "1px solid #d1d5db",
     boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
-};
-
-const logoStyle: React.CSSProperties = {
-    fontSize: "42px",
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: "16px"
 };
 
 const titleStyle: React.CSSProperties = {
