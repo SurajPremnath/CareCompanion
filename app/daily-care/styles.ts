@@ -54,7 +54,10 @@ export const labelStyle: CSSProperties = {
 
   fontSize: "15px",
 
-  color: "#111827"
+  color: "#111827",
+
+  minHeight: "48px",     // <-- Add this
+  lineHeight: "24px"    // <-- Optional but recommended
 
 };
 
