@@ -98,6 +98,8 @@ export default function VitalsCard({
           <div>
 
             <label style={labelStyle}>
+    minHeight: "48px",
+    display: "block",
               Upper (Systolic)
             </label>
 
@@ -118,6 +120,8 @@ export default function VitalsCard({
           <div>
 
             <label style={labelStyle}>
+    minHeight: "48px",
+    display: "block",
               Lower (Diastolic)
             </label>
 
@@ -138,6 +142,8 @@ export default function VitalsCard({
           <div>
 
             <label style={labelStyle}>
+    minHeight: "48px",
+    display: "block",
               Pulse Rate
             </label>
 
@@ -158,6 +164,8 @@ export default function VitalsCard({
           <div>
 
             <label style={labelStyle}>
+    minHeight: "48px",
+    display: "block",
               SpO₂
             </label>
 
