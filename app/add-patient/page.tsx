@@ -264,8 +264,9 @@ alert(
       >
 
 <AppHeader
-  pageTitle="Reports"
-  pageIcon="📊"
+  pageTitle="Add Patient"
+  pageIcon="➕"
+  currentUserName={currentUserName}
 />
 
         <label style={labelStyle}>

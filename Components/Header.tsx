@@ -38,25 +38,32 @@ export default function Header({
     <div style={{ textAlign: "center" }}>
       
       {/* APP NAME ALWAYS FIXED */}
-      <h1
-        style={{
-          fontSize: "28px",
-          fontWeight: 700,
-          marginBottom: "6px",
-        }}
-      >
-        ❤️ CareCompanion
-      </h1>
+<h1
+  style={{
+    fontSize: "42px",
+    fontWeight: 700,
+    color: "#111827",
+    marginBottom: "12px",
+    lineHeight: 1.2,
+  }}
+>
+  ❤️ CareVR
+</h1>
 
-      <p
-        style={{
-          fontSize: "13px",
-          color: "#555",
-          marginBottom: "6px",
-        }}
-      >
-        A simple daily health companion for your family
-      </p>
+<p
+  style={{
+    fontSize: "16px",
+    color: "#6b7280",
+    lineHeight: 1.6,
+    marginBottom: "18px",
+    whiteSpace: "pre-line",
+  }}
+>
+  Simple daily care.
+  {"\n"}
+  Better clinical conversations.
+</p>
+
 
       {/* FIXED LABEL */}
       <p
