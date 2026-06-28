@@ -15,6 +15,8 @@ import type {
   AssessmentRecommendation,
 } from "@/lib/types/assessment";
 
+import AppHeader from "@/app/components/AppHeader";
+
 export default function FamilyAssessmentDetailPage() {
 
   const router = useRouter();
@@ -210,20 +212,10 @@ const patientResult =
 
       <div style={containerStyle}>
 
-        <h1>
-
-          🩺 Family Assessment
-
-        </h1>
-
-        <p
-          style={{
-            color:"#6b7280",
-            marginBottom:"28px",
-          }}
-        >
-          Complete assessment details.
-        </p>
+<AppHeader
+  pageTitle="Family Assessment Report"
+  pageIcon="📄"
+/>
 
         {/*--------------------------------------------------*/}
         {/* Assessment Summary                              */}

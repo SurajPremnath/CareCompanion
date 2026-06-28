@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { dailyCareStorage } from "@/lib/storage/DailyCareStorage";
 import type { DailyCare } from "@/lib/types/dailyCare";
 import { patientStorage } from "@/lib/storage/patientStorage";
+import AppHeader from "@/app/components/AppHeader";
 
 export default function DailyCareReportPage() {
 
@@ -184,23 +185,10 @@ return (
       }}
     >
 
-      <h1
-        style={{
-          marginTop: 0,
-          marginBottom: "8px",
-        }}
-      >
-        📋 Daily Care Report
-      </h1>
-
-      <p
-        style={{
-          color: "#6b7280",
-          marginBottom: "32px",
-        }}
-      >
-        Complete record exactly as saved.
-      </p>
+<AppHeader
+  pageTitle="Daily Care Report"
+  pageIcon="📄"
+/>
 
       <div
         style={{

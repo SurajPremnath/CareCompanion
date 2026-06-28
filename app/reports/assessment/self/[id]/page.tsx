@@ -14,6 +14,8 @@ import type {
   AssessmentStatus,
 } from "@/lib/types/assessment";
 
+import AppHeader from "@/app/components/AppHeader";
+
 export default function SelfAssessmentDetailPage() {
 
   const router = useRouter();
@@ -195,20 +197,11 @@ setProfile(profile);
 
       <div style={containerStyle}>
 
-        <h1>
+<AppHeader
+  pageTitle="Self Assessment Report"
+  pageIcon="📄"
+/>
 
-          🧑 Self Assessment
-
-        </h1>
-
-        <p
-          style={{
-            color:"#6b7280",
-            marginBottom:"28px",
-          }}
-        >
-          Complete assessment details.
-        </p>
 
         {/*--------------------------------------------------*/}
         {/* Assessment Summary                              */}

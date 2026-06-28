@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { authService } from "@/lib/auth/authService";
 import { patientStorage } from "@/lib/storage/patientStorage";
+import AppHeader from "@/app/components/AppHeader";
 
 export default function AddPatientPage() {
 
@@ -261,37 +262,11 @@ alert(
           boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
         }}
       >
-        <h1
-          style={{
-            fontSize: "40px",
-            marginBottom: "8px",
-          }}
-        >
-          ❤️ CareCompanion
-        </h1>
 
-        <h2
-          style={{
-            marginBottom: "10px",
-          }}
-        >
-          Add New Patient
-        </h2>
-
-        <p
-          style={{
-            color: "#6b7280",
-            marginBottom: "28px",
-          }}
-        >
-          Welcome <strong>{currentUserName}</strong>
-        </p>
-
-        <hr
-          style={{
-            marginBottom: "30px",
-          }}
-        />
+<AppHeader
+  pageTitle="Reports"
+  pageIcon="📊"
+/>
 
         <label style={labelStyle}>
           Full Name *
