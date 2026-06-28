@@ -1,4 +1,4 @@
-import { Result } from "../types/result";
+import type { Result } from "@/lib/types/result";
 
 /**
  * Helper class for creating Result<T> objects.
@@ -28,7 +28,10 @@ export class StorageResult {
       success: false,
       code,
       message,
-      error
+      error:
+        error instanceof Error
+          ? error.message
+          : message
     };
 
   }

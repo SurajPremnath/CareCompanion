@@ -1,10 +1,9 @@
 import { Patient } from "../types/patient";
-import { Result } from "../types/result";
-
 import { StorageResult } from "./storageResult";
 
 import { patientValidator } from "../validators/patientValidator";
 import { patientRepository } from "../repositories/patientRepository";
+import type { Result } from "@/lib/types/result";
 
 /**
  * PatientStorage
@@ -39,12 +38,17 @@ class PatientStorage {
 
       const validation = patientValidator.validate(patient);
 
-      if (!validation.success) {
-        return StorageResult.failure(
-          validation.code ?? "VALIDATION_FAILED",
-          validation.message ?? "Validation failed."
-        );
-      }
+if (!validation.success) {
+
+  return StorageResult.failure(
+
+    "VALIDATION_FAILED",
+
+    validation.error ?? "Validation failed."
+
+  );
+
+}
 
       //------------------------------------------------------
       // Duplicate check
@@ -186,17 +190,17 @@ class PatientStorage {
       const validation =
         patientValidator.validate(patient);
 
-      if (!validation.success) {
+ if (!validation.success) {
 
-        return StorageResult.failure(
+  return StorageResult.failure(
 
-          validation.code ?? "VALIDATION_FAILED",
+    "VALIDATION_FAILED",
 
-          validation.message ?? "Validation failed."
+    validation.error ?? "Validation failed."
 
-        );
+  );
 
-      }
+}
 
       const updatedPatient =
         await patientRepository.updatePatient(patient);

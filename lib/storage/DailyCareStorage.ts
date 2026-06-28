@@ -6,15 +6,7 @@ import type {
   CreateDailyCareRequest
 } from "@/lib/types/dailyCare";
 
-export interface Result<T> {
-
-  success: boolean;
-
-  data?: T;
-
-  error?: string;
-
-}
+import type { Result } from "@/lib/types/result";
 
 export class DailyCareStorage {
 
@@ -206,6 +198,63 @@ const savedDailyCare =
           error instanceof Error
             ? error.message
             : "Unable to load patient history."
+
+      };
+
+    }
+
+  }
+
+  //------------------------------------------------------------
+  // User History
+  //------------------------------------------------------------
+
+  async getUserHistory(
+  ): Promise<Result<DailyCare[]>> {
+
+    try {
+
+      const userId =
+        await authService.getCurrentUserId();
+
+      if (!userId) {
+
+        return {
+
+          success: false,
+
+          error: "User not authenticated."
+
+        };
+
+      }
+
+      const history =
+        await dailyCareRepository.getByUserId(
+          userId
+        );
+
+      return {
+
+        success: true,
+
+        data: history
+
+      };
+
+    }
+    catch (error) {
+
+      console.error(error);
+
+      return {
+
+        success: false,
+
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load Daily Care history."
 
       };
 

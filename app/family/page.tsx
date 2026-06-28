@@ -70,13 +70,14 @@ export default function FamilyPage() {
 
         if (!mounted) return;
 
-        if (!result.success) {
-          setError(
-            result.message ??
-              "Unable to load patients. Please try again."
-          );
-          return;
-        }
+if (!result.success) {
+  setError(
+    result.error ??
+      "Unable to load patients. Please try again."
+  );
+  return;
+}
+
 
         const loadedPatients =
           result.data ?? [];

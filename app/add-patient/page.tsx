@@ -180,21 +180,20 @@ console.error("Load user failed:", error);
 
           });
 
-        if (!result.success) {
+ if (!result.success) {
 
-          alert(
-            result.message ??
-            "Unable to save patient."
-          );
+  alert(
+    result.error ??
+    "Unable to save patient."
+  );
 
-          return;
+  return;
 
-        }
+}
 
-        alert(
-          result.message ??
-          "Patient added successfully."
-        );
+alert(
+  "Patient added successfully."
+);
 
         router.push("/dashboard");
 

@@ -1,164 +1,247 @@
-import { supabase } from "../supabase";
-import { BaseRepository } from "./BaseRepository";
-import { Assessment } from "../types/assessment";
+// lib/repositories/assessmentRepository.ts
 
-export class AssessmentRepository extends BaseRepository {
+import { supabase } from "@/lib/supabase";
 
-  /**
-   * Saves a completed assessment.
-   */
-  async saveAssessment(
-    assessment: Omit<
-      Assessment,
-      "id" | "userId" | "createdAt" | "updatedAt"
-    >
-  ): Promise<Assessment> {
+import {
+  AssessmentMapper,
+  type AssessmentRow,
+} from "@/lib/mappers/assessmentMapper";
 
-    const userId = await this.getCurrentUserId();
+import type {
+  AssessmentInput,
+  AssessmentRecord,
+} from "@/lib/types/assessment";
 
-    const { data, error } = await supabase
+export class AssessmentRepository {
+
+  //------------------------------------------------------------
+  // Create
+  //------------------------------------------------------------
+
+  async create(
+    assessment: AssessmentInput
+  ): Promise<AssessmentRecord> {
+
+    const payload =
+      AssessmentMapper.toInsert(
+        assessment
+      );
+
+    const {
+      data,
+      error,
+    } = await supabase
       .from("assessments")
-      .insert({
-        user_id: userId,
-        patient_id: assessment.patientId,
-        assessment_type: assessment.assessmentType,
-        responses_json: assessment.responses,
-        score: assessment.score,
-        risk_category: assessment.riskCategory,
-        assessment_version: assessment.assessmentVersion,
-        completed_at: assessment.completedAt
-      })
+      .insert(payload)
       .select()
       .single();
 
     if (error) {
-      this.handleError(error);
+
+      console.error(
+        "Supabase Insert Error:",
+        error
+      );
+
+      throw new Error(
+        error.message
+      );
+
     }
 
-    return this.mapAssessment(data);
+    return AssessmentMapper.toDomain(
+      data as AssessmentRow
+    );
+
   }
 
-  /**
-   * Returns an assessment by ID.
-   */
-  async getAssessmentById(id: string): Promise<Assessment | null> {
+  //------------------------------------------------------------
+  // Get By Id
+  //------------------------------------------------------------
 
-    const userId = await this.getCurrentUserId();
+  async getById(
+    id: string
+  ): Promise<
+    AssessmentRecord | null
+  > {
 
-    const { data, error } = await supabase
+    const {
+      data,
+      error,
+    } = await supabase
       .from("assessments")
       .select("*")
       .eq("id", id)
-      .eq("user_id", userId)
       .single();
 
     if (error) {
 
-      if (error.code === "PGRST116") {
-        return null;
-      }
+      return null;
 
-      this.handleError(error);
     }
 
-    return this.mapAssessment(data);
+    return AssessmentMapper.toDomain(
+      data as AssessmentRow
+    );
+
   }
 
-  /**
-   * Returns all assessments for the current user.
-   */
-  async getAssessmentHistory(): Promise<Assessment[]> {
+  //------------------------------------------------------------
+  // Get Patient Assessments
+  //------------------------------------------------------------
 
-    const userId = await this.getCurrentUserId();
+  async getByPatientId(
+    patientId: string
+  ): Promise<
+    AssessmentRecord[]
+  > {
 
-    const { data, error } = await supabase
+    const {
+      data,
+      error,
+    } = await supabase
       .from("assessments")
       .select("*")
-      .eq("user_id", userId)
-      .order("completed_at", { ascending: false });
+      .eq(
+        "patient_id",
+        patientId
+      )
+      .order(
+        "completed_at",
+        {
+          ascending: false,
+        }
+      );
 
-    if (error) {
-      this.handleError(error);
+    if (
+      error ||
+      !data
+    ) {
+
+      return [];
+
     }
 
-    return (data ?? []).map((item) => this.mapAssessment(item));
+    return AssessmentMapper.toDomainList(
+      data as AssessmentRow[]
+    );
+
   }
 
-  /**
-   * Returns assessment history for a patient.
-   */
-  async getPatientAssessmentHistory(
-    patientId: string
-  ): Promise<Assessment[]> {
+  //------------------------------------------------------------
+  // Get User Assessments
+  //------------------------------------------------------------
 
-    const userId = await this.getCurrentUserId();
+  async getByUserId(
+    userId: string
+  ): Promise<AssessmentRecord[]> {
 
-    const { data, error } = await supabase
+    const {
+      data,
+      error,
+    } = await supabase
       .from("assessments")
       .select("*")
-      .eq("user_id", userId)
-      .eq("patient_id", patientId)
-      .order("completed_at", { ascending: false });
+      .eq(
+        "user_id",
+        userId
+      )
+      .order(
+        "completed_at",
+        {
+          ascending: false,
+        }
+      );
 
-    if (error) {
-      this.handleError(error);
+    if (
+      error ||
+      !data
+    ) {
+
+      return [];
+
     }
 
-    return (data ?? []).map((item) => this.mapAssessment(item));
+    return AssessmentMapper.toDomainList(
+      data as AssessmentRow[]
+    );
+
   }
 
-  /**
-   * Returns the latest assessment for a patient.
-   */
-  async getLatestAssessment(
-    patientId: string
-  ): Promise<Assessment | null> {
+  //------------------------------------------------------------
+  // Update
+  //------------------------------------------------------------
 
-    const history = await this.getPatientAssessmentHistory(patientId);
+  async update(
+    id: string,
+    assessment: AssessmentInput
+  ): Promise<AssessmentRecord> {
 
-    return history.length > 0 ? history[0] : null;
+    const payload =
+      AssessmentMapper.toInsert(
+        assessment
+      );
+
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("assessments")
+      .update(payload)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+
+      console.error(
+        "Supabase Update Error:",
+        error
+      );
+
+      throw new Error(
+        error.message
+      );
+
+    }
+
+    return AssessmentMapper.toDomain(
+      data as AssessmentRow
+    );
+
   }
 
-  /**
-   * Deletes an assessment.
-   *
-   * Intended only for administrative or development use.
-   */
-  async deleteAssessment(id: string): Promise<void> {
+  //------------------------------------------------------------
+  // Delete
+  //------------------------------------------------------------
 
-    const userId = await this.getCurrentUserId();
+  async delete(
+    id: string
+  ): Promise<void> {
 
-    const { error } = await supabase
+    const {
+      error,
+    } = await supabase
       .from("assessments")
       .delete()
-      .eq("id", id)
-      .eq("user_id", userId);
+      .eq("id", id);
 
     if (error) {
-      this.handleError(error);
+
+      console.error(
+        "Supabase Delete Error:",
+        error
+      );
+
+      throw new Error(
+        error.message
+      );
+
     }
-  }
 
-  /**
-   * Maps a database record to the Assessment domain model.
-   */
-  private mapAssessment(data: any): Assessment {
-
-    return {
-      id: data.id,
-      userId: data.user_id,
-      patientId: data.patient_id,
-      assessmentType: data.assessment_type,
-      responses: data.responses_json,
-      score: data.score,
-      riskCategory: data.risk_category,
-      assessmentVersion: data.assessment_version,
-      completedAt: data.completed_at,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    };
   }
 
 }
 
-export const assessmentRepository = new AssessmentRepository();
+export const assessmentRepository =
+  new AssessmentRepository();

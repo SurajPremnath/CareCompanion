@@ -1,31 +1,95 @@
+// lib/types/assessment.ts
+
 export type AssessmentType = "SELF" | "FAMILY";
 
-export type RiskCategory =
-  | "LOW"
-  | "MODERATE"
-  | "HIGH";
+export type AssessmentStatus =
+  | "EXCELLENT"
+  | "GOOD"
+  | "NEEDS_ATTENTION"
+  | "HEALTH_CONCERN"
+  | "IMMEDIATE_ATTENTION";
 
-export interface Assessment {
+export type AssessmentRecommendation =
+  | "CONTINUE_CURRENT_ROUTINE"
+  | "MONITOR_CLOSELY"
+  | "CONSULT_DOCTOR"
+  | "SEEK_IMMEDIATE_MEDICAL_ATTENTION";
 
-  id: string;
+export interface AssessmentAnswers {
+  breathing: string;
+  cough: boolean;
+  bloodInCough: boolean;
+  fever: boolean;
+  temperature: number | null;
+  energy: string;
+  appetite: string;
+  waterIntake: string;
+  pain: boolean;
+  painAreas: string[];
+  walkingDifficulty: boolean;
+  looseMotions: boolean;
+}
 
+export interface AssessmentInput {
   userId: string;
-
   patientId: string | null;
 
   assessmentType: AssessmentType;
 
-  responses: Record<string, unknown>;
+  assessmentDate: Date;
 
-  score: number;
+  rawScore: number;
+  normalizedScore: number;
 
-  riskCategory: RiskCategory;
+  status: AssessmentStatus;
+
+  recommendation: AssessmentRecommendation;
+
+  answers: AssessmentAnswers;
 
   assessmentVersion: number;
 
-  completedAt: string;
+  /**
+   * Optional reference to the Daily Care record captured
+   * during the same encounter.
+   *
+   * Null means no vitals were recorded.
+   */
+  dailyCareId: string | null;
+}
 
-  createdAt: string;
+export interface AssessmentRecord extends AssessmentInput {
+  id: string;
 
-  updatedAt: string;
+  createdAt: Date;
+
+  updatedAt: Date;
+}
+
+export interface AssessmentSummary {
+  id: string;
+
+  patientId: string | null;
+
+  assessmentDate: Date;
+
+  normalizedScore: number;
+
+  status: AssessmentStatus;
+
+  recommendation: AssessmentRecommendation;
+}
+
+export interface AssessmentHistoryItem {
+  id: string;
+
+  patientId: string | null;
+
+  patientName?: string;
+
+  assessmentDate: Date;
+
+  normalizedScore: number;
+
+  status: AssessmentStatus;
 }

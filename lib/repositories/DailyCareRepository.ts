@@ -115,6 +115,42 @@ if (error) {
   }
 
   //------------------------------------------------------------
+  // Get User Readings
+  //------------------------------------------------------------
+
+  async getByUserId(
+    userId: string
+  ): Promise<DailyCare[]> {
+
+    const {
+      data,
+      error
+    } = await supabase
+      .from("daily_care")
+      .select("*")
+      .eq("user_id", userId)
+      .order(
+        "recorded_at",
+        {
+          ascending: false
+        }
+      );
+
+    if (error || !data) {
+
+      return [];
+
+    }
+
+    return data.map(row =>
+      DailyCareMapper.toDomain(
+        row as DailyCareRow
+      )
+    );
+
+  }
+
+  //------------------------------------------------------------
   // Delete
   //------------------------------------------------------------
 
