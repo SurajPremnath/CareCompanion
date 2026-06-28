@@ -5,6 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 
+import { patientStorage } from "@/lib/storage/patientStorage";
+
+import type { Patient } from "@/lib/types/patient";
+
 import type {
   AssessmentRecord,
   AssessmentStatus,
@@ -28,6 +32,9 @@ export default function FamilyAssessmentDetailPage() {
 
   const [assessment, setAssessment] =
     useState<AssessmentRecord | null>(null);
+
+  const [patient, setPatient] =
+    useState<Patient | null>(null);
 
   const [error, setError] =
     useState("");
@@ -62,6 +69,32 @@ export default function FamilyAssessmentDetailPage() {
           result.data ?? null
         );
 
+console.log("Assessment Result:", result);
+
+if (result.data?.patientId) {
+
+const patientResult =
+  await patientStorage.getPatient(
+    result.data.patientId
+  );
+
+alert(
+  JSON.stringify(patientResult, null, 2)
+);
+
+console.log("Assessment Patient ID:", result.data.patientId);
+console.log("Patient Result:", patientResult);
+
+  if (patientResult.success) {
+
+    setPatient(
+      patientResult.data ?? null
+    );
+
+  }
+
+}
+
       }
       finally {
 
@@ -78,6 +111,7 @@ export default function FamilyAssessmentDetailPage() {
     }
 
   }, [assessmentId]);
+
 
   //------------------------------------------------------------
   // Helpers
@@ -213,6 +247,32 @@ export default function FamilyAssessmentDetailPage() {
 
           <div style={gridStyle}>
 
+<div>
+
+  <strong>
+    Patient
+  </strong>
+
+  <br />
+
+  {patient?.fullName ?? "Unknown"}
+
+</div>
+
+<div>
+
+  <strong>
+    Age
+  </strong>
+
+  <br />
+
+  {patient?.dateOfBirth
+    ? calculateAge(patient.dateOfBirth)
+    : "-"}
+
+</div>
+
             <div>
 
               <strong>
@@ -276,18 +336,6 @@ export default function FamilyAssessmentDetailPage() {
               {formatRecommendation(
                 assessment.recommendation
               )}
-
-            </div>
-
-            <div>
-
-              <strong>
-                Version
-              </strong>
-
-              <br />
-
-              {assessment.assessmentVersion}
 
             </div>
 
@@ -532,6 +580,41 @@ const errorStyle: React.CSSProperties = {
   color: "#991b1b",
   marginBottom: "24px",
 };
+
+function calculateAge(
+  dateOfBirth: string
+): number {
+
+  const dob =
+    new Date(dateOfBirth);
+
+  const today =
+    new Date();
+
+  let age =
+    today.getFullYear() -
+    dob.getFullYear();
+
+  const monthDifference =
+    today.getMonth() -
+    dob.getMonth();
+
+  if (
+    monthDifference < 0 ||
+    (
+      monthDifference === 0 &&
+      today.getDate() <
+      dob.getDate()
+    )
+  ) {
+
+    age--;
+
+  }
+
+  return age;
+
+}
 
 const backButtonStyle: React.CSSProperties = {
   marginTop: "24px",
