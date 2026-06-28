@@ -76,14 +76,25 @@ export default function VitalsCard({
 
       {expanded && (
 
+<>
+    <h3
+      style={{
+        marginTop: "20px",
+        marginBottom: "16px",
+        fontSize: "18px",
+        fontWeight: 600,
+        color: "#1f2937",
+      }}
+    >
+      🩺 Blood Pressure
+    </h3>
+
         <div
           style={{
             ...fourColumnGrid,
             marginTop: "20px"
           }}
         >
-
-<h3>🩺 Blood Pressure</h3>
 
           <div>
 
@@ -166,6 +177,8 @@ export default function VitalsCard({
           </div>
 
         </div>
+
+</>
 
       )}
 
