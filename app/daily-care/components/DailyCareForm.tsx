@@ -525,6 +525,8 @@ return (
             <div>
 
               <label style={labelStyle}>
+    minHeight: "48px",
+    display: "block",
                 Blood Pressure - Upper (Systolic)
               </label>
 
@@ -545,6 +547,8 @@ return (
             <div>
 
               <label style={labelStyle}>
+    minHeight: "48px",
+    display: "block",
                 Blood Pressure - Lower (Diastolic)
               </label>
 
@@ -565,6 +569,8 @@ return (
             <div>
 
               <label style={labelStyle}>
+    minHeight: "48px",
+    display: "block",
                 Pulse
               </label>
 
@@ -585,6 +591,8 @@ return (
             <div>
 
               <label style={labelStyle}>
+    minHeight: "48px",
+    display: "block",
                 SpO₂
               </label>
 
