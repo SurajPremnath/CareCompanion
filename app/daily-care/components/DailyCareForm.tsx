@@ -492,123 +492,27 @@ return (
       Additional Vitals
     --------------------------------------------------------*/}
 
-    <section style={cardStyle}>
-
-      <button
-        type="button"
-        onClick={() =>
-          setShowVitals(
-            !showVitals
-          )
-        }
-        style={collapseButton}
-      >
-
-        {showVitals ? "▼" : "▶"} Additional Vitals
-
-      </button>
-
-      {showVitals && (
-
-        <>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit,minmax(180px,1fr))",
-              gap: "16px",
-              marginTop: "20px",
-            }}
-          >
-
-            <div>
-
-              <label style={labelStyle}>
-                Blood Pressure - Upper (Systolic)
-              </label>
-
-              <input
-                type="number"
-                value={formData.systolic}
-                onChange={(e) =>
-                  updateField(
-                    "systolic",
-                    e.target.value
-                  )
-                }
-                style={inputStyle}
-              />
-
-            </div>
-
-            <div>
-
-              <label style={labelStyle}>
-                Blood Pressure - Lower (Diastolic)
-              </label>
-
-              <input
-                type="number"
-                value={formData.diastolic}
-                onChange={(e) =>
-                  updateField(
-                    "diastolic",
-                    e.target.value
-                  )
-                }
-                style={inputStyle}
-              />
-
-            </div>
-
-            <div>
-
-              <label style={labelStyle}>
-                Pulse
-              </label>
-
-              <input
-                type="number"
-                value={formData.pulse}
-                onChange={(e) =>
-                  updateField(
-                    "pulse",
-                    e.target.value
-                  )
-                }
-                style={inputStyle}
-              />
-
-            </div>
-
-            <div>
-
-              <label style={labelStyle}>
-                SpO₂
-              </label>
-
-              <input
-                type="number"
-                value={formData.spo2}
-                onChange={(e) =>
-                  updateField(
-                    "spo2",
-                    e.target.value
-                  )
-                }
-                style={inputStyle}
-              />
-
-            </div>
-
-          </div>
-
-        </>
-
-      )}
-
-    </section>
+<VitalsCard
+  expanded={showVitals}
+  disabled={saving}
+  systolic={formData.systolic}
+  diastolic={formData.diastolic}
+  pulse={formData.pulse}
+  spo2={formData.spo2}
+  onToggle={() => setShowVitals(!showVitals)}
+  onSystolicChange={(value) =>
+    updateField("systolic", value)
+  }
+  onDiastolicChange={(value) =>
+    updateField("diastolic", value)
+  }
+  onPulseChange={(value) =>
+    updateField("pulse", value)
+  }
+  onSpo2Change={(value) =>
+    updateField("spo2", value)
+  }
+/>
 
     {/*--------------------------------------------------------
       Symptoms

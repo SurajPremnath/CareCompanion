@@ -98,7 +98,7 @@ export default function VitalsCard({
           <div>
   <div
     style={{
-      height: "42px",
+      height: "44px",
       display: "flex",
       alignItems: "flex-end",
     }}
@@ -124,7 +124,7 @@ export default function VitalsCard({
           <div>
   <div
     style={{
-      height: "42px",
+      height: "44px",
       display: "flex",
       alignItems: "flex-end",
     }}
@@ -150,7 +150,7 @@ export default function VitalsCard({
           <div>
   <div
     style={{
-      height: "42px",
+      height: "44px",
       display: "flex",
       alignItems: "flex-end",
     }}
@@ -176,7 +176,7 @@ export default function VitalsCard({
           <div>
   <div
     style={{
-      height: "42px",
+      height: "44px",
       display: "flex",
       alignItems: "flex-end",
     }}
