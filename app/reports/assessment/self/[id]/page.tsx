@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
+import { patientStorage } from "@/lib/storage/patientStorage";
+
+import type { Patient } from "@/lib/types/patient";
 
 import type {
   AssessmentRecord,
@@ -28,6 +31,9 @@ export default function SelfAssessmentDetailPage() {
 
   const [assessment, setAssessment] =
     useState<AssessmentRecord | null>(null);
+
+  const [patient, setPatient] =
+    useState<Patient | null>(null);
 
   const [error, setError] =
     useState("");
@@ -61,6 +67,23 @@ export default function SelfAssessmentDetailPage() {
         setAssessment(
           result.data ?? null
         );
+
+if (result.data?.patientId) {
+
+  const patientResult =
+    await patientStorage.getPatient(
+      result.data.patientId
+    );
+
+  if (patientResult.success) {
+
+    setPatient(
+      patientResult.data ?? null
+    );
+
+  }
+
+}
 
       }
       finally {
@@ -212,6 +235,32 @@ export default function SelfAssessmentDetailPage() {
           </h2>
 
           <div style={gridStyle}>
+
+<div>
+
+  <strong>
+    Name
+  </strong>
+
+  <br />
+
+  {patient?.fullName ?? "Unknown"}
+
+</div>
+
+<div>
+
+  <strong>
+    Age
+  </strong>
+
+  <br />
+
+  {patient?.dateOfBirth
+    ? calculateAge(patient.dateOfBirth)
+    : "-"}
+
+</div>
 
             <div>
 
@@ -507,6 +556,35 @@ export default function SelfAssessmentDetailPage() {
     </main>
 
   );
+
+}
+
+function calculateAge(
+  dateOfBirth: string
+): number {
+
+  const dob = new Date(dateOfBirth);
+  const today = new Date();
+
+  let age =
+    today.getFullYear() -
+    dob.getFullYear();
+
+  const monthDifference =
+    today.getMonth() -
+    dob.getMonth();
+
+  if (
+    monthDifference < 0 ||
+    (
+      monthDifference === 0 &&
+      today.getDate() < dob.getDate()
+    )
+  ) {
+    age--;
+  }
+
+  return age;
 
 }
 
