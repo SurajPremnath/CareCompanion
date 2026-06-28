@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import { dailyCareStorage } from "@/lib/storage/DailyCareStorage";
 import type { DailyCare } from "@/lib/types/dailyCare";
 
+import { patientStorage } from "@/lib/storage/patientStorage";
+import type { Patient } from "@/lib/types/patient";
+
 export default function DailyCareHistoryPage() {
   const router = useRouter();
 
@@ -24,6 +27,16 @@ export default function DailyCareHistoryPage() {
   const [error, setError] =
     useState("");
 
+  const [patients, setPatients] =
+    useState<Patient[]>([]);
+
+  const [selectedPatientId, setSelectedPatientId] =
+    useState("");
+
+if (!selectedPatientId) {
+  return;
+}
+
   //------------------------------------------------------------
   // Load History
   //------------------------------------------------------------
@@ -35,7 +48,9 @@ export default function DailyCareHistoryPage() {
       try {
 
         const result =
-          await dailyCareStorage.getUserHistory();
+          await dailyCareStorage.getPatientHistory(
+  selectedPatientId
+);
 
         if (!result.success) {
 
@@ -111,6 +126,51 @@ if (records.length > 0) {
           📋 Daily Care History
 
         </h1>
+
+<div
+  style={{
+    marginBottom: "24px",
+    padding: "20px",
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    background: "#fafafa",
+  }}
+>
+
+  <label
+    style={{
+      display: "block",
+      fontWeight: 600,
+      marginBottom: "10px",
+    }}
+  >
+    Patient
+  </label>
+
+  <select
+    value={selectedPatientId}
+    onChange={(e) =>
+      setSelectedPatientId(e.target.value)
+    }
+    style={{
+      width: "100%",
+      padding: "12px",
+      borderRadius: "8px",
+      border: "1px solid #d1d5db",
+      fontSize: "15px",
+    }}
+  >
+    {patients.map((patient) => (
+      <option
+        key={patient.id}
+        value={patient.id}
+      >
+        {patient.fullName}
+      </option>
+    ))}
+  </select>
+
+</div>
 
         <p
           style={{
