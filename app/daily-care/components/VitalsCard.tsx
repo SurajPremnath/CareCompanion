@@ -96,13 +96,17 @@ export default function VitalsCard({
         >
 
           <div>
-
+  <div
+    style={{
+      height: "42px",
+      display: "flex",
+      alignItems: "flex-end",
+    }}
+  >
             <label style={labelStyle}>
-    minHeight: "48px",
-    display: "block",
               Upper (Systolic)
             </label>
-
+</div>
             <input
               type="number"
               value={systolic}
@@ -118,13 +122,17 @@ export default function VitalsCard({
           </div>
 
           <div>
-
+  <div
+    style={{
+      height: "42px",
+      display: "flex",
+      alignItems: "flex-end",
+    }}
+  >
             <label style={labelStyle}>
-    minHeight: "48px",
-    display: "block",
               Lower (Diastolic)
             </label>
-
+</div>
             <input
               type="number"
               value={diastolic}
@@ -140,13 +148,17 @@ export default function VitalsCard({
           </div>
 
           <div>
-
+  <div
+    style={{
+      height: "42px",
+      display: "flex",
+      alignItems: "flex-end",
+    }}
+  >
             <label style={labelStyle}>
-    minHeight: "48px",
-    display: "block",
               Pulse Rate
             </label>
-
+</div>
             <input
               type="number"
               value={pulse}
@@ -162,13 +174,17 @@ export default function VitalsCard({
           </div>
 
           <div>
-
+  <div
+    style={{
+      height: "42px",
+      display: "flex",
+      alignItems: "flex-end",
+    }}
+  >
             <label style={labelStyle}>
-    minHeight: "48px",
-    display: "block",
               SpO₂
             </label>
-
+</div>
             <input
               type="number"
               value={spo2}

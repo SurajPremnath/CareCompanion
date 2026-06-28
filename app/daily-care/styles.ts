@@ -46,8 +46,6 @@ export const labelStyle: CSSProperties = {
 
   display: "block",
 
-  marginTop: "16px",
-
   marginBottom: "8px",
 
   fontWeight: 600,
@@ -56,7 +54,6 @@ export const labelStyle: CSSProperties = {
 
   color: "#111827",
 
-  minHeight: "48px",     // <-- Add this
   lineHeight: "24px"    // <-- Optional but recommended
 
 };
