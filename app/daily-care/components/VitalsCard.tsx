@@ -91,8 +91,7 @@ export default function VitalsCard({
 
         <div
           style={{
-            ...fourColumnGrid,
-            marginTop: "20px"
+            ...fourColumnGrid
           }}
         >
 
