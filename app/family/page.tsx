@@ -216,6 +216,11 @@ if (!result.success) {
       "family"
     );
 
+localStorage.setItem(
+  "patientId",
+  selectedPatient.id
+);
+
     localStorage.setItem(
       "patientName",
       selectedPatient.fullName
