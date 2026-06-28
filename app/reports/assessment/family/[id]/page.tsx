@@ -69,8 +69,6 @@ export default function FamilyAssessmentDetailPage() {
           result.data ?? null
         );
 
-console.log("Assessment Result:", result);
-
 if (result.data?.patientId) {
 
 const patientResult =
@@ -78,12 +76,6 @@ const patientResult =
     result.data.patientId
   );
 
-alert(
-  JSON.stringify(patientResult, null, 2)
-);
-
-console.log("Assessment Patient ID:", result.data.patientId);
-console.log("Patient Result:", patientResult);
 
   if (patientResult.success) {
 

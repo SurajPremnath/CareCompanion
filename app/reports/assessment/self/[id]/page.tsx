@@ -269,16 +269,6 @@ export default function SelfAssessmentDetailPage() {
 
             </div>
 
-            <div>
-
-              <strong>Version</strong>
-
-              <br />
-
-              {assessment.assessmentVersion}
-
-            </div>
-
           </div>
 
         </div>
