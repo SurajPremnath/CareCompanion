@@ -7,6 +7,8 @@ import { authService } from "@/lib/auth/authService";
 
 import DailyCareForm from "./components/DailyCareForm";
 
+import AppHeader from "@/app/components/AppHeader";
+
 export default function DailyCarePage() {
 
   const router = useRouter();
@@ -121,38 +123,11 @@ export default function DailyCarePage() {
         }}
       >
 
-        <h1
-          style={{
-            fontSize: "40px",
-            marginBottom: "8px",
-          }}
-        >
-          ❤️ CareCompanion
-        </h1>
-
-        <h2
-          style={{
-            marginBottom: "10px",
-          }}
-        >
-          Daily Care
-        </h2>
-
-        <p
-          style={{
-            color: "#6b7280",
-            marginBottom: "28px",
-          }}
-        >
-          Welcome <strong>{currentUserName}</strong>
-        </p>
-
-        <hr
-          style={{
-            marginBottom: "30px",
-          }}
-        />
-
+<AppHeader
+  pageTitle="Daily Care"
+  pageIcon="🩺"
+  currentUserName={currentUserName}
+/>
         <DailyCareForm />
 
       </div>
