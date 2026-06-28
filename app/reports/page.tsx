@@ -94,7 +94,7 @@ export default function ReportsPage() {
           <div
             style={cardStyle}
             onClick={() =>
-              router.push("/reports/assessments")
+              router.push("/reports/assessment")
             }
           >
             <h2

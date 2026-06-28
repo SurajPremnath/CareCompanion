@@ -33,61 +33,138 @@ export default function DailyCareHistoryPage() {
   const [selectedPatientId, setSelectedPatientId] =
     useState("");
 
-if (!selectedPatientId) {
-  return;
-}
+//------------------------------------------------------------
+// Load Patients
+//------------------------------------------------------------
 
-  //------------------------------------------------------------
-  // Load History
-  //------------------------------------------------------------
+useEffect(() => {
 
-  useEffect(() => {
+  const loadPatients = async () => {
 
-    const loadHistory = async () => {
+    try {
 
-      try {
+      const result =
+        await patientStorage.getPatients();
 
-        const result =
-          await dailyCareStorage.getPatientHistory(
-  selectedPatientId
-);
+      if (!result.success) {
 
-        if (!result.success) {
+        setError(
+          result.error ??
+          "Unable to load patients."
+        );
 
-          setError(
-            result.error ??
-            "Unable to load Daily Care history."
-          );
+        setLoading(false);
 
-          return;
-
-        }
-
-const records =
-  result.data ?? [];
-
-setHistory(records);
-
-if (records.length > 0) {
-
-  setLatestRecord(records[0]);
-
-  setHistoryRecords(records.slice(1));
-
-}
+        return;
 
       }
-      finally {
+
+      const loadedPatients =
+        result.data ?? [];
+
+      setPatients(
+        loadedPatients
+      );
+
+      if (loadedPatients.length > 0) {
+
+        setSelectedPatientId(
+          loadedPatients[0].id
+        );
+
+      } else {
 
         setLoading(false);
 
       }
 
-    };
+    }
+    catch {
 
-    loadHistory();
+      setError(
+        "Unable to load patients."
+      );
 
-  }, []);
+      setLoading(false);
+
+    }
+
+  };
+
+  loadPatients();
+
+}, []);
+
+
+//------------------------------------------------------------
+// Load History
+//------------------------------------------------------------
+
+useEffect(() => {
+
+  if (!selectedPatientId) {
+
+    return;
+
+  }
+
+  const loadHistory = async () => {
+
+    try {
+
+      setLoading(true);
+
+      const result =
+        await dailyCareStorage.getPatientHistory(
+          selectedPatientId
+        );
+
+      if (!result.success) {
+
+        setError(
+          result.error ??
+          "Unable to load Daily Care history."
+        );
+
+        return;
+
+      }
+
+      const records =
+        result.data ?? [];
+
+      setHistory(records);
+
+      if (records.length > 0) {
+
+        setLatestRecord(
+          records[0]
+        );
+
+        setHistoryRecords(
+          records.slice(1)
+        );
+
+      } else {
+
+        setLatestRecord(null);
+
+        setHistoryRecords([]);
+
+      }
+
+    }
+    finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+  loadHistory();
+
+}, [selectedPatientId]);
 
   //------------------------------------------------------------
   // Loading

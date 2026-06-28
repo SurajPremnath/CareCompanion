@@ -159,7 +159,7 @@ export default function FamilyAssessmentDetailPage() {
             style={backButtonStyle}
             onClick={() =>
               router.push(
-                "/reports/assessments/family"
+                "/reports/assessment/family"
               )
             }
           >
@@ -466,7 +466,7 @@ export default function FamilyAssessmentDetailPage() {
           style={backButtonStyle}
           onClick={() =>
             router.push(
-              "/reports/assessments/family"
+              "/reports/assessment/family"
             )
           }
         >

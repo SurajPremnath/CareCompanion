@@ -375,7 +375,7 @@ export default function SelfAssessmentHistoryPage() {
                       <button
                         onClick={() =>
                           router.push(
-                            `/reports/assessments/self/${assessment.id}`
+                            `/reports/assessment/self/${assessment.id}`
                           )
                         }
                       >
@@ -400,7 +400,7 @@ export default function SelfAssessmentHistoryPage() {
           style={backButtonStyle}
           onClick={() =>
             router.push(
-              "/reports/assessments"
+              "/reports/assessment"
             )
           }
         >

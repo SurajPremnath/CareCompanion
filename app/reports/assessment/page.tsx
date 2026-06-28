@@ -40,7 +40,7 @@ export default function AssessmentReportsPage() {
           <button
             style={primaryButtonStyle}
             onClick={() =>
-              router.push("/reports/assessments/family")
+              router.push("/reports/assessment/family")
             }
           >
             Open
@@ -68,7 +68,7 @@ export default function AssessmentReportsPage() {
           <button
             style={primaryButtonStyle}
             onClick={() =>
-              router.push("/reports/assessments/self")
+              router.push("/reports/assessment/self")
             }
           >
             Open

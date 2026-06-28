@@ -159,7 +159,7 @@ export default function SelfAssessmentDetailPage() {
             style={backButtonStyle}
             onClick={() =>
               router.push(
-                "/reports/assessments/self"
+                "/reports/assessment/self"
               )
             }
           >
@@ -505,7 +505,7 @@ export default function SelfAssessmentDetailPage() {
           style={backButtonStyle}
           onClick={() =>
             router.push(
-              "/reports/assessments/self"
+              "/reports/assessment/self"
             )
           }
         >

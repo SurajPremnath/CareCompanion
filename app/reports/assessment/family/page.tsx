@@ -385,7 +385,7 @@ export default function FamilyAssessmentHistoryPage() {
               }}
               onClick={() =>
                 router.push(
-                  `/reports/assessments/family/${latestAssessment.id}`
+                  `/reports/assessment/family/${latestAssessment.id}`
                 )
               }
             >
@@ -494,7 +494,7 @@ export default function FamilyAssessmentHistoryPage() {
                       <button
                         onClick={() =>
                           router.push(
-                            `/reports/assessments/family/${assessment.id}`
+                            `/reports/assessment/family/${assessment.id}`
                           )
                         }
                       >
@@ -519,7 +519,7 @@ export default function FamilyAssessmentHistoryPage() {
           style={backButtonStyle}
           onClick={() =>
             router.push(
-              "/reports/assessments"
+              "/reports/assessment"
             )
           }
         >
