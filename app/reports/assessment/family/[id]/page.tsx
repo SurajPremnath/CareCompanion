@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState} from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
@@ -17,16 +17,11 @@ import type {
 
 import AppHeader from "@/app/components/AppHeader";
 
-import { downloadAssessmentPdf }
-from "@/lib/utils/pdf/assessmentPdf";
 
 export default function FamilyAssessmentDetailPage() {
 
   const router = useRouter();
   const params = useParams();
-
-const reportRef =
-  useRef<HTMLDivElement>(null);
 
   const assessmentId =
     params.id as string;
@@ -218,7 +213,6 @@ const patientResult =
 
       <div style={containerStyle}>
 
-<div ref={reportRef}>
 
 <AppHeader
   pageTitle="Family Assessment Report"
@@ -502,33 +496,6 @@ const patientResult =
 
         </div>
 
-<button
-  style={{
-    width: "100%",
-    marginTop: "20px",
-    marginBottom: "12px",
-    padding: "14px",
-    background: "#16a34a",
-    color: "white",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "bold",
-    cursor: "pointer",
-  }}
-  onClick={() => {
-
-    if (!reportRef.current) return;
-
-    void downloadAssessmentPdf(
-      reportRef.current,
-      patient?.fullName ?? "Patient"
-    );
-
-  }}
->
-  📄 Download PDF Report
-</button>
-
         <button
           style={backButtonStyle}
           onClick={() =>
@@ -541,8 +508,6 @@ const patientResult =
         </button>
 
       </div>
-
-</div>
 
     </main>
 
