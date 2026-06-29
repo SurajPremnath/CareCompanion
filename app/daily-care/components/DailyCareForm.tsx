@@ -46,7 +46,9 @@ interface DailyCareFormState {
 
   symptoms: DailyCareSymptom[];
 
-  painLocations: PainLocation[];
+painLocations: PainLocation[];
+
+otherPainLocation: string;
 
 }
 
@@ -103,7 +105,9 @@ function createInitialForm(): DailyCareFormState {
 
     symptoms: [],
 
-    painLocations: []
+painLocations: [],
+
+otherPainLocation: ""
 
   };
 
@@ -253,22 +257,30 @@ export default function DailyCareForm() {
     const exists =
       formData.painLocations.includes(location);
 
-    if (exists) {
+if (exists) {
 
-      updateField(
+  const updatedLocations =
+    formData.painLocations.filter(
+      p => p !== location
+    );
 
-        "painLocations",
+  updateField(
+    "painLocations",
+    updatedLocations
+  );
 
-        formData.painLocations.filter(
-          p => p !== location
-        )
+  if (location === "OTHER") {
 
-      );
+    updateField(
+      "otherPainLocation",
+      ""
+    );
 
-      return;
+  }
 
-    }
+  return;
 
+}
     updateField(
 
       "painLocations",
@@ -657,9 +669,38 @@ return (
 
           ))}
 
-        </div>
+</div>
 
-      </section>
+{formData.painLocations.includes("OTHER") && (
+
+  <div
+    style={{
+      marginTop: "20px",
+    }}
+  >
+
+    <label style={labelStyle}>
+      Please specify *
+    </label>
+
+    <input
+      type="text"
+      value={formData.otherPainLocation}
+      placeholder="Example: Left shoulder, Right elbow..."
+      onChange={(e) =>
+        updateField(
+          "otherPainLocation",
+          e.target.value
+        )
+      }
+      style={inputStyle}
+    />
+
+  </div>
+
+)}
+
+</section>
 
     )}
 
@@ -791,7 +832,20 @@ function validateForm(): boolean {
 
   }
 
-  return true;
+if (
+  formData.painLocations.includes("OTHER") &&
+  !formData.otherPainLocation.trim()
+) {
+
+  alert(
+    "Please specify the pain location."
+  );
+
+  return false;
+
+}
+
+return true;
 
 }
 
