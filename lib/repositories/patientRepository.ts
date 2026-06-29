@@ -4,6 +4,14 @@ import { Patient } from "../types/patient";
 import { PatientRow } from "../database";
 import { PatientMapper } from "../mappers/PatientMapper";
 
+interface PatientAccess {
+
+  role: "STANDARD" | "FAMILY" | "ADMIN";
+
+  patientCount: number;
+
+}
+
 export class PatientRepository extends BaseRepository {
 
   /**
@@ -28,6 +36,65 @@ export class PatientRepository extends BaseRepository {
     return ((data ?? []) as PatientRow[])
       .map(PatientMapper.fromDatabase);
   }
+
+async getPatientAccess(): Promise<PatientAccess> {
+
+  const userId =
+    await this.getCurrentUserId();
+
+  //----------------------------------------------------
+  // Load role
+  //----------------------------------------------------
+
+  const {
+    data: profile,
+    error: profileError
+  } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .single();
+
+  if (profileError) {
+
+    this.handleError(profileError);
+
+  }
+
+  //----------------------------------------------------
+  // Count active patients
+  //----------------------------------------------------
+
+  const {
+    count,
+    error: countError
+  } = await supabase
+    .from("patients")
+    .select("*", {
+      count: "exact",
+      head: true
+    })
+    .eq("user_id", userId)
+    .eq("status", "ACTIVE");
+
+  if (countError) {
+
+    this.handleError(countError);
+
+  }
+
+  return {
+
+    role:
+      (profile?.role ??
+        "STANDARD") as PatientAccess["role"],
+
+    patientCount:
+      count ?? 0
+
+  };
+
+}
 
   /**
    * Returns a patient by id.

@@ -73,6 +73,28 @@ if (!validation.success) {
 
       }
 
+//------------------------------------------------------
+// Patient Limit Validation
+//------------------------------------------------------
+
+const access =
+  await patientRepository.getPatientAccess();
+
+if (
+  access.role === "STANDARD" &&
+  access.patientCount >= 1
+) {
+
+  return StorageResult.failure(
+
+    "PATIENT_LIMIT_REACHED",
+
+    "Standard accounts can manage only one family member. Please contact the CareVR administrator if you need additional family members."
+
+  );
+
+}
+
       //------------------------------------------------------
       // Save
       //------------------------------------------------------
