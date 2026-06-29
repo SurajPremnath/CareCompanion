@@ -320,7 +320,15 @@ return (
 
         <div>
 
-          {formatDisplayList(record.symptoms)}
+{
+ formatDisplayList(
+    record.symptoms.map(symptom =>
+      symptom === "OTHER"
+        ? record.otherSymptom || "Other"
+        : symptom
+    )
+  )
+}
 
         </div>
 
@@ -332,7 +340,15 @@ return (
 
         <div>
 
-          {formatDisplayList(record.painLocations)}
+{
+  formatDisplayList(
+    record.painLocations.map(location =>
+      location === "OTHER"
+        ? record.otherPainLocation || "Other"
+        : location
+    )
+  )
+}
 
         </div>
 
