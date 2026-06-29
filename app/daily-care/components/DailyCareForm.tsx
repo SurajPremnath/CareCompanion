@@ -978,13 +978,33 @@ async function handleSave() {
 
   try {
 
+const [year, month, day] =
+  formData.date
+    .split("-")
+    .map(Number);
+
+const [hour, minute] =
+  formData.time
+    .split(":")
+    .map(Number);
+
+const recordedAt =
+  new Date(
+    year,
+    month - 1,
+    day,
+    hour,
+    minute,
+    0,
+    0
+  ).toISOString();
+
     const reading = {
 
       patientId:
         formData.patientId,
 
-      recordedAt:
-        `${formData.date}T${formData.time}:00`,
+      recordedAt,
 
 temperature:
   formData.temperature.trim()
