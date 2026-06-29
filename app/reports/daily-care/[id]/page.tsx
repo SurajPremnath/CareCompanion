@@ -190,92 +190,180 @@ return (
   pageIcon="📄"
 />
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "220px 1fr",
-          rowGap: "16px",
-          columnGap: "24px",
-        }}
-      >
+<>
+  {/*------------------------------------------------*/}
+  {/* Patient Summary */}
+  {/*------------------------------------------------*/}
 
-<strong>
+  <section style={cardStyle}>
 
-Patient
+    <h2 style={cardTitle}>
+      Patient Summary
+    </h2>
 
-</strong>
+    <div style={summaryGrid}>
 
-<span>
+      <div>
 
-{patientName || "Unknown Patient"}
+        <strong>Patient</strong>
 
-</span>
+        <div>
+          {patientName || "Unknown Patient"}
+        </div>
+
+      </div>
+
+      <div>
 
         <strong>Recorded On</strong>
 
-        <span>
+        <div>
           {new Date(
             record.recordedAt
           ).toLocaleString()}
-        </span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  {/*------------------------------------------------*/}
+  {/* Vital Signs */}
+  {/*------------------------------------------------*/}
+
+  <section style={cardStyle}>
+
+    <h2 style={cardTitle}>
+      Vital Signs
+    </h2>
+
+    <div style={summaryGrid}>
+
+      <div>
 
         <strong>Temperature</strong>
 
-        <span>
+        <div>
           {record.temperature}°
           {record.temperatureUnit}
-        </span>
+        </div>
+
+      </div>
+
+      <div>
 
         <strong>Blood Pressure</strong>
 
-        <span>
+        <div>
+
           {record.systolic &&
           record.diastolic
             ? `${record.systolic}/${record.diastolic}`
             : "Not Recorded"}
-        </span>
+
+        </div>
+
+      </div>
+
+      <div>
 
         <strong>Pulse</strong>
 
-        <span>
+        <div>
+
           {record.pulse
             ? `${record.pulse} bpm`
             : "Not Recorded"}
-        </span>
+
+        </div>
+
+      </div>
+
+      <div>
 
         <strong>SpO₂</strong>
 
-        <span>
+        <div>
+
           {record.spo2
             ? `${record.spo2}%`
             : "Not Recorded"}
-        </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  {/*------------------------------------------------*/}
+  {/* Symptoms & Pain */}
+  {/*------------------------------------------------*/}
+
+  <section style={cardStyle}>
+
+    <h2 style={cardTitle}>
+      Symptoms & Pain
+    </h2>
+
+    <div style={summaryGrid}>
+
+      <div>
 
         <strong>Symptoms</strong>
 
-        <span>
-          {record.symptoms.length > 0
+        <div>
+
+          {record.symptoms.length
             ? record.symptoms.join(", ")
             : "None"}
-        </span>
+
+        </div>
+
+      </div>
+
+      <div>
 
         <strong>Pain Locations</strong>
 
-        <span>
-          {record.painLocations.length > 0
+        <div>
+
+          {record.painLocations.length
             ? record.painLocations.join(", ")
             : "None"}
-        </span>
 
-        <strong>Notes</strong>
-
-        <span>
-          {record.notes?.trim()
-            ? record.notes
-            : "No notes recorded"}
-        </span>
+        </div>
 
       </div>
+
+    </div>
+
+  </section>
+
+  {/*------------------------------------------------*/}
+  {/* Clinical Notes */}
+  {/*------------------------------------------------*/}
+
+  <section style={cardStyle}>
+
+    <h2 style={cardTitle}>
+      Clinical Notes
+    </h2>
+
+    <p>
+
+      {record.notes?.trim()
+        ? record.notes
+        : "No notes recorded"}
+
+    </p>
+
+  </section>
+
+</>
 
       <div
         style={{
@@ -310,3 +398,25 @@ Patient
 
 );
 }
+
+const cardStyle: React.CSSProperties = {
+  background: "#ffffff",
+  border: "1px solid #e5e7eb",
+  borderRadius: "12px",
+  padding: "24px",
+  marginTop: "24px",
+};
+
+const cardTitle: React.CSSProperties = {
+  margin: 0,
+  marginBottom: "20px",
+  fontSize: "24px",
+  fontWeight: 700,
+  color: "#111827",
+};
+
+const summaryGrid: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+  gap: "24px",
+};
