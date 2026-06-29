@@ -16,6 +16,9 @@ import type {
 } from "@/lib/types/assessment";
 
 import AppHeader from "@/app/components/AppHeader";
+import ReportTable, {
+  ReportTableColumn,
+} from "@/app/components/ReportTable";
 
 export default function SelfAssessmentHistoryPage() {
 
@@ -137,6 +140,61 @@ setProfile(currentProfile);
       );
 
   };
+
+const columns: ReportTableColumn<AssessmentRecord>[] = [
+  {
+    key: "date",
+    title: "Date",
+    width: "34%",
+    render: (assessment) =>
+      new Date(
+        assessment.assessmentDate
+      ).toLocaleString(),
+  },
+  {
+    key: "score",
+    title: "Score",
+    width: "12%",
+    align: "center",
+    render: (assessment) =>
+      `${assessment.normalizedScore}/20`,
+  },
+  {
+    key: "status",
+    title: "Status",
+    width: "18%",
+    align: "center",
+    render: (assessment) =>
+      formatStatus(assessment.status),
+  },
+  {
+    key: "recommendation",
+    title: "Recommendation",
+    width: "24%",
+    align: "center",
+    render: (assessment) =>
+      formatRecommendation(
+        assessment.recommendation
+      ),
+  },
+  {
+    key: "action",
+    title: "Action",
+    width: "12%",
+    align: "center",
+    render: (assessment) => (
+      <button
+        onClick={() =>
+          router.push(
+            `/reports/assessment/self/${assessment.id}`
+          )
+        }
+      >
+        View
+      </button>
+    ),
+  },
+];
 
   //------------------------------------------------------------
   // Loading
@@ -328,85 +386,10 @@ setProfile(currentProfile);
               📚 Assessment History
             </h2>
 
-            <table style={tableStyle}>
-
-              <thead>
-
-                <tr>
-
-                  <th>Date</th>
-
-                  <th>Score</th>
-
-                  <th>Status</th>
-
-                  <th>Recommendation</th>
-
-                  <th></th>
-
-                </tr>
-
-              </thead>
-
-              <tbody>
-
-                {history.map((assessment) => (
-
-                  <tr
-                    key={assessment.id}
-                  >
-
-                    <td>
-
-                      {new Date(
-                        assessment.assessmentDate
-                      ).toLocaleString()}
-
-                    </td>
-
-                    <td>
-
-                      {assessment.normalizedScore}/20
-
-                    </td>
-
-                    <td>
-
-                      {formatStatus(
-                        assessment.status
-                      )}
-
-                    </td>
-
-                    <td>
-
-                      {formatRecommendation(
-                        assessment.recommendation
-                      )}
-
-                    </td>
-
-                    <td>
-
-                      <button
-                        onClick={() =>
-                          router.push(
-                            `/reports/assessment/self/${assessment.id}`
-                          )
-                        }
-                      >
-                        View
-                      </button>
-
-                    </td>
-
-                  </tr>
-
-                ))}
-
-              </tbody>
-
-            </table>
+<ReportTable
+  columns={columns}
+  data={history}
+/>
 
           </>
 
@@ -469,12 +452,6 @@ const emptyStyle: React.CSSProperties = {
   borderRadius: "12px",
   border: "1px dashed #d1d5db",
   background: "#fafafa",
-};
-
-const tableStyle: React.CSSProperties = {
-  width: "100%",
-  borderCollapse: "collapse",
-  marginBottom: "32px",
 };
 
 const backButtonStyle: React.CSSProperties = {
