@@ -6,7 +6,10 @@ import { useParams, useRouter } from "next/navigation";
 import { dailyCareStorage } from "@/lib/storage/DailyCareStorage";
 import type { DailyCare } from "@/lib/types/dailyCare";
 import { patientStorage } from "@/lib/storage/patientStorage";
+
 import AppHeader from "@/app/components/AppHeader";
+import { formatDisplayList } from "@/lib/utils/displayFormatter";
+
 
 export default function DailyCareReportPage() {
 
@@ -317,9 +320,7 @@ return (
 
         <div>
 
-          {record.symptoms.length
-            ? record.symptoms.join(", ")
-            : "None"}
+          {formatDisplayList(record.symptoms)}
 
         </div>
 
@@ -331,9 +332,7 @@ return (
 
         <div>
 
-          {record.painLocations.length
-            ? record.painLocations.join(", ")
-            : "None"}
+          {formatDisplayList(record.painLocations)}
 
         </div>
 
