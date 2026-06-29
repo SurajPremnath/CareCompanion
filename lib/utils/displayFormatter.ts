@@ -52,28 +52,76 @@ export function formatDisplayList(
 }
 
 export function formatRecordedDate(
-  recordedAt: string
+  recordedAt?: string | null
 ): string {
 
   if (!recordedAt) {
-    return "";
+    return "Not Recorded";
   }
 
-  // Expected format:
+  const value = recordedAt.trim();
+
+  if (!value) {
+    return "Not Recorded";
+  }
+
+  // Handle both
   // 2026-06-29 19:45:00
+  // 2026-06-29T19:45:00
 
-  const [datePart, timePart] = recordedAt.split(" ");
+  const normalized =
+    value.replace("T", " ");
 
-  const [year, month, day] =
-    datePart.split("-").map(Number);
+  const parts =
+    normalized.split(" ");
 
-  const [hour, minute] =
-    timePart.split(":").map(Number);
+  if (parts.length < 2) {
+    return value;
+  }
 
-  const monthNames = [
-    "Jan", "Feb", "Mar", "Apr",
-    "May", "Jun", "Jul", "Aug",
-    "Sep", "Oct", "Nov", "Dec"
+  const [datePart, timePart] = parts;
+
+  const date =
+    datePart.split("-");
+
+  const time =
+    timePart.split(":");
+
+  if (
+    date.length !== 3 ||
+    time.length < 2
+  ) {
+    return value;
+  }
+
+  const year =
+    Number(date[0]);
+
+  const month =
+    Number(date[1]);
+
+  const day =
+    Number(date[2]);
+
+  const hour =
+    Number(time[0]);
+
+  const minute =
+    Number(time[1]);
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
 
   const displayHour =
@@ -82,10 +130,14 @@ export function formatRecordedDate(
   const ampm =
     hour >= 12 ? "pm" : "am";
 
-  return `${day.toString().padStart(2, "0")} ${
-    monthNames[month - 1]
-  } ${year}, ${
-    displayHour.toString().padStart(2, "0")
-  }:${minute.toString().padStart(2, "0")} ${ampm}`;
+  return `${day
+    .toString()
+    .padStart(2, "0")} ${
+    months[month - 1]
+  } ${year}, ${displayHour
+    .toString()
+    .padStart(2, "0")}:${minute
+    .toString()
+    .padStart(2, "0")} ${ampm}`;
 
 }
