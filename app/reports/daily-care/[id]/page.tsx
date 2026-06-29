@@ -8,7 +8,10 @@ import type { DailyCare } from "@/lib/types/dailyCare";
 import { patientStorage } from "@/lib/storage/patientStorage";
 
 import AppHeader from "@/app/components/AppHeader";
-import { formatDisplayList } from "@/lib/utils/displayFormatter";
+import {
+  formatDisplayList,
+  formatRecordedDate,
+} from "@/lib/utils/displayFormatter";
 
 
 export default function DailyCareReportPage() {
@@ -221,15 +224,7 @@ return (
         <strong>Recorded On</strong>
 
         <div>
-    {new Intl.DateTimeFormat("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-      timeZone: "UTC",
-    }).format(new Date(record.recordedAt))}
+    {formatRecordedDate(record.recordedAt)}
   </div>
 
       </div>

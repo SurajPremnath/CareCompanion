@@ -8,6 +8,9 @@ import type { DailyCare } from "@/lib/types/dailyCare";
 
 import { patientStorage } from "@/lib/storage/patientStorage";
 import type { Patient } from "@/lib/types/patient";
+import {
+  formatRecordedDate,
+} from "@/lib/utils/displayFormatter";
 
 export default function DailyCareHistoryPage() {
   const router = useRouter();
@@ -312,15 +315,7 @@ useEffect(() => {
       <div>
         <strong>Date</strong><br />
 {latestRecord
-  ? new Intl.DateTimeFormat("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-      timeZone: "UTC",
-    }).format(new Date(latestRecord.recordedAt))
+  ? formatRecordedDate(latestRecord.recordedAt)
   : ""}
 
       </div>
@@ -430,15 +425,7 @@ useEffect(() => {
 
 <td style={tableCellStyle}>
 
-{new Intl.DateTimeFormat("en-IN", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: true,
-  timeZone: "UTC",
-}).format(new Date(record.recordedAt))}
+{formatRecordedDate(record.recordedAt)}
 
                   </td>
 
