@@ -55,16 +55,37 @@ export function formatRecordedDate(
   recordedAt: string
 ): string {
 
-  return new Date(recordedAt).toLocaleString(
-    "en-IN",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    }
-  );
+  if (!recordedAt) {
+    return "";
+  }
+
+  // Expected format:
+  // 2026-06-29 19:45:00
+
+  const [datePart, timePart] = recordedAt.split(" ");
+
+  const [year, month, day] =
+    datePart.split("-").map(Number);
+
+  const [hour, minute] =
+    timePart.split(":").map(Number);
+
+  const monthNames = [
+    "Jan", "Feb", "Mar", "Apr",
+    "May", "Jun", "Jul", "Aug",
+    "Sep", "Oct", "Nov", "Dec"
+  ];
+
+  const displayHour =
+    hour % 12 || 12;
+
+  const ampm =
+    hour >= 12 ? "pm" : "am";
+
+  return `${day.toString().padStart(2, "0")} ${
+    monthNames[month - 1]
+  } ${year}, ${
+    displayHour.toString().padStart(2, "0")
+  }:${minute.toString().padStart(2, "0")} ${ampm}`;
 
 }
