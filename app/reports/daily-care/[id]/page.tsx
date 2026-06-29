@@ -221,10 +221,16 @@ return (
         <strong>Recorded On</strong>
 
         <div>
-          {new Date(
-            record.recordedAt
-          ).toLocaleString()}
-        </div>
+    {new Intl.DateTimeFormat("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "UTC",
+    }).format(new Date(record.recordedAt))}
+  </div>
 
       </div>
 
