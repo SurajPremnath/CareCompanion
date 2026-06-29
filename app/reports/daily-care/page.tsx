@@ -311,17 +311,18 @@ useEffect(() => {
 
       <div>
         <strong>Date</strong><br />
-        {new Date(
-  latestRecord.recordedAt
-).toLocaleString("en-IN", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: true,
-  timeZone: "Asia/Kolkata",
-})}
+{latestRecord
+  ? new Intl.DateTimeFormat("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "UTC",
+    }).format(new Date(latestRecord.recordedAt))
+  : ""}
+
       </div>
 
       <div>
@@ -429,17 +430,15 @@ useEffect(() => {
 
 <td style={tableCellStyle}>
 
-                    {new Date(
-  record.recordedAt
-).toLocaleString("en-IN", {
+{new Intl.DateTimeFormat("en-IN", {
   day: "2-digit",
   month: "short",
   year: "numeric",
   hour: "2-digit",
   minute: "2-digit",
   hour12: true,
-  timeZone: "Asia/Kolkata",
-})}
+  timeZone: "UTC",
+}).format(new Date(record.recordedAt))}
 
                   </td>
 
