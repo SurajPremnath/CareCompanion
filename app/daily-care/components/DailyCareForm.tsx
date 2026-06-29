@@ -463,7 +463,7 @@ return (
         <div>
 
           <label style={labelStyle}>
-            Temperature *
+            Temperature 
           </label>
 
           <input
