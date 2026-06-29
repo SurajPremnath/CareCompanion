@@ -40,7 +40,7 @@ export function formatDisplayList(
 
   if (!values || values.length === 0) {
 
-    return "None";
+    return "Not Recorded";
 
   }
 

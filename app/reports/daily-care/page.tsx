@@ -312,14 +312,23 @@ useEffect(() => {
       <div>
         <strong>Date</strong><br />
         {new Date(
-          latestRecord.recordedAt
-        ).toLocaleString()}
+  latestRecord.recordedAt
+).toLocaleString("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+  timeZone: "Asia/Kolkata",
+})}
       </div>
 
       <div>
-        <strong>Temperature</strong><br />
-        {latestRecord.temperature}°
-        {latestRecord.temperatureUnit}
+<strong>Temperature</strong><br />
+{latestRecord.temperature != null
+  ? `${latestRecord.temperature}°${latestRecord.temperatureUnit}`
+  : "Not Recorded"}
       </div>
 
       <div>
@@ -421,15 +430,24 @@ useEffect(() => {
 <td style={tableCellStyle}>
 
                     {new Date(
-                      record.recordedAt
-                    ).toLocaleString()}
+  record.recordedAt
+).toLocaleString("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+  timeZone: "Asia/Kolkata",
+})}
 
                   </td>
 
 <td style={tableCellStyle}>
 
-                    {record.temperature}°
-                    {record.temperatureUnit}
+{record.temperature != null
+  ? `${record.temperature}°${record.temperatureUnit}`
+  : "-"}
 
                   </td>
 
@@ -540,15 +558,29 @@ const emptyStyle: React.CSSProperties = {
 };
 
 const tableStyle: React.CSSProperties = {
+
   width:"100%",
+
+  minWidth:"720px",
+
   borderCollapse:"collapse",
+
 };
 
 const tableContainerStyle: React.CSSProperties = {
+
   border: "1px solid #e5e7eb",
+
   borderRadius: "12px",
-  overflow: "hidden",
+
+  overflowX: "auto",
+
+  overflowY: "hidden",
+
+  WebkitOverflowScrolling: "touch",
+
   background: "#ffffff",
+
 };
 
 const tableHeaderRowStyle: React.CSSProperties = {
