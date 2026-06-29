@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/lib/auth/authService";
 import { patientStorage } from "@/lib/storage/patientStorage";
 import AppHeader from "@/app/components/AppHeader";
+import { AppAlert } from "@/lib/utils/appAlert";
 
 export default function AddPatientPage() {
 
@@ -183,16 +184,19 @@ console.error("Load user failed:", error);
 
  if (!result.success) {
 
-  alert(
-    result.error ??
-    "Unable to save patient."
-  );
+  AppAlert.error(
+
+  result.error ??
+
+  "Unable to save patient."
+
+);
 
   return;
 
 }
 
-alert(
+AppAlert.success(
   "Patient added successfully."
 );
 
@@ -201,9 +205,11 @@ alert(
       }
       catch {
 
-        alert(
-          "Something went wrong while saving the patient."
-        );
+        AppAlert.error(
+
+  "Something went wrong while saving the patient."
+
+);
 
       }
       finally {

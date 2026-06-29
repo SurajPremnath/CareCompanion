@@ -17,6 +17,7 @@ import SymptomsCard from "./SymptomsCard";
 import PainLocationCard from "./PainLocationCard";
 import ActionButtons from "./ActionButtons";
 import { dailyCareStorage } from "@/lib/storage/DailyCareStorage";
+import { AppAlert } from "@/lib/utils/appAlert";
 
 //------------------------------------------------------------
 // Types
@@ -815,7 +816,7 @@ function validateForm(): boolean {
 
   if (!formData.patientId.trim()) {
 
-    alert("Please select a patient.");
+    AppAlert.warning("Please select a patient.");
 
     return false;
 
@@ -849,9 +850,13 @@ if (
   !hasMedications
 ) {
 
-  alert(
-    "Please record at least one health observation (Temperature, Vitals, Symptoms or Pain Location)."
-  );
+AppAlert.warning(
+  "Please record at least one health observation.\n\n" +
+  "• Temperature\n" +
+  "• Vitals\n" +
+  "• Symptoms\n" +
+  "• Pain Location"
+);
 
   return false;
 
@@ -864,7 +869,7 @@ if (hasTemperature) {
 
   if (Number.isNaN(temperature)) {
 
-    alert("Temperature is invalid.");
+    AppAlert.warning("Temperature is invalid.");
 
     return false;
 
@@ -877,7 +882,7 @@ if (hasTemperature) {
     Number.isNaN(Number(formData.systolic))
   ) {
 
-    alert("Blood Pressure is invalid.");
+    AppAlert.warning("Blood Pressure is invalid.");
 
     return false;
 
@@ -888,7 +893,8 @@ if (hasTemperature) {
     Number.isNaN(Number(formData.diastolic))
   ) {
 
-    alert("Blood Pressure is invalid.");
+    AppAlert.warning("Blood Pressure is invalid.");
+
 
     return false;
 
@@ -899,7 +905,7 @@ if (hasTemperature) {
     Number.isNaN(Number(formData.pulse))
   ) {
 
-    alert("Pulse Rate is invalid.");
+    AppAlert.warning("Pulse Rate is invalid.");
 
     return false;
 
@@ -910,7 +916,7 @@ if (hasTemperature) {
     Number.isNaN(Number(formData.spo2))
   ) {
 
-    alert("SpO₂ is invalid.");
+    AppAlert.warning("SpO₂ is invalid.");
 
     return false;
 
@@ -921,9 +927,7 @@ if (
   !formData.otherSymptom.trim()
 ) {
 
-  alert(
-    "Please specify the other symptom."
-  );
+  AppAlert.warning("Please specify the other symptom.");
 
   return false;
 
@@ -934,9 +938,7 @@ if (
   !formData.otherPainLocation.trim()
 ) {
 
-  alert(
-    "Please specify the pain location."
-  );
+  AppAlert.warning("Please specify the pain location.");
 
   return false;
 
@@ -1033,9 +1035,7 @@ if (!result.success) {
  
     resetForm();
 
-    alert(
-      "Reading saved successfully."
-    );
+    AppAlert.success("Daily Care saved successfully.");
 
   }
 
@@ -1048,11 +1048,11 @@ catch (error) {
 
   if (error instanceof Error) {
 
-    alert(error.message);
+    AppAlert.error(error.message);
 
   } else {
 
-    alert("Unable to save reading.");
+    AppAlert.error("Unable to save Daily Care.");
 
   }
 
