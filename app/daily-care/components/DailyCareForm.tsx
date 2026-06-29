@@ -821,13 +821,43 @@ function validateForm(): boolean {
 
   }
 
-  if (!formData.temperature.trim()) {
+const hasTemperature =
+  formData.temperature.trim() !== "";
 
-    alert("Please enter temperature.");
+const hasVitals =
+  formData.systolic.trim() !== "" ||
+  formData.diastolic.trim() !== "" ||
+  formData.pulse.trim() !== "" ||
+  formData.spo2.trim() !== "";
 
-    return false;
+const hasSymptoms =
+  formData.symptoms.length > 0;
 
-  }
+const hasPainLocations =
+  formData.painLocations.length > 0;
+
+const hasNotes = false;
+
+const hasMedications = false;
+
+if (
+  !hasTemperature &&
+  !hasVitals &&
+  !hasSymptoms &&
+  !hasPainLocations &&
+  !hasNotes &&
+  !hasMedications
+) {
+
+  alert(
+    "Please record at least one health observation (Temperature, Vitals, Symptoms or Pain Location)."
+  );
+
+  return false;
+
+}
+
+if (hasTemperature) {
 
   const temperature =
     Number(formData.temperature);
@@ -839,6 +869,8 @@ function validateForm(): boolean {
     return false;
 
   }
+
+}
 
   if (
     formData.systolic &&
