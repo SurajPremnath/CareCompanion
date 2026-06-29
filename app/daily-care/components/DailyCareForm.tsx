@@ -46,6 +46,8 @@ interface DailyCareFormState {
 
   symptoms: DailyCareSymptom[];
 
+otherSymptom: string;
+
 painLocations: PainLocation[];
 
 otherPainLocation: string;
@@ -104,6 +106,8 @@ function createInitialForm(): DailyCareFormState {
     spo2: "",
 
     symptoms: [],
+
+otherSymptom: "",
 
 painLocations: [],
 
@@ -211,30 +215,41 @@ export default function DailyCareForm() {
     const exists =
       formData.symptoms.includes(symptom);
 
-    if (exists) {
+if (exists) {
 
-      const updatedSymptoms =
-        formData.symptoms.filter(
-          s => s !== symptom
-        );
+  const updatedSymptoms =
+    formData.symptoms.filter(
+      s => s !== symptom
+    );
 
-      updateField(
-        "symptoms",
-        updatedSymptoms
-      );
+  updateField(
+    "symptoms",
+    updatedSymptoms
+  );
 
-      if (symptom === "BODY_PAIN") {
+  if (symptom === "BODY_PAIN") {
 
-        updateField(
-          "painLocations",
-          []
-        );
+    updateField(
+      "painLocations",
+      []);
 
-      }
+    updateField(
+      "otherPainLocation",
+      "");
 
-      return;
+  }
 
-    }
+  if (symptom === "OTHER") {
+
+    updateField(
+      "otherSymptom",
+      "");
+
+  }
+
+  return;
+
+}
 
     updateField(
       "symptoms",
@@ -544,6 +559,8 @@ return (
 
       {showSymptoms && (
 
+<>
+
         <div
           style={{
             marginTop: "20px",
@@ -598,9 +615,40 @@ return (
 
           ))}
 
-        </div>
+</div>
 
-      )}
+{formData.symptoms.includes("OTHER") && (
+
+  <div
+    style={{
+      marginTop: "20px",
+    }}
+  >
+
+    <label style={labelStyle}>
+      Please specify *
+    </label>
+
+    <input
+      type="text"
+      value={formData.otherSymptom}
+      placeholder="Example: Dizziness, Chills, Swelling..."
+      onChange={(e) =>
+        updateField(
+          "otherSymptom",
+          e.target.value
+        )
+      }
+      style={inputStyle}
+    />
+
+  </div>
+
+)}
+
+</>
+
+)}
 
     </section>
 
@@ -611,6 +659,8 @@ return (
     {formData.symptoms.includes("BODY_PAIN") && (
 
       <section style={cardStyle}>
+
+
 
         <h3 style={sectionTitle}>
           Pain Location
@@ -698,11 +748,13 @@ return (
 
   </div>
 
+
+
 )}
 
 </section>
 
-    )}
+)}
 
     {/*--------------------------------------------------------
       Actions
@@ -833,6 +885,19 @@ function validateForm(): boolean {
   }
 
 if (
+  formData.symptoms.includes("OTHER") &&
+  !formData.otherSymptom.trim()
+) {
+
+  alert(
+    "Please specify the other symptom."
+  );
+
+  return false;
+
+}
+
+if (
   formData.painLocations.includes("OTHER") &&
   !formData.otherPainLocation.trim()
 ) {
@@ -908,8 +973,18 @@ async function handleSave() {
       symptoms:
         formData.symptoms,
 
+otherSymptom:
+  formData.otherSymptom.trim()
+    ? formData.otherSymptom.trim()
+    : null,
+
       painLocations:
-        formData.painLocations
+        formData.painLocations,
+
+otherPainLocation:
+  formData.otherPainLocation.trim()
+    ? formData.otherPainLocation.trim()
+    : null
 
     };
 

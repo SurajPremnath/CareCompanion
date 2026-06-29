@@ -28,7 +28,11 @@ export interface DailyCareRow {
 
   symptoms: string[];
 
+other_symptom: string | null;
+
   pain_locations: string[];
+
+other_pain_location: string | null;
 
   created_at: string;
 
@@ -71,8 +75,14 @@ export class DailyCareMapper {
       symptoms:
         row.symptoms as DailyCareSymptom[],
 
+otherSymptom:
+  row.other_symptom,
+
       painLocations:
         row.pain_locations as PainLocation[],
+
+otherPainLocation:
+  row.other_pain_location,
 
       createdAt: row.created_at,
 
@@ -115,7 +125,13 @@ export class DailyCareMapper {
 
       symptoms: dailyCare.symptoms,
 
-      pain_locations: dailyCare.painLocations
+other_symptom:
+  dailyCare.otherSymptom ?? null,
+
+      pain_locations: dailyCare.painLocations,
+
+other_pain_location:
+  dailyCare.otherPainLocation ?? null
 
     };
 

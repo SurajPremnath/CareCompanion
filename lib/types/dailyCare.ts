@@ -48,12 +48,16 @@ export interface DailyCare {
   /**
    * Selected pain locations.
    */
-  painLocations: PainLocation[];
+painLocations: PainLocation[];
 
-  /**
-   * Medicines administered.
-   */
-  medications?: unknown[];
+otherSymptom?: string | null;
+
+otherPainLocation?: string | null;
+
+/**
+ * Medicines administered.
+ */
+medications?: unknown[];
 
   notes?: string | null;
 
@@ -121,6 +125,10 @@ export interface CreateDailyCareRequest {
 
   symptoms: DailyCareSymptom[];
 
+otherSymptom?: string | null;
+
   painLocations: PainLocation[];
+
+otherPainLocation?: string | null;
 
 }
