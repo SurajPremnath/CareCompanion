@@ -373,25 +373,39 @@ useEffect(() => {
       📚 History
     </h2>
 
-          <table style={tableStyle}>
+<div style={tableContainerStyle}>
+
+  <table style={tableStyle}>
 
             <thead>
 
-              <tr>
+ <tr style={tableHeaderRowStyle}>
 
-                <th>Date</th>
+  <th style={headerCellStyle}>
+    Date
+  </th>
 
-                <th>Temp</th>
+  <th style={headerCellStyle}>
+    Temp
+  </th>
 
-                <th>BP</th>
+  <th style={headerCellStyle}>
+    BP
+  </th>
 
-                <th>Pulse</th>
+  <th style={headerCellStyle}>
+    Pulse
+  </th>
 
-                <th>SpO₂</th>
+  <th style={headerCellStyle}>
+    SpO₂
+  </th>
 
-                <th></th>
+  <th style={headerCellStyle}>
+    Action
+  </th>
 
-              </tr>
+</tr>
 
             </thead>
 
@@ -399,9 +413,12 @@ useEffect(() => {
 
               {historyRecords.map(record => (
 
-                <tr key={record.id}>
+<tr
+  key={record.id}
+  style={tableRowStyle}
+>
 
-                  <td>
+<td style={tableCellStyle}>
 
                     {new Date(
                       record.recordedAt
@@ -409,14 +426,14 @@ useEffect(() => {
 
                   </td>
 
-                  <td>
+<td style={tableCellStyle}>
 
                     {record.temperature}°
                     {record.temperatureUnit}
 
                   </td>
 
-                  <td>
+<td style={tableCellStyle}>
 
                     {record.systolic &&
                      record.diastolic
@@ -425,13 +442,13 @@ useEffect(() => {
 
                   </td>
 
-                  <td>
+<td style={tableCellStyle}>
 
                     {record.pulse ?? "-"}
 
                   </td>
 
-                  <td>
+<td style={tableCellStyle}>
 
                     {record.spo2
                       ? `${record.spo2}%`
@@ -439,9 +456,10 @@ useEffect(() => {
 
                   </td>
 
-                  <td>
+<td style={tableCellStyle}>
 
                     <button
+                      style={viewButtonStyle}
                       onClick={() =>
                         router.push(
                           `/reports/daily-care/${record.id}`
@@ -459,7 +477,9 @@ useEffect(() => {
 
             </tbody>
 
-           </table>
+</table>
+
+</div>
 
   </>
 
@@ -522,6 +542,44 @@ const emptyStyle: React.CSSProperties = {
 const tableStyle: React.CSSProperties = {
   width:"100%",
   borderCollapse:"collapse",
+};
+
+const tableContainerStyle: React.CSSProperties = {
+  border: "1px solid #e5e7eb",
+  borderRadius: "12px",
+  overflow: "hidden",
+  background: "#ffffff",
+};
+
+const tableHeaderRowStyle: React.CSSProperties = {
+  background: "#f8fafc",
+};
+
+const headerCellStyle: React.CSSProperties = {
+  padding: "16px",
+  textAlign: "left",
+  fontWeight: 700,
+  color: "#374151",
+  borderBottom: "1px solid #e5e7eb",
+};
+
+const tableRowStyle: React.CSSProperties = {
+  borderBottom: "1px solid #f1f5f9",
+};
+
+const tableCellStyle: React.CSSProperties = {
+  padding: "16px",
+  verticalAlign: "middle",
+};
+
+const viewButtonStyle: React.CSSProperties = {
+  background: "#2563eb",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "8px",
+  padding: "8px 18px",
+  cursor: "pointer",
+  fontWeight: 600,
 };
 
 const backButtonStyle: React.CSSProperties = {
