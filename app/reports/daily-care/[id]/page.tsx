@@ -249,8 +249,10 @@ return (
         <strong>Temperature</strong>
 
         <div>
-          {record.temperature}°
-          {record.temperatureUnit}
+          {record.temperature != null
+      ? `${record.temperature}°${record.temperatureUnit}`
+      : "Not Recorded"}
+
         </div>
 
       </div>
