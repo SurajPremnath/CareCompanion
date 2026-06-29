@@ -19,7 +19,7 @@ export interface DailyCare {
   /**
    * Body temperature in Celsius.
    */
-  temperature: number;
+  temperature: number | null;
 
   temperatureUnit: "F" | "C";
 
@@ -111,7 +111,7 @@ export interface CreateDailyCareRequest {
 
   recordedAt: string;
 
-  temperature: number;
+  temperature: number | null;
 
   temperatureUnit: "F" | "C";
 

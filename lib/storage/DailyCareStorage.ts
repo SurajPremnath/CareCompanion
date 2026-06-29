@@ -32,20 +32,6 @@ async save(
 
       }
 
-      if (
-        request.temperature === undefined ||
-        request.temperature === null
-      ) {
-
-        return {
-
-          success: false,
-
-          error: "Temperature is required."
-
-        };
-
-      }
 
 const userId =
   await authService.getCurrentUserId();

@@ -976,8 +976,10 @@ async function handleSave() {
       recordedAt:
         `${formData.date}T${formData.time}:00`,
 
-      temperature:
-        Number(formData.temperature),
+temperature:
+  formData.temperature.trim()
+    ? Number(formData.temperature)
+    : null,
 
       temperatureUnit:
         formData.temperatureUnit,
