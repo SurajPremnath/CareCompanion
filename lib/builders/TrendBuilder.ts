@@ -107,50 +107,68 @@ export class TrendBuilder {
 
   ): ParameterTrend {
 
-    if (!enabled) {
+if (!enabled) {
 
-      return {
+  return {
 
-        parameter,
+    parameter,
 
-        enabled: false,
+    enabled: false,
 
-        statistics: {
+    statistics: {
 
-          current: null,
+      current: null,
 
-          minimum: null,
+      minimum: null,
 
-          maximum: null,
+      maximum: null,
 
-          average: null
+      average: null,
 
-        },
+    },
 
-        points: []
+    axis: {
 
-      };
+      min: 0,
 
-    }
+      max: 0,
 
-    const points =
-      this.buildPoints(
-        parameter,
-        records
-      );
+    },
 
-    return {
+    points: [],
 
-      parameter,
+  };
 
-      enabled: true,
+}
 
-      statistics:
-        this.buildStatistics(points),
+const points =
+  this.buildPoints(
+    parameter,
+    records
+  );
 
-      points
+const statistics =
+  this.buildStatistics(points);
 
-    };
+return {
+
+  parameter,
+
+  enabled: true,
+
+  statistics,
+
+  axis: {
+
+    min: 0,
+
+    max: 0,
+
+  },
+
+  points,
+
+};
 
   }
 

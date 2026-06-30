@@ -57,16 +57,17 @@ export interface TrendStatistics {
 // Parameter Trend
 //------------------------------------------------------------
 
+export interface TrendAxis {
+  min: number;
+  max: number;
+}
+
 export interface ParameterTrend {
-
   parameter: TrendParameterType;
-
   enabled: boolean;
-
   statistics: TrendStatistics;
-
+  axis: TrendAxis;
   points: TrendPoint[];
-
 }
 
 //------------------------------------------------------------
