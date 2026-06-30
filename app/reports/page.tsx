@@ -35,12 +35,15 @@ export default function ReportsPage() {
   pageTitle="Reports"
   pageIcon="📊"
 />
-        <div
-          style={{
-            display: "grid",
-            gap: "24px",
-          }}
-        >
+  <div
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(320px, 1fr))",
+    gap: "24px",
+    alignItems: "stretch",
+  }}
+>
           <div
             style={cardStyle}
             onClick={() =>

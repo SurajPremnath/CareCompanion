@@ -9,6 +9,7 @@ import type {
 } from "@/lib/trends/trendResult";
 
 import TrendLineChart from "./TrendLineChart";
+import { TrendChartConfig } from "@/lib/trends/trendChartConfig";
 
 //------------------------------------------------------------
 // Props
@@ -40,21 +41,9 @@ export default function TrendChart({
 
   }
 
-  //----------------------------------------------------------
-  // Title
-  //----------------------------------------------------------
+const chartConfig = TrendChartConfig[trend.parameter];
 
-  const titleMap = {
 
-    temperature: "🌡 Temperature",
-
-    bloodPressure: "❤️ Blood Pressure",
-
-    pulse: "💓 Pulse",
-
-    spo2: "🫁 SpO₂",
-
-  };
 
   //----------------------------------------------------------
   // Render
@@ -66,7 +55,7 @@ export default function TrendChart({
 
       <h3>
 
-        {titleMap[trend.parameter]}
+        {chartConfig.title}
 
       </h3>
 
@@ -102,16 +91,22 @@ export default function TrendChart({
       {/*Trend Chart */}
       {/*----------------------------------------------*/}
 
- <TrendLineChart
-  data={trend.points.map((point) => ({
-    label: new Date(point.recordedAt).toLocaleString([], {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    value: point.value,
-  }))}
+<TrendLineChart
+    unit={chartConfig.unit}
+    color={chartConfig.color}
+    decimals={chartConfig.decimals}
+    lineWidth={chartConfig.lineWidth}
+    dotRadius={chartConfig.dotRadius}
+    activeDotRadius={chartConfig.activeDotRadius}
+    data={trend.points.map((point) => ({
+        label: new Date(point.recordedAt).toLocaleString([], {
+            day: "2-digit",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+        }),
+        value: point.value,
+    }))}
 />
 
     </section>

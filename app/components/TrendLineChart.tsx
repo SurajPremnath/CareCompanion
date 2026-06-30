@@ -17,16 +17,39 @@ type ChartPoint = {
 };
 
 interface TrendLineChartProps {
-  data: ChartPoint[];
-  lineColor?: string;
-  dataKey?: string;
-  yAxisLabel?: string;
+
+    unit: string;
+
+    color: string;
+
+    decimals: number;
+
+    lineWidth: number;
+
+    dotRadius: number;
+
+    activeDotRadius: number;
+
+    data: ChartPoint[];
+
 }
 
 export default function TrendLineChart({
-  data,
-  lineColor = "#2563eb",
-  dataKey = "value",
+
+unit,
+
+color,
+
+decimals,
+
+lineWidth,
+
+dotRadius,
+
+activeDotRadius,
+
+data,
+
 }: TrendLineChartProps) {
 
 //------------------------------------------------------------
@@ -81,10 +104,10 @@ if (data.length === 1) {
         style={{
           fontSize: 42,
           fontWeight: 700,
-          color: "#2563eb",
+          color,
         }}
       >
-        {Number(data[0].value).toFixed(1)}°
+        {Number(data[0].value).toFixed(decimals)} {unit}
       </div>
 
       <div
@@ -141,15 +164,15 @@ if (data.length === 1) {
 
 <Line
   type="monotone"
-  dataKey={dataKey}
-  stroke={lineColor}
-  strokeWidth={2}
-  dot={{ r: 4 }}
-  activeDot={{ r: 6 }}
+  dataKey="value"
+  stroke={color}
+  strokeWidth={lineWidth}
+  dot={{ r: dotRadius }}
+  activeDot={{ r: activeDotRadius }}
   connectNulls={false}
 >
 <LabelList
-  dataKey={dataKey}
+  dataKey="value"
   content={(props: any) => {
     const { x, y, value } = props;
 
@@ -161,7 +184,7 @@ if (data.length === 1) {
         fontSize={11}
         fill="#6b7280"
       >
-        {Number(value).toFixed(1)}
+        {Number(value).toFixed(decimals)}
       </text>
     );
   }}
