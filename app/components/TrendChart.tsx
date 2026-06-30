@@ -98,6 +98,7 @@ const chartConfig = TrendChartConfig[trend.parameter];
     lineWidth={chartConfig.lineWidth}
     dotRadius={chartConfig.dotRadius}
     activeDotRadius={chartConfig.activeDotRadius}
+    minYAxis={chartConfig.minYAxis}
     data={trend.points.map((point) => ({
         label: new Date(point.recordedAt).toLocaleString([], {
             day: "2-digit",

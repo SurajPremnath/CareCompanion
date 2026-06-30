@@ -9,6 +9,7 @@ export interface TrendChartConfiguration {
   lineWidth: number;
   dotRadius: number;
   activeDotRadius: number;
+  minYAxis: number;
 }
 
 export const TrendChartConfig: Record<
@@ -23,7 +24,8 @@ export const TrendChartConfig: Record<
     decimals: 1,
     lineWidth: 2,
     dotRadius: 5,
-    activeDotRadius: 7,
+    activeDotRadius: 7,    
+    minYAxis: 50,
   },
 
   pulse: {
@@ -35,6 +37,7 @@ export const TrendChartConfig: Record<
     lineWidth: 2,
     dotRadius: 5,
     activeDotRadius: 7,
+    minYAxis: 50,
   },
 
   spo2: {
@@ -46,6 +49,7 @@ export const TrendChartConfig: Record<
     lineWidth: 2,
     dotRadius: 5,
     activeDotRadius: 7,
+    minYAxis: 50,
   },
 
   bloodPressure: {
@@ -57,5 +61,6 @@ export const TrendChartConfig: Record<
     lineWidth: 2,
     dotRadius: 5,
     activeDotRadius: 7,
+    minYAxis: 50,
   },
 };

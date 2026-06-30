@@ -30,6 +30,8 @@ interface TrendLineChartProps {
 
     activeDotRadius: number;
 
+    minYAxis: number;
+
     data: ChartPoint[];
 
 }
@@ -47,6 +49,8 @@ lineWidth,
 dotRadius,
 
 activeDotRadius,
+
+minYAxis,
 
 data,
 
@@ -155,10 +159,19 @@ if (data.length === 1) {
           minTickGap={20}
         />
 
-        <YAxis
-          tick={{ fontSize: 12 }}
-          allowDecimals
-        />
+<YAxis
+  domain={[
+    (dataMin: number) => {
+      if (dataMin >= minYAxis) {
+        return minYAxis;
+      }
+
+      return Math.floor(dataMin / 10) * 10;
+    },
+    "auto",
+  ]}
+  tick={{ fontSize: 12 }}
+/>
 
         <Tooltip />
 
