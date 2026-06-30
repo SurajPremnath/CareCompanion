@@ -8,6 +8,8 @@ import type {
   ParameterTrend,
 } from "@/lib/trends/trendResult";
 
+import TrendLineChart from "./TrendLineChart";
+
 //------------------------------------------------------------
 // Props
 //------------------------------------------------------------
@@ -97,14 +99,20 @@ export default function TrendChart({
       </div>
 
       {/*----------------------------------------------*/}
-      {/* Chart Placeholder */}
+      {/*Trend Chart */}
       {/*----------------------------------------------*/}
 
-      <div style={chartPlaceholder}>
-
-        Chart will be displayed here
-
-      </div>
+ <TrendLineChart
+  data={trend.points.map((point) => ({
+    label: new Date(point.recordedAt).toLocaleString([], {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    value: point.value,
+  }))}
+/>
 
     </section>
 
@@ -218,20 +226,3 @@ const statValue: React.CSSProperties = {
 
 };
 
-const chartPlaceholder: React.CSSProperties = {
-
-  height: "260px",
-
-  border: "2px dashed #d1d5db",
-
-  borderRadius: "12px",
-
-  display: "flex",
-
-  justifyContent: "center",
-
-  alignItems: "center",
-
-  color: "#9ca3af",
-
-};
