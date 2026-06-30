@@ -5,18 +5,30 @@ import type { Result } from "@/lib/types/result";
  */
 export class StorageResult {
 
-  static success<T>(
-    data?: T,
-    message?: string
-  ): Result<T> {
+  //------------------------------------------------------------
+  // Success
+  //------------------------------------------------------------
+
+static success<T>(
+  data?: T,
+  message?: string
+): Result<T> {
 
     return {
+
       success: true,
+
       data,
+
       message
+
     };
 
   }
+
+  //------------------------------------------------------------
+  // Failure
+  //------------------------------------------------------------
 
   static failure<T>(
     code: string,
@@ -25,13 +37,18 @@ export class StorageResult {
   ): Result<T> {
 
     return {
+
       success: false,
+
       code,
+
       message,
+
       error:
         error instanceof Error
           ? error.message
           : message
+
     };
 
   }

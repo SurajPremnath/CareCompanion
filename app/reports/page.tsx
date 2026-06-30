@@ -114,6 +114,49 @@ export default function ReportsPage() {
               Open
             </button>
           </div>
+
+{/*------------------------------------------------*/}
+{/* Clinical Trends */}
+{/*------------------------------------------------*/}
+
+<div
+  style={cardStyle}
+  onClick={() =>
+    router.push("/reports/trends")
+  }
+>
+  <h2
+    style={{
+      marginBottom: "10px",
+    }}
+  >
+    📈 Clinical Trends
+  </h2>
+
+  <p
+    style={{
+      color: "#6b7280",
+      marginBottom: "20px",
+    }}
+  >
+    Visualize health trends, vitals and
+    clinical progress over time.
+  </p>
+
+<button
+  style={{
+    padding: "10px 20px",
+    borderRadius: "10px",
+    border: "none",
+    background: "#9333ea",
+    color: "#ffffff",
+    cursor: "pointer",
+  }}
+>
+  Open
+</button>
+</div>
+
         </div>
 
         <button
