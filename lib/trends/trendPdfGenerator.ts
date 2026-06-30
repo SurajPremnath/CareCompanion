@@ -197,11 +197,51 @@ page.drawText(
   }
 );
 
+//--------------------------------------------------------
+// Generated Date & Time
+//--------------------------------------------------------
+
+const generatedDate = new Date(report.generatedAt);
+
+const formattedDate =
+  generatedDate.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+const formattedTime =
+  generatedDate.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+page.drawText(
+  `Generated On : ${formattedDate}`,
+  {
+    x: 50,
+    y: 655,
+    size: 12,
+    font,
+  }
+);
+
+page.drawText(
+  `Generated Time : ${formattedTime}`,
+  {
+    x: 50,
+    y: 635,
+    size: 12,
+    font,
+  }
+);
+
 page.drawText(
   `Parameters : ${report.selectedParameters.join(", ")}`,
   {
     x: 50,
-    y: 635,
+    y: 615,
     size: 12,
     font,
   }
@@ -224,87 +264,220 @@ private drawSummaryStatistics(
     "Summary Statistics",
     {
       x: 50,
-      y: 590,
+      y: 550,
       size: 16,
       font,
       color: rgb(0, 0, 0),
     }
   );
 
-  let y = 560;
+  let y = 515;
 
-  for (const parameter of report.trend.parameters) {
+for (const parameter of report.trend.parameters) {
 
-    if (!parameter.enabled) {
-      continue;
-    }
-
-    page.drawText(
-      TrendChartConfig[
-  parameter.parameter
-].title.replace(
-  "₂",
-  "2"
-),
-      {
-        x: 50,
-        y,
-        size: 13,
-        font,
-      }
-    );
-
-    y -= 18;
-
-    page.drawText(
-      `Current : ${parameter.statistics.current ?? "-"}`,
-      {
-        x: 70,
-        y,
-        size: 11,
-        font,
-      }
-    );
-
-    y -= 16;
-
-    page.drawText(
-      `Minimum : ${parameter.statistics.minimum ?? "-"}`,
-      {
-        x: 70,
-        y,
-        size: 11,
-        font,
-      }
-    );
-
-    y -= 16;
-
-    page.drawText(
-      `Maximum : ${parameter.statistics.maximum ?? "-"}`,
-      {
-        x: 70,
-        y,
-        size: 11,
-        font,
-      }
-    );
-
-    y -= 16;
-
-    page.drawText(
-      `Average : ${parameter.statistics.average ?? "-"}`,
-      {
-        x: 70,
-        y,
-        size: 11,
-        font,
-      }
-    );
-
-    y -= 28;
-
+  if (!parameter.enabled) {
+    continue;
   }
+
+  //----------------------------------------------------------
+  // Parameter Title
+  //----------------------------------------------------------
+
+  page.drawText(
+    TrendChartConfig[
+      parameter.parameter
+    ].title.replace("₂", "2"),
+    {
+      x: 50,
+      y,
+      size: 13,
+      font,
+    }
+  );
+
+  y -= 20;
+
+  //----------------------------------------------------------
+  // Table Layout
+  //----------------------------------------------------------
+
+  const startX = 50;
+  const tableWidth = 495;
+  const rowHeight = 22;
+
+const columnWidth = tableWidth / 4;
+
+const drawCenteredText = (
+  text: string,
+  column: number,
+  y: number,
+  size: number
+) => {
+
+  const textWidth =
+    font.widthOfTextAtSize(
+      text,
+      size
+    );
+
+  page.drawText(
+    text,
+    {
+      x:
+        startX +
+        column * columnWidth +
+        (columnWidth - textWidth) / 2,
+      y,
+      size,
+      font,
+    }
+  );
+
+};
+
+  const currentX = startX;
+  const minimumX = startX + 125;
+  const maximumX = startX + 250;
+  const averageX = startX + 375;
+
+  // Top Border
+  page.drawLine({
+    start: { x: startX, y },
+    end: { x: startX + tableWidth, y },
+    thickness: 0.8,
+    color: rgb(0.75, 0.75, 0.75),
+  });
+
+//----------------------------------------------------------
+// Vertical Column Lines
+//----------------------------------------------------------
+
+const tableTop = y;
+
+const tableBottom = y - (rowHeight * 2);
+
+for (let i = 1; i < 4; i++) {
+
+  const x = startX + i * columnWidth;
+
+  page.drawLine({
+    start: {
+      x,
+      y: tableTop,
+    },
+    end: {
+      x,
+      y: tableBottom,
+    },
+    thickness: 0.5,
+    color: rgb(0.85, 0.85, 0.85),
+  });
+
+}
+
+  y -= rowHeight;
+
+//----------------------------------------------------------
+// Header Background
+//----------------------------------------------------------
+
+page.drawRectangle({
+  x: startX,
+  y,
+  width: tableWidth,
+  height: rowHeight,
+  color: rgb(0.94, 0.94, 0.94),
+  borderColor: rgb(0.80, 0.80, 0.80),
+  borderWidth: 0.5,
+});
+
+  //----------------------------------------------------------
+  // Header Row
+  //----------------------------------------------------------
+
+drawCenteredText(
+  "Current",
+  0,
+  y + 7,
+  10
+);
+
+drawCenteredText(
+  "Minimum",
+  1,
+  y + 7,
+  10
+);
+
+drawCenteredText(
+  "Maximum",
+  2,
+  y + 7,
+  10
+);
+
+drawCenteredText(
+  "Average",
+  3,
+  y + 7,
+  10
+);
+
+  // Header Bottom Border
+  page.drawLine({
+    start: { x: startX, y },
+    end: { x: startX + tableWidth, y },
+    thickness: 0.6,
+    color: rgb(0.80, 0.80, 0.80),
+  });
+
+  y -= rowHeight;
+
+  //----------------------------------------------------------
+  // Values Row
+  //----------------------------------------------------------
+
+drawCenteredText(
+  `${parameter.statistics.current ?? "-"}`,
+  0,
+  y + 7,
+  11
+);
+
+drawCenteredText(
+  `${parameter.statistics.minimum ?? "-"}`,
+  1,
+  y + 7,
+  11
+);
+
+drawCenteredText(
+  `${parameter.statistics.maximum ?? "-"}`,
+  2,
+  y + 7,
+  11
+);
+
+drawCenteredText(
+  `${parameter.statistics.average ?? "-"}`,
+  3,
+  y + 7,
+  11
+);
+
+  //----------------------------------------------------------
+  // Bottom Border
+  //----------------------------------------------------------
+
+  page.drawLine({
+    start: { x: startX, y },
+    end: { x: startX + tableWidth, y },
+    thickness: 0.8,
+    color: rgb(0.75, 0.75, 0.75),
+  });
+
+  y -= 34;
+}
 
 }
 
