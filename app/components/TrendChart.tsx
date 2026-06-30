@@ -49,9 +49,12 @@ const chartConfig = TrendChartConfig[trend.parameter];
   // Render
   //----------------------------------------------------------
 
-  return (
+return (
 
-    <section style={cardStyle}>
+    <section
+      id={`trend-chart-${trend.parameter}`}
+      style={cardStyle}
+    >
 
       <h3>
 

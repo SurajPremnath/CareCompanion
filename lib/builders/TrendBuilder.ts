@@ -14,6 +14,10 @@ import type {
   TrendParameterType
 } from "@/lib/trends/trendResult";
 
+import {
+  trendClinicalAnalyzer,
+} from "@/lib/trends/trendClinicalAnalyzer";
+
 //------------------------------------------------------------
 // Trend Builder
 //------------------------------------------------------------
@@ -28,6 +32,34 @@ export class TrendBuilder {
     request: TrendRequest,
     records: DailyCare[]
   ): TrendResult {
+
+const parameters = [
+
+  this.buildParameterTrend(
+    "temperature",
+    request.parameters.temperature,
+    records
+  ),
+
+  this.buildParameterTrend(
+    "bloodPressure",
+    request.parameters.bloodPressure,
+    records
+  ),
+
+  this.buildParameterTrend(
+    "pulse",
+    request.parameters.pulse,
+    records
+  ),
+
+  this.buildParameterTrend(
+    "spo2",
+    request.parameters.spo2,
+    records
+  ),
+
+];
 
     return {
 
@@ -55,40 +87,14 @@ export class TrendBuilder {
 
       },
 
-      parameters: [
+      parameters,
 
-        this.buildParameterTrend(
-          "temperature",
-          request.parameters.temperature,
-          records
-        ),
+clinicalSummary: {
 
-        this.buildParameterTrend(
-          "bloodPressure",
-          request.parameters.bloodPressure,
-          records
-        ),
+  messages:
+    trendClinicalAnalyzer.analyze(parameters),
 
-        this.buildParameterTrend(
-          "pulse",
-          request.parameters.pulse,
-          records
-        ),
-
-        this.buildParameterTrend(
-          "spo2",
-          request.parameters.spo2,
-          records
-        )
-
-      ],
-
-      clinicalSummary: {
-
-        messages: []
-
-      }
-
+}
     };
 
   }

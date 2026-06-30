@@ -5,6 +5,8 @@ import {
   useState,
 } from "react";
 
+import * as htmlToImage from "html-to-image";
+
 import { useRouter } from "next/navigation";
 
 import AppHeader from "@/app/components/AppHeader";
@@ -33,6 +35,14 @@ import {
 import TrendChart
   from "@/app/components/TrendChart";
 
+import {
+  trendReportBuilder,
+} from "@/lib/trends/trendReportBuilder";
+
+import {
+  trendPdfGenerator,
+} from "@/lib/trends/trendPdfGenerator";
+
 export default function ClinicalTrendResultsPage() {
 
   const router = useRouter();
@@ -46,6 +56,7 @@ const [trendRequest, setTrendRequest] =
 
 const [trendResult, setTrendResult] =
   useState<TrendResult | null>(null);
+
 
 const [loading, setLoading] =
   useState(true);
@@ -402,14 +413,103 @@ return (
         {/* Navigation */}
         {/*------------------------------------------------*/}
 
-        <button
-          onClick={() =>
-            router.push("/reports/trends")
-          }
-          style={secondaryButton}
-        >
-          ← Back to Trend Options
-        </button>
+{/*------------------------------------------------*/}
+{/* Actions */}
+{/*------------------------------------------------*/}
+
+<div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "16px",
+    marginTop: "32px",
+    paddingTop: "24px",
+    borderTop: "1px solid #e5e7eb",
+  }}
+>
+
+  <button
+    onClick={() =>
+      router.push("/reports/trends")
+    }
+    style={secondaryButton}
+  >
+    ← Back to Trend Options
+  </button>
+
+  <button
+    onClick={async () => {
+
+      if (!trendResult) {
+
+        return;
+
+      }
+
+      //----------------------------------------------------------
+      // Capture Charts
+      //----------------------------------------------------------
+
+      const chartImages: string[] = [];
+
+      for (const parameter of trendResult.parameters) {
+
+        if (!parameter.enabled) {
+
+          continue;
+
+        }
+
+        const element =
+          document.getElementById(
+            `trend-chart-${parameter.parameter}`
+          );
+
+        if (!element) {
+
+          continue;
+
+        }
+
+        const image =
+          await htmlToImage.toPng(
+            element
+          );
+
+        chartImages.push(
+          image
+        );
+
+      }
+
+      //----------------------------------------------------------
+      // Build Report
+      //----------------------------------------------------------
+
+      const report =
+        trendReportBuilder.build(
+          trendResult
+        );
+
+      report.chartImages =
+        chartImages;
+
+      //----------------------------------------------------------
+      // Generate PDF
+      //----------------------------------------------------------
+
+      await trendPdfGenerator.generate(
+        report
+      );
+
+    }}
+    style={primaryButton}
+  >
+    📄 Download PDF Report
+  </button>
+
+</div>
 
       </div>
 
@@ -440,10 +540,23 @@ const summaryLabel: React.CSSProperties = {
 };
 
 const secondaryButton: React.CSSProperties = {
-  width: "100%",
-  padding: "14px",
+  padding: "14px 28px",
   borderRadius: "12px",
   border: "1px solid #d1d5db",
   background: "#ffffff",
   cursor: "pointer",
+whiteSpace: "nowrap",
+fontWeight: 600,
+
 };
+
+const primaryButton: React.CSSProperties = {
+  padding: "14px 28px",
+  borderRadius: "12px",
+  border: "none",
+  background: "#2563eb",
+  color: "#ffffff",
+  fontWeight: 600,
+  cursor: "pointer",
+  whiteSpace: "nowrap",
+};;

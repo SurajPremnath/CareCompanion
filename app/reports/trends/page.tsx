@@ -631,21 +631,41 @@ period,
         {/* Actions */}
         {/*------------------------------------------------*/}
 
-        <button
-          onClick={handleGenerate}
-          style={primaryButton}
-        >
-          Generate Trends
-        </button>
+{/*------------------------------------------------*/}
+{/* Actions */}
+{/*------------------------------------------------*/}
 
-        <button
-          onClick={() =>
-            router.push("/reports")
-          }
-          style={secondaryButton}
-        >
-          ← Back to Reports
-        </button>
+<div
+  style={{
+    display: "flex",
+    gap: "16px",
+    marginTop: "32px",
+  }}
+>
+
+  <button
+    onClick={handleGenerate}
+    style={{
+      ...primaryButton,
+      flex: 1,
+    }}
+  >
+    📈 Generate Trends
+  </button>
+
+  <button
+    onClick={() =>
+      router.push("/reports")
+    }
+    style={{
+      ...secondaryButton,
+      flex: 1,
+    }}
+  >
+    ← Back to Reports
+  </button>
+
+</div>
 
       </div>
 
@@ -698,21 +718,22 @@ const selectedChip: React.CSSProperties = {
 };
 
 const primaryButton: React.CSSProperties = {
-  width: "100%",
-  padding: "14px",
+  padding: "14px 28px",
   borderRadius: "12px",
   border: "none",
   background: "#2563eb",
   color: "#ffffff",
   cursor: "pointer",
+  fontWeight: 600,
+  whiteSpace: "nowrap",
 };
 
 const secondaryButton: React.CSSProperties = {
-  width: "100%",
-  padding: "14px",
-  marginTop: "16px",
+  padding: "14px 28px",
   borderRadius: "12px",
   border: "1px solid #d1d5db",
   background: "#ffffff",
   cursor: "pointer",
+  fontWeight: 600,
+  whiteSpace: "nowrap",
 };
