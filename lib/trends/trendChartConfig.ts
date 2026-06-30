@@ -25,7 +25,7 @@ export const TrendChartConfig: Record<
     lineWidth: 2,
     dotRadius: 5,
     activeDotRadius: 7,    
-    minYAxis: 50,
+    minYAxis: 75,
   },
 
   pulse: {
@@ -49,7 +49,7 @@ export const TrendChartConfig: Record<
     lineWidth: 2,
     dotRadius: 5,
     activeDotRadius: 7,
-    minYAxis: 50,
+    minYAxis: 75,
   },
 
   bloodPressure: {
@@ -61,6 +61,6 @@ export const TrendChartConfig: Record<
     lineWidth: 2,
     dotRadius: 5,
     activeDotRadius: 7,
-    minYAxis: 50,
+    minYAxis: 75,
   },
 };
