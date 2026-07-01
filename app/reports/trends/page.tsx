@@ -117,15 +117,23 @@ useEffect(() => {
 
 const patients = result.data ?? [];
 
-setPatients(patients);
+if (patients.length === 0) {
 
-if (patients.length > 0) {
-
-  setSelectedPatientId(
-    patients[0].id
+  AppAlert.warning(
+    "No patients registered. Please register a patient first."
   );
 
+  router.push("/add-patient");
+
+  return;
+
 }
+
+setPatients(patients);
+
+setSelectedPatientId(
+  patients[0].id
+);
 
     }
     catch (error) {
@@ -138,7 +146,7 @@ if (patients.length > 0) {
 
   loadPatients();
 
-}, []);
+}, [router]);
 
 //------------------------------------------------------------
 // Generate Trends

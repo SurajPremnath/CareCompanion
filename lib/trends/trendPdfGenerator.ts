@@ -283,10 +283,15 @@ for (const parameter of report.trend.parameters) {
   // Parameter Title
   //----------------------------------------------------------
 
-  page.drawText(
-    TrendChartConfig[
-      parameter.parameter
-    ].title.replace("₂", "2"),
+  const title =
+  parameter.parameter === "bloodPressure"
+    ? "Blood Pressure (Upper)"
+    : TrendChartConfig[
+        parameter.parameter
+      ].title.replace("₂", "2");
+
+page.drawText(
+  title,
     {
       x: 50,
       y,
