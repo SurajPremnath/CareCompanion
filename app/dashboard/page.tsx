@@ -164,6 +164,12 @@ export default function DashboardPage() {
 
     };
 
+const openHelpCentre = () => {
+
+    router.push("/help");
+
+};
+
     const openDailyCare = () => {
 
         router.push("/daily-care");
@@ -231,7 +237,7 @@ export default function DashboardPage() {
 
 <h3
     style={{
-        marginTop: "24px",
+        marginTop: "20px",
         marginBottom: "16px",
         fontSize: "22px",
         fontWeight: 700,
@@ -241,18 +247,34 @@ export default function DashboardPage() {
     🌡 Daily Care
 </h3>
 
-<button
-    onClick={openDailyCare}
+<div
     style={{
-        ...actionButton,
-        width: "100%",
-        marginBottom: "28px",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "16px",
+        marginBottom: "20px",
     }}
 >
-    ❤️
-    <br />
-    Daily Care
-</button>
+
+    <button
+        onClick={openDailyCare}
+        style={actionButton}
+    >
+        ❤️
+        <br />
+        Daily Care
+    </button>
+
+    <button
+        onClick={openHelpCentre}
+        style={actionButton}
+    >
+        ❓
+        <br />
+        Help Centre
+    </button>
+
+</div>
 
 <h3
     style={{
@@ -296,7 +318,7 @@ export default function DashboardPage() {
 
 <h3
     style={{
-        marginTop: "16px",
+        marginTop: "8px",
         marginBottom: "16px",
         fontSize: "22px",
         fontWeight: 700,
@@ -311,7 +333,7 @@ export default function DashboardPage() {
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
         gap: "16px",
-        marginBottom: "30px",
+        marginBottom: "24px",
     }}
 >
 
@@ -348,7 +370,7 @@ export default function DashboardPage() {
 
                 <div
                     style={{
-                        marginTop: "30px",
+                        marginTop: "22px",
                         textAlign: "center",
                         fontSize: "12px",
                         color: "#6b7280",
