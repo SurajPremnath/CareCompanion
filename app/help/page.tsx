@@ -1,8 +1,23 @@
+import Link from "next/link";
 import HelpCard from "@/Components/help/HelpCard";
 
 export default function HelpPage() {
   return (
     <>
+
+<Link
+    href="/dashboard"
+    style={{
+        textDecoration: "none",
+        color: "#2563eb",
+        fontWeight: 500,
+        display: "inline-block",
+        marginBottom: "24px",
+    }}
+>
+    ← Back to Dashboard
+</Link>
+
       {/* Welcome */}
 
       <section

@@ -1,24 +1,10 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 export default function HelpLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-const pathname = usePathname();
-
-const backLink =
-  pathname === "/help"
-    ? "/dashboard"
-    : "/help";
-
-const backText =
-  pathname === "/help"
-    ? "← Back to Dashboard"
-    : "← Back to Help Centre";
-
   return (
     <div
       style={{
@@ -33,21 +19,6 @@ const backText =
           padding: "32px 20px",
         }}
       >
-        {/* Back */}
-
-<Link
-  href={backLink}
-  style={{
-    textDecoration: "none",
-    color: "#2563eb",
-    fontWeight: 500,
-    display: "inline-block",
-    marginBottom: "24px",
-  }}
->
-  {backText}
-</Link>
-
         {/* Header */}
 
         <header
@@ -62,8 +33,20 @@ const backText =
               color: "#111827",
             }}
           >
-            ❓ Help Centre
+            📖 CareVR Help Centre
           </h1>
+
+          <p
+            style={{
+              marginTop: "10px",
+              marginBottom: "4px",
+              fontSize: "18px",
+              fontWeight: 600,
+              color: "#374151",
+            }}
+          >
+            User Guide & Documentation
+          </p>
 
           <p
             style={{
@@ -73,8 +56,9 @@ const backText =
               fontSize: "16px",
             }}
           >
-            Learn how to use CareVR to record health observations,
-            monitor trends and generate professional reports.
+            Learn how to use CareVR to record daily health observations,
+            complete assessments, review reports and generate professional
+            clinical trend reports.
           </p>
         </header>
 
@@ -93,7 +77,9 @@ const backText =
         >
           <h3
             style={{
+              marginTop: 0,
               marginBottom: "10px",
+              color: "#111827",
             }}
           >
             Need more help?
@@ -106,8 +92,8 @@ const backText =
               marginBottom: "24px",
             }}
           >
-            If you still need assistance, please contact your
-            CareVR Administrator.
+            If you still need assistance, please contact your CareVR
+            Administrator.
           </p>
 
           <p
