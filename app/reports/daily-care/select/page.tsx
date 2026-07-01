@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import AppHeader from "@/app/components/AppHeader";
 
-export default function ReportsPage() {
+export default function DailyCareReportSelectorPage() {
+
   const router = useRouter();
 
   const cardStyle: React.CSSProperties = {
@@ -17,6 +18,7 @@ export default function ReportsPage() {
   };
 
   return (
+
     <main
       style={{
         minHeight: "100vh",
@@ -25,37 +27,44 @@ export default function ReportsPage() {
         fontFamily: "Inter, Arial, sans-serif",
       }}
     >
+
       <div
         style={{
           maxWidth: "900px",
           margin: "0 auto",
         }}
       >
-<AppHeader
-  pageTitle="Reports"
-  pageIcon="📊"
-/>
-  <div
-  style={{
-    display: "grid",
-    gridTemplateColumns:
-      "repeat(auto-fit, minmax(320px, 1fr))",
-    gap: "24px",
-    alignItems: "stretch",
-  }}
->
+
+        <AppHeader
+          pageTitle="Daily Care Reports"
+          pageIcon="📋"
+        />
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "24px",
+            alignItems: "stretch",
+          }}
+        >
+
+          {/* Myself */}
+
           <div
             style={cardStyle}
             onClick={() =>
-              router.push("/reports/daily-care/select")
+              router.push("/reports/daily-care/self")
             }
           >
+
             <h2
               style={{
                 marginBottom: "10px",
               }}
             >
-              📋 Daily Care
+              👤 Myself
             </h2>
 
             <p
@@ -64,7 +73,8 @@ export default function ReportsPage() {
                 marginBottom: "20px",
               }}
             >
-              View daily care history, vitals and notes.
+              View your own Daily Care history,
+              vitals and health observations.
             </p>
 
             <button
@@ -79,20 +89,24 @@ export default function ReportsPage() {
             >
               Open
             </button>
+
           </div>
+
+          {/* Family */}
 
           <div
             style={cardStyle}
             onClick={() =>
-              router.push("/reports/assessment")
+              router.push("/reports/daily-care")
             }
           >
+
             <h2
               style={{
                 marginBottom: "10px",
               }}
             >
-              🩺 Assessments
+              👨‍👩‍👧 Family
             </h2>
 
             <p
@@ -101,7 +115,8 @@ export default function ReportsPage() {
                 marginBottom: "20px",
               }}
             >
-              View Family and Self Assessment history.
+              View Daily Care history for
+              your registered family members.
             </p>
 
             <button
@@ -116,54 +131,15 @@ export default function ReportsPage() {
             >
               Open
             </button>
+
           </div>
-
-{/*------------------------------------------------*/}
-{/* Clinical Trends */}
-{/*------------------------------------------------*/}
-
-<div
-  style={cardStyle}
-  onClick={() =>
-    router.push("/reports/trends")
-  }
->
-  <h2
-    style={{
-      marginBottom: "10px",
-    }}
-  >
-    📈 Clinical Trends
-  </h2>
-
-  <p
-    style={{
-      color: "#6b7280",
-      marginBottom: "20px",
-    }}
-  >
-    Visualize health trends, vitals and
-    clinical progress over time.
-  </p>
-
-<button
-  style={{
-    padding: "10px 20px",
-    borderRadius: "10px",
-    border: "none",
-    background: "#9333ea",
-    color: "#ffffff",
-    cursor: "pointer",
-  }}
->
-  Open
-</button>
-</div>
 
         </div>
 
         <button
-          onClick={() => router.push("/dashboard")}
+          onClick={() =>
+            router.push("/reports")
+          }
           style={{
             marginTop: "32px",
             width: "100%",
@@ -174,9 +150,13 @@ export default function ReportsPage() {
             cursor: "pointer",
           }}
         >
-          ← Back to Dashboard
+          ← Back to Reports
         </button>
+
       </div>
+
     </main>
+
   );
+
 }
