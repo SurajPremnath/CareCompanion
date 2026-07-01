@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AppAlert } from "@/lib/utils/appAlert";
 
 import { dailyCareStorage } from "@/lib/storage/DailyCareStorage";
 import type { DailyCare } from "@/lib/types/dailyCare";
@@ -62,24 +63,28 @@ useEffect(() => {
 
       }
 
-      const loadedPatients =
-        result.data ?? [];
+const loadedPatients =
+  result.data ?? [];
 
-      setPatients(
-        loadedPatients
-      );
+if (loadedPatients.length === 0) {
 
-      if (loadedPatients.length > 0) {
+  AppAlert.warning(
+    "No patients registered. Please register a patient first."
+  );
 
-        setSelectedPatientId(
-          loadedPatients[0].id
-        );
+  router.push("/add-patient");
 
-      } else {
+  return;
 
-        setLoading(false);
+}
 
-      }
+setPatients(
+  loadedPatients
+);
+
+setSelectedPatientId(
+  loadedPatients[0].id
+);
 
     }
     catch {
@@ -96,7 +101,7 @@ useEffect(() => {
 
   loadPatients();
 
-}, []);
+}, [router]);
 
 
 //------------------------------------------------------------
