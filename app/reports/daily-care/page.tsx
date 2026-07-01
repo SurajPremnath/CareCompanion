@@ -13,6 +13,8 @@ import {
   formatRecordedDate,
 } from "@/lib/utils/displayFormatter";
 
+import ReportNavigation from "@/app/components/common/ReportNavigation";
+
 export default function DailyCareHistoryPage() {
   const router = useRouter();
 
@@ -494,14 +496,11 @@ useEffect(() => {
 
 )}
 
-        <button
-          style={backButtonStyle}
-          onClick={() =>
-            router.push("/reports")
-          }
-        >
-          ← Back to Reports
-        </button>
+<ReportNavigation
+  backLabel="Back to Reports"
+  backHref="/reports"
+  showDashboardButton
+/>
 
       </div>
 
@@ -605,11 +604,3 @@ const viewButtonStyle: React.CSSProperties = {
   fontWeight: 600,
 };
 
-const backButtonStyle: React.CSSProperties = {
-  marginTop:"24px",
-  width:"100%",
-  padding:"14px",
-  borderRadius:"10px",
-  border:"1px solid #d1d5db",
-  cursor:"pointer",
-};
