@@ -12,8 +12,13 @@ import {
 } from "recharts";
 
 type ChartPoint = {
-  label: string;
+
+  fullLabel: string;
+
+  shortLabel: string;
+
   value?: number | null;
+
 };
 
 interface TrendLineChartProps {
@@ -139,6 +144,9 @@ if (data.length === 1) {
 
 }
 
+const isMobile =
+  typeof window !== "undefined" &&
+  window.innerWidth < 768;
 
   return (
     <ResponsiveContainer width="100%" height={320}>
@@ -154,7 +162,11 @@ if (data.length === 1) {
         <CartesianGrid strokeDasharray="3 3" />
 
         <XAxis
-          dataKey="label"
+          dataKey={
+  isMobile
+    ? "shortLabel"
+    : "fullLabel"
+}
           tick={{ fontSize: 12 }}
           minTickGap={20}
         />

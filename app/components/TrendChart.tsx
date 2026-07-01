@@ -102,15 +102,23 @@ return (
     dotRadius={chartConfig.dotRadius}
     activeDotRadius={chartConfig.activeDotRadius}
     minYAxis={chartConfig.minYAxis}
-    data={trend.points.map((point) => ({
-        label: new Date(point.recordedAt).toLocaleString([], {
-            day: "2-digit",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-        }),
-        value: point.value,
-    }))}
+data={trend.points.map((point) => ({
+
+    fullLabel: new Date(point.recordedAt).toLocaleString([], {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+    }),
+
+    shortLabel: new Date(point.recordedAt).toLocaleDateString([], {
+        day: "2-digit",
+        month: "short",
+    }),
+
+    value: point.value,
+
+}))}
 />
 
     </section>
