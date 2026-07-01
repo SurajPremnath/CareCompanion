@@ -1,11 +1,24 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function HelpLayout({
   children,
 }: {
   children: ReactNode;
 }) {
+const pathname = usePathname();
+
+const backLink =
+  pathname === "/help"
+    ? "/dashboard"
+    : "/help";
+
+const backText =
+  pathname === "/help"
+    ? "← Back to Dashboard"
+    : "← Back to Help Centre";
+
   return (
     <div
       style={{
@@ -22,18 +35,18 @@ export default function HelpLayout({
       >
         {/* Back */}
 
-        <Link
-          href="/help"
-          style={{
-            textDecoration: "none",
-            color: "#2563eb",
-            fontWeight: 500,
-            display: "inline-block",
-            marginBottom: "24px",
-          }}
-        >
-          ← Back to Help Centre
-        </Link>
+<Link
+  href={backLink}
+  style={{
+    textDecoration: "none",
+    color: "#2563eb",
+    fontWeight: 500,
+    display: "inline-block",
+    marginBottom: "24px",
+  }}
+>
+  {backText}
+</Link>
 
         {/* Header */}
 
