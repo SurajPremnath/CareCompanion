@@ -17,6 +17,12 @@ export default function RegisterPage() {
 
     const [confirmPassword, setConfirmPassword] = useState("");
 
+const [showPassword, setShowPassword] =
+    useState(false);
+
+const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
+
     const [loading, setLoading] = useState(false);
 
     const [error, setError] = useState("");
@@ -196,29 +202,81 @@ export default function RegisterPage() {
                     Password
                 </label>
 
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) =>
-                        setPassword(e.target.value)
-                    }
-                    placeholder="Create a password"
-                    style={inputStyle}
-                />
+<div
+    style={{
+        position: "relative",
+    }}
+>
+
+    <input
+        type={
+            showPassword
+                ? "text"
+                : "password"
+        }
+        value={password}
+        onChange={(e) =>
+            setPassword(e.target.value)
+        }
+        placeholder="Create a password"
+        style={{
+            ...inputStyle,
+            paddingRight: "55px",
+        }}
+    />
+
+    <button
+        type="button"
+        onClick={() =>
+            setShowPassword(!showPassword)
+        }
+        style={eyeButtonStyle}
+    >
+        {showPassword ? "🙈" : "👁"}
+    </button>
+
+</div>
 
                 <label style={labelStyle}>
                     Confirm Password
                 </label>
 
-                <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) =>
-                        setConfirmPassword(e.target.value)
-                    }
-                    placeholder="Re-enter password"
-                    style={inputStyle}
-                />
+<div
+    style={{
+        position: "relative",
+    }}
+>
+
+    <input
+        type={
+            showConfirmPassword
+                ? "text"
+                : "password"
+        }
+        value={confirmPassword}
+        onChange={(e) =>
+            setConfirmPassword(e.target.value)
+        }
+        placeholder="Re-enter password"
+        style={{
+            ...inputStyle,
+            paddingRight: "55px",
+        }}
+    />
+
+    <button
+        type="button"
+        onClick={() =>
+            setShowConfirmPassword(
+                !showConfirmPassword
+            )
+        }
+        style={eyeButtonStyle}
+    >
+        {showConfirmPassword ? "🙈" : "👁"}
+    </button>
+
+</div>
                 <button
                     onClick={handleRegister}
                     disabled={loading}
@@ -434,5 +492,29 @@ const footerStyle: React.CSSProperties = {
     color: "#6b7280",
 
     fontSize: "12px"
+
+};
+
+const eyeButtonStyle: React.CSSProperties = {
+
+    position: "absolute",
+
+    right: "14px",
+
+    top: "50%",
+
+    transform: "translateY(-50%)",
+
+    border: "none",
+
+    background: "transparent",
+
+    cursor: "pointer",
+
+    fontSize: "18px",
+
+    padding: 0,
+
+    color: "#6b7280",
 
 };

@@ -18,6 +18,9 @@ export default function LoginPage() {
 
     const [error, setError] = useState("");
 
+const [showPassword, setShowPassword] =
+    useState(false);
+
     const handleLogin = async () => {
 
         setError("");
@@ -103,22 +106,48 @@ export default function LoginPage() {
                     Password
                 </label>
 
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) =>
-                        setPassword(e.target.value)
-                    }
-                    placeholder="Enter your password"
-                    style={inputStyle}
-                    disabled={loading}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            handleLogin();
-                        }
-                    }}
-                />
+<div
+    style={{
+        position: "relative",
+    }}
+>
 
+    <input
+        type={
+            showPassword
+                ? "text"
+                : "password"
+        }
+        value={password}
+        onChange={(e) =>
+            setPassword(e.target.value)
+        }
+        placeholder="Enter your password"
+        style={{
+            ...inputStyle,
+            paddingRight: "55px",
+        }}
+        disabled={loading}
+        onKeyDown={(e) => {
+            if (e.key === "Enter") {
+                handleLogin();
+            }
+        }}
+    />
+
+    <button
+        type="button"
+        onClick={() =>
+            setShowPassword(
+                !showPassword
+            )
+        }
+        style={eyeButtonStyle}
+    >
+        {showPassword ? "🙈" : "👁"}
+    </button>
+
+</div>
                 <button
                     onClick={handleLogin}
                     disabled={loading}
@@ -202,6 +231,30 @@ const inputStyle: React.CSSProperties = {
     borderRadius: "10px",
     fontSize: "16px",
     boxSizing: "border-box"
+};
+
+const eyeButtonStyle: React.CSSProperties = {
+
+    position: "absolute",
+
+    right: "14px",
+
+    top: "50%",
+
+    transform: "translateY(-50%)",
+
+    border: "none",
+
+    background: "transparent",
+
+    cursor: "pointer",
+
+    fontSize: "18px",
+
+    padding: 0,
+
+    color: "#6b7280",
+
 };
 
 const primaryButtonStyle: React.CSSProperties = {
