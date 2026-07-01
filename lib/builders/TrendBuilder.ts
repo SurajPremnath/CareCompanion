@@ -309,6 +309,28 @@ return {
 
   }
 
+
+//----------------------------------------------------------
+// Date Formatter
+//----------------------------------------------------------
+
+private formatDateTime(
+  value: string
+): string {
+
+  return new Date(value).toLocaleString(
+    "en-IN",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }
+  );
+
+}
+
   //----------------------------------------------------------
   // Summary Helpers
   //----------------------------------------------------------
@@ -323,7 +345,9 @@ return {
 
     }
 
-    return records[0].recordedAt;
+    return this.formatDateTime(
+  records[0].recordedAt
+);
 
   }
 
@@ -337,9 +361,12 @@ return {
 
     }
 
-    return records[
-      records.length - 1
-    ].recordedAt;
+
+return this.formatDateTime(
+  records[
+    records.length - 1
+  ].recordedAt
+);
 
   }
 
