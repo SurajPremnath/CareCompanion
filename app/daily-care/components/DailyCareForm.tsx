@@ -152,7 +152,6 @@ export default function DailyCareForm({
 
 }: DailyCareFormProps) {
 
-console.log("DailyCare Mode:", mode);
 
   //------------------------------------------------------------
   // State

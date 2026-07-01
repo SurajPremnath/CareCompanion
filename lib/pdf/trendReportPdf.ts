@@ -14,10 +14,6 @@ export class TrendReportPdf {
     trend: TrendResult
   ): Promise<void> {
 
-    console.log(
-      "Trend PDF generation",
-      trend
-    );
 
   }
 

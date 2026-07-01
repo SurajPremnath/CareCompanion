@@ -13,16 +13,12 @@ import {
   TrendPeriod,
 } from "@/lib/trends/trendRequest";
 
-
+import { authService } from "@/lib/auth/authService";
 //------------------------------------------------------------
 // Patient Storage
 //------------------------------------------------------------
 
-import { patientStorage } from "@/lib/storage/patientStorage";
-import { Patient } from "@/lib/types/patient";
-
 export default function ClinicalTrendsPage() {
-
 
   const router = useRouter();
 
@@ -30,14 +26,11 @@ export default function ClinicalTrendsPage() {
   // UI State
   //------------------------------------------------------------
 
-//------------------------------------------------------------
-// Patient State
-//------------------------------------------------------------
 
-const [patients, setPatients] =
-  useState<Patient[]>([]);
+const [userId, setUserId] =
+  useState("");
 
-const [selectedPatientId, setSelectedPatientId] =
+const [userName, setUserName] =
   useState("");
 
 //------------------------------------------------------------
@@ -93,42 +86,25 @@ const [period, setPeriod] =
   const [showSpo2, setShowSpo2] =
     useState(true);
 
-//------------------------------------------------------------
-// Load Patients
-//------------------------------------------------------------
-
 useEffect(() => {
 
-  async function loadPatients() {
-
+  async function loadUser() {
 
     try {
 
-      const result =
-        await patientStorage.getPatients();
+      const user = await authService.getCurrentUser();
 
-
-      if (!result.success) {
-
+      if (!user) {
         return;
-
       }
 
+      setUserId(user.id);
 
-const patients = result.data ?? [];
+      setUserName(
+        user.user_metadata.full_name ?? ""
+      );
 
-setPatients(patients);
-
-if (patients.length > 0) {
-
-  setSelectedPatientId(
-    patients[0].id
-  );
-
-}
-
-    }
-    catch (error) {
+    } catch (error) {
 
       console.error(error);
 
@@ -136,9 +112,10 @@ if (patients.length > 0) {
 
   }
 
-  loadPatients();
+  loadUser();
 
 }, []);
+
 
 //------------------------------------------------------------
 // Generate Trends
@@ -165,25 +142,20 @@ const handleGenerate = () => {
 
   }
 
-  //----------------------------------------------------------
-  // Get selected patient
-  //----------------------------------------------------------
+//----------------------------------------------------------
+// Validate logged-in user
+//----------------------------------------------------------
 
-  const selectedPatient =
-    patients.find(
-      (patient) =>
-        patient.id === selectedPatientId
-    );
+if (!userId) {
 
-  if (!selectedPatient) {
+  AppAlert.warning(
+    "Unable to identify the logged-in user."
+  );
 
-    AppAlert.warning(
-      "Please select a patient."
-    );
+  return;
 
-    return;
+}
 
-  }
 
   //----------------------------------------------------------
   // Create Trend Request
@@ -195,9 +167,9 @@ const trendRequest: TrendRequest = {
   // Patient Information
   //----------------------------------------------------------
 
-  patientId: selectedPatient.id,
+patientId: userId,
 
-  patientName: selectedPatient.fullName,
+patientName: userName,
 
 period,
   //----------------------------------------------------------
@@ -231,7 +203,7 @@ period,
   //----------------------------------------------------------
 
   router.push(
-    "/reports/trends/results"
+    "/reports/trends/self/results"
   );
 
 };
@@ -246,7 +218,9 @@ period,
       style={{
         minHeight: "100vh",
         background: "#f8fafc",
-        padding: "24px",
+        padding: isMobile
+  ? "16px"
+  : "24px",
         fontFamily: "Inter, Arial, sans-serif",
       }}
     >
@@ -266,54 +240,50 @@ period,
         <p
           style={{
             color: "#6b7280",
-            marginTop: "16px",
-            marginBottom: "24px",
+            marginTop: "12px",
+marginBottom: isMobile
+  ? "18px"
+  : "24px",
           }}
         >
           Choose how you would like to analyse your
           patient's health trends.
         </p>
 
-        {/*------------------------------------------------*/}
-        {/* Patient Selection */}
-        {/*------------------------------------------------*/}
+{/*------------------------------------------------*/}
+{/* Logged-in User */}
+{/*------------------------------------------------*/}
 
-        <section style={cardStyle}>
+<section style={cardStyle}>
 
-          <h2>👤 Patient</h2>
+  <h2>👤 User</h2>
 
-<select
-  value={selectedPatientId}
-  onChange={(event) =>
-    setSelectedPatientId(event.target.value)
-  }
-  style={selectStyle}
->
+  <p
+    style={{
+      color: "#6b7280",
+      marginTop: "12px",
+      marginBottom: "8px",
+    }}
+  >
+    Clinical trends will be generated for:
+  </p>
 
-  {patients.length === 0 ? (
+  <div
+    style={{
+      marginTop: "12px",
+      padding: isMobile
+  ? "16px"
+  : "14px",
+      border: "1px solid #d1d5db",
+      borderRadius: "10px",
+      background: "#f9fafb",
+      fontWeight: 600,
+    }}
+  >
+    {userName || "Loading..."}
+  </div>
 
-    <option value="">
-      No patients found
-    </option>
-
-  ) : (
-
-    patients.map((patient) => (
-
-      <option
-        key={patient.id}
-        value={patient.id}
-      >
-        {patient.fullName}
-      </option>
-
-    ))
-
-  )}
-
-</select>
-
-        </section>
+</section>
 
 
 {/*------------------------------------------------*/}
@@ -443,7 +413,9 @@ period,
 
     borderRadius: "16px",
 
-    padding: "18px",
+    padding: isMobile
+  ? "16px"
+  : "18px",
 
     cursor: "pointer",
 

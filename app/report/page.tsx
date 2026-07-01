@@ -678,9 +678,6 @@ void (async () => {
     return;
   }
 
-  console.log(
-    "Assessment Saved Successfully"
-  );
 })();
 
     setSummaryRows(reportSummary);
@@ -704,9 +701,6 @@ async function saveAssessmentToDatabase(
     return;
   }
 
-  console.log(
-    "Assessment saved successfully.",
-  );
 }
 
   if (!loaded) return null;

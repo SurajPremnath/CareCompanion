@@ -49,27 +49,18 @@ export default function AddPatientPage() {
 
     const loadUser = async () => {
 
-console.log("Loading user....");
-
-
       try {
 
         const user =
           await authService.getCurrentUser();
 
-console.log("Supabase User:", user);
-
         if (!user) {
-
-console.log("No authenticated user");
 
           router.replace("/login");
 
           return;
 
         }
-
-console.log("Authenticated");
 
         setCurrentUserName(
           user.user_metadata?.full_name ??
@@ -79,8 +70,6 @@ console.log("Authenticated");
 
       }
       catch (error) {
-
-console.error("Load user failed:", error);
 
         router.replace("/login");
 
