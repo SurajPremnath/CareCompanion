@@ -420,11 +420,27 @@ return (
 <div
   style={{
     display: "flex",
+
+    flexDirection:
+      typeof window !== "undefined" &&
+      window.innerWidth < 768
+        ? "column"
+        : "row",
+
     justifyContent: "space-between",
-    alignItems: "center",
+
+    alignItems:
+      typeof window !== "undefined" &&
+      window.innerWidth < 768
+        ? "stretch"
+        : "center",
+
     gap: "16px",
+
     marginTop: "32px",
+
     paddingTop: "24px",
+
     borderTop: "1px solid #e5e7eb",
   }}
 >
@@ -433,7 +449,15 @@ return (
     onClick={() =>
       router.push("/reports/trends")
     }
-    style={secondaryButton}
+    style={{
+  ...secondaryButton,
+
+  width:
+    typeof window !== "undefined" &&
+    window.innerWidth < 768
+      ? "100%"
+      : undefined,
+}}
   >
     ← Back to Trend Options
   </button>
@@ -504,7 +528,15 @@ return (
       );
 
     }}
-    style={primaryButton}
+    style={{
+  ...primaryButton,
+
+  width:
+    typeof window !== "undefined" &&
+    window.innerWidth < 768
+      ? "100%"
+      : undefined,
+}}
   >
     📄 Download PDF Report
   </button>
