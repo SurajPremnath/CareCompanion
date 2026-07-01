@@ -41,6 +41,38 @@ const [patients, setPatients] =
 const [selectedPatientId, setSelectedPatientId] =
   useState("");
 
+//------------------------------------------------------------
+// Responsive Layout
+//------------------------------------------------------------
+
+const [isMobile, setIsMobile] =
+  useState(false);
+
+useEffect(() => {
+
+  function handleResize() {
+
+    setIsMobile(
+      window.innerWidth < 768
+    );
+
+  }
+
+  handleResize();
+
+  window.addEventListener(
+    "resize",
+    handleResize
+  );
+
+  return () =>
+    window.removeEventListener(
+      "resize",
+      handleResize
+    );
+
+}, []);
+
 
 //------------------------------------------------------------
 // Selected Time Period
@@ -383,7 +415,11 @@ period,
 <div
   style={{
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+
+    gridTemplateColumns: isMobile
+  ? "1fr"
+  : "1fr 1fr",
+
     gap: "16px",
     alignItems: "stretch",
   }}
@@ -638,7 +674,13 @@ period,
 <div
   style={{
     display: "flex",
+
+    flexDirection: isMobile
+      ? "column"
+      : "row",
+
     gap: "16px",
+
     marginTop: "32px",
   }}
 >
@@ -646,9 +688,14 @@ period,
   <button
     onClick={handleGenerate}
     style={{
-      ...primaryButton,
-      flex: 1,
-    }}
+  ...primaryButton,
+
+  flex: 1,
+
+  width: isMobile
+    ? "100%"
+    : undefined,
+}}
   >
     📈 Generate Trends
   </button>
@@ -657,10 +704,15 @@ period,
     onClick={() =>
       router.push("/reports")
     }
-    style={{
-      ...secondaryButton,
-      flex: 1,
-    }}
+style={{
+  ...secondaryButton,
+
+  flex: 1,
+
+  width: isMobile
+    ? "100%"
+    : undefined,
+}}
   >
     ← Back to Reports
   </button>
