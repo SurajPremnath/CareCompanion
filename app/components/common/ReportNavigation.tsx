@@ -18,26 +18,39 @@ export default function ReportNavigation({
   backLabel,
   backHref,
   showReportsButton = false,
-  reportsHref = "/reports/daily-care",
+  reportsHref = "/reports/daily-care/select",
   showDashboardButton = true,
   dashboardHref = "/dashboard",
 }: ReportNavigationProps) {
   return (
     <div style={containerStyle}>
-      <Link href={backHref} style={buttonStyle}>
-        ← {backLabel}
-      </Link>
+
+<Link href={backHref} style={{ textDecoration: "none", flex: "1 1 240px" }}>
+  <div style={buttonStyle}>
+    ← {backLabel}
+  </div>
+</Link>
 
       {showReportsButton && (
-        <Link href={reportsHref} style={buttonStyle}>
-          📋 Daily Care Reports
-        </Link>
+<Link
+  href={reportsHref}
+  style={{ textDecoration: "none", flex: "1 1 240px" }}
+>
+  <div style={buttonStyle}>
+    📋 Daily Care Reports
+  </div>
+</Link>
       )}
 
       {showDashboardButton && (
-        <Link href={dashboardHref} style={buttonStyle}>
-          🏠 Dashboard
-        </Link>
+<Link
+  href={dashboardHref}
+  style={{ textDecoration: "none", flex: "1 1 240px" }}
+>
+  <div style={buttonStyle}>
+    🏠 Dashboard
+  </div>
+</Link>
       )}
     </div>
   );
@@ -52,12 +65,11 @@ const containerStyle: React.CSSProperties = {
 };
 
 const buttonStyle: React.CSSProperties = {
-  flex: "1 1 240px",
-  minHeight: "56px",
-
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+
+  minHeight: "56px",
 
   padding: "14px 20px",
 
@@ -66,8 +78,6 @@ const buttonStyle: React.CSSProperties = {
   border: "1px solid #d1d5db",
   borderRadius: "10px",
 
-  textDecoration: "none",
-
   color: "#111827",
 
   fontWeight: 600,
@@ -75,5 +85,5 @@ const buttonStyle: React.CSSProperties = {
 
   cursor: "pointer",
 
-  transition: "all 0.2s ease",
+  boxSizing: "border-box",
 };

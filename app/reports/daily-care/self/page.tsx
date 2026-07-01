@@ -413,7 +413,8 @@ const result =
 <ReportNavigation
   backLabel="Back to Reports"
   backHref="/reports"
-  showDashboardButton
+  showReportsButton={true}
+  showDashboardButton={true}
 />
 
       </div>

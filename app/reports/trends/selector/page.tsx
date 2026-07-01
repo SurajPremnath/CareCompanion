@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 
 import AppHeader from "@/app/components/AppHeader";
 
+import ReportNavigation from "@/app/components/common/ReportNavigation";
+
 export default function TrendSelectorPage() {
 
   const router = useRouter();
@@ -80,6 +82,12 @@ export default function TrendSelectorPage() {
   </button>
 
 </section>
+
+<ReportNavigation
+  backLabel="Back to Reports"
+  backHref="/reports"
+  showDashboardButton
+/>
 
       </div>
 
