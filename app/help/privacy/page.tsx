@@ -1,7 +1,9 @@
+import HelpBackButton from "@/Components/help/HelpBackButton";
+
 export default function PrivacyPage() {
     return (
         <>
-
+<HelpBackButton />
             <h2
                 style={{
                     fontSize: "30px",

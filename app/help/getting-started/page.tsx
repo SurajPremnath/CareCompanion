@@ -1,7 +1,9 @@
+import HelpBackButton from "@/Components/help/HelpBackButton";
+
 export default function GettingStartedPage() {
     return (
         <>
-
+<HelpBackButton />
             {/* Title */}
 
             <h2
