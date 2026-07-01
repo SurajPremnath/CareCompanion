@@ -17,6 +17,8 @@ import SymptomsCard from "./SymptomsCard";
 import PainLocationCard from "./PainLocationCard";
 import ActionButtons from "./ActionButtons";
 import { dailyCareStorage } from "@/lib/storage/DailyCareStorage";
+import { selfDailyCareStorage } from "@/lib/storage/SelfDailyCareStorage";
+
 import { AppAlert } from "@/lib/utils/appAlert";
 
 //------------------------------------------------------------
@@ -130,7 +132,27 @@ otherPainLocation: ""
 // Component
 //------------------------------------------------------------
 
-export default function DailyCareForm() {
+interface DailyCareFormProps {
+
+  mode: "self" | "family";
+
+  currentUserName?: string;
+
+  selfPatientId?: string;
+
+}
+
+export default function DailyCareForm({
+
+  mode,
+
+  currentUserName,
+
+  selfPatientId
+
+}: DailyCareFormProps) {
+
+console.log("DailyCare Mode:", mode);
 
   //------------------------------------------------------------
   // State
@@ -362,38 +384,58 @@ return (
         👤 Patient Information
       </h3>
 
-      <label style={labelStyle}>
-        Patient *
-      </label>
+<label style={labelStyle}>
+  Patient
+</label>
 
-      <select
-        value={formData.patientId}
-        disabled={loadingPatients || saving}
-        onChange={(e) =>
-          updateField(
-            "patientId",
-            e.target.value
-          )
-        }
-        style={inputStyle}
+{mode === "family" ? (
+
+  <select
+    value={formData.patientId}
+    disabled={loadingPatients || saving}
+    onChange={(e) =>
+      updateField(
+        "patientId",
+        e.target.value
+      )
+    }
+    style={inputStyle}
+  >
+
+    <option value="">
+      Select Patient
+    </option>
+
+    {patients.map((patient) => (
+
+      <option
+        key={patient.id}
+        value={patient.id}
       >
+        {patient.fullName}
+      </option>
 
-        <option value="">
-          Select Patient
-        </option>
+    ))}
 
-        {patients.map((patient) => (
+  </select>
 
-          <option
-            key={patient.id}
-            value={patient.id}
-          >
-            {patient.fullName}
-          </option>
+) : (
 
-        ))}
+  <div
+    style={{
+      ...inputStyle,
+      background: "#f3f4f6",
+      color: "#374151",
+      display: "flex",
+      alignItems: "center",
+      minHeight: "52px",
+      fontWeight: 600,
+    }}
+  >
+    👤 {currentUserName}
+  </div>
 
-      </select>
+)}
 
       <div
         style={{
@@ -822,13 +864,18 @@ return (
 
 function validateForm(): boolean {
 
-  if (!formData.patientId.trim()) {
+if (
+  mode === "family" &&
+  !formData.patientId.trim()
+) {
 
-    AppAlert.warning("Please select a patient.");
+  AppAlert.warning(
+    "Please select a patient."
+  );
 
-    return false;
+  return false;
 
-  }
+}
 
 const hasTemperature =
   formData.temperature.trim() !== "";
@@ -1033,12 +1080,63 @@ otherPainLocation:
 
     };
 
-const result =
-  await dailyCareStorage.save(reading);
+let result;
+
+if (mode === "family") {
+
+  result =
+    await dailyCareStorage.save(
+      reading
+    );
+
+}
+else {
+
+  result =
+    await selfDailyCareStorage.save({
+
+      recordedAt:
+        reading.recordedAt,
+
+      temperature:
+        reading.temperature,
+
+      temperatureUnit:
+        reading.temperatureUnit,
+
+      systolic:
+        reading.systolic,
+
+      diastolic:
+        reading.diastolic,
+
+      pulse:
+        reading.pulse,
+
+      spo2:
+        reading.spo2,
+
+      symptoms:
+        reading.symptoms,
+
+      otherSymptom:
+        reading.otherSymptom,
+
+      painLocations:
+        reading.painLocations,
+
+      otherPainLocation:
+        reading.otherPainLocation
+
+    });
+
+}
 
 if (!result.success) {
 
-  throw new Error(result.error);
+  throw new Error(
+    result.error
+  );
 
 }
  

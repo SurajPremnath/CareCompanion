@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { authService } from "@/lib/auth/authService";
+import { selfProfileStorage } from "@/lib/storage/SelfProfileStorage";
+import { AppAlert } from "@/lib/utils/appAlert";
 
 import DailyCareForm from "./components/DailyCareForm";
 
@@ -22,6 +24,41 @@ export default function DailyCarePage() {
 
   const [currentUserName, setCurrentUserName] =
     useState("");
+
+const [careMode, setCareMode] =
+  useState<"self" | "family" | null>(null);
+
+//------------------------------------------------------------
+// Self Daily Care
+//------------------------------------------------------------
+
+const handleSelfCare = async () => {
+
+  try {
+
+    const profileExists =
+      await selfProfileStorage.profileExists();
+
+    if (!profileExists) {
+
+      router.push("/self-profile");
+
+      return;
+
+    }
+
+    setCareMode("self");
+
+  }
+  catch {
+
+    AppAlert.error(
+      "Unable to load your Personal Health Profile."
+    );
+
+  }
+
+};
 
   //------------------------------------------------------------
   // Authentication
@@ -128,7 +165,65 @@ export default function DailyCarePage() {
   pageIcon="🩺"
   currentUserName={currentUserName}
 />
-        <DailyCareForm />
+
+{careMode === null ? (
+
+  <div
+    style={{
+      marginTop: "32px",
+    }}
+  >
+
+    <h2
+      style={{
+        marginBottom: "12px",
+      }}
+    >
+      Who are you recording Daily Care for?
+    </h2>
+
+    <p
+      style={{
+        color: "#6b7280",
+        marginBottom: "28px",
+      }}
+    >
+      Please choose one option.
+    </p>
+
+    <button
+      style={primaryButton}
+      onClick={handleSelfCare}
+    >
+      👤 Myself
+    </button>
+
+    <button
+      style={secondaryButton}
+      onClick={() => setCareMode("family")}
+    >
+      👨‍👩‍👧 Family Member
+    </button>
+
+<button
+  onClick={() =>
+    router.push("/dashboard")
+  }
+  style={backButton}
+>
+  ← Back to Dashboard
+</button>
+
+  </div>
+
+) : (
+
+  <DailyCareForm
+  mode={careMode}
+  currentUserName={currentUserName}
+/>
+
+)}
 
       </div>
 
@@ -151,5 +246,55 @@ const loadingContainer: React.CSSProperties = {
   background: "#f8fafc",
 
   fontFamily: "Inter, Arial, sans-serif",
+
+};
+
+const primaryButton: React.CSSProperties = {
+  width: "100%",
+  padding: "16px",
+  marginTop: "20px",
+  background: "#2563eb",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "10px",
+  fontSize: "16px",
+  fontWeight: "bold",
+  cursor: "pointer",
+};
+
+const secondaryButton: React.CSSProperties = {
+  width: "100%",
+  padding: "16px",
+  marginTop: "12px",
+  background: "#ffffff",
+  color: "#111827",
+  border: "1px solid #d1d5db",
+  borderRadius: "10px",
+  fontSize: "16px",
+  fontWeight: "bold",
+  cursor: "pointer",
+};
+
+const backButton: React.CSSProperties = {
+
+  width: "100%",
+
+  padding: "16px",
+
+  marginTop: "24px",
+
+  background: "#ffffff",
+
+  color: "#111827",
+
+  border: "1px solid #d1d5db",
+
+  borderRadius: "10px",
+
+  fontSize: "16px",
+
+  fontWeight: "bold",
+
+  cursor: "pointer",
 
 };
