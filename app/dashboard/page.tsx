@@ -170,11 +170,11 @@ const openHelpCentre = () => {
 
 };
 
-    const openDailyCare = () => {
+const openDailyCare = () => {
 
-        router.push("/daily-care");
+    router.push("/daily-care");
 
-    };
+};
 
     if (loading) {
 
