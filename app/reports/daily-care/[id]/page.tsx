@@ -20,6 +20,9 @@ from "@/lib/clinical-summary/ClinicalSummaryEngine";
 import ClinicalSummaryCard
 from "@/app/components/common/ClinicalSummaryCard";
 
+import { DailyCarePdfGenerator } from "@/lib/pdf/DailyCarePdfGenerator";
+import type { DailyCarePdfRequest } from "@/lib/pdf/PdfModels";
+
 
 export default function DailyCareReportPage() {
 
@@ -37,6 +40,9 @@ const [record, setRecord] =
 
 const [patientName, setPatientName] =
     useState("");
+
+const [age, setAge] =
+    useState<number | null>(null);
 
 const [error, setError] =
   useState("");
@@ -91,8 +97,39 @@ if (
         patientResult.data.fullName
     );
 
+if (patientResult.data.dateOfBirth) {
+
+    const dob =
+        new Date(patientResult.data.dateOfBirth);
+
+    const today =
+        new Date();
+
+    let calculatedAge =
+        today.getFullYear() -
+        dob.getFullYear();
+
+    const monthDifference =
+        today.getMonth() -
+        dob.getMonth();
+
+    if (
+        monthDifference < 0 ||
+        (
+            monthDifference === 0 &&
+            today.getDate() < dob.getDate()
+        )
+    ) {
+
+        calculatedAge--;
+
+    }
+
+    setAge(calculatedAge);
+
 }
 
+}
 setLoading(false);
 
   };
@@ -404,13 +441,61 @@ return (
 
 </>
 
+
       <div
-        style={{
-          marginTop: "40px",
-          display: "flex",
-          gap: "12px",
-        }}
-      >
+  style={{
+    marginTop: "40px",
+    display: "flex",
+    gap: "12px",
+    flexWrap: "wrap",
+  }}
+>
+
+<button
+onClick={async () => {
+
+  const request: DailyCarePdfRequest = {
+
+    reportType: "family",
+
+    title: "Family Daily Care Report",
+
+    patientName,
+
+age,
+
+    caregiverName: null,
+
+    relationship: null,
+
+    record,
+
+    observationSummary: clinicalSummary,
+ 
+  };
+
+await DailyCarePdfGenerator.download(
+
+  request,
+
+  "CareVR_Family_Daily_Care_Report.pdf"
+
+);
+
+}}
+
+  style={{
+    padding: "12px 20px",
+    borderRadius: "10px",
+    border: "none",
+    cursor: "pointer",
+    background: "#2563eb",
+    color: "#ffffff",
+    fontWeight: 600,
+  }}
+>
+  📄 Generate PDF Report
+</button>
 
         <button
           onClick={() =>
@@ -437,6 +522,8 @@ return (
 
 );
 }
+
+
 
 const cardStyle: React.CSSProperties = {
   background: "#ffffff",

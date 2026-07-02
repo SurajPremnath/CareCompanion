@@ -8,6 +8,8 @@ import type { SelfDailyCare } from "@/lib/types/selfDailyCare";
 
 import { authService } from "@/lib/auth/authService";
 
+import { selfProfileStorage } from "@/lib/storage/SelfProfileStorage";
+
 import AppHeader from "@/app/components/AppHeader";
 
 import {
@@ -15,11 +17,19 @@ import {
   formatRecordedDate,
 } from "@/lib/utils/displayFormatter";
 
+import { calculateAge } from "@/lib/utils/dateUtils";
+
 import { ClinicalSummaryEngine }
 from "@/lib/clinical-summary/ClinicalSummaryEngine";
 
 import ClinicalSummaryCard
 from "@/app/components/common/ClinicalSummaryCard";
+
+import { DailyCarePdfGenerator }
+from "@/lib/pdf/DailyCarePdfGenerator";
+
+import type { DailyCarePdfRequest }
+from "@/lib/pdf/PdfModels";
 
 
 export default function DailyCareReportPage() {
@@ -39,8 +49,11 @@ const [record, setRecord] =
 const [patientName, setPatientName] =
     useState("");
 
+const [dateOfBirth, setDateOfBirth] =
+    useState<string | null>(null);
+
 const [error, setError] =
-  useState("");
+    useState("");
 
 useEffect(() => {
 
@@ -88,6 +101,20 @@ setPatientName(
     "User"
 
 );
+
+const profileResult =
+    await selfProfileStorage.getProfile();
+
+if (
+    profileResult.success &&
+    profileResult.data
+) {
+
+    setDateOfBirth(
+        profileResult.data.dateOfBirth
+    );
+
+}
 
 setLoading(false);
 
@@ -174,6 +201,9 @@ if (!record) {
 
 const clinicalSummary =
     ClinicalSummaryEngine.generate(record);
+
+const age =
+  calculateAge(dateOfBirth);
 
 return (
 
@@ -399,12 +429,59 @@ return (
 </>
 
       <div
-        style={{
-          marginTop: "40px",
-          display: "flex",
-          gap: "12px",
-        }}
-      >
+  style={{
+    marginTop: "40px",
+    display: "flex",
+    gap: "12px",
+    flexWrap: "wrap",
+  }}
+>
+
+<button
+onClick={async () => {
+
+  const request: DailyCarePdfRequest = {
+
+    reportType: "self",
+
+    title: "Self Daily Care Report",
+
+    patientName,
+
+age,
+
+    caregiverName: null,
+
+    relationship: null,
+
+    record,
+
+    observationSummary: clinicalSummary,
+
+  };
+
+await DailyCarePdfGenerator.download(
+
+  request,
+
+  "CareVR_Self_Daily_Care_Report.pdf"
+
+);
+
+}}
+
+  style={{
+    padding: "12px 20px",
+    borderRadius: "10px",
+    border: "none",
+    cursor: "pointer",
+    background: "#2563eb",
+    color: "#ffffff",
+    fontWeight: 600,
+  }}
+>
+  📄 Generate PDF Report
+</button>
 
         <button
           onClick={() =>
