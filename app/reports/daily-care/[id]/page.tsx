@@ -8,10 +8,17 @@ import type { DailyCare } from "@/lib/types/dailyCare";
 import { patientStorage } from "@/lib/storage/patientStorage";
 
 import AppHeader from "@/app/components/AppHeader";
+
 import {
   formatDisplayList,
   formatRecordedDate,
 } from "@/lib/utils/displayFormatter";
+
+import { ClinicalSummaryEngine }
+from "@/lib/clinical-summary/ClinicalSummaryEngine";
+
+import ClinicalSummaryCard
+from "@/app/components/common/ClinicalSummaryCard";
 
 
 export default function DailyCareReportPage() {
@@ -169,6 +176,9 @@ if (!record) {
 
 }
 
+const clinicalSummary =
+  ClinicalSummaryEngine.generate(record);
+
 return (
 
   <main
@@ -305,6 +315,16 @@ return (
 
   </section>
 
+{/*------------------------------------------------*/}
+{/* Observation Summary */}
+{/*------------------------------------------------*/}
+
+<ClinicalSummaryCard
+  summary={clinicalSummary}
+  recordedAt={record.recordedAt}
+/>
+
+
   {/*------------------------------------------------*/}
   {/* Symptoms & Pain */}
   {/*------------------------------------------------*/}
@@ -380,6 +400,7 @@ return (
     </p>
 
   </section>
+
 
 </>
 

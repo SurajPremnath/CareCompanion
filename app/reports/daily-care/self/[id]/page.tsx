@@ -9,10 +9,17 @@ import type { SelfDailyCare } from "@/lib/types/selfDailyCare";
 import { authService } from "@/lib/auth/authService";
 
 import AppHeader from "@/app/components/AppHeader";
+
 import {
   formatDisplayList,
   formatRecordedDate,
 } from "@/lib/utils/displayFormatter";
+
+import { ClinicalSummaryEngine }
+from "@/lib/clinical-summary/ClinicalSummaryEngine";
+
+import ClinicalSummaryCard
+from "@/app/components/common/ClinicalSummaryCard";
 
 
 export default function DailyCareReportPage() {
@@ -165,6 +172,9 @@ if (!record) {
 
 }
 
+const clinicalSummary =
+    ClinicalSummaryEngine.generate(record);
+
 return (
 
   <main
@@ -300,6 +310,15 @@ return (
     </div>
 
   </section>
+
+{/*------------------------------------------------*/}
+{/* Clinical Summary */}
+{/*------------------------------------------------*/}
+
+<ClinicalSummaryCard
+  summary={clinicalSummary}
+  recordedAt={record.recordedAt}
+/>
 
   {/*------------------------------------------------*/}
   {/* Symptoms & Pain */}
