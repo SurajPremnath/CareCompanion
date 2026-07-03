@@ -21,11 +21,21 @@ import { selfDailyCareStorage } from "@/lib/storage/SelfDailyCareStorage";
 
 import { AppAlert } from "@/lib/utils/appAlert";
 
+import {
+  medicalImageService,
+} from "@/lib/medical-image/medicalImageService";
+
+
 //------------------------------------------------------------
 // Types
 //------------------------------------------------------------
 
 type TemperatureUnit = "F" | "C";
+
+type ReadingInputMethod =
+  "image" |
+  "manual" |
+  null;
 
 interface DailyCareFormState {
 
@@ -165,6 +175,21 @@ export default function DailyCareForm({
 
   const [saving, setSaving] =
     useState(false);
+
+const [processingImage, setProcessingImage] =
+  useState(false);
+
+const [
+  readingInputMethod,
+  setReadingInputMethod
+] = useState<ReadingInputMethod>(
+  null
+);
+
+const [
+  imageReadSuccessful,
+  setImageReadSuccessful
+] = useState(false);
 
   const [showVitals, setShowVitals] =
     useState(false);
@@ -339,6 +364,136 @@ if (exists) {
 
   }
 
+
+//------------------------------------------------------------
+// Medical Image Capture
+//------------------------------------------------------------
+
+async function handleMedicalImage(
+  event: React.ChangeEvent<HTMLInputElement>
+) {
+
+  const image =
+    event.target.files?.[0];
+
+  event.target.value = "";
+
+  if (!image) {
+
+    return;
+
+  }
+
+  if (
+    processingImage ||
+    saving
+  ) {
+
+    return;
+
+  }
+
+  setProcessingImage(true);
+
+  try {
+
+    const result =
+      await medicalImageService.processImage(
+        image
+      );
+
+    if (
+      !result.success ||
+      !result.data
+    ) {
+
+      AppAlert.error(
+        result.error ??
+        "Unable to read the medical image."
+      );
+
+      return;
+
+    }
+
+    const readings =
+      result.data;
+
+    setFormData(previous => ({
+
+      ...previous,
+
+      temperature:
+        readings.temperature !== null
+          ? String(readings.temperature)
+          : previous.temperature,
+
+      temperatureUnit:
+        readings.temperatureUnit ??
+        previous.temperatureUnit,
+
+      systolic:
+        readings.systolic !== null
+          ? String(readings.systolic)
+          : previous.systolic,
+
+      diastolic:
+        readings.diastolic !== null
+          ? String(readings.diastolic)
+          : previous.diastolic,
+
+      pulse:
+        readings.pulse !== null
+          ? String(readings.pulse)
+          : previous.pulse,
+
+      spo2:
+        readings.spo2 !== null
+          ? String(readings.spo2)
+          : previous.spo2,
+
+    }));
+
+    const hasVitals =
+      readings.systolic !== null ||
+      readings.diastolic !== null ||
+      readings.pulse !== null ||
+      readings.spo2 !== null;
+
+    if (hasVitals) {
+
+      setShowVitals(true);
+
+    }
+
+setImageReadSuccessful(
+  true
+);
+
+    AppAlert.success(
+      "Image read successfully. Please verify the populated readings before saving."
+    );
+
+  }
+  catch (error) {
+
+    console.error(
+      "Medical Image Capture Error:",
+      error
+    );
+
+    AppAlert.error(
+      "Unable to process the medical image."
+    );
+
+  }
+  finally {
+
+    setProcessingImage(false);
+
+  }
+
+}
   //------------------------------------------------------------
   // Reset Form
   //------------------------------------------------------------
@@ -489,6 +644,185 @@ return (
       </div>
 
     </section>
+
+    {/*--------------------------------------------------------
+      Reading Input Method
+    --------------------------------------------------------*/}
+
+    <section style={cardStyle}>
+
+      <h3 style={sectionTitle}>
+        How would you like to add today's readings?
+      </h3>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "12px",
+        }}
+      >
+
+        <button
+          type="button"
+          disabled={
+            processingImage ||
+            saving
+          }
+
+onClick={() => {
+
+  setReadingInputMethod(
+    "image"
+  );
+
+  setImageReadSuccessful(
+    false
+  );
+
+}}
+          style={{
+            ...methodButton,
+
+            border:
+              readingInputMethod === "image"
+                ? "2px solid #2563eb"
+                : "1px solid #d1d5db",
+
+            background:
+              readingInputMethod === "image"
+                ? "#eff6ff"
+                : "#ffffff",
+
+            color:
+              readingInputMethod === "image"
+                ? "#1d4ed8"
+                : "#111827",
+          }}
+        >
+          📷 Upload Photo
+        </button>
+
+        <button
+          type="button"
+          disabled={
+            processingImage ||
+            saving
+          }
+
+          onClick={() => {
+
+  setReadingInputMethod(
+    "manual"
+  );
+
+  setImageReadSuccessful(
+    false
+  );
+
+}}
+          style={{
+            ...methodButton,
+
+            border:
+              readingInputMethod === "manual"
+                ? "2px solid #2563eb"
+                : "1px solid #d1d5db",
+
+            background:
+              readingInputMethod === "manual"
+                ? "#eff6ff"
+                : "#ffffff",
+
+            color:
+              readingInputMethod === "manual"
+                ? "#1d4ed8"
+                : "#111827",
+          }}
+        >
+          ✍️ Enter Manually
+        </button>
+
+      </div>
+
+    </section>
+
+{readingInputMethod === "image" && (
+  <>
+
+{/*--------------------------------------------------------
+  Medical Image Capture
+--------------------------------------------------------*/}
+
+
+
+<section style={cardStyle}>
+
+  <h3 style={sectionTitle}>
+    📷 Capture Medical Readings
+  </h3>
+
+  <p
+    style={{
+      marginTop: 0,
+      marginBottom: "16px",
+      color: "#6b7280",
+      lineHeight: 1.5,
+    }}
+  >
+    Take a photo or select an image containing your
+    medical device readings.
+  </p>
+
+  <label
+    style={{
+      ...imageCaptureButton,
+
+      opacity:
+        processingImage || saving
+          ? 0.7
+          : 1,
+
+      cursor:
+        processingImage || saving
+          ? "not-allowed"
+          : "pointer",
+    }}
+  >
+
+    {processingImage
+      ? "Reading Image..."
+      : "📷 Take or Select Image"}
+
+    <input
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      capture="environment"
+      disabled={
+        processingImage ||
+        saving
+      }
+      onChange={
+        handleMedicalImage
+      }
+      style={{
+        display: "none",
+      }}
+    />
+
+  </label>
+
+</section>
+
+  </>
+)}
+
+{(
+  readingInputMethod === "manual" ||
+  imageReadSuccessful
+) && (
+  <>
 
     {/*--------------------------------------------------------
       Temperature
@@ -848,6 +1182,9 @@ return (
 </button>
 
     </div>
+
+</>
+    )}
 
   </>
 
@@ -1285,6 +1622,24 @@ const checkboxLabel: React.CSSProperties = {
 
 };
 
+const methodButton: React.CSSProperties = {
+
+  minHeight: "58px",
+
+  padding: "16px",
+
+  borderRadius: "10px",
+
+  fontSize: "16px",
+
+  fontWeight: 700,
+
+  cursor: "pointer",
+
+  transition: "0.2s",
+
+};
+
 const primaryButton: React.CSSProperties = {
 
   padding: "16px",
@@ -1326,5 +1681,35 @@ const secondaryButton: React.CSSProperties = {
   cursor: "pointer",
 
   transition: "0.2s"
+
+};
+
+const imageCaptureButton: React.CSSProperties = {
+
+  width: "100%",
+
+  minHeight: "54px",
+
+  padding: "16px",
+
+  background: "#ffffff",
+
+  color: "#2563eb",
+
+  border: "2px solid #2563eb",
+
+  borderRadius: "10px",
+
+  fontSize: "16px",
+
+  fontWeight: 700,
+
+  display: "flex",
+
+  alignItems: "center",
+
+  justifyContent: "center",
+
+  boxSizing: "border-box",
 
 };
