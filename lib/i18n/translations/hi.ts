@@ -293,4 +293,181 @@ addPatient: {
     "रोगी की जानकारी सहेजते समय कुछ गलत हो गया।",
 },
 
+assessment: {
+  tagline:
+    "सरल दैनिक देखभाल।\nबेहतर चिकित्सकीय बातचीत।",
+
+  selfAssessment:
+    "स्वयं का स्वास्थ्य आकलन",
+
+  familyAssessment:
+    "परिवार का स्वास्थ्य आकलन",
+
+  page:
+    "पृष्ठ",
+
+  of:
+    "में से",
+
+  healthCheckToday:
+    "आज की स्वास्थ्य जाँच",
+
+  feelFeverish:
+    "क्या आज आपको बुखार जैसा महसूस हो रहा है?",
+
+  temperatureTaken:
+    "क्या आपका तापमान मापा गया?",
+
+  latestTemperature:
+    "नवीनतम तापमान रीडिंग",
+
+  temperaturePlaceholder:
+    "उदाहरण: 101.4",
+
+  energyToday:
+    "आज आपकी ऊर्जा कैसी है?",
+
+  good:
+    "अच्छी",
+
+  tired:
+    "थकान",
+
+  veryTired:
+    "बहुत अधिक थकान",
+
+  previous:
+    "पिछला",
+
+  next:
+    "अगला",
+
+  alertFever:
+    "कृपया बताएं कि क्या आपको बुखार जैसा महसूस हो रहा है।",
+
+  alertTemperatureTaken:
+    "कृपया बताएं कि क्या तापमान मापा गया था।",
+
+  alertTemperatureReading:
+    "कृपया तापमान रीडिंग दर्ज करें।",
+
+  alertEnergy:
+    "कृपया अपनी ऊर्जा का स्तर चुनें।",
+
+appetiteToday:
+  "आज आपकी भूख कैसी है?",
+
+appetiteNormal:
+  "सामान्य",
+
+appetiteLess:
+  "कम खा रहे हैं",
+
+appetitePoor:
+  "बहुत कम खा रहे हैं",
+
+drinkingEnoughWater:
+  "क्या आप पर्याप्त पानी पी रहे हैं?",
+
+notSure:
+  "पता नहीं",
+
+waterIntake:
+  "पानी का सेवन",
+
+alertAllQuestions:
+  "कृपया सभी प्रश्नों का उत्तर दें।",
+
+alertWaterIntake:
+  "कृपया पानी के सेवन की मात्रा चुनें।",
+
+discomfortToday:
+  "क्या आज आपको कोई दर्द या असुविधा महसूस हुई?",
+
+discomfortWhere:
+  "आपको दर्द या असुविधा कहाँ महसूस हुई?",
+
+areaHead: "सिर",
+areaEyes: "आँखें",
+areaEars: "कान",
+areaNeck: "गर्दन",
+areaChest: "छाती",
+areaBack: "पीठ",
+areaStomach: "पेट",
+areaArmsHands: "बाँहें / हाथ",
+areaLegsFeet: "पैर / पाँव",
+areaJoints: "जोड़",
+areaOther: "अन्य",
+
+describeDiscomfort:
+  "दर्द या असुविधा का विवरण दें",
+
+alertQuestion:
+  "कृपया प्रश्न का उत्तर दें।",
+
+alertDiscomfortAreas:
+  "कृपया दर्द या असुविधा वाले स्थान चुनें।",
+
+alertSpecifyDiscomfort:
+  "कृपया दर्द या असुविधा का विवरण दें।",
+
+walkingToday:
+  "क्या आप आज चल पा रहे हैं?",
+
+walkingEasily:
+  "आसानी से",
+
+walkingSomeDifficulty:
+  "कुछ कठिनाई के साथ",
+
+walkingVeryDifficult:
+  "बहुत कठिनाई हो रही है",
+
+needHelpWalking:
+  "क्या चलने में सहायता की आवश्यकता है?",
+
+looseMotionsToday:
+  "क्या आज दस्त हुए हैं?",
+
+looseMotionType:
+  "किस प्रकार के?",
+
+looseMotionWatery:
+  "पानी जैसे",
+
+looseMotionSticky:
+  "चिपचिपे",
+
+finishAssessment:
+  "आकलन पूरा करें",
+
+alertWalkingHelp:
+  "कृपया बताएं कि क्या चलने में सहायता की आवश्यकता है।",
+
+alertLooseMotionType:
+  "कृपया दस्त का प्रकार चुनें।",
+
+assessmentDetails:
+  "आकलन विवरण",
+
+yourName:
+  "आपका नाम",
+
+enterYourName:
+  "अपना नाम दर्ज करें",
+
+yourAge:
+  "आपकी आयु",
+
+enterYourAge:
+  "अपनी आयु दर्ज करें",
+
+startAssessment:
+  "आकलन शुरू करें",
+
+alertNameAndAge:
+  "कृपया नाम और आयु दर्ज करें",
+
+},
+
 };

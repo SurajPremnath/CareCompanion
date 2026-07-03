@@ -2,11 +2,20 @@
 
 import { useEffect, useState } from "react";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 export default function Header({
   assessmentType,
 }: {
   assessmentType: "self" | "family";
 }) {
+
+const {
+  t,
+} = useLanguage();
+
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [time, setTime] = useState("");
@@ -59,9 +68,7 @@ export default function Header({
     whiteSpace: "pre-line",
   }}
 >
-  Simple daily care.
-  {"\n"}
-  Better clinical conversations.
+  {t("assessment.tagline")}
 </p>
 
 
@@ -74,8 +81,8 @@ export default function Header({
         }}
       >
         {assessmentType === "self"
-          ? "Self Assessment"
-          : "Family Assessment"}
+  ? t("assessment.selfAssessment")
+  : t("assessment.familyAssessment")}
       </p>
 
       {/* ONLY TIME (NO NAME/AGE IN HEADER NOW IF YOU WANT CLEAN UI) */}

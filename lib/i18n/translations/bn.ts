@@ -297,4 +297,181 @@ addPatient: {
     "রোগীর তথ্য সংরক্ষণ করার সময় একটি সমস্যা হয়েছে।",
 },
 
+assessment: {
+  tagline:
+    "সহজ দৈনন্দিন যত্ন।\nআরও ভালো চিকিৎসা সংক্রান্ত আলোচনা।",
+
+  selfAssessment:
+    "নিজের স্বাস্থ্য মূল্যায়ন",
+
+  familyAssessment:
+    "পরিবারের স্বাস্থ্য মূল্যায়ন",
+
+  page:
+    "পৃষ্ঠা",
+
+  of:
+    "এর মধ্যে",
+
+  healthCheckToday:
+    "আজকের স্বাস্থ্য পরীক্ষা",
+
+  feelFeverish:
+    "আজ কি আপনার জ্বর জ্বর লাগছে?",
+
+  temperatureTaken:
+    "আপনার তাপমাত্রা কি মাপা হয়েছে?",
+
+  latestTemperature:
+    "সর্বশেষ তাপমাত্রার রিডিং",
+
+  temperaturePlaceholder:
+    "উদাহরণ: 101.4",
+
+  energyToday:
+    "আজ আপনার শক্তির মাত্রা কেমন?",
+
+  good:
+    "ভালো",
+
+  tired:
+    "ক্লান্ত",
+
+  veryTired:
+    "খুব ক্লান্ত",
+
+  previous:
+    "আগেরটি",
+
+  next:
+    "পরবর্তী",
+
+  alertFever:
+    "আপনার জ্বর জ্বর লাগছে কি না তা অনুগ্রহ করে জানান।",
+
+  alertTemperatureTaken:
+    "তাপমাত্রা মাপা হয়েছে কি না তা অনুগ্রহ করে জানান।",
+
+  alertTemperatureReading:
+    "অনুগ্রহ করে তাপমাত্রার রিডিং লিখুন।",
+
+  alertEnergy:
+    "অনুগ্রহ করে আপনার শক্তির মাত্রা নির্বাচন করুন।",
+
+appetiteToday:
+  "আজ আপনার ক্ষুধা কেমন?",
+
+appetiteNormal:
+  "স্বাভাবিক",
+
+appetiteLess:
+  "কম খাচ্ছি",
+
+appetitePoor:
+  "খুব কম খাচ্ছি",
+
+drinkingEnoughWater:
+  "আপনি কি পর্যাপ্ত পানি পান করছেন?",
+
+notSure:
+  "নিশ্চিত নই",
+
+waterIntake:
+  "পানি পান করার পরিমাণ",
+
+alertAllQuestions:
+  "অনুগ্রহ করে সব প্রশ্নের উত্তর দিন।",
+
+alertWaterIntake:
+  "অনুগ্রহ করে পানি পান করার পরিমাণ নির্বাচন করুন।",
+
+discomfortToday:
+  "আজ কি আপনার কোনো ব্যথা বা অস্বস্তি হয়েছে?",
+
+discomfortWhere:
+  "আপনার কোথায় ব্যথা বা অস্বস্তি হয়েছে?",
+
+areaHead: "মাথা",
+areaEyes: "চোখ",
+areaEars: "কান",
+areaNeck: "ঘাড়",
+areaChest: "বুক",
+areaBack: "পিঠ",
+areaStomach: "পেট",
+areaArmsHands: "বাহু / হাত",
+areaLegsFeet: "পা / পায়ের পাতা",
+areaJoints: "জয়েন্ট",
+areaOther: "অন্যান্য",
+
+describeDiscomfort:
+  "ব্যথা বা অস্বস্তির বিবরণ দিন",
+
+alertQuestion:
+  "অনুগ্রহ করে প্রশ্নটির উত্তর দিন।",
+
+alertDiscomfortAreas:
+  "অনুগ্রহ করে ব্যথা বা অস্বস্তির স্থানগুলি নির্বাচন করুন।",
+
+alertSpecifyDiscomfort:
+  "অনুগ্রহ করে ব্যথা বা অস্বস্তির বিবরণ দিন।",
+
+walkingToday:
+  "আজ আপনি হাঁটতে পারছেন কি?",
+
+walkingEasily:
+  "সহজে",
+
+walkingSomeDifficulty:
+  "কিছুটা অসুবিধার সঙ্গে",
+
+walkingVeryDifficult:
+  "খুব অসুবিধা হচ্ছে",
+
+needHelpWalking:
+  "হাঁটার জন্য সাহায্য দরকার কি?",
+
+looseMotionsToday:
+  "আজ কি পাতলা পায়খানা হয়েছে?",
+
+looseMotionType:
+  "কী ধরনের?",
+
+looseMotionWatery:
+  "পানির মতো",
+
+looseMotionSticky:
+  "আঠালো",
+
+finishAssessment:
+  "মূল্যায়ন সম্পূর্ণ করুন",
+
+alertWalkingHelp:
+  "হাঁটার জন্য সাহায্য দরকার কি না অনুগ্রহ করে জানান।",
+
+alertLooseMotionType:
+  "অনুগ্রহ করে পাতলা পায়খানার ধরন নির্বাচন করুন।",
+
+assessmentDetails:
+  "মূল্যায়নের বিবরণ",
+
+yourName:
+  "আপনার নাম",
+
+enterYourName:
+  "আপনার নাম লিখুন",
+
+yourAge:
+  "আপনার বয়স",
+
+enterYourAge:
+  "আপনার বয়স লিখুন",
+
+startAssessment:
+  "মূল্যায়ন শুরু করুন",
+
+alertNameAndAge:
+  "অনুগ্রহ করে নাম এবং বয়স লিখুন",
+
+},
+
 };

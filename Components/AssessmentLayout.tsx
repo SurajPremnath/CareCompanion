@@ -2,6 +2,10 @@
 
 import Header from "@/Components/Header";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 type Props = {
   currentPage: number;
   assessmentType: "self" | "family";
@@ -13,6 +17,10 @@ export default function AssessmentLayout({
   assessmentType,
   children,
 }: Props) {
+const {
+  t,
+} = useLanguage();
+
   const safePage = currentPage ?? 1;
   const progress = (safePage / 5) * 100;
 
@@ -60,7 +68,7 @@ export default function AssessmentLayout({
             color: "#6b7280",
           }}
         >
-          Page {safePage} of 5
+          {t("assessment.page")} {safePage} {t("assessment.of")} 5
         </div>
 
         {/* CONTENT */}

@@ -343,6 +343,7 @@ AppAlert.success(
 </option>
 
 </select>
+
         <label style={labelStyle}>
           {t("addPatient.relationship")} *
         </label>

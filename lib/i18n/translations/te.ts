@@ -297,4 +297,181 @@ addPatient: {
     "రోగి సమాచారాన్ని సేవ్ చేస్తున్నప్పుడు సమస్య ఏర్పడింది.",
 },
 
+assessment: {
+  tagline:
+    "సులభమైన రోజువారీ సంరక్షణ.\nమెరుగైన వైద్య సంభాషణలు.",
+
+  selfAssessment:
+    "స్వీయ ఆరోగ్య అంచనా",
+
+  familyAssessment:
+    "కుటుంబ ఆరోగ్య అంచనా",
+
+  page:
+    "పేజీ",
+
+  of:
+    "లో",
+
+  healthCheckToday:
+    "ఈరోజు ఆరోగ్య తనిఖీ",
+
+  feelFeverish:
+    "ఈరోజు మీకు జ్వరంగా అనిపిస్తోందా?",
+
+  temperatureTaken:
+    "మీ ఉష్ణోగ్రతను కొలిచారా?",
+
+  latestTemperature:
+    "తాజా ఉష్ణోగ్రత రీడింగ్",
+
+  temperaturePlaceholder:
+    "ఉదాహరణ: 101.4",
+
+  energyToday:
+    "ఈరోజు మీ శక్తి స్థాయి ఎలా ఉంది?",
+
+  good:
+    "బాగుంది",
+
+  tired:
+    "అలసటగా ఉంది",
+
+  veryTired:
+    "చాలా అలసటగా ఉంది",
+
+  previous:
+    "వెనుకకు",
+
+  next:
+    "తదుపరి",
+
+  alertFever:
+    "మీకు జ్వరంగా అనిపిస్తోందా అనే ప్రశ్నకు సమాధానం ఇవ్వండి.",
+
+  alertTemperatureTaken:
+    "ఉష్ణోగ్రత కొలిచారా అనే ప్రశ్నకు సమాధానం ఇవ్వండి.",
+
+  alertTemperatureReading:
+    "దయచేసి ఉష్ణోగ్రత రీడింగ్‌ను నమోదు చేయండి.",
+
+  alertEnergy:
+    "దయచేసి మీ శక్తి స్థాయిని ఎంచుకోండి.",
+
+appetiteToday:
+  "ఈరోజు మీ ఆకలి ఎలా ఉంది?",
+
+appetiteNormal:
+  "సాధారణంగా ఉంది",
+
+appetiteLess:
+  "తక్కువగా తింటున్నాను",
+
+appetitePoor:
+  "చాలా తక్కువగా తింటున్నాను",
+
+drinkingEnoughWater:
+  "మీరు తగినంత నీరు తాగుతున్నారా?",
+
+notSure:
+  "ఖచ్చితంగా తెలియదు",
+
+waterIntake:
+  "నీటి తీసుకోవడం",
+
+alertAllQuestions:
+  "దయచేసి అన్ని ప్రశ్నలకు సమాధానం ఇవ్వండి.",
+
+alertWaterIntake:
+  "దయచేసి నీటి తీసుకునే పరిమాణాన్ని ఎంచుకోండి.",
+
+discomfortToday:
+  "ఈరోజు మీకు ఏదైనా నొప్పి లేదా అసౌకర్యం అనిపించిందా?",
+
+discomfortWhere:
+  "మీకు నొప్పి లేదా అసౌకర్యం ఎక్కడ అనిపించింది?",
+
+areaHead: "తల",
+areaEyes: "కళ్లు",
+areaEars: "చెవులు",
+areaNeck: "మెడ",
+areaChest: "ఛాతీ",
+areaBack: "వీపు",
+areaStomach: "కడుపు",
+areaArmsHands: "చేతులు / అరచేతులు",
+areaLegsFeet: "కాళ్లు / పాదాలు",
+areaJoints: "కీళ్లు",
+areaOther: "ఇతర",
+
+describeDiscomfort:
+  "నొప్పి లేదా అసౌకర్యాన్ని వివరించండి",
+
+alertQuestion:
+  "దయచేసి ప్రశ్నకు సమాధానం ఇవ్వండి.",
+
+alertDiscomfortAreas:
+  "దయచేసి నొప్పి లేదా అసౌకర్యం ఉన్న ప్రదేశాలను ఎంచుకోండి.",
+
+alertSpecifyDiscomfort:
+  "దయచేసి నొప్పి లేదా అసౌకర్యాన్ని వివరించండి.",
+
+walkingToday:
+  "మీరు ఈరోజు నడవగలుగుతున్నారా?",
+
+walkingEasily:
+  "సులభంగా",
+
+walkingSomeDifficulty:
+  "కొంత ఇబ్బందితో",
+
+walkingVeryDifficult:
+  "చాలా ఇబ్బందిగా ఉంది",
+
+needHelpWalking:
+  "నడవడానికి సహాయం అవసరమా?",
+
+looseMotionsToday:
+  "ఈరోజు విరేచనాలు ఉన్నాయా?",
+
+looseMotionType:
+  "ఏ రకం?",
+
+looseMotionWatery:
+  "నీళ్లలా",
+
+looseMotionSticky:
+  "జిగటగా",
+
+finishAssessment:
+  "అంచనాను పూర్తి చేయండి",
+
+alertWalkingHelp:
+  "నడవడానికి సహాయం అవసరమా అనే ప్రశ్నకు సమాధానం ఇవ్వండి.",
+
+alertLooseMotionType:
+  "దయచేసి విరేచనాల రకాన్ని ఎంచుకోండి.",
+
+assessmentDetails:
+  "అంచనా వివరాలు",
+
+yourName:
+  "మీ పేరు",
+
+enterYourName:
+  "మీ పేరును నమోదు చేయండి",
+
+yourAge:
+  "మీ వయస్సు",
+
+enterYourAge:
+  "మీ వయస్సును నమోదు చేయండి",
+
+startAssessment:
+  "అంచనాను ప్రారంభించండి",
+
+alertNameAndAge:
+  "దయచేసి పేరు మరియు వయస్సును నమోదు చేయండి",
+
+},
+
 };

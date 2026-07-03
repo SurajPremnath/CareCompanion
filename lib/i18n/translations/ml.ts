@@ -296,4 +296,181 @@ addPatient: {
     "രോഗിയുടെ വിവരങ്ങൾ സേവ് ചെയ്യുന്നതിനിടെ ഒരു പ്രശ്നം സംഭവിച്ചു.",
 },
 
+assessment: {
+  tagline:
+    "ലളിതമായ ദൈനംദിന പരിചരണം.\nമെച്ചപ്പെട്ട ചികിത്സാ സംഭാഷണങ്ങൾ.",
+
+  selfAssessment:
+    "സ്വയം ആരോഗ്യ വിലയിരുത്തൽ",
+
+  familyAssessment:
+    "കുടുംബ ആരോഗ്യ വിലയിരുത്തൽ",
+
+  page:
+    "പേജ്",
+
+  of:
+    "ൽ",
+
+  healthCheckToday:
+    "ഇന്നത്തെ ആരോഗ്യ പരിശോധന",
+
+  feelFeverish:
+    "ഇന്ന് നിങ്ങൾക്ക് പനി തോന്നുന്നുണ്ടോ?",
+
+  temperatureTaken:
+    "നിങ്ങളുടെ താപനില പരിശോധിച്ചോ?",
+
+  latestTemperature:
+    "ഏറ്റവും പുതിയ താപനില റീഡിംഗ്",
+
+  temperaturePlaceholder:
+    "ഉദാഹരണം: 101.4",
+
+  energyToday:
+    "ഇന്ന് നിങ്ങളുടെ ഊർജ്ജനില എങ്ങനെയാണ്?",
+
+  good:
+    "നല്ലത്",
+
+  tired:
+    "ക്ഷീണം",
+
+  veryTired:
+    "വളരെ ക്ഷീണം",
+
+  previous:
+    "മുമ്പത്തെ",
+
+  next:
+    "അടുത്തത്",
+
+  alertFever:
+    "നിങ്ങൾക്ക് പനി തോന്നുന്നുണ്ടോ എന്ന് ദയവായി അറിയിക്കുക.",
+
+  alertTemperatureTaken:
+    "താപനില പരിശോധിച്ചോ എന്ന് ദയവായി അറിയിക്കുക.",
+
+  alertTemperatureReading:
+    "ദയവായി താപനില റീഡിംഗ് രേഖപ്പെടുത്തുക.",
+
+  alertEnergy:
+    "ദയവായി നിങ്ങളുടെ ഊർജ്ജനില തിരഞ്ഞെടുക്കുക.",
+
+appetiteToday:
+  "ഇന്ന് നിങ്ങളുടെ വിശപ്പ് എങ്ങനെയാണ്?",
+
+appetiteNormal:
+  "സാധാരണ",
+
+appetiteLess:
+  "കുറച്ച് മാത്രമാണ് കഴിക്കുന്നത്",
+
+appetitePoor:
+  "വളരെ കുറച്ച് മാത്രമാണ് കഴിക്കുന്നത്",
+
+drinkingEnoughWater:
+  "നിങ്ങൾ ആവശ്യത്തിന് വെള്ളം കുടിക്കുന്നുണ്ടോ?",
+
+notSure:
+  "ഉറപ്പില്ല",
+
+waterIntake:
+  "വെള്ളം കുടിക്കുന്ന അളവ്",
+
+alertAllQuestions:
+  "ദയവായി എല്ലാ ചോദ്യങ്ങൾക്കും ഉത്തരം നൽകുക.",
+
+alertWaterIntake:
+  "ദയവായി വെള്ളം കുടിക്കുന്ന അളവ് തിരഞ്ഞെടുക്കുക.",
+
+discomfortToday:
+  "ഇന്ന് നിങ്ങൾക്ക് എന്തെങ്കിലും വേദനയോ അസ്വസ്ഥതയോ അനുഭവപ്പെട്ടോ?",
+
+discomfortWhere:
+  "നിങ്ങൾക്ക് വേദനയോ അസ്വസ്ഥതയോ എവിടെയാണ് അനുഭവപ്പെട്ടത്?",
+
+areaHead: "തല",
+areaEyes: "കണ്ണുകൾ",
+areaEars: "ചെവികൾ",
+areaNeck: "കഴുത്ത്",
+areaChest: "നെഞ്ച്",
+areaBack: "പുറം",
+areaStomach: "വയർ",
+areaArmsHands: "കൈകൾ",
+areaLegsFeet: "കാലുകൾ / പാദങ്ങൾ",
+areaJoints: "സന്ധികൾ",
+areaOther: "മറ്റുള്ളവ",
+
+describeDiscomfort:
+  "വേദനയോ അസ്വസ്ഥതയോ വിവരിക്കുക",
+
+alertQuestion:
+  "ദയവായി ചോദ്യത്തിന് ഉത്തരം നൽകുക.",
+
+alertDiscomfortAreas:
+  "ദയവായി വേദനയോ അസ്വസ്ഥതയോ അനുഭവപ്പെട്ട സ്ഥലങ്ങൾ തിരഞ്ഞെടുക്കുക.",
+
+alertSpecifyDiscomfort:
+  "ദയവായി വേദനയോ അസ്വസ്ഥതയോ വിവരിക്കുക.",
+
+walkingToday:
+  "ഇന്ന് നിങ്ങൾക്ക് നടക്കാൻ കഴിയുന്നുണ്ടോ?",
+
+walkingEasily:
+  "എളുപ്പത്തിൽ",
+
+walkingSomeDifficulty:
+  "കുറച്ച് ബുദ്ധിമുട്ടോടെ",
+
+walkingVeryDifficult:
+  "വളരെ ബുദ്ധിമുട്ടാണ്",
+
+needHelpWalking:
+  "നടക്കാൻ സഹായം ആവശ്യമുണ്ടോ?",
+
+looseMotionsToday:
+  "ഇന്ന് വയറിളക്കം ഉണ്ടായോ?",
+
+looseMotionType:
+  "ഏത് തരത്തിലുള്ളത്?",
+
+looseMotionWatery:
+  "വെള്ളം പോലെ",
+
+looseMotionSticky:
+  "ഒട്ടിപ്പിടിക്കുന്ന തരത്തിൽ",
+
+finishAssessment:
+  "വിലയിരുത്തൽ പൂർത്തിയാക്കുക",
+
+alertWalkingHelp:
+  "നടക്കാൻ സഹായം ആവശ്യമുണ്ടോ എന്ന് ദയവായി അറിയിക്കുക.",
+
+alertLooseMotionType:
+  "ദയവായി വയറിളക്കത്തിന്റെ തരം തിരഞ്ഞെടുക്കുക.",
+
+assessmentDetails:
+  "വിലയിരുത്തൽ വിവരങ്ങൾ",
+
+yourName:
+  "നിങ്ങളുടെ പേര്",
+
+enterYourName:
+  "നിങ്ങളുടെ പേര് നൽകുക",
+
+yourAge:
+  "നിങ്ങളുടെ പ്രായം",
+
+enterYourAge:
+  "നിങ്ങളുടെ പ്രായം നൽകുക",
+
+startAssessment:
+  "വിലയിരുത്തൽ ആരംഭിക്കുക",
+
+alertNameAndAge:
+  "ദയവായി പേരും പ്രായവും നൽകുക",
+
+},
+
 };

@@ -297,4 +297,181 @@ addPatient: {
     "रुग्णाची माहिती जतन करताना काहीतरी चूक झाली.",
 },
 
+assessment: {
+  tagline:
+    "सोप्या पद्धतीने दैनंदिन काळजी.\nअधिक चांगले वैद्यकीय संवाद.",
+
+  selfAssessment:
+    "स्वतःचे आरोग्य मूल्यांकन",
+
+  familyAssessment:
+    "कुटुंबाचे आरोग्य मूल्यांकन",
+
+  page:
+    "पृष्ठ",
+
+  of:
+    "पैकी",
+
+  healthCheckToday:
+    "आजची आरोग्य तपासणी",
+
+  feelFeverish:
+    "आज तुम्हाला ताप आल्यासारखे वाटत आहे का?",
+
+  temperatureTaken:
+    "तुमचे तापमान मोजले आहे का?",
+
+  latestTemperature:
+    "नवीनतम तापमान रीडिंग",
+
+  temperaturePlaceholder:
+    "उदाहरण: 101.4",
+
+  energyToday:
+    "आज तुमची ऊर्जा कशी आहे?",
+
+  good:
+    "चांगली",
+
+  tired:
+    "थकवा जाणवत आहे",
+
+  veryTired:
+    "खूप थकवा जाणवत आहे",
+
+  previous:
+    "मागील",
+
+  next:
+    "पुढील",
+
+  alertFever:
+    "तुम्हाला ताप आल्यासारखे वाटत आहे का हे कृपया सांगा.",
+
+  alertTemperatureTaken:
+    "तापमान मोजले आहे का हे कृपया सांगा.",
+
+  alertTemperatureReading:
+    "कृपया तापमान रीडिंग नोंदवा.",
+
+  alertEnergy:
+    "कृपया तुमची ऊर्जा पातळी निवडा.",
+
+appetiteToday:
+  "आज तुमची भूक कशी आहे?",
+
+appetiteNormal:
+  "सामान्य",
+
+appetiteLess:
+  "कमी खात आहे",
+
+appetitePoor:
+  "फारच कमी खात आहे",
+
+drinkingEnoughWater:
+  "तुम्ही पुरेसे पाणी पीत आहात का?",
+
+notSure:
+  "खात्री नाही",
+
+waterIntake:
+  "पाणी पिण्याचे प्रमाण",
+
+alertAllQuestions:
+  "कृपया सर्व प्रश्नांची उत्तरे द्या.",
+
+alertWaterIntake:
+  "कृपया पाणी पिण्याचे प्रमाण निवडा.",
+
+discomfortToday:
+  "आज तुम्हाला काही वेदना किंवा अस्वस्थता जाणवली का?",
+
+discomfortWhere:
+  "तुम्हाला वेदना किंवा अस्वस्थता कुठे जाणवली?",
+
+areaHead: "डोके",
+areaEyes: "डोळे",
+areaEars: "कान",
+areaNeck: "मान",
+areaChest: "छाती",
+areaBack: "पाठ",
+areaStomach: "पोट",
+areaArmsHands: "बाहू / हात",
+areaLegsFeet: "पाय / पावले",
+areaJoints: "सांधे",
+areaOther: "इतर",
+
+describeDiscomfort:
+  "वेदना किंवा अस्वस्थतेचे वर्णन करा",
+
+alertQuestion:
+  "कृपया प्रश्नाचे उत्तर द्या.",
+
+alertDiscomfortAreas:
+  "कृपया वेदना किंवा अस्वस्थता असलेली ठिकाणे निवडा.",
+
+alertSpecifyDiscomfort:
+  "कृपया वेदना किंवा अस्वस्थतेचे वर्णन करा.",
+
+walkingToday:
+  "आज तुम्हाला चालता येत आहे का?",
+
+walkingEasily:
+  "सहजपणे",
+
+walkingSomeDifficulty:
+  "थोड्या अडचणीने",
+
+walkingVeryDifficult:
+  "खूप अडचण होत आहे",
+
+needHelpWalking:
+  "चालण्यासाठी मदतीची गरज आहे का?",
+
+looseMotionsToday:
+  "आज जुलाब झाले आहेत का?",
+
+looseMotionType:
+  "कोणत्या प्रकारचे?",
+
+looseMotionWatery:
+  "पाण्यासारखे",
+
+looseMotionSticky:
+  "चिकट",
+
+finishAssessment:
+  "मूल्यांकन पूर्ण करा",
+
+alertWalkingHelp:
+  "चालण्यासाठी मदतीची गरज आहे का हे कृपया सांगा.",
+
+alertLooseMotionType:
+  "कृपया जुलाबाचा प्रकार निवडा.",
+
+assessmentDetails:
+  "मूल्यांकन तपशील",
+
+yourName:
+  "तुमचे नाव",
+
+enterYourName:
+  "तुमचे नाव नोंदवा",
+
+yourAge:
+  "तुमचे वय",
+
+enterYourAge:
+  "तुमचे वय नोंदवा",
+
+startAssessment:
+  "मूल्यांकन सुरू करा",
+
+alertNameAndAge:
+  "कृपया नाव आणि वय नोंदवा",
+
+},
+
 };

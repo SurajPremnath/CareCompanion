@@ -294,4 +294,182 @@ addPatient: {
     "ರೋಗಿಯ ಮಾಹಿತಿಯನ್ನು ಉಳಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ.",
 },
 
+assessment: {
+  tagline:
+    "ಸರಳ ದೈನಂದಿನ ಆರೈಕೆ.\nಉತ್ತಮ ವೈದ್ಯಕೀಯ ಸಂಭಾಷಣೆಗಳು.",
+
+  selfAssessment:
+    "ಸ್ವಯಂ ಆರೋಗ್ಯ ಮೌಲ್ಯಮಾಪನ",
+
+  familyAssessment:
+    "ಕುಟುಂಬದ ಆರೋಗ್ಯ ಮೌಲ್ಯಮಾಪನ",
+
+  page:
+    "ಪುಟ",
+
+  of:
+    "ರಲ್ಲಿ",
+
+  healthCheckToday:
+    "ಇಂದಿನ ಆರೋಗ್ಯ ಪರಿಶೀಲನೆ",
+
+  feelFeverish:
+    "ಇಂದು ನಿಮಗೆ ಜ್ವರದ ಅನುಭವವಾಗುತ್ತಿದೆಯೇ?",
+
+  temperatureTaken:
+    "ನಿಮ್ಮ ತಾಪಮಾನವನ್ನು ಅಳೆಯಲಾಗಿದೆಯೇ?",
+
+  latestTemperature:
+    "ಇತ್ತೀಚಿನ ತಾಪಮಾನ ರೀಡಿಂಗ್",
+
+  temperaturePlaceholder:
+    "ಉದಾಹರಣೆ: 101.4",
+
+  energyToday:
+    "ಇಂದು ನಿಮ್ಮ ಶಕ್ತಿಯ ಮಟ್ಟ ಹೇಗಿದೆ?",
+
+  good:
+    "ಚೆನ್ನಾಗಿದೆ",
+
+  tired:
+    "ದಣಿದಿದೆ",
+
+  veryTired:
+    "ತುಂಬಾ ದಣಿದಿದೆ",
+
+  previous:
+    "ಹಿಂದಿನದು",
+
+  next:
+    "ಮುಂದೆ",
+
+  alertFever:
+    "ನಿಮಗೆ ಜ್ವರದ ಅನುಭವವಾಗುತ್ತಿದೆಯೇ ಎಂಬುದನ್ನು ದಯವಿಟ್ಟು ತಿಳಿಸಿ.",
+
+  alertTemperatureTaken:
+    "ತಾಪಮಾನವನ್ನು ಅಳೆಯಲಾಗಿದೆಯೇ ಎಂಬುದನ್ನು ದಯವಿಟ್ಟು ತಿಳಿಸಿ.",
+
+  alertTemperatureReading:
+    "ದಯವಿಟ್ಟು ತಾಪಮಾನ ರೀಡಿಂಗ್ ನಮೂದಿಸಿ.",
+
+  alertEnergy:
+    "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಶಕ್ತಿಯ ಮಟ್ಟವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+
+
+appetiteToday:
+  "ಇಂದು ನಿಮ್ಮ ಹಸಿವು ಹೇಗಿದೆ?",
+
+appetiteNormal:
+  "ಸಾಮಾನ್ಯ",
+
+appetiteLess:
+  "ಕಡಿಮೆ ತಿನ್ನುತ್ತಿದ್ದೇನೆ",
+
+appetitePoor:
+  "ತುಂಬಾ ಕಡಿಮೆ ತಿನ್ನುತ್ತಿದ್ದೇನೆ",
+
+drinkingEnoughWater:
+  "ನೀವು ಸಾಕಷ್ಟು ನೀರು ಕುಡಿಯುತ್ತಿದ್ದೀರಾ?",
+
+notSure:
+  "ಖಚಿತವಾಗಿಲ್ಲ",
+
+waterIntake:
+  "ನೀರಿನ ಸೇವನೆ",
+
+alertAllQuestions:
+  "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ.",
+
+alertWaterIntake:
+  "ದಯವಿಟ್ಟು ನೀರಿನ ಸೇವನೆಯ ಪ್ರಮಾಣವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+
+discomfortToday:
+  "ಇಂದು ನಿಮಗೆ ಯಾವುದೇ ನೋವು ಅಥವಾ ಅಸ್ವಸ್ಥತೆ ಅನುಭವವಾಗಿದೆಯೇ?",
+
+discomfortWhere:
+  "ನಿಮಗೆ ನೋವು ಅಥವಾ ಅಸ್ವಸ್ಥತೆ ಎಲ್ಲಿ ಅನುಭವವಾಯಿತು?",
+
+areaHead: "ತಲೆ",
+areaEyes: "ಕಣ್ಣುಗಳು",
+areaEars: "ಕಿವಿಗಳು",
+areaNeck: "ಕುತ್ತಿಗೆ",
+areaChest: "ಎದೆ",
+areaBack: "ಬೆನ್ನು",
+areaStomach: "ಹೊಟ್ಟೆ",
+areaArmsHands: "ತೋಳುಗಳು / ಕೈಗಳು",
+areaLegsFeet: "ಕಾಲುಗಳು / ಪಾದಗಳು",
+areaJoints: "ಕೀಲುಗಳು",
+areaOther: "ಇತರೆ",
+
+describeDiscomfort:
+  "ನೋವು ಅಥವಾ ಅಸ್ವಸ್ಥತೆಯನ್ನು ವಿವರಿಸಿ",
+
+alertQuestion:
+  "ದಯವಿಟ್ಟು ಪ್ರಶ್ನೆಗೆ ಉತ್ತರಿಸಿ.",
+
+alertDiscomfortAreas:
+  "ದಯವಿಟ್ಟು ನೋವು ಅಥವಾ ಅಸ್ವಸ್ಥತೆ ಇರುವ ಸ್ಥಳಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+
+alertSpecifyDiscomfort:
+  "ದಯವಿಟ್ಟು ನೋವು ಅಥವಾ ಅಸ್ವಸ್ಥತೆಯನ್ನು ವಿವರಿಸಿ.",
+
+walkingToday:
+  "ನೀವು ಇಂದು ನಡೆಯಲು ಸಾಧ್ಯವಾಗುತ್ತಿದೆಯೇ?",
+
+walkingEasily:
+  "ಸುಲಭವಾಗಿ",
+
+walkingSomeDifficulty:
+  "ಸ್ವಲ್ಪ ಕಷ್ಟದಿಂದ",
+
+walkingVeryDifficult:
+  "ತುಂಬಾ ಕಷ್ಟವಾಗಿದೆ",
+
+needHelpWalking:
+  "ನಡೆಯಲು ಸಹಾಯ ಬೇಕೇ?",
+
+looseMotionsToday:
+  "ಇಂದು ಅತಿಸಾರವಾಗಿದೆಯೇ?",
+
+looseMotionType:
+  "ಯಾವ ರೀತಿಯದು?",
+
+looseMotionWatery:
+  "ನೀರಿನಂತೆ",
+
+looseMotionSticky:
+  "ಅಂಟಿಕೊಳ್ಳುವಂತಿದೆ",
+
+finishAssessment:
+  "ಮೌಲ್ಯಮಾಪನ ಪೂರ್ಣಗೊಳಿಸಿ",
+
+alertWalkingHelp:
+  "ನಡೆಯಲು ಸಹಾಯ ಬೇಕೇ ಎಂಬುದನ್ನು ದಯವಿಟ್ಟು ತಿಳಿಸಿ.",
+
+alertLooseMotionType:
+  "ದಯವಿಟ್ಟು ಅತಿಸಾರದ ಪ್ರಕಾರವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+
+assessmentDetails:
+  "ಮೌಲ್ಯಮಾಪನ ವಿವರಗಳು",
+
+yourName:
+  "ನಿಮ್ಮ ಹೆಸರು",
+
+enterYourName:
+  "ನಿಮ್ಮ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+
+yourAge:
+  "ನಿಮ್ಮ ವಯಸ್ಸು",
+
+enterYourAge:
+  "ನಿಮ್ಮ ವಯಸ್ಸನ್ನು ನಮೂದಿಸಿ",
+
+startAssessment:
+  "ಮೌಲ್ಯಮಾಪನ ಪ್ರಾರಂಭಿಸಿ",
+
+alertNameAndAge:
+  "ದಯವಿಟ್ಟು ಹೆಸರು ಮತ್ತು ವಯಸ್ಸನ್ನು ನಮೂದಿಸಿ",
+
+},
+
 };

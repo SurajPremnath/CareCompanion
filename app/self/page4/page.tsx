@@ -4,10 +4,33 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AssessmentLayout from "@/Components/AssessmentLayout";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 export default function Page4() {
   const router = useRouter();
 
+const {
+  t,
+} = useLanguage();
+
   const [discomfort, setDiscomfort] = useState("");
+
+const discomfortAreaOptions = [
+  { value: "Head", labelKey: "assessment.areaHead" },
+  { value: "Eyes", labelKey: "assessment.areaEyes" },
+  { value: "Ears", labelKey: "assessment.areaEars" },
+  { value: "Neck", labelKey: "assessment.areaNeck" },
+  { value: "Chest", labelKey: "assessment.areaChest" },
+  { value: "Back", labelKey: "assessment.areaBack" },
+  { value: "Stomach", labelKey: "assessment.areaStomach" },
+  { value: "Arms / Hands", labelKey: "assessment.areaArmsHands" },
+  { value: "Legs / Feet", labelKey: "assessment.areaLegsFeet" },
+  { value: "Joints", labelKey: "assessment.areaJoints" },
+  { value: "Other", labelKey: "assessment.areaOther" },
+];
+
   const [discomfortAreas, setDiscomfortAreas] = useState<string[]>([]);
   const [otherDiscomfort, setOtherDiscomfort] = useState("");
 
@@ -43,17 +66,17 @@ export default function Page4() {
 
   const handleNext = () => {
     if (!discomfort) {
-      alert("Please answer the question.");
+      alert(t("assessment.alertQuestion"));
       return;
     }
 
     if (discomfort === "yes" && discomfortAreas.length === 0) {
-      alert("Please select discomfort areas.");
+      alert(t("assessment.alertDiscomfortAreas"));
       return;
     }
 
     if (discomfortAreas.includes("Other") && !otherDiscomfort.trim()) {
-      alert("Please specify discomfort.");
+      alert(t("assessment.alertSpecifyDiscomfort"));
       return;
     }
 
@@ -74,11 +97,11 @@ export default function Page4() {
           border: "1px solid #ddd",
         }}
       >
-        <h2>Health Check For Today</h2>
+        <h2>{t("assessment.healthCheckToday")}</h2>
 
         <hr />
 
-        <h3>🤕 Did you feel any discomfort today?</h3>
+        <h3>🤕 {t("assessment.discomfortToday")}</h3>
 
         <button
           style={optionStyle(discomfort === "no")}
@@ -88,51 +111,43 @@ export default function Page4() {
             setOtherDiscomfort("");
           }}
         >
-          😊 No
+          😊 {t("common.no")}
         </button>
 
         <button
           style={optionStyle(discomfort === "yes")}
           onClick={() => setDiscomfort("yes")}
         >
-          😟 Yes
+          😟 {t("common.yes")}
         </button>
 
         {discomfort === "yes" && (
           <>
-            <h3>📍 Where did you feel discomfort?</h3>
+<h3>📍 {t("assessment.discomfortWhere")}</h3>
 
-            {[
-              "Head",
-              "Eyes",
-              "Ears",
-              "Neck",
-              "Chest",
-              "Back",
-              "Stomach",
-              "Arms / Hands",
-              "Legs / Feet",
-              "Joints",
-              "Other",
-            ].map((area) => (
-              <label
-                key={area}
-                style={{ display: "block", marginBottom: "10px" }}
-              >
-                <input
-                  type="checkbox"
-                  checked={discomfortAreas.includes(area)}
-                  onChange={() => toggleArea(area)}
-                />
-                {" "}{area}
-              </label>
-            ))}
+{discomfortAreaOptions.map((area) => (
+  <label
+    key={area.value}
+    style={{
+      display: "block",
+      marginBottom: "10px",
+    }}
+  >
+    <input
+      type="checkbox"
+      checked={discomfortAreas.includes(area.value)}
+      onChange={() => toggleArea(area.value)}
+    />
+    {" "}
+    {t(area.labelKey)}
+  </label>
+))}
 
             {discomfortAreas.includes("Other") && (
               <input
                 value={otherDiscomfort}
                 onChange={(e) => setOtherDiscomfort(e.target.value)}
-                placeholder="Describe discomfort"
+                placeholder={t("assessment.describeDiscomfort")}
                 style={{
                   width: "100%",
                   padding: "10px",
@@ -163,7 +178,7 @@ export default function Page4() {
       cursor: "pointer",
     }}
   >
-    ← Previous
+    ← {t("assessment.previous")}
   </button>
 
   <button
@@ -180,7 +195,7 @@ export default function Page4() {
       cursor: "pointer",
     }}
   >
-    Next →
+    {t("assessment.next")} →
   </button>
 </div>
       </div>

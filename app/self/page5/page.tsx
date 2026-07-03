@@ -4,8 +4,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AssessmentLayout from "@/Components/AssessmentLayout";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 export default function Page5() {
   const router = useRouter();
+
+const {
+  t,
+} = useLanguage();
 
   const [walking, setWalking] = useState("");
   const [walkingHelp, setWalkingHelp] = useState("");
@@ -38,17 +46,17 @@ export default function Page5() {
 
   const handleFinish = () => {
     if (!walking || !looseMotions) {
-      alert("Please answer all questions.");
+      alert(t("assessment.alertAllQuestions"));
       return;
     }
 
     if (showWalkingHelp && !walkingHelp) {
-      alert("Please answer walking help.");
+      alert(t("assessment.alertWalkingHelp"));
       return;
     }
 
     if (showLooseMotionType && !looseMotionType) {
-      alert("Please select loose motion type.");
+      alert(t("assessment.alertLooseMotionType"));
       return;
     }
 
@@ -70,11 +78,11 @@ export default function Page5() {
           border: "1px solid #ddd",
         }}
       >
-        <h2>Health Check For Today</h2>
+        <h2>{t("assessment.healthCheckToday")}</h2>
 
         <hr />
 
-        <h3>🚶 Are you able to walk today?</h3>
+        <h3>🚶 {t("assessment.walkingToday")}</h3>
 
         <button
           style={optionStyle(walking === "easy")}
@@ -83,44 +91,44 @@ export default function Page5() {
             setWalkingHelp("");
           }}
         >
-          😊 Easily
+          😊 {t("assessment.walkingEasily")}
         </button>
 
         <button
           style={optionStyle(walking === "some")}
           onClick={() => setWalking("some")}
         >
-          😐 Some Difficulty
+          😐 {t("assessment.walkingSomeDifficulty")}
         </button>
 
         <button
           style={optionStyle(walking === "difficult")}
           onClick={() => setWalking("difficult")}
         >
-          😟 Very Difficult
+          😟 {t("assessment.walkingVeryDifficult")}
         </button>
 
         {showWalkingHelp && (
           <>
-            <h3>🧍 Need help walking?</h3>
+            <h3>🧍 {t("assessment.needHelpWalking")}</h3>
 
             <button
               style={optionStyle(walkingHelp === "no")}
               onClick={() => setWalkingHelp("no")}
             >
-              😊 No
+              😊 {t("common.no")}
             </button>
 
             <button
               style={optionStyle(walkingHelp === "yes")}
               onClick={() => setWalkingHelp("yes")}
             >
-              😟 Yes
+              😟 {t("common.yes")}
             </button>
           </>
         )}
 
-        <h3>🚽 Loose motions today?</h3>
+        <h3>🚽 {t("assessment.looseMotionsToday")}</h3>
 
         <button
           style={optionStyle(looseMotions === "no")}
@@ -129,39 +137,39 @@ export default function Page5() {
             setLooseMotionType("");
           }}
         >
-          😊 No
+          😊 {t("common.no")}
         </button>
 
         <button
           style={optionStyle(looseMotions === "yes")}
           onClick={() => setLooseMotions("yes")}
         >
-          😟 Yes
+          😟 {t("common.yes")}
         </button>
 
         {showLooseMotionType && (
           <>
-            <h3>Type?</h3>
+            <h3>{t("assessment.looseMotionType")}</h3>
 
             <button
               style={optionStyle(looseMotionType === "watery")}
               onClick={() => setLooseMotionType("watery")}
             >
-              💧 Watery
+              💧 {t("assessment.looseMotionWatery")}
             </button>
 
             <button
               style={optionStyle(looseMotionType === "sticky")}
               onClick={() => setLooseMotionType("sticky")}
             >
-              😐 Sticky
+              😐 {t("assessment.looseMotionSticky")}
             </button>
 
             <button
               style={optionStyle(looseMotionType === "notsure")}
               onClick={() => setLooseMotionType("notsure")}
             >
-              🤔 Not Sure
+              🤔 {t("assessment.notSure")}
             </button>
           </>
         )}
@@ -174,7 +182,7 @@ export default function Page5() {
   }}
 >
   <button
-    onClick={() => router.push("/self")}
+    onClick={() => router.push("/self/page4")}
     style={{
       flex: 1,
       padding: "12px",
@@ -186,7 +194,7 @@ export default function Page5() {
       cursor: "pointer",
     }}
   >
-    ← Previous
+    ← {t("assessment.previous")}
   </button>
 
           <button
@@ -199,7 +207,7 @@ export default function Page5() {
               flex: 1,
             }}
           >
-            Finish Assessment ✓
+            {t("assessment.finishAssessment")} ✓
           </button>
         </div>
       </div>

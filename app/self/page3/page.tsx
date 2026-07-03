@@ -4,8 +4,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AssessmentLayout from "@/Components/AssessmentLayout";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 export default function Page3() {
   const router = useRouter();
+
+const {
+  t,
+} = useLanguage();
 
   const [appetite, setAppetite] = useState("");
   const [water, setWater] = useState("");
@@ -31,12 +39,12 @@ export default function Page3() {
 
   const handleNext = () => {
     if (!appetite || !water) {
-      alert("Please answer all questions.");
+      alert(t("assessment.alertAllQuestions"));
       return;
     }
 
     if (water === "yes" && !waterGlasses) {
-      alert("Please select water intake.");
+      alert(t("assessment.alertWaterIntake"));
       return;
     }
 
@@ -57,40 +65,40 @@ export default function Page3() {
           border: "1px solid #ddd",
         }}
       >
-        <h2>Health Check For Today</h2>
+        <h2>{t("assessment.healthCheckToday")}</h2>
 
         <hr />
 
-        <h3>🍽 How is your appetite today?</h3>
+        <h3>🍽 {t("assessment.appetiteToday")}</h3>
 
         <button
           style={optionStyle(appetite === "normal")}
           onClick={() => setAppetite("normal")}
         >
-          😊 Normal
+          😊 {t("assessment.appetiteNormal")}
         </button>
 
         <button
           style={optionStyle(appetite === "less")}
           onClick={() => setAppetite("less")}
         >
-          😐 Eating Less
+          😐 {t("assessment.appetiteLess")}
         </button>
 
         <button
           style={optionStyle(appetite === "poor")}
           onClick={() => setAppetite("poor")}
         >
-          😟 Hardly Eating
+          😟 {t("assessment.appetitePoor")}
         </button>
 
-        <h3>💧 Have you been drinking enough water?</h3>
+        <h3>💧 {t("assessment.drinkingEnoughWater")}</h3>
 
         <button
           style={optionStyle(water === "yes")}
           onClick={() => setWater("yes")}
         >
-          😊 Yes
+          😊 {t("common.yes")}
         </button>
 
         <button
@@ -100,7 +108,7 @@ export default function Page3() {
             setWaterGlasses("");
           }}
         >
-          😐 Not Sure
+          😐 {t("assessment.notSure")}
         </button>
 
         <button
@@ -110,22 +118,24 @@ export default function Page3() {
             setWaterGlasses("");
           }}
         >
-          😟 No
+          😟 {t("common.no")}
         </button>
 
         {water === "yes" && (
           <>
-            <h3>🥛 Water intake</h3>
+            <h3>🥛 {t("assessment.waterIntake")}</h3>
 
-            {["1", "2", "3", "4", "5+", "Not Sure"].map((glass) => (
-              <button
-                key={glass}
-                style={optionStyle(waterGlasses === glass)}
-                onClick={() => setWaterGlasses(glass)}
-              >
-                {glass}
-              </button>
-            ))}
+{["1", "2", "3", "4", "5+", "Not Sure"].map((glass) => (
+  <button
+    key={glass}
+    style={optionStyle(waterGlasses === glass)}
+    onClick={() => setWaterGlasses(glass)}
+  >
+    {glass === "Not Sure"
+      ? t("assessment.notSure")
+      : glass}
+  </button>
+))}
           </>
         )}
 
@@ -149,7 +159,7 @@ export default function Page3() {
       cursor: "pointer",
     }}
   >
-    ← Previous
+    ← {t("assessment.previous")}
   </button>
 
   <button
@@ -166,7 +176,7 @@ export default function Page3() {
       cursor: "pointer",
     }}
   >
-    Next →
+    {t("assessment.next")} →
   </button>
 </div>
       </div>

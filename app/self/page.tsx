@@ -4,16 +4,24 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AppHeader from "@/app/components/AppHeader";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 
 export default function SelfPage() {
   const router = useRouter();
+
+const {
+  t,
+} = useLanguage();
 
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
 
   const startAssessment = () => {
     if (!name || !age) {
-      alert("Please enter name and age");
+      alert(t("assessment.alertNameAndAge"));
       return;
     }
 
@@ -40,7 +48,7 @@ export default function SelfPage() {
         {/* ONLY APP NAME */}
 
 <AppHeader
-  pageTitle="Self Assessment"
+  pageTitle={t("assessment.selfAssessment")}
   pageIcon="👤"
 />
 
@@ -61,14 +69,14 @@ export default function SelfPage() {
               fontWeight: 700,
             }}
           >
-            Assessment Details
+            {t("assessment.assessmentDetails")}
           </h2>
 
-          <label>Your Name</label>
+          <label>{t("assessment.yourName")}</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your name"
+            placeholder={t("assessment.enterYourName")}
             style={{
               width: "100%",
               padding: "10px",
@@ -76,11 +84,11 @@ export default function SelfPage() {
             }}
           />
 
-          <label>Your Age</label>
+          <label>{t("assessment.yourAge")}</label>
           <input
             value={age}
             onChange={(e) => setAge(e.target.value)}
-            placeholder="Enter your age"
+            placeholder={t("assessment.enterYourAge")}
             type="number"
             style={{
               width: "100%",
@@ -100,7 +108,7 @@ export default function SelfPage() {
               fontWeight: "bold",
             }}
           >
-            Start Assessment →
+            {t("assessment.startAssessment")} →
           </button>
         </div>
       </div>

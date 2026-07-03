@@ -4,8 +4,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AssessmentLayout from "@/Components/AssessmentLayout";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 export default function SelfPage2() {
   const router = useRouter();
+
+const {
+  t,
+} = useLanguage();
 
   const [fever, setFever] = useState("");
   const [temperatureChecked, setTemperatureChecked] = useState("");
@@ -35,12 +43,12 @@ export default function SelfPage2() {
 
   const handleNext = () => {
     if (!fever) {
-      alert("Please answer whether you feel feverish.");
+      alert(t("assessment.alertFever"));
       return;
     }
 
     if (fever === "yes" && !temperatureChecked) {
-      alert("Please answer whether temperature was taken.");
+      alert(t("assessment.alertTemperatureTaken"));
       return;
     }
 
@@ -49,12 +57,12 @@ export default function SelfPage2() {
       temperatureChecked === "yes" &&
       !temperatureReading
     ) {
-      alert("Please enter temperature reading.");
+      alert(t("assessment.alertTemperatureReading"));
       return;
     }
 
     if (!energy) {
-      alert("Please select your energy level.");
+      alert(t("assessment.alertEnergy"));
       return;
     }
 
@@ -78,12 +86,12 @@ export default function SelfPage2() {
         }}
       >
         <h2 style={{ fontSize: "20px", marginBottom: "12px" }}>
-          Health Check for today
+          {t("assessment.healthCheckToday")}
         </h2>
 
         <hr />
 
-        <h3>🤒 Do you feel feverish today?</h3>
+        <h3>🤒 {t("assessment.feelFeverish")}</h3>
 
         <button
           style={optionStyle(fever === "no")}
@@ -93,25 +101,25 @@ export default function SelfPage2() {
             setTemperatureReading("");
           }}
         >
-          😊 No
+          😊 {t("common.no")}
         </button>
 
         <button
           style={optionStyle(fever === "yes")}
           onClick={() => setFever("yes")}
         >
-          😟 Yes
+          😟 {t("common.yes")}
         </button>
 
         {fever === "yes" && (
           <>
-            <h3>🌡 Was your temperature taken?</h3>
+            <h3>🌡 {t("assessment.temperatureTaken")}</h3>
 
             <button
               style={optionStyle(temperatureChecked === "yes")}
               onClick={() => setTemperatureChecked("yes")}
             >
-              😊 Yes
+              😊 {t("common.yes")}
             </button>
 
             <button
@@ -121,19 +129,19 @@ export default function SelfPage2() {
                 setTemperatureReading("");
               }}
             >
-              😐 No
+              😐 {t("common.no")}
             </button>
 
             {temperatureChecked === "yes" && (
               <>
-                <label>Latest temperature reading</label>
+                <label>{t("assessment.latestTemperature")}</label>
 
                 <input
                   type="number"
                   step="0.1"
                   value={temperatureReading}
                   onChange={(e) => setTemperatureReading(e.target.value)}
-                  placeholder="e.g. 101.4"
+                  placeholder={t("assessment.temperaturePlaceholder")}
                   style={{
                     width: "100%",
                     padding: "12px",
@@ -162,14 +170,14 @@ export default function SelfPage2() {
           </>
         )}
 
-        <h3>⚡ How is your energy today?</h3>
+        <h3>⚡ {t("assessment.energyToday")}</h3>
 
         {fever !== "yes" && (
           <button
             style={optionStyle(energy === "good")}
             onClick={() => setEnergy("good")}
           >
-            😊 Good
+            😊 {t("assessment.good")}
           </button>
         )}
 
@@ -177,14 +185,14 @@ export default function SelfPage2() {
           style={optionStyle(energy === "tired")}
           onClick={() => setEnergy("tired")}
         >
-          😐 Tired
+          😐 {t("assessment.tired")}
         </button>
 
         <button
           style={optionStyle(energy === "veryTired")}
           onClick={() => setEnergy("veryTired")}
         >
-          😟 Very Tired
+          😟 {t("assessment.veryTired")}
         </button>
 
         <div
@@ -207,7 +215,7 @@ export default function SelfPage2() {
       cursor: "pointer",
     }}
   >
-    ← Previous
+    ← {t("assessment.previous")}
   </button>
 
   <button
@@ -224,7 +232,7 @@ export default function SelfPage2() {
       cursor: "pointer",
     }}
   >
-    Next →
+    {t("assessment.next")} →
   </button>
 </div>
       </div>

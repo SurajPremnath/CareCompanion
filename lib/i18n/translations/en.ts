@@ -305,4 +305,202 @@ addPatient: {
     "Something went wrong while saving the patient.",
 },
 
+assessment: {
+  tagline:
+    "Simple daily care.\nBetter clinical conversations.",
+
+  selfAssessment:
+    "Self Assessment",
+
+  familyAssessment:
+    "Family Assessment",
+
+  page:
+    "Page",
+
+  of:
+    "of",
+
+  healthCheckToday:
+    "Health Check for today",
+
+  feelFeverish:
+    "Do you feel feverish today?",
+
+  temperatureTaken:
+    "Was your temperature taken?",
+
+  latestTemperature:
+    "Latest temperature reading",
+
+  temperaturePlaceholder:
+    "e.g. 101.4",
+
+  energyToday:
+    "How is your energy today?",
+
+  good:
+    "Good",
+
+  tired:
+    "Tired",
+
+  veryTired:
+    "Very Tired",
+
+  previous:
+    "Previous",
+
+  next:
+    "Next",
+
+  alertFever:
+    "Please answer whether you feel feverish.",
+
+  alertTemperatureTaken:
+    "Please answer whether temperature was taken.",
+
+  alertTemperatureReading:
+    "Please enter temperature reading.",
+
+  alertEnergy:
+    "Please select your energy level.",
+
+appetiteToday:
+  "How is your appetite today?",
+
+appetiteNormal:
+  "Normal",
+
+appetiteLess:
+  "Eating Less",
+
+appetitePoor:
+  "Hardly Eating",
+
+drinkingEnoughWater:
+  "Have you been drinking enough water?",
+
+notSure:
+  "Not Sure",
+
+waterIntake:
+  "Water intake",
+
+alertAllQuestions:
+  "Please answer all questions.",
+
+alertWaterIntake:
+  "Please select water intake.",
+
+discomfortToday:
+  "Did you feel any discomfort today?",
+
+discomfortWhere:
+  "Where did you feel discomfort?",
+
+areaHead:
+  "Head",
+
+areaEyes:
+  "Eyes",
+
+areaEars:
+  "Ears",
+
+areaNeck:
+  "Neck",
+
+areaChest:
+  "Chest",
+
+areaBack:
+  "Back",
+
+areaStomach:
+  "Stomach",
+
+areaArmsHands:
+  "Arms / Hands",
+
+areaLegsFeet:
+  "Legs / Feet",
+
+areaJoints:
+  "Joints",
+
+areaOther:
+  "Other",
+
+describeDiscomfort:
+  "Describe discomfort",
+
+alertQuestion:
+  "Please answer the question.",
+
+alertDiscomfortAreas:
+  "Please select discomfort areas.",
+
+alertSpecifyDiscomfort:
+  "Please specify discomfort.",
+
+walkingToday:
+  "Are you able to walk today?",
+
+walkingEasily:
+  "Easily",
+
+walkingSomeDifficulty:
+  "Some Difficulty",
+
+walkingVeryDifficult:
+  "Very Difficult",
+
+needHelpWalking:
+  "Need help walking?",
+
+looseMotionsToday:
+  "Loose motions today?",
+
+looseMotionType:
+  "Type?",
+
+looseMotionWatery:
+  "Watery",
+
+looseMotionSticky:
+  "Sticky",
+
+finishAssessment:
+  "Finish Assessment",
+
+alertWalkingHelp:
+  "Please answer walking help.",
+
+alertLooseMotionType:
+  "Please select loose motion type.",
+
+assessmentDetails:
+  "Assessment Details",
+
+yourName:
+  "Your Name",
+
+enterYourName:
+  "Enter your name",
+
+yourAge:
+  "Your Age",
+
+enterYourAge:
+  "Enter your age",
+
+startAssessment:
+  "Start Assessment",
+
+alertNameAndAge:
+  "Please enter name and age",
+
+},
+
 };
