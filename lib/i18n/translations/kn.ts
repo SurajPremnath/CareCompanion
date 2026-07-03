@@ -204,4 +204,47 @@ familyMember:
       "ನಾಡಿ ಬಡಿತ",
   },
 
+dashboard: {
+
+  title:
+    "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+
+  dailyCareSection:
+    "ದೈನಂದಿನ ಆರೈಕೆ",
+
+  dailyCare:
+    "ದೈನಂದಿನ ಆರೈಕೆ",
+
+  helpCentre:
+    "ಸಹಾಯ ಕೇಂದ್ರ",
+
+  assessmentSection:
+    "ಆರೋಗ್ಯ ಮೌಲ್ಯಮಾಪನ",
+
+  familyAssessment:
+    "ಕುಟುಂಬದ ಆರೋಗ್ಯ ಮೌಲ್ಯಮಾಪನ",
+
+  selfAssessment:
+    "ಸ್ವಯಂ ಆರೋಗ್ಯ ಮೌಲ್ಯಮಾಪನ",
+
+  patientManagement:
+    "ರೋಗಿಯ ನಿರ್ವಹಣೆ",
+
+  addPatient:
+    "ರೋಗಿಯನ್ನು ಸೇರಿಸಿ",
+
+  reports:
+    "ವರದಿಗಳು",
+
+  logout:
+    "ಲಾಗ್ ಔಟ್",
+
+  loading:
+    "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+
+  createdBy:
+    "ಸೂರಜ್ ಪ್ರೇಮ್‌ನಾಥ್ ಅವರಿಂದ ರಚಿಸಲಾಗಿದೆ",
+
+},
+
 };

@@ -207,4 +207,47 @@ familyMember:
       "పల్స్",
   },
 
+dashboard: {
+
+  title:
+    "డ్యాష్‌బోర్డ్",
+
+  dailyCareSection:
+    "రోజువారీ సంరక్షణ",
+
+  dailyCare:
+    "రోజువారీ సంరక్షణ",
+
+  helpCentre:
+    "సహాయ కేంద్రం",
+
+  assessmentSection:
+    "ఆరోగ్య అంచనా",
+
+  familyAssessment:
+    "కుటుంబ ఆరోగ్య అంచనా",
+
+  selfAssessment:
+    "స్వీయ ఆరోగ్య అంచనా",
+
+  patientManagement:
+    "రోగి నిర్వహణ",
+
+  addPatient:
+    "రోగిని జోడించండి",
+
+  reports:
+    "నివేదికలు",
+
+  logout:
+    "లాగ్ అవుట్",
+
+  loading:
+    "డ్యాష్‌బోర్డ్ లోడ్ అవుతోంది...",
+
+  createdBy:
+    "సూరజ్ ప్రేమ్‌నాథ్ రూపొందించారు",
+
+},
+
 };

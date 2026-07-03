@@ -207,5 +207,47 @@ familyMember:
     pulse:
       "পালস",
   },
+dashboard: {
+
+  title:
+    "ড্যাশবোর্ড",
+
+  dailyCareSection:
+    "দৈনিক যত্ন",
+
+  dailyCare:
+    "দৈনিক যত্ন",
+
+  helpCentre:
+    "সহায়তা কেন্দ্র",
+
+  assessmentSection:
+    "স্বাস্থ্য মূল্যায়ন",
+
+  familyAssessment:
+    "পরিবারের স্বাস্থ্য মূল্যায়ন",
+
+  selfAssessment:
+    "নিজের স্বাস্থ্য মূল্যায়ন",
+
+  patientManagement:
+    "রোগী ব্যবস্থাপনা",
+
+  addPatient:
+    "রোগী যোগ করুন",
+
+  reports:
+    "রিপোর্ট",
+
+  logout:
+    "লগ আউট",
+
+  loading:
+    "ড্যাশবোর্ড লোড হচ্ছে...",
+
+  createdBy:
+    "সুরজ প্রেমনাথ দ্বারা নির্মিত",
+
+},
 
 };

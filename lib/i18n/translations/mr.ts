@@ -207,5 +207,47 @@ familyMember:
     pulse:
       "नाडी",
   },
+dashboard: {
+
+  title:
+    "डॅशबोर्ड",
+
+  dailyCareSection:
+    "दैनंदिन काळजी",
+
+  dailyCare:
+    "दैनंदिन काळजी",
+
+  helpCentre:
+    "मदत केंद्र",
+
+  assessmentSection:
+    "आरोग्य मूल्यांकन",
+
+  familyAssessment:
+    "कुटुंबाचे आरोग्य मूल्यांकन",
+
+  selfAssessment:
+    "स्वतःचे आरोग्य मूल्यांकन",
+
+  patientManagement:
+    "रुग्ण व्यवस्थापन",
+
+  addPatient:
+    "रुग्ण जोडा",
+
+  reports:
+    "अहवाल",
+
+  logout:
+    "लॉग आउट",
+
+  loading:
+    "डॅशबोर्ड लोड होत आहे...",
+
+  createdBy:
+    "सूरज प्रेमनाथ यांनी तयार केले",
+
+},
 
 };

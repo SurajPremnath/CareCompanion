@@ -442,7 +442,7 @@ if (
 ) {
 
   AppAlert.error(
-    t("alerts.medicalImageReadFailed")
+    t("alerts.invalidMedicalImage")
   );
 
   clearImageReadings();
@@ -506,7 +506,7 @@ setImageReadSuccessful(
 );
 
     AppAlert.success(
-      t("alerts.medicalImageReadSuccess")
+      t("alerts.imageReadSuccess")
     );
 
   }
@@ -518,7 +518,7 @@ setImageReadSuccessful(
     );
 
 AppAlert.error(
-  t("alerts.medicalImageProcessFailed")
+  t("alerts.imageProcessingFailed")
 );
 
 clearImageReadings();

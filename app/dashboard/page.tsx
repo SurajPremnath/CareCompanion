@@ -10,6 +10,10 @@ import AppHeader from "@/app/components/AppHeader";
 
 import LanguageSelector from "@/Components/language/LanguageSelector";
 
+import {
+    useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 type DashboardUser = {
     id: string;
     fullName: string;
@@ -19,6 +23,10 @@ type DashboardUser = {
 export default function DashboardPage() {
 
     const router = useRouter();
+
+const {
+        t,
+    } = useLanguage();
 
     const [user, setUser] =
         useState<DashboardUser | null>(null);
@@ -194,7 +202,7 @@ const openDailyCare = () => {
                 }}
             >
 
-                Loading Dashboard...
+                {t("dashboard.loading")}
 
             </main>
 
@@ -232,7 +240,7 @@ const openDailyCare = () => {
             >
 
 <AppHeader
-    pageTitle="Dashboard"
+    pageTitle={t("dashboard.title")}
     pageIcon="🏠"
     currentUserName={user.fullName}
 />
@@ -259,7 +267,7 @@ const openDailyCare = () => {
         color: "#111827",
     }}
 >
-    🌡 Daily Care
+    🌡 {t("dashboard.dailyCare")}
 </h3>
 
 <div
@@ -277,7 +285,7 @@ const openDailyCare = () => {
     >
         ❤️
         <br />
-        Daily Care
+        {t("dashboard.dailyCare")}
     </button>
 
     <button
@@ -286,7 +294,7 @@ const openDailyCare = () => {
     >
         ❓
         <br />
-        Help Centre
+        {t("dashboard.helpCentre")}
     </button>
 
 </div>
@@ -299,7 +307,7 @@ const openDailyCare = () => {
         color: "#111827",
     }}
 >
-    🩺 Assessment
+    🩺 {t("dashboard.assessmentSection")}
 </h3>
 
 <div
@@ -317,7 +325,7 @@ const openDailyCare = () => {
     >
         👨‍👩‍👧
         <br />
-        Family Assessment
+        {t("dashboard.familyAssessment")}
     </button>
 
     <button
@@ -326,7 +334,7 @@ const openDailyCare = () => {
     >
         🧍
         <br />
-        Self Assessment
+        {t("dashboard.selfAssessment")}
     </button>
 
 </div>
@@ -340,7 +348,7 @@ const openDailyCare = () => {
         color: "#111827",
     }}
 >
-    📁 Patient Management
+    📁 {t("dashboard.patientManagement")}
 </h3>
 
 <div
@@ -360,7 +368,7 @@ const openDailyCare = () => {
     >
         ➕
         <br />
-        Add Patient
+        {t("dashboard.addPatient")}
     </button>
 
     <button
@@ -371,7 +379,7 @@ const openDailyCare = () => {
     >
         📄
         <br />
-        Reports
+        {t("dashboard.reports")}
     </button>
 
 </div>
@@ -391,7 +399,7 @@ const openDailyCare = () => {
                         color: "#6b7280",
                     }}
                 >
-                    Created by Suraj Premnath
+                    {t("dashboard.createdBy")}
                 </div>
 
             </div>

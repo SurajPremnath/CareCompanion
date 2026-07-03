@@ -207,5 +207,47 @@ familyMember:
     pulse:
       "நாடித் துடிப்பு",
   },
+dashboard: {
+
+  title:
+    "டாஷ்போர்டு",
+
+  dailyCareSection:
+    "தினசரி பராமரிப்பு",
+
+  dailyCare:
+    "தினசரி பராமரிப்பு",
+
+  helpCentre:
+    "உதவி மையம்",
+
+  assessmentSection:
+    "உடல்நல மதிப்பீடு",
+
+  familyAssessment:
+    "குடும்ப உடல்நல மதிப்பீடு",
+
+  selfAssessment:
+    "சுய உடல்நல மதிப்பீடு",
+
+  patientManagement:
+    "நோயாளி மேலாண்மை",
+
+  addPatient:
+    "நோயாளியைச் சேர்க்கவும்",
+
+  reports:
+    "அறிக்கைகள்",
+
+  logout:
+    "வெளியேறு",
+
+  loading:
+    "டாஷ்போர்டு ஏற்றப்படுகிறது...",
+
+  createdBy:
+    "சூரஜ் பிரேம்நாத் உருவாக்கியது",
+
+},
 
 };

@@ -206,5 +206,47 @@ familyMember:
     pulse:
       "പൾസ്",
   },
+dashboard: {
+
+  title:
+    "ഡാഷ്‌ബോർഡ്",
+
+  dailyCareSection:
+    "ദൈനംദിന പരിചരണം",
+
+  dailyCare:
+    "ദൈനംദിന പരിചരണം",
+
+  helpCentre:
+    "സഹായ കേന്ദ്രം",
+
+  assessmentSection:
+    "ആരോഗ്യ വിലയിരുത്തൽ",
+
+  familyAssessment:
+    "കുടുംബ ആരോഗ്യ വിലയിരുത്തൽ",
+
+  selfAssessment:
+    "സ്വയം ആരോഗ്യ വിലയിരുത്തൽ",
+
+  patientManagement:
+    "രോഗി മാനേജ്മെന്റ്",
+
+  addPatient:
+    "രോഗിയെ ചേർക്കുക",
+
+  reports:
+    "റിപ്പോർട്ടുകൾ",
+
+  logout:
+    "ലോഗ് ഔട്ട്",
+
+  loading:
+    "ഡാഷ്‌ബോർഡ് ലോഡ് ചെയ്യുന്നു...",
+
+  createdBy:
+    "സൂരജ് പ്രേംനാഥ് സൃഷ്ടിച്ചത്",
+
+},
 
 };

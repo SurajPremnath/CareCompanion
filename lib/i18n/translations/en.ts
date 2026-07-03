@@ -215,4 +215,47 @@ familyMember:
       "Pulse",
   },
 
+dashboard: {
+
+    title:
+        "Dashboard",
+
+    dailyCareSection:
+        "Daily Care",
+
+    dailyCare:
+        "Daily Care",
+
+    helpCentre:
+        "Help Centre",
+
+    assessmentSection:
+        "Assessment",
+
+    familyAssessment:
+        "Family Assessment",
+
+    selfAssessment:
+        "Self Assessment",
+
+    patientManagement:
+        "Patient Management",
+
+    addPatient:
+        "Add Patient",
+
+    reports:
+        "Reports",
+
+    logout:
+        "Logout",
+
+    loading:
+        "Loading Dashboard...",
+
+    createdBy:
+        "Created by Suraj Premnath",
+
+},
+
 };

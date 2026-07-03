@@ -203,5 +203,47 @@ familyMember:
     pulse:
       "नाड़ी",
   },
+dashboard: {
+
+  title:
+    "डैशबोर्ड",
+
+  dailyCareSection:
+    "दैनिक देखभाल",
+
+  dailyCare:
+    "दैनिक देखभाल",
+
+  helpCentre:
+    "सहायता केंद्र",
+
+  assessmentSection:
+    "स्वास्थ्य आकलन",
+
+  familyAssessment:
+    "परिवार का स्वास्थ्य आकलन",
+
+  selfAssessment:
+    "स्वयं का स्वास्थ्य आकलन",
+
+  patientManagement:
+    "रोगी प्रबंधन",
+
+  addPatient:
+    "रोगी जोड़ें",
+
+  reports:
+    "रिपोर्ट",
+
+  logout:
+    "लॉग आउट",
+
+  loading:
+    "डैशबोर्ड लोड हो रहा है...",
+
+  createdBy:
+    "सूरज प्रेमनाथ द्वारा निर्मित",
+
+},
 
 };
