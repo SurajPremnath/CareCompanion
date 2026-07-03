@@ -8,10 +8,17 @@ import { patientStorage } from "@/lib/storage/patientStorage";
 import AppHeader from "@/app/components/AppHeader";
 import { AppAlert } from "@/lib/utils/appAlert";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 export default function AddPatientPage() {
 
   const router = useRouter();
 
+const {
+  t,
+} = useLanguage();
   //------------------------------------------------------------
   // Page State
   //------------------------------------------------------------
@@ -128,10 +135,10 @@ export default function AddPatientPage() {
       }
 
       return age >= 0
-        ? `${age} Years`
+        ? `${age} ${t("addPatient.years")}`
         : "";
 
-    }, [dateOfBirth]);
+    }, [dateOfBirth, t]);
 
   //------------------------------------------------------------
   // Save Patient
@@ -177,7 +184,7 @@ export default function AddPatientPage() {
 
   result.error ??
 
-  "Unable to save patient."
+  t("addPatient.saveFailed")
 
 );
 
@@ -186,7 +193,7 @@ export default function AddPatientPage() {
 }
 
 AppAlert.success(
-  "Patient added successfully."
+  t("addPatient.saveSuccess")
 );
 
         router.push("/dashboard");
@@ -196,7 +203,7 @@ AppAlert.success(
 
         AppAlert.error(
 
-  "Something went wrong while saving the patient."
+  t("addPatient.unexpectedError")
 
 );
 
@@ -223,7 +230,7 @@ AppAlert.success(
 
         <h2>
 
-          Loading...
+          {t("addPatient.loading")}
 
         </h2>
 
@@ -259,18 +266,18 @@ AppAlert.success(
       >
 
 <AppHeader
-  pageTitle="Add Patient"
+  pageTitle={t("addPatient.title")}
   pageIcon="➕"
   currentUserName={currentUserName}
 />
 
         <label style={labelStyle}>
-          Full Name *
+          {t("addPatient.fullName")} *
         </label>
 
         <input
           type="text"
-          placeholder="Enter patient's full name"
+          placeholder={t("addPatient.fullNamePlaceholder")}
           value={fullName}
           onChange={(e) =>
             setFullName(e.target.value)
@@ -279,7 +286,7 @@ AppAlert.success(
         />
 
         <label style={labelStyle}>
-          Date of Birth *
+          {t("addPatient.dateOfBirth")} *
         </label>
 
         <input
@@ -300,12 +307,12 @@ AppAlert.success(
               fontWeight: 600,
             }}
           >
-            Age : {calculatedAge}
+            {t("addPatient.age")} : {calculatedAge}
           </div>
         )}
 
         <label style={labelStyle}>
-          Gender *
+          {t("addPatient.gender")} *
         </label>
 
         <select
@@ -315,29 +322,29 @@ AppAlert.success(
           }
           style={inputStyle}
         >
-          <option value="">
-            Select Gender
-          </option>
+<option value="">
+  {t("addPatient.selectGender")}
+</option>
 
-          <option value="Male">
-            Male
-          </option>
+<option value="Male">
+  {t("addPatient.male")}
+</option>
 
-          <option value="Female">
-            Female
-          </option>
+<option value="Female">
+  {t("addPatient.female")}
+</option>
 
-          <option value="Other">
-            Other
-          </option>
+<option value="Other">
+  {t("addPatient.other")}
+</option>
 
-          <option value="Prefer not to say">
-            Prefer not to say
-          </option>
-        </select>
+<option value="Prefer not to say">
+  {t("addPatient.preferNotToSay")}
+</option>
 
+</select>
         <label style={labelStyle}>
-          Relationship *
+          {t("addPatient.relationship")} *
         </label>
 
         <select
@@ -347,37 +354,65 @@ AppAlert.success(
           }
           style={inputStyle}
         >
-          <option value="">
-            Select Relationship
-          </option>
+<option value="">
+  {t("addPatient.selectRelationship")}
+</option>
 
-          <option>Father</option>
+<option value="Father">
+  {t("addPatient.father")}
+</option>
 
-          <option>Mother</option>
+<option value="Mother">
+  {t("addPatient.mother")}
+</option>
 
-          <option>Spouse</option>
+<option value="Spouse">
+  {t("addPatient.spouse")}
+</option>
 
-          <option>Brother</option>
+<option value="Brother">
+  {t("addPatient.brother")}
+</option>
 
-          <option>Sister</option>
+<option value="Sister">
+  {t("addPatient.sister")}
+</option>
 
-          <option>Son</option>
+<option value="Son">
+  {t("addPatient.son")}
+</option>
 
-          <option>Daughter</option>
+<option value="Daughter">
+  {t("addPatient.daughter")}
+</option>
 
-          <option>Grandfather</option>
+<option value="Grandfather">
+  {t("addPatient.grandfather")}
+</option>
 
-          <option>Grandmother</option>
+<option value="Grandmother">
+  {t("addPatient.grandmother")}
+</option>
 
-          <option>Uncle</option>
+<option value="Uncle">
+  {t("addPatient.uncle")}
+</option>
 
-          <option>Aunt</option>
+<option value="Aunt">
+  {t("addPatient.aunt")}
+</option>
 
-          <option>Friend</option>
+<option value="Friend">
+  {t("addPatient.friend")}
+</option>
 
-          <option>Neighbour</option>
+<option value="Neighbour">
+  {t("addPatient.neighbour")}
+</option>
 
-          <option>Other</option>
+<option value="Other">
+  {t("addPatient.other")}
+</option>
 
         </select>
 
@@ -395,8 +430,8 @@ AppAlert.success(
           }}
         >
           {saving
-            ? "Saving Patient..."
-            : "💾 Save Patient"}
+  ? t("addPatient.savingPatient")
+  : `💾 ${t("addPatient.savePatient")}`}
         </button>
 
         <button
@@ -406,7 +441,7 @@ AppAlert.success(
           disabled={saving}
           style={secondaryButton}
         >
-          ← Back To Dashboard
+          ← {t("addPatient.backToDashboard")}
         </button>
 
         <div
@@ -417,7 +452,7 @@ AppAlert.success(
             fontSize: "12px",
           }}
         >
-          Created by Suraj Premnath
+          {t("addPatient.createdBy")}
         </div>
 
     </div>

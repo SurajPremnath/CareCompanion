@@ -267,7 +267,7 @@ const openDailyCare = () => {
         color: "#111827",
     }}
 >
-    🌡 {t("dashboard.dailyCare")}
+    🌡 {t("dashboard.dailyCareSection")}
 </h3>
 
 <div
@@ -388,7 +388,7 @@ const openDailyCare = () => {
                     onClick={logout}
                     style={logoutButton}
                 >
-                    🚪 Logout
+                    🚪 {t("dashboard.logout")}
                 </button>
 
                 <div

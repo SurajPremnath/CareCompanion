@@ -249,4 +249,51 @@ dashboard: {
 
 },
 
+addPatient: {
+  title: "രോഗിയെ ചേർക്കുക",
+  loading: "ലോഡ് ചെയ്യുന്നു...",
+
+  fullName: "പൂർണ്ണ പേര്",
+  fullNamePlaceholder: "രോഗിയുടെ പൂർണ്ണ പേര് നൽകുക",
+
+  dateOfBirth: "ജനന തീയതി",
+  age: "പ്രായം",
+  years: "വയസ്സ്",
+
+  gender: "ലിംഗം",
+  selectGender: "ലിംഗം തിരഞ്ഞെടുക്കുക",
+  male: "പുരുഷൻ",
+  female: "സ്ത്രീ",
+  other: "മറ്റുള്ളവ",
+  preferNotToSay: "പറയാൻ താൽപര്യമില്ല",
+
+  relationship: "ബന്ധം",
+  selectRelationship: "ബന്ധം തിരഞ്ഞെടുക്കുക",
+
+  father: "അച്ഛൻ",
+  mother: "അമ്മ",
+  spouse: "ജീവിത പങ്കാളി",
+  brother: "സഹോദരൻ",
+  sister: "സഹോദരി",
+  son: "മകൻ",
+  daughter: "മകൾ",
+  grandfather: "മുത്തച്ഛൻ",
+  grandmother: "മുത്തശ്ശി",
+  uncle: "അമ്മാവൻ",
+  aunt: "അമ്മായി",
+  friend: "സുഹൃത്ത്",
+  neighbour: "അയൽവാസി",
+
+  savingPatient: "രോഗിയുടെ വിവരങ്ങൾ സേവ് ചെയ്യുന്നു...",
+  savePatient: "രോഗിയെ സേവ് ചെയ്യുക",
+  backToDashboard: "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക",
+
+  createdBy: "സൂരജ് പ്രേംനാഥ് സൃഷ്ടിച്ചത്",
+
+  saveFailed: "രോഗിയുടെ വിവരങ്ങൾ സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല.",
+  saveSuccess: "രോഗിയെ വിജയകരമായി ചേർത്തു.",
+  unexpectedError:
+    "രോഗിയുടെ വിവരങ്ങൾ സേവ് ചെയ്യുന്നതിനിടെ ഒരു പ്രശ്നം സംഭവിച്ചു.",
+},
+
 };

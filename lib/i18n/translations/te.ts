@@ -250,4 +250,51 @@ dashboard: {
 
 },
 
+addPatient: {
+  title: "రోగిని జోడించండి",
+  loading: "లోడ్ అవుతోంది...",
+
+  fullName: "పూర్తి పేరు",
+  fullNamePlaceholder: "రోగి పూర్తి పేరును నమోదు చేయండి",
+
+  dateOfBirth: "పుట్టిన తేదీ",
+  age: "వయస్సు",
+  years: "సంవత్సరాలు",
+
+  gender: "లింగం",
+  selectGender: "లింగాన్ని ఎంచుకోండి",
+  male: "పురుషుడు",
+  female: "స్త్రీ",
+  other: "ఇతర",
+  preferNotToSay: "చెప్పడానికి ఇష్టపడను",
+
+  relationship: "సంబంధం",
+  selectRelationship: "సంబంధాన్ని ఎంచుకోండి",
+
+  father: "తండ్రి",
+  mother: "తల్లి",
+  spouse: "జీవిత భాగస్వామి",
+  brother: "సోదరుడు",
+  sister: "సోదరి",
+  son: "కుమారుడు",
+  daughter: "కుమార్తె",
+  grandfather: "తాత",
+  grandmother: "అమ్మమ్మ / నానమ్మ",
+  uncle: "మామ / బాబాయి",
+  aunt: "అత్త / పిన్ని",
+  friend: "స్నేహితుడు",
+  neighbour: "పొరుగువారు",
+
+  savingPatient: "రోగి సమాచారాన్ని సేవ్ చేస్తోంది...",
+  savePatient: "రోగిని సేవ్ చేయండి",
+  backToDashboard: "డ్యాష్‌బోర్డ్‌కు తిరిగి వెళ్లండి",
+
+  createdBy: "సూరజ్ ప్రేమ్‌నాథ్ రూపొందించారు",
+
+  saveFailed: "రోగి సమాచారాన్ని సేవ్ చేయలేకపోయాం.",
+  saveSuccess: "రోగి విజయవంతంగా జోడించబడ్డారు.",
+  unexpectedError:
+    "రోగి సమాచారాన్ని సేవ్ చేస్తున్నప్పుడు సమస్య ఏర్పడింది.",
+},
+
 };

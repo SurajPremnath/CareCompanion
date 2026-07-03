@@ -246,4 +246,51 @@ dashboard: {
 
 },
 
+addPatient: {
+  title: "रोगी जोड़ें",
+  loading: "लोड हो रहा है...",
+
+  fullName: "पूरा नाम",
+  fullNamePlaceholder: "रोगी का पूरा नाम दर्ज करें",
+
+  dateOfBirth: "जन्म तिथि",
+  age: "आयु",
+  years: "वर्ष",
+
+  gender: "लिंग",
+  selectGender: "लिंग चुनें",
+  male: "पुरुष",
+  female: "महिला",
+  other: "अन्य",
+  preferNotToSay: "बताना नहीं चाहते",
+
+  relationship: "रिश्ता",
+  selectRelationship: "रिश्ता चुनें",
+
+  father: "पिता",
+  mother: "माता",
+  spouse: "जीवनसाथी",
+  brother: "भाई",
+  sister: "बहन",
+  son: "बेटा",
+  daughter: "बेटी",
+  grandfather: "दादा / नाना",
+  grandmother: "दादी / नानी",
+  uncle: "चाचा / मामा",
+  aunt: "चाची / मामी",
+  friend: "मित्र",
+  neighbour: "पड़ोसी",
+
+  savingPatient: "रोगी की जानकारी सहेजी जा रही है...",
+  savePatient: "रोगी को सहेजें",
+  backToDashboard: "डैशबोर्ड पर वापस जाएँ",
+
+  createdBy: "सूरज प्रेमनाथ द्वारा निर्मित",
+
+  saveFailed: "रोगी की जानकारी सहेजी नहीं जा सकी।",
+  saveSuccess: "रोगी सफलतापूर्वक जोड़ा गया।",
+  unexpectedError:
+    "रोगी की जानकारी सहेजते समय कुछ गलत हो गया।",
+},
+
 };

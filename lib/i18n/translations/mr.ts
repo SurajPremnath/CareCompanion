@@ -250,4 +250,51 @@ dashboard: {
 
 },
 
+addPatient: {
+  title: "रुग्ण जोडा",
+  loading: "लोड होत आहे...",
+
+  fullName: "पूर्ण नाव",
+  fullNamePlaceholder: "रुग्णाचे पूर्ण नाव नोंदवा",
+
+  dateOfBirth: "जन्मतारीख",
+  age: "वय",
+  years: "वर्षे",
+
+  gender: "लिंग",
+  selectGender: "लिंग निवडा",
+  male: "पुरुष",
+  female: "महिला",
+  other: "इतर",
+  preferNotToSay: "सांगू इच्छित नाही",
+
+  relationship: "नाते",
+  selectRelationship: "नाते निवडा",
+
+  father: "वडील",
+  mother: "आई",
+  spouse: "जोडीदार",
+  brother: "भाऊ",
+  sister: "बहीण",
+  son: "मुलगा",
+  daughter: "मुलगी",
+  grandfather: "आजोबा",
+  grandmother: "आजी",
+  uncle: "काका / मामा",
+  aunt: "काकू / मावशी",
+  friend: "मित्र",
+  neighbour: "शेजारी",
+
+  savingPatient: "रुग्णाची माहिती जतन होत आहे...",
+  savePatient: "रुग्णाची माहिती जतन करा",
+  backToDashboard: "डॅशबोर्डवर परत जा",
+
+  createdBy: "सूरज प्रेमनाथ यांनी तयार केले",
+
+  saveFailed: "रुग्णाची माहिती जतन करता आली नाही.",
+  saveSuccess: "रुग्ण यशस्वीपणे जोडला गेला.",
+  unexpectedError:
+    "रुग्णाची माहिती जतन करताना काहीतरी चूक झाली.",
+},
+
 };

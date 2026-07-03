@@ -250,4 +250,51 @@ dashboard: {
 
 },
 
+addPatient: {
+  title: "நோயாளியைச் சேர்க்கவும்",
+  loading: "ஏற்றப்படுகிறது...",
+
+  fullName: "முழுப் பெயர்",
+  fullNamePlaceholder: "நோயாளியின் முழுப் பெயரை உள்ளிடவும்",
+
+  dateOfBirth: "பிறந்த தேதி",
+  age: "வயது",
+  years: "ஆண்டுகள்",
+
+  gender: "பாலினம்",
+  selectGender: "பாலினத்தைத் தேர்ந்தெடுக்கவும்",
+  male: "ஆண்",
+  female: "பெண்",
+  other: "மற்றவை",
+  preferNotToSay: "கூற விரும்பவில்லை",
+
+  relationship: "உறவு",
+  selectRelationship: "உறவைத் தேர்ந்தெடுக்கவும்",
+
+  father: "தந்தை",
+  mother: "தாய்",
+  spouse: "வாழ்க்கைத் துணை",
+  brother: "சகோதரர்",
+  sister: "சகோதரி",
+  son: "மகன்",
+  daughter: "மகள்",
+  grandfather: "தாத்தா",
+  grandmother: "பாட்டி",
+  uncle: "மாமா / சித்தப்பா",
+  aunt: "அத்தை / சித்தி",
+  friend: "நண்பர்",
+  neighbour: "அயல்வாசி",
+
+  savingPatient: "நோயாளியின் தகவல்கள் சேமிக்கப்படுகின்றன...",
+  savePatient: "நோயாளியைச் சேமிக்கவும்",
+  backToDashboard: "டாஷ்போர்டுக்கு திரும்பவும்",
+
+  createdBy: "சூரஜ் பிரேம்நாத் உருவாக்கியது",
+
+  saveFailed: "நோயாளியின் தகவல்களைச் சேமிக்க முடியவில்லை.",
+  saveSuccess: "நோயாளி வெற்றிகரமாகச் சேர்க்கப்பட்டார்.",
+  unexpectedError:
+    "நோயாளியின் தகவல்களைச் சேமிக்கும் போது சிக்கல் ஏற்பட்டது.",
+},
+
 };

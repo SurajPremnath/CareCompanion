@@ -247,4 +247,51 @@ dashboard: {
 
 },
 
+addPatient: {
+  title: "ರೋಗಿಯನ್ನು ಸೇರಿಸಿ",
+  loading: "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+
+  fullName: "ಪೂರ್ಣ ಹೆಸರು",
+  fullNamePlaceholder: "ರೋಗಿಯ ಪೂರ್ಣ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+
+  dateOfBirth: "ಜನ್ಮ ದಿನಾಂಕ",
+  age: "ವಯಸ್ಸು",
+  years: "ವರ್ಷಗಳು",
+
+  gender: "ಲಿಂಗ",
+  selectGender: "ಲಿಂಗವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  male: "ಪುರುಷ",
+  female: "ಮಹಿಳೆ",
+  other: "ಇತರೆ",
+  preferNotToSay: "ಹೇಳಲು ಇಷ್ಟವಿಲ್ಲ",
+
+  relationship: "ಸಂಬಂಧ",
+  selectRelationship: "ಸಂಬಂಧವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+
+  father: "ತಂದೆ",
+  mother: "ತಾಯಿ",
+  spouse: "ಜೀವನ ಸಂಗಾತಿ",
+  brother: "ಸಹೋದರ",
+  sister: "ಸಹೋದರಿ",
+  son: "ಮಗ",
+  daughter: "ಮಗಳು",
+  grandfather: "ಅಜ್ಜ",
+  grandmother: "ಅಜ್ಜಿ",
+  uncle: "ಚಿಕ್ಕಪ್ಪ / ಮಾವ",
+  aunt: "ಚಿಕ್ಕಮ್ಮ / ಅತ್ತೆ",
+  friend: "ಸ್ನೇಹಿತ",
+  neighbour: "ನೆರೆಹೊರೆಯವರು",
+
+  savingPatient: "ರೋಗಿಯ ಮಾಹಿತಿಯನ್ನು ಉಳಿಸಲಾಗುತ್ತಿದೆ...",
+  savePatient: "ರೋಗಿಯನ್ನು ಉಳಿಸಿ",
+  backToDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
+
+  createdBy: "ಸೂರಜ್ ಪ್ರೇಮ್‌ನಾಥ್ ಅವರಿಂದ ರಚಿಸಲಾಗಿದೆ",
+
+  saveFailed: "ರೋಗಿಯ ಮಾಹಿತಿಯನ್ನು ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
+  saveSuccess: "ರೋಗಿಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ.",
+  unexpectedError:
+    "ರೋಗಿಯ ಮಾಹಿತಿಯನ್ನು ಉಳಿಸುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ.",
+},
+
 };

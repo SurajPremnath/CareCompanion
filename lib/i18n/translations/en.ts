@@ -258,4 +258,51 @@ dashboard: {
 
 },
 
+addPatient: {
+  title: "Add Patient",
+  loading: "Loading...",
+
+  fullName: "Full Name",
+  fullNamePlaceholder: "Enter patient's full name",
+
+  dateOfBirth: "Date of Birth",
+  age: "Age",
+  years: "Years",
+
+  gender: "Gender",
+  selectGender: "Select Gender",
+  male: "Male",
+  female: "Female",
+  other: "Other",
+  preferNotToSay: "Prefer not to say",
+
+  relationship: "Relationship",
+  selectRelationship: "Select Relationship",
+
+  father: "Father",
+  mother: "Mother",
+  spouse: "Spouse",
+  brother: "Brother",
+  sister: "Sister",
+  son: "Son",
+  daughter: "Daughter",
+  grandfather: "Grandfather",
+  grandmother: "Grandmother",
+  uncle: "Uncle",
+  aunt: "Aunt",
+  friend: "Friend",
+  neighbour: "Neighbour",
+
+  savingPatient: "Saving Patient...",
+  savePatient: "Save Patient",
+  backToDashboard: "Back To Dashboard",
+
+  createdBy: "Created by Suraj Premnath",
+
+  saveFailed: "Unable to save patient.",
+  saveSuccess: "Patient added successfully.",
+  unexpectedError:
+    "Something went wrong while saving the patient.",
+},
+
 };

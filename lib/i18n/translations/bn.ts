@@ -250,4 +250,51 @@ dashboard: {
 
 },
 
+addPatient: {
+  title: "রোগী যোগ করুন",
+  loading: "লোড হচ্ছে...",
+
+  fullName: "পুরো নাম",
+  fullNamePlaceholder: "রোগীর পুরো নাম লিখুন",
+
+  dateOfBirth: "জন্ম তারিখ",
+  age: "বয়স",
+  years: "বছর",
+
+  gender: "লিঙ্গ",
+  selectGender: "লিঙ্গ নির্বাচন করুন",
+  male: "পুরুষ",
+  female: "মহিলা",
+  other: "অন্যান্য",
+  preferNotToSay: "বলতে চাই না",
+
+  relationship: "সম্পর্ক",
+  selectRelationship: "সম্পর্ক নির্বাচন করুন",
+
+  father: "বাবা",
+  mother: "মা",
+  spouse: "জীবনসঙ্গী",
+  brother: "ভাই",
+  sister: "বোন",
+  son: "ছেলে",
+  daughter: "মেয়ে",
+  grandfather: "দাদু / নানু",
+  grandmother: "দিদা / নানি",
+  uncle: "কাকা / মামা",
+  aunt: "কাকিমা / মাসি",
+  friend: "বন্ধু",
+  neighbour: "প্রতিবেশী",
+
+  savingPatient: "রোগীর তথ্য সংরক্ষণ করা হচ্ছে...",
+  savePatient: "রোগীর তথ্য সংরক্ষণ করুন",
+  backToDashboard: "ড্যাশবোর্ডে ফিরে যান",
+
+  createdBy: "সুরজ প্রেমনাথ দ্বারা নির্মিত",
+
+  saveFailed: "রোগীর তথ্য সংরক্ষণ করা যায়নি।",
+  saveSuccess: "রোগী সফলভাবে যোগ করা হয়েছে।",
+  unexpectedError:
+    "রোগীর তথ্য সংরক্ষণ করার সময় একটি সমস্যা হয়েছে।",
+},
+
 };
