@@ -22,6 +22,10 @@ import { selfDailyCareStorage } from "@/lib/storage/SelfDailyCareStorage";
 import { AppAlert } from "@/lib/utils/appAlert";
 
 import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
+import {
   medicalImageService,
 } from "@/lib/medical-image/medicalImageService";
 
@@ -162,6 +166,9 @@ export default function DailyCareForm({
 
 }: DailyCareFormProps) {
 
+ const {
+    t,
+  } = useLanguage();
 
   //------------------------------------------------------------
   // State
@@ -419,40 +426,40 @@ async function handleMedicalImage(
     const readings =
       result.data;
 
-    setFormData(previous => ({
+setFormData(previous => ({
 
-      ...previous,
+  ...previous,
 
-      temperature:
-        readings.temperature !== null
-          ? String(readings.temperature)
-          : previous.temperature,
+  temperature:
+    readings.temperature !== null
+      ? String(readings.temperature)
+      : "",
 
-      temperatureUnit:
-        readings.temperatureUnit ??
-        previous.temperatureUnit,
+  temperatureUnit:
+    readings.temperatureUnit ??
+    previous.temperatureUnit,
 
-      systolic:
-        readings.systolic !== null
-          ? String(readings.systolic)
-          : previous.systolic,
+  systolic:
+    readings.systolic !== null
+      ? String(readings.systolic)
+      : "",
 
-      diastolic:
-        readings.diastolic !== null
-          ? String(readings.diastolic)
-          : previous.diastolic,
+  diastolic:
+    readings.diastolic !== null
+      ? String(readings.diastolic)
+      : "",
 
-      pulse:
-        readings.pulse !== null
-          ? String(readings.pulse)
-          : previous.pulse,
+  pulse:
+    readings.pulse !== null
+      ? String(readings.pulse)
+      : "",
 
-      spo2:
-        readings.spo2 !== null
-          ? String(readings.spo2)
-          : previous.spo2,
+  spo2:
+    readings.spo2 !== null
+      ? String(readings.spo2)
+      : "",
 
-    }));
+}));
 
     const hasVitals =
       readings.systolic !== null ||
@@ -535,11 +542,11 @@ return (
     <section style={cardStyle}>
 
       <h3 style={sectionTitle}>
-        👤 Patient Information
+        👤 {t("dailyCare.patientInformation")}
       </h3>
 
 <label style={labelStyle}>
-  Patient
+  {t("dailyCare.patient")}
 </label>
 
 {mode === "family" ? (
@@ -604,7 +611,7 @@ return (
         <div>
 
           <label style={labelStyle}>
-            Date *
+            {t("dailyCare.date")} *
           </label>
 
           <input
@@ -624,7 +631,7 @@ return (
         <div>
 
           <label style={labelStyle}>
-            Time *
+            {t("dailyCare.time")} *
           </label>
 
           <input
@@ -652,7 +659,7 @@ return (
     <section style={cardStyle}>
 
       <h3 style={sectionTitle}>
-        How would you like to add today's readings?
+        {t("dailyCare.readingMethodQuestion")}
       </h3>
 
       <div
@@ -701,7 +708,7 @@ onClick={() => {
                 : "#111827",
           }}
         >
-          📷 Upload Photo
+          📷 {t("dailyCare.uploadPhoto")}
         </button>
 
         <button
@@ -741,7 +748,7 @@ onClick={() => {
                 : "#111827",
           }}
         >
-          ✍️ Enter Manually
+          ✍️ {t("dailyCare.enterManually")}
         </button>
 
       </div>
@@ -760,7 +767,7 @@ onClick={() => {
 <section style={cardStyle}>
 
   <h3 style={sectionTitle}>
-    📷 Capture Medical Readings
+    📷 {t("dailyCare.captureMedicalReadings")}
   </h3>
 
   <p
@@ -771,8 +778,7 @@ onClick={() => {
       lineHeight: 1.5,
     }}
   >
-    Take a photo or select an image containing your
-    medical device readings.
+    {t("dailyCare.captureHelp")}
   </p>
 
   <label
@@ -791,9 +797,9 @@ onClick={() => {
     }}
   >
 
-    {processingImage
-      ? "Reading Image..."
-      : "📷 Take or Select Image"}
+{processingImage
+  ? t("dailyCare.readingImage")
+  : `📷 ${t("dailyCare.takeOrSelectImage")}`}
 
     <input
       type="file"
@@ -831,7 +837,7 @@ onClick={() => {
     <section style={cardStyle}>
 
       <h3 style={sectionTitle}>
-        🌡 Temperature
+        🌡 {t("dailyCare.temperature")}
       </h3>
 
       <div
@@ -847,13 +853,13 @@ onClick={() => {
         <div>
 
           <label style={labelStyle}>
-            Temperature 
+            {t("dailyCare.temperature")} 
           </label>
 
           <input
             type="number"
             step="0.1"
-            placeholder="Enter Temperature"
+            placeholder={t("dailyCare.enterTemperature")}
             value={formData.temperature}
             onChange={(e) =>
               updateField(
@@ -869,7 +875,7 @@ onClick={() => {
         <div>
 
           <label style={labelStyle}>
-            Unit
+            {t("dailyCare.unit")}
           </label>
 
           <select
@@ -925,220 +931,56 @@ onClick={() => {
   }
 />
 
-    {/*--------------------------------------------------------
-      Symptoms
-    --------------------------------------------------------*/}
+{/*--------------------------------------------------------
+  Symptoms
+--------------------------------------------------------*/}
 
-    <section style={cardStyle}>
+<SymptomsCard
+  expanded={showSymptoms}
+  disabled={saving}
+  symptoms={formData.symptoms}
+  otherSymptom={formData.otherSymptom}
+  onToggle={() =>
+    setShowSymptoms(!showSymptoms)
+  }
+  onSymptomToggle={
+    toggleSymptom
+  }
+  onOtherSymptomChange={(value) =>
+    updateField(
+      "otherSymptom",
+      value
+    )
+  }
+/>
 
-      <button
-        type="button"
-        onClick={() =>
-          setShowSymptoms(!showSymptoms)
-        }
-        style={collapseButton}
-      >
-        {showSymptoms ? "▼" : "▶"} Symptoms
-      </button>
+{/*--------------------------------------------------------
+  Pain Location
+--------------------------------------------------------*/}
 
-      {showSymptoms && (
+{formData.symptoms.includes("BODY_PAIN") && (
 
-<>
-
-        <div
-          style={{
-            marginTop: "20px",
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit,minmax(220px,1fr))",
-            gap: "12px"
-          }}
-        >
-
-          {[
-            ["FEVER", "Fever"],
-            ["WEAKNESS", "Weakness"],
-            ["BODY_PAIN", "Body Pain"],
-            ["COUGH", "Cough"],
-            ["BLOOD_IN_COUGH", "Blood In Cough"],
-            ["BREATHLESSNESS", "Breathlessness"],
-            ["WALKING_DIFFICULTY", "Walking Difficulty"],
-            ["LOSS_OF_APPETITE", "Loss Of Appetite"],
-            ["LOOSE_MOTIONS", "Loose Motions"],
-            ["VOMITING", "Vomiting"],
-            ["DRY_MOUTH", "Dry Mouth"],
-            ["OTHER", "Other"]
-          ].map(([value, label]) => (
-
-            <label
-              key={value}
-              style={checkboxLabel}
-            >
-
-              <input
-                type="checkbox"
-                checked={
-                  formData.symptoms.includes(
-                    value as DailyCareSymptom
-                  )
-                }
-                onChange={() =>
-                  toggleSymptom(
-                    value as DailyCareSymptom
-                  )
-                }
-              />
-
-              <span>
-
-                {label}
-
-              </span>
-
-            </label>
-
-          ))}
-
-</div>
-
-{formData.symptoms.includes("OTHER") && (
-
-  <div
-    style={{
-      marginTop: "20px",
-    }}
-  >
-
-    <label style={labelStyle}>
-      Please specify *
-    </label>
-
-    <input
-      type="text"
-      value={formData.otherSymptom}
-      placeholder="Example: Dizziness, Chills, Swelling..."
-      onChange={(e) =>
-        updateField(
-          "otherSymptom",
-          e.target.value
-        )
-      }
-      style={inputStyle}
-    />
-
-  </div>
+  <PainLocationCard
+    painLocations={formData.painLocations}
+    otherPainLocation={formData.otherPainLocation}
+    disabled={saving}
+    onPainLocationToggle={
+      togglePainLocation
+    }
+    onOtherPainLocationChange={(value) =>
+      updateField(
+        "otherPainLocation",
+        value
+      )
+    }
+  />
 
 )}
+
+
 
 </>
-
-)}
-
-    </section>
-
-    {/*--------------------------------------------------------
-      Pain Location
-    --------------------------------------------------------*/}
-
-    {formData.symptoms.includes("BODY_PAIN") && (
-
-      <section style={cardStyle}>
-
-
-
-        <h3 style={sectionTitle}>
-          Pain Location
-        </h3>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit,minmax(200px,1fr))",
-            gap: "12px"
-          }}
-        >
-
-          {[
-            ["HEAD","Head"],
-            ["NECK","Neck"],
-            ["CHEST","Chest"],
-            ["ABDOMEN","Abdomen"],
-            ["BACK","Back"],
-            ["SHOULDER","Shoulder"],
-            ["ARM","Arm"],
-            ["THIGH","Thigh"],
-            ["KNEE","Knee"],
-            ["CALF","Calf"],
-            ["FEET","Feet"],
-            ["OTHER","Other"]
-          ].map(([value,label]) => (
-
-            <label
-              key={value}
-              style={checkboxLabel}
-            >
-
-              <input
-                type="checkbox"
-                checked={
-                  formData.painLocations.includes(
-                    value as PainLocation
-                  )
-                }
-                onChange={() =>
-                  togglePainLocation(
-                    value as PainLocation
-                  )
-                }
-              />
-
-              <span>
-
-                {label}
-
-              </span>
-
-            </label>
-
-          ))}
-
-</div>
-
-{formData.painLocations.includes("OTHER") && (
-
-  <div
-    style={{
-      marginTop: "20px",
-    }}
-  >
-
-    <label style={labelStyle}>
-      Please specify *
-    </label>
-
-    <input
-      type="text"
-      value={formData.otherPainLocation}
-      placeholder="Example: Left shoulder, Right elbow..."
-      onChange={(e) =>
-        updateField(
-          "otherPainLocation",
-          e.target.value
-        )
-      }
-      style={inputStyle}
-    />
-
-  </div>
-
-
-
-)}
-
-</section>
-
-)}
+    )}
 
     {/*--------------------------------------------------------
       Actions
@@ -1163,9 +1005,9 @@ onClick={() => {
         }}
       >
 
-        {saving
-          ? "Saving..."
-          : "💾 Save Reading"}
+{saving
+  ? t("dailyCare.saving")
+  : `💾 ${t("dailyCare.saveReading")}`}
 
       </button>
 
@@ -1178,13 +1020,10 @@ onClick={() => {
         flex: 1
     }}
 >
-    🏠 Back to Dashboard
+    🏠 {t("dailyCare.backToDashboard")}
 </button>
 
     </div>
-
-</>
-    )}
 
   </>
 

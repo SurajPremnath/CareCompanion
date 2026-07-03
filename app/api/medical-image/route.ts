@@ -108,14 +108,16 @@ function toTemperatureUnit(
 // Parse Model Output
 //------------------------------------------------------------
 
+type DetectedDeviceType =
+  | "thermometer"
+  | "blood_pressure_monitor"
+  | "pulse_oximeter";
+
 interface ParsedMedicalImageResponse {
-
   isSupportedMedicalImage: boolean;
-
   hasConflictingReadings: boolean;
-
+  detectedDeviceTypes: DetectedDeviceType[];
   readings: MedicalImageReadings;
-
 }
 
 function parseMedicalReadings(
@@ -145,6 +147,18 @@ function parseMedicalReadings(
 
 hasConflictingReadings:
   parsed.hasConflictingReadings === true,
+
+detectedDeviceTypes:
+  Array.isArray(parsed.detectedDeviceTypes)
+    ? parsed.detectedDeviceTypes.filter(
+        (
+          deviceType
+        ): deviceType is DetectedDeviceType =>
+          deviceType === "thermometer" ||
+          deviceType === "blood_pressure_monitor" ||
+          deviceType === "pulse_oximeter"
+      )
+    : [],
 
     readings: {
 
@@ -293,40 +307,28 @@ export async function POST(
                 type: "input_text",
 
 text:
-  "Analyse this image only for supported home medical device displays. " +
-  "Supported devices are: thermometer, blood pressure monitor, and pulse oximeter. " +
+"Identify every supported medical device that is clearly visible and has a clearly readable measurement display. " +
 
-  "Determine whether at least one supported medical device display is clearly visible and readable. " +
+"detectedDeviceTypes must be an array containing zero or more of: thermometer, blood_pressure_monitor, pulse_oximeter. " +
 
-  "Also determine whether the image contains multiple conflicting readings of the same measurement type. " +
+"If the image contains more than one supported device with clearly readable measurements, include every applicable device type in detectedDeviceTypes and extract readings from all of them. " +
 
-  "If the same reading is repeated more than once, treat it as one reading and set hasConflictingReadings to false. " +
+"Multiple supported devices with different measurement types in the same image are valid and must not be treated as conflicting readings. " +
 
-  "If two or more different blood pressure readings are visible, set hasConflictingReadings to true. " +
-  "A blood pressure reading means the systolic and diastolic pair from one device reading. " +
+"Set hasConflictingReadings to true only when the image contains multiple competing or ambiguous values for the same measurement type and it is not possible to determine which value is the current reading. " +
 
-  "If two or more different temperature readings are visible, set hasConflictingReadings to true. " +
+"For example, one blood pressure reading together with one temperature reading is not a conflict. Multiple blood pressure values or multiple temperature values are conflicting only when the current or latest reading cannot be determined reliably. " +
 
-  "If two or more different SpO2 readings are visible, set hasConflictingReadings to true. " +
+"If detectedDeviceTypes includes thermometer, a clearly visible temperature reading is required. " +
 
-  "If conflicting readings exist, do not choose or guess which reading is latest. " +
+"If detectedDeviceTypes includes blood_pressure_monitor, both systolic and diastolic readings are required. " +
 
-  "A single blood pressure reading together with a single temperature reading is valid and must not be treated as conflicting. " +
+"If detectedDeviceTypes includes pulse_oximeter, an SpO2 reading is required. " +
 
-  "If no supported medical device display is clearly visible and readable, set isSupportedMedicalImage to false and return null for every reading. " +
+"If no supported medical device with a clearly readable measurement is visible, set isSupportedMedicalImage to false and return an empty detectedDeviceTypes array. " +
 
-  "If at least one supported device display is clearly visible and readable, set isSupportedMedicalImage to true. " +
-
-  "Extract only readings that are clearly visible on supported medical device displays. " +
-
-  "Do not read numbers from unrelated objects, clocks, labels, packaging, documents, screens, signs, or background text. " +
-
-  "Do not infer, estimate, calculate, correct, or invent any value. " +
-
-  "If a reading is not clearly visible, return null for that field. " +
-
-  "Return JSON only with exactly these keys: " +
-  "isSupportedMedicalImage, hasConflictingReadings, temperature, temperatureUnit, systolic, diastolic, pulse, spo2. " +
+"Return JSON only with exactly these keys: " +
+"isSupportedMedicalImage, hasConflictingReadings, detectedDeviceTypes, temperature, temperatureUnit, systolic, diastolic, pulse, spo2. " +
 
   "isSupportedMedicalImage and hasConflictingReadings must be true or false. " +
 
@@ -466,6 +468,63 @@ if (
 const readings =
   parsedResponse.readings;
 
+const deviceTypes =
+  parsedResponse.detectedDeviceTypes;
+
+const hasValidThermometerReading =
+  deviceTypes.includes("thermometer") &&
+  readings.temperature !== null;
+
+const hasValidBloodPressureReading =
+  deviceTypes.includes(
+    "blood_pressure_monitor"
+  ) &&
+  readings.systolic !== null &&
+  readings.diastolic !== null;
+
+const hasValidPulseOximeterReading =
+  deviceTypes.includes("pulse_oximeter") &&
+  readings.spo2 !== null;
+
+const everyDetectedDeviceIsValid =
+  deviceTypes.length > 0 &&
+  deviceTypes.every((deviceType) => {
+
+    if (deviceType === "thermometer") {
+      return hasValidThermometerReading;
+    }
+
+    if (
+      deviceType ===
+      "blood_pressure_monitor"
+    ) {
+      return hasValidBloodPressureReading;
+    }
+
+    if (
+      deviceType === "pulse_oximeter"
+    ) {
+      return hasValidPulseOximeterReading;
+    }
+
+    return false;
+
+  });
+
+if (!everyDetectedDeviceIsValid) {
+
+  return NextResponse.json(
+    {
+      error:
+        "Please upload a clear photo of a thermometer, blood pressure monitor, or pulse oximeter display.",
+    },
+    {
+      status: 422,
+    }
+  );
+
+}
+
     //--------------------------------------------------------
     // Ensure At Least One Reading Exists
     //--------------------------------------------------------
@@ -514,7 +573,36 @@ catch (error: unknown) {
       status?: number;
       code?: string;
       type?: string;
+      message?: string;
     };
+
+  //--------------------------------------------------------
+  // Invalid Or Undecodable Image
+  //--------------------------------------------------------
+
+  if (
+    apiError.status === 400 &&
+    apiError.code === "invalid_value" &&
+    apiError.message?.includes(
+      "image data you provided does not represent a valid image"
+    )
+  ) {
+
+    return NextResponse.json(
+      {
+        error:
+          "The selected image could not be read. Please choose a valid JPG, PNG, or WebP image and try again.",
+      },
+      {
+        status: 422,
+      }
+    );
+
+  }
+
+  //--------------------------------------------------------
+  // OpenAI Quota Error
+  //--------------------------------------------------------
 
   if (
     apiError.status === 429 &&
@@ -535,6 +623,10 @@ catch (error: unknown) {
     );
 
   }
+
+  //--------------------------------------------------------
+  // Unexpected Error
+  //--------------------------------------------------------
 
   return NextResponse.json(
     {

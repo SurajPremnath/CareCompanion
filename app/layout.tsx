@@ -1,4 +1,7 @@
 import "./globals.css";
+import {
+  LanguageProvider,
+} from "@/Components/language/LanguageProvider";
 
 export default function RootLayout({
   children,
@@ -17,7 +20,9 @@ export default function RootLayout({
           color: "#111827",
         }}
       >
-        {children}
+        <LanguageProvider>
+  {children}
+</LanguageProvider>
       </body>
     </html>
   );

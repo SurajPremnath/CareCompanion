@@ -8,6 +8,10 @@ import {
   labelStyle
 } from "../styles";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 interface VitalsCardProps {
 
   expanded: boolean;
@@ -60,6 +64,10 @@ export default function VitalsCard({
 
 }: VitalsCardProps) {
 
+  const {
+    t,
+  } = useLanguage();
+
   return (
 
     <section style={cardStyle}>
@@ -70,7 +78,7 @@ export default function VitalsCard({
         style={collapseButton}
       >
 
-        {expanded ? "▼" : "▶"} Additional Vitals
+        {expanded ? "▼" : "▶"} {t("dailyCare.additionalVitals")}
 
       </button>
 
@@ -86,7 +94,7 @@ export default function VitalsCard({
         color: "#1f2937",
       }}
     >
-      🩺 Blood Pressure
+      🩺 {t("dailyCare.bloodPressure")}
     </h3>
 
         <div
@@ -104,7 +112,7 @@ export default function VitalsCard({
     }}
   >
             <label style={labelStyle}>
-              Upper (Systolic)
+              {t("dailyCare.systolic")}
             </label>
 </div>
             <input
@@ -130,7 +138,7 @@ export default function VitalsCard({
     }}
   >
             <label style={labelStyle}>
-              Lower (Diastolic)
+              {t("dailyCare.diastolic")}
             </label>
 </div>
             <input
@@ -156,7 +164,7 @@ export default function VitalsCard({
     }}
   >
             <label style={labelStyle}>
-              Pulse Rate
+              {t("dailyCare.pulseRate")}
             </label>
 </div>
             <input
@@ -182,7 +190,7 @@ export default function VitalsCard({
     }}
   >
             <label style={labelStyle}>
-              SpO₂
+              {t("dailyCare.spo2")}
             </label>
 </div>
             <input

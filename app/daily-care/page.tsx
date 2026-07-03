@@ -11,9 +11,17 @@ import DailyCareForm from "./components/DailyCareForm";
 
 import AppHeader from "@/app/components/AppHeader";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 export default function DailyCarePage() {
 
   const router = useRouter();
+
+const {
+    t,
+  } = useLanguage();
 
   //------------------------------------------------------------
   // Page State
@@ -161,7 +169,7 @@ const handleSelfCare = async () => {
       >
 
 <AppHeader
-  pageTitle="Daily Care"
+  pageTitle={t("dailyCare.title")}
   pageIcon="🩺"
   currentUserName={currentUserName}
 />
@@ -179,7 +187,7 @@ const handleSelfCare = async () => {
         marginBottom: "12px",
       }}
     >
-      Who are you recording Daily Care for?
+      {t("dailyCare.recordingFor")}
     </h2>
 
     <p
@@ -188,21 +196,21 @@ const handleSelfCare = async () => {
         marginBottom: "28px",
       }}
     >
-      Please choose one option.
+      {t("dailyCare.chooseOneOption")}
     </p>
 
     <button
       style={primaryButton}
       onClick={handleSelfCare}
     >
-      👤 Myself
+      👤 {t("dailyCare.myself")}
     </button>
 
     <button
       style={secondaryButton}
       onClick={() => setCareMode("family")}
     >
-      👨‍👩‍👧 Family Member
+      👨‍👩‍👧 {t("dailyCare.familyMember")}
     </button>
 
 <button
@@ -211,7 +219,7 @@ const handleSelfCare = async () => {
   }
   style={backButton}
 >
-  ← Back to Dashboard
+  ← {t("dailyCare.backToDashboard")}
 </button>
 
   </div>

@@ -10,6 +10,8 @@ import {
   twoColumnGrid
 } from "../styles";
 
+
+
 interface PatientCardProps {
 
   patients: Patient[];

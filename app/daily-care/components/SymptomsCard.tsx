@@ -3,6 +3,10 @@
 import type { DailyCareSymptom } from "@/lib/types/dailyCare";
 
 import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
+import {
   cardStyle,
   checkboxGrid,
   checkboxLabel,
@@ -17,6 +21,12 @@ interface SymptomsCardProps {
 
   symptoms: DailyCareSymptom[];
 
+otherSymptom: string;
+
+onOtherSymptomChange: (
+  value: string
+) => void;
+
   onToggle: () => void;
 
   onSymptomToggle: (
@@ -27,68 +37,68 @@ interface SymptomsCardProps {
 
 const symptomOptions: {
   value: DailyCareSymptom;
-  label: string;
+  translationKey: string;
 }[] = [
 
   {
     value: "FEVER",
-    label: "Fever"
+    translationKey: "dailyCare.symptomFever",
   },
 
   {
     value: "WEAKNESS",
-    label: "Weakness"
+    translationKey: "dailyCare.symptomWeakness",
   },
 
   {
     value: "BODY_PAIN",
-    label: "Body Pain"
+    translationKey: "dailyCare.symptomBodyPain",
   },
 
   {
     value: "COUGH",
-    label: "Cough"
+    translationKey: "dailyCare.symptomCough",
   },
 
   {
     value: "BLOOD_IN_COUGH",
-    label: "Blood in Cough"
+    translationKey: "dailyCare.symptomBloodInCough",
   },
 
   {
     value: "BREATHLESSNESS",
-    label: "Breathlessness"
+    translationKey: "dailyCare.symptomBreathlessness",
   },
 
   {
     value: "WALKING_DIFFICULTY",
-    label: "Walking Difficulty"
+    translationKey: "dailyCare.symptomWalkingDifficulty",
   },
 
   {
     value: "LOSS_OF_APPETITE",
-    label: "Loss of Appetite"
+    translationKey: "dailyCare.symptomLossOfAppetite",
   },
 
   {
     value: "LOOSE_MOTIONS",
-    label: "Loose Motions"
+    translationKey: "dailyCare.symptomLooseMotions",
   },
 
   {
     value: "VOMITING",
-    label: "Vomiting"
+    translationKey: "dailyCare.symptomVomiting",
   },
 
   {
     value: "DRY_MOUTH",
-    label: "Dry Mouth"
+    translationKey: "dailyCare.symptomDryMouth",
   },
 
   {
     value: "OTHER",
-    label: "Other"
-  }
+    translationKey: "dailyCare.symptomOther",
+  },
 
 ];
 
@@ -98,13 +108,21 @@ export default function SymptomsCard({
 
   disabled = false,
 
-  symptoms,
+symptoms,
 
-  onToggle,
+otherSymptom,
 
-  onSymptomToggle
+onToggle,
+
+onSymptomToggle,
+
+onOtherSymptomChange
 
 }: SymptomsCardProps) {
+
+  const {
+    t,
+  } = useLanguage();
 
   return (
 
@@ -116,47 +134,97 @@ export default function SymptomsCard({
         style={collapseButton}
       >
 
-        {expanded ? "▼" : "▶"} Symptoms
+        {expanded ? "▼" : "▶"} {t("dailyCare.symptoms")}
 
       </button>
 
-      {expanded && (
+{expanded && (
 
-        <div style={checkboxGrid}>
+  <>
 
-          {symptomOptions.map((symptom) => (
+    <div style={checkboxGrid}>
 
-            <label
-              key={symptom.value}
-              style={checkboxLabel}
-            >
+      {symptomOptions.map((symptom) => (
 
-              <input
-                type="checkbox"
-                disabled={disabled}
-                checked={symptoms.includes(
-                  symptom.value
-                )}
-                onChange={() =>
-                  onSymptomToggle(
-                    symptom.value
-                  )
-                }
-              />
+        <label
+          key={symptom.value}
+          style={checkboxLabel}
+        >
 
-              <span>
+          <input
+            type="checkbox"
+            disabled={disabled}
+            checked={symptoms.includes(
+              symptom.value
+            )}
+            onChange={() =>
+              onSymptomToggle(
+                symptom.value
+              )
+            }
+          />
 
-                {symptom.label}
+          <span>
+            {t(symptom.translationKey)}
+          </span>
 
-              </span>
+        </label>
 
-            </label>
+      ))}
 
-          ))}
+    </div>
 
-        </div>
+    {symptoms.includes("OTHER") && (
 
-      )}
+      <div
+        style={{
+          marginTop: "20px",
+        }}
+      >
+
+        <label
+          style={{
+            display: "block",
+            marginBottom: "8px",
+            fontWeight: 600,
+          }}
+        >
+          {t("dailyCare.pleaseSpecify")} *
+        </label>
+
+        <input
+          type="text"
+          value={otherSymptom}
+          disabled={disabled}
+          placeholder={
+            t(
+              "dailyCare.otherSymptomPlaceholder"
+            )
+          }
+          onChange={(event) =>
+            onOtherSymptomChange(
+              event.target.value
+            )
+          }
+          style={{
+            width: "100%",
+            padding: "14px",
+            border: "1px solid #d1d5db",
+            borderRadius: "10px",
+            fontSize: "16px",
+            boxSizing: "border-box",
+            background: "#ffffff",
+            outline: "none",
+          }}
+        />
+
+      </div>
+
+    )}
+
+  </>
+
+)}
 
     </section>
 

@@ -8,6 +8,8 @@ import { authService } from "@/lib/auth/authService";
 import { profileRepository } from "@/lib/repositories/profileRepository";
 import AppHeader from "@/app/components/AppHeader";
 
+import LanguageSelector from "@/Components/language/LanguageSelector";
+
 type DashboardUser = {
     id: string;
     fullName: string;
@@ -234,6 +236,19 @@ const openDailyCare = () => {
     pageIcon="🏠"
     currentUserName={user.fullName}
 />
+
+<div
+    style={{
+        marginTop: "20px",
+        marginBottom: "24px",
+        padding: "16px",
+        background: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "12px",
+    }}
+>
+    <LanguageSelector />
+</div>
 
 <h3
     style={{

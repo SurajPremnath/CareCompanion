@@ -1,0 +1,207 @@
+import type {
+  TranslationDictionary,
+} from "../types";
+
+export const hi: TranslationDictionary = {
+
+  common: {
+    save: "सहेजें",
+    cancel: "रद्द करें",
+    back: "वापस",
+    loading: "लोड हो रहा है...",
+    yes: "हाँ",
+    no: "नहीं",
+    notRecorded: "दर्ज नहीं किया गया",
+  },
+
+  dailyCare: {
+    title: "दैनिक देखभाल",
+
+    patientInformation:
+      "रोगी की जानकारी",
+
+    patient: "रोगी",
+
+    date: "तारीख",
+
+    time: "समय",
+
+    readingMethodQuestion:
+      "आज की रीडिंग कैसे दर्ज करना चाहेंगे?",
+
+    uploadPhoto:
+      "फोटो अपलोड करें",
+
+    enterManually:
+      "स्वयं दर्ज करें",
+
+    captureMedicalReadings:
+      "मेडिकल रीडिंग कैप्चर करें",
+
+    captureHelp:
+      "अपने मेडिकल उपकरण की रीडिंग वाली फोटो लें या चुनें।",
+
+    takeOrSelectImage:
+      "फोटो लें या चुनें",
+
+    readingImage:
+      "फोटो पढ़ी जा रही है...",
+
+    temperature:
+      "तापमान",
+
+    unit:
+      "इकाई",
+
+    enterTemperature:
+      "तापमान दर्ज करें",
+
+    additionalVitals:
+      "अन्य महत्वपूर्ण माप",
+
+    bloodPressure:
+      "रक्तचाप",
+
+    systolic:
+      "ऊपरी (सिस्टोलिक)",
+
+    diastolic:
+      "निचला (डायस्टोलिक)",
+
+    pulseRate:
+      "नाड़ी दर",
+
+    spo2:
+      "SpO₂",
+
+    symptoms:
+      "लक्षण",
+
+    painLocation:
+      "दर्द का स्थान",
+
+painHead: "सिर",
+painNeck: "गर्दन",
+painChest: "छाती",
+painAbdomen: "पेट",
+painBack: "पीठ",
+painShoulder: "कंधा",
+painArm: "बाँह",
+painThigh: "जांघ",
+painKnee: "घुटना",
+painCalf: "पिंडली",
+painFeet: "पैर",
+painOther: "अन्य",
+
+otherPainPlaceholder:
+  "उदाहरण: बायाँ कंधा, दाहिनी कोहनी...",
+
+    medications:
+      "दवाइयाँ",
+
+    notes:
+      "नोट्स",
+
+symptomFever:
+  "बुखार",
+
+symptomWeakness:
+  "कमज़ोरी",
+
+symptomBodyPain:
+  "शरीर में दर्द",
+
+symptomCough:
+  "खाँसी",
+
+symptomBloodInCough:
+  "खाँसी में खून",
+
+symptomBreathlessness:
+  "साँस लेने में तकलीफ़",
+
+symptomWalkingDifficulty:
+  "चलने में कठिनाई",
+
+symptomLossOfAppetite:
+  "भूख कम लगना",
+
+symptomLooseMotions:
+  "दस्त",
+
+symptomVomiting:
+  "उल्टी",
+
+symptomDryMouth:
+  "मुँह सूखना",
+
+symptomOther:
+  "अन्य",
+
+pleaseSpecify:
+  "कृपया विवरण दें",
+
+otherSymptomPlaceholder:
+  "उदाहरण: चक्कर आना, ठंड लगना, सूजन...",
+
+saving: "सहेजा जा रहा है...",
+saveReading: "रीडिंग सहेजें",
+backToDashboard: "डैशबोर्ड पर वापस जाएँ",
+
+recordingFor:
+  "आप दैनिक देखभाल किसके लिए दर्ज कर रहे हैं?",
+
+chooseOneOption:
+  "कृपया एक विकल्प चुनें।",
+
+myself:
+  "स्वयं",
+
+familyMember:
+  "परिवार का सदस्य",
+  },
+
+  alerts: {
+    imageReadSuccess:
+      "फोटो सफलतापूर्वक पढ़ी गई। सहेजने से पहले भरी गई रीडिंग की जाँच करें।",
+
+    invalidMedicalImage:
+      "कृपया थर्मामीटर, ब्लड प्रेशर मॉनिटर या पल्स ऑक्सीमीटर की स्पष्ट फोटो अपलोड करें।",
+
+    multipleReadings:
+      "फोटो में एक से अधिक अलग-अलग रीडिंग मिली हैं। कृपया केवल नवीनतम रीडिंग की फोटो अपलोड करें।",
+
+    creditsOver:
+      "क्रेडिट समाप्त हो गए हैं। एडमिन से संपर्क करें।",
+
+    imageProcessingFailed:
+      "मेडिकल फोटो को प्रोसेस नहीं किया जा सका। कृपया फिर से प्रयास करें।",
+
+    saveSuccess:
+      "दैनिक देखभाल की रीडिंग सफलतापूर्वक सहेजी गई।",
+
+    saveFailed:
+      "दैनिक देखभाल की रीडिंग सहेजी नहीं जा सकी। कृपया फिर से प्रयास करें।",
+  },
+
+  reports: {
+    dailyCareReport:
+      "दैनिक देखभाल रिपोर्ट",
+
+    patientSummary:
+      "रोगी सारांश",
+
+    recordedOn:
+      "दर्ज करने का समय",
+
+    vitalSigns:
+      "महत्वपूर्ण स्वास्थ्य माप",
+
+    bloodPressure:
+      "रक्तचाप",
+
+    pulse:
+      "नाड़ी",
+  },
+
+};

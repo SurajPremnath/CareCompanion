@@ -9,9 +9,11 @@ import {
   sectionTitle,
 } from "../styles";
 
-interface PainLocationCardProps {
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
 
-  visible: boolean;
+interface PainLocationCardProps {
 
   disabled?: boolean;
 
@@ -21,99 +23,92 @@ interface PainLocationCardProps {
     location: PainLocation
   ) => void;
 
+otherPainLocation: string;
+
+onOtherPainLocationChange: (
+  value: string
+) => void;
+
 }
 
 const painLocationOptions: {
   value: PainLocation;
-  label: string;
+  translationKey: string;
 }[] = [
-
   {
     value: "HEAD",
-    label: "Head"
+    translationKey: "dailyCare.painHead",
   },
-
   {
     value: "NECK",
-    label: "Neck"
+    translationKey: "dailyCare.painNeck",
   },
-
   {
     value: "CHEST",
-    label: "Chest"
+    translationKey: "dailyCare.painChest",
   },
-
   {
     value: "ABDOMEN",
-    label: "Abdomen"
+    translationKey: "dailyCare.painAbdomen",
   },
-
   {
     value: "BACK",
-    label: "Back"
+    translationKey: "dailyCare.painBack",
   },
-
   {
     value: "SHOULDER",
-    label: "Shoulder"
+    translationKey: "dailyCare.painShoulder",
   },
-
   {
     value: "ARM",
-    label: "Arm"
+    translationKey: "dailyCare.painArm",
   },
-
   {
     value: "THIGH",
-    label: "Thigh"
+    translationKey: "dailyCare.painThigh",
   },
-
   {
     value: "KNEE",
-    label: "Knee"
+    translationKey: "dailyCare.painKnee",
   },
-
   {
     value: "CALF",
-    label: "Calf"
+    translationKey: "dailyCare.painCalf",
   },
-
   {
     value: "FEET",
-    label: "Feet"
+    translationKey: "dailyCare.painFeet",
   },
-
   {
     value: "OTHER",
-    label: "Other"
-  }
-
+    translationKey: "dailyCare.painOther",
+  },
 ];
 
 export default function PainLocationCard({
-
-  visible,
 
   disabled = false,
 
   painLocations,
 
-  onPainLocationToggle
+  onPainLocationToggle,
+
+otherPainLocation,
+
+onOtherPainLocationChange,
 
 }: PainLocationCardProps) {
 
-  if (!visible) {
-
-    return null;
-
-  }
+const {
+  t,
+} = useLanguage();
 
   return (
 
     <section style={cardStyle}>
 
       <h3 style={sectionTitle}>
-        Pain Location
+        {t("dailyCare.painLocation")}
       </h3>
 
       <div style={checkboxGrid}>
@@ -140,7 +135,7 @@ export default function PainLocationCard({
 
             <span>
 
-              {location.label}
+              {t(location.translationKey)}
 
             </span>
 
@@ -149,6 +144,48 @@ export default function PainLocationCard({
         ))}
 
       </div>
+
+{painLocations.includes("OTHER") && (
+  <div
+    style={{
+      marginTop: "20px",
+    }}
+  >
+    <label
+      style={{
+        display: "block",
+        marginBottom: "8px",
+        fontWeight: 600,
+      }}
+    >
+      {t("dailyCare.pleaseSpecify")} *
+    </label>
+
+    <input
+      type="text"
+      value={otherPainLocation}
+      disabled={disabled}
+      placeholder={t(
+        "dailyCare.otherPainPlaceholder"
+      )}
+      onChange={(event) =>
+        onOtherPainLocationChange(
+          event.target.value
+        )
+      }
+      style={{
+        width: "100%",
+        padding: "14px",
+        border: "1px solid #d1d5db",
+        borderRadius: "10px",
+        fontSize: "16px",
+        boxSizing: "border-box",
+        background: "#ffffff",
+        outline: "none",
+      }}
+    />
+  </div>
+)}
 
     </section>
 
