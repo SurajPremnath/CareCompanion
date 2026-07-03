@@ -371,6 +371,33 @@ if (exists) {
 
   }
 
+//------------------------------------------------------------
+// Clear Image Readings
+//------------------------------------------------------------
+
+function clearImageReadings() {
+
+  setFormData(previous => ({
+
+    ...previous,
+
+    temperature: "",
+
+    systolic: "",
+
+    diastolic: "",
+
+    pulse: "",
+
+    spo2: ""
+
+  }));
+
+  setImageReadSuccessful(false);
+
+  setShowVitals(false);
+
+}
 
 //------------------------------------------------------------
 // Medical Image Capture
@@ -409,19 +436,20 @@ async function handleMedicalImage(
         image
       );
 
-    if (
-      !result.success ||
-      !result.data
-    ) {
+if (
+  !result.success ||
+  !result.data
+) {
 
-      AppAlert.error(
-        result.error ??
-        "Unable to read the medical image."
-      );
+  AppAlert.error(
+    t("alerts.medicalImageReadFailed")
+  );
 
-      return;
+  clearImageReadings();
 
-    }
+  return;
+
+}
 
     const readings =
       result.data;
@@ -478,7 +506,7 @@ setImageReadSuccessful(
 );
 
     AppAlert.success(
-      "Image read successfully. Please verify the populated readings before saving."
+      t("alerts.medicalImageReadSuccess")
     );
 
   }
@@ -489,9 +517,11 @@ setImageReadSuccessful(
       error
     );
 
-    AppAlert.error(
-      "Unable to process the medical image."
-    );
+AppAlert.error(
+  t("alerts.medicalImageProcessFailed")
+);
+
+clearImageReadings();
 
   }
   finally {
