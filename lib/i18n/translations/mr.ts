@@ -163,6 +163,9 @@ myself:
 
 familyMember:
   "कुटुंबातील सदस्य",
+
+takePhoto: "फोटो काढा",
+chooseExistingPhoto: "आधीचा फोटो निवडा",
   },
 
   alerts: {

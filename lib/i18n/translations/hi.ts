@@ -159,6 +159,9 @@ myself:
 
 familyMember:
   "परिवार का सदस्य",
+
+takePhoto: "फ़ोटो लें",
+chooseExistingPhoto: "मौजूदा फ़ोटो चुनें",
   },
 
   alerts: {

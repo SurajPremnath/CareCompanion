@@ -163,6 +163,9 @@ myself:
 
 familyMember:
   "குடும்ப உறுப்பினர்",
+
+takePhoto: "புகைப்படம் எடுக்கவும்",
+chooseExistingPhoto: "ஏற்கனவே உள்ள புகைப்படத்தைத் தேர்ந்தெடுக்கவும்",
   },
 
   alerts: {

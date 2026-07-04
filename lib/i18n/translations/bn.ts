@@ -163,6 +163,9 @@ myself:
 
 familyMember:
   "পরিবারের সদস্য",
+
+takePhoto: "ছবি তুলুন",
+chooseExistingPhoto: "আগের ছবি নির্বাচন করুন",
   },
 
   alerts: {

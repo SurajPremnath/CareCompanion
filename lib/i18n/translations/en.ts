@@ -170,6 +170,10 @@ myself:
 
 familyMember:
   "Family Member",
+
+takePhoto: "Take Photo",
+chooseExistingPhoto: "Choose Existing Photo",
+
   },
 
   alerts: {

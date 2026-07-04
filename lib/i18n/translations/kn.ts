@@ -159,6 +159,9 @@ myself:
 
 familyMember:
   "ಕುಟುಂಬದ ಸದಸ್ಯರು",
+
+takePhoto: "ಫೋಟೋ ತೆಗೆಯಿರಿ",
+chooseExistingPhoto: "ಈಗಿರುವ ಫೋಟೋ ಆಯ್ಕೆಮಾಡಿ",
   },
 
   alerts: {

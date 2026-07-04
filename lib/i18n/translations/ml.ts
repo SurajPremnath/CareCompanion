@@ -162,6 +162,9 @@ myself:
 
 familyMember:
   "കുടുംബാംഗം",
+
+takePhoto: "ഫോട്ടോ എടുക്കുക",
+chooseExistingPhoto: "നിലവിലുള്ള ഫോട്ടോ തിരഞ്ഞെടുക്കുക",
   },
 
   alerts: {

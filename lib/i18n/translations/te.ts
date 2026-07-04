@@ -162,6 +162,9 @@ myself:
 
 familyMember:
   "కుటుంబ సభ్యుడు",
+
+takePhoto: "ఫోటో తీయండి",
+chooseExistingPhoto: "ఇప్పటికే ఉన్న ఫోటోను ఎంచుకోండి",
   },
 
   alerts: {

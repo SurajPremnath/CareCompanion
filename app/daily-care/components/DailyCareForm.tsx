@@ -840,7 +840,7 @@ onClick={() => {
 
     {processingImage
       ? t("dailyCare.readingImage")
-      : "📷 Take Photo"}
+      : `📷 ${t("dailyCare.takePhoto")}`}
 
     <input
       type="file"
@@ -881,7 +881,7 @@ onClick={() => {
 
     {processingImage
       ? t("dailyCare.readingImage")
-      : "🖼️ Choose Existing Photo"}
+      : `🖼️ ${t("dailyCare.chooseExistingPhoto")}`}
 
     <input
       type="file"
