@@ -208,9 +208,7 @@ export default function FamilyPage4() {
                 marginBottom: "6px",
               }}
             >
-              🥤 {t(
-  "assessment.patientWaterGlasses"
-)}
+              🥤 {t("assessment.waterIntake")}
             </h3>
 
             <button
@@ -221,7 +219,7 @@ export default function FamilyPage4() {
                 setWaterGlasses("1")
               }
             >
-              {t("assessment.oneGlass")}
+              1
             </button>
 
             <button
@@ -232,7 +230,7 @@ export default function FamilyPage4() {
                 setWaterGlasses("2")
               }
             >
-              {t("assessment.twoGlasses")}
+              2
             </button>
 
             <button
@@ -243,7 +241,7 @@ export default function FamilyPage4() {
                 setWaterGlasses("3")
               }
             >
-              {t("assessment.threeGlasses")}
+              3
             </button>
 
             <button
@@ -254,7 +252,7 @@ export default function FamilyPage4() {
                 setWaterGlasses("4")
               }
             >
-              {t("assessment.fourGlasses")}
+              4
             </button>
 
             <button
@@ -265,7 +263,7 @@ export default function FamilyPage4() {
                 setWaterGlasses("5+")
               }
             >
-              {t("assessment.fivePlusGlasses")}
+              5+
             </button>
           </>
         )}
