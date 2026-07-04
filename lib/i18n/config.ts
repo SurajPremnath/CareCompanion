@@ -55,4 +55,24 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
     label: "Bengali",
     nativeLabel: "বাংলা",
   },
+{
+  code: "gu",
+  label: "Gujarati",
+  nativeLabel: "ગુજરાતી",
+},
+{
+  code: "pa",
+  label: "Punjabi",
+  nativeLabel: "ਪੰਜਾਬੀ",
+},
+{
+  code: "or",
+  label: "Odia",
+  nativeLabel: "ଓଡ଼ିଆ",
+},
+{
+  code: "as",
+  label: "Assamese",
+  nativeLabel: "অসমীয়া",
+},
 ];

@@ -7,6 +7,10 @@ export const SUPPORTED_LANGUAGES = [
   "ta",
   "mr",
   "bn",
+  "gu",
+  "pa",
+  "or",
+  "as",
 ] as const;
 
 export type SupportedLanguage =

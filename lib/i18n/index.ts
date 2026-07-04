@@ -11,6 +11,10 @@ import { ml } from "./translations/ml";
 import { ta } from "./translations/ta";
 import { mr } from "./translations/mr";
 import { bn } from "./translations/bn";
+import { gu } from "./translations/gu";
+import { pa } from "./translations/pa";
+import { or } from "./translations/or";
+import { as } from "./translations/as";
 
 export const translations: Record<
   SupportedLanguage,
@@ -24,6 +28,10 @@ export const translations: Record<
   ta,
   mr,
   bn,
+  gu,
+  pa,
+  or,
+  as,
 };
 
 function getTranslationValue(
