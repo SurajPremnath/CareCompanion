@@ -208,6 +208,49 @@ export class AuthService {
   }
 
   /**
+   * Sends password reset email.
+   */
+  async requestPasswordReset(
+    email: string
+  ): Promise<void> {
+
+const redirectTo =
+  `${window.location.origin}/reset-password`;
+
+    const { error } =
+      await supabase.auth.resetPasswordForEmail(
+        email,
+        {
+          redirectTo,
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+  }
+
+  /**
+   * Updates password for the active
+   * password recovery session.
+   */
+  async updatePassword(
+    newPassword: string
+  ): Promise<void> {
+
+    const { error } =
+      await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+    if (error) {
+      throw error;
+    }
+
+  }
+
+  /**
    * Listen for auth changes.
    */
   onAuthStateChange(

@@ -148,8 +148,20 @@ const [showPassword, setShowPassword] =
     </button>
 
 </div>
-                <button
-                    onClick={handleLogin}
+
+<button
+    type="button"
+    onClick={() =>
+        router.push("/forgot-password")
+    }
+    disabled={loading}
+    style={forgotPasswordStyle}
+>
+    Forgot Password?
+</button>
+
+<button
+    onClick={handleLogin}
                     disabled={loading}
                     style={{
                         ...primaryButtonStyle,
@@ -296,4 +308,17 @@ const footerStyle: React.CSSProperties = {
     textAlign: "center",
     color: "#6b7280",
     fontSize: "12px"
+};
+
+const forgotPasswordStyle: React.CSSProperties = {
+    display: "block",
+    marginLeft: "auto",
+    marginTop: "10px",
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    color: "#2563eb",
+    fontSize: "14px",
+    fontWeight: 600,
+    cursor: "pointer",
 };
