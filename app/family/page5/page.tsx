@@ -219,7 +219,7 @@ export default function FamilyPage5() {
             );
           }}
         >
-          😊 {t("common.no")}x
+          😊 {t("common.no")}
         </button>
 
         <button

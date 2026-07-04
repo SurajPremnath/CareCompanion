@@ -12,6 +12,16 @@ import {
   clearAssessmentData,
 } from "@/lib/assessmentStorage";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+} from "@/lib/analytics/analyticsEvents";
+
 export default function SelfPage() {
   const router = useRouter();
 
@@ -22,13 +32,31 @@ const {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
 
-  const startAssessment = () => {
+  const startAssessment = async () => {
     if (!name || !age) {
       alert(t("assessment.alertNameAndAge"));
       return;
     }
 
     clearAssessmentData();
+
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.ASSESSMENT,
+
+  eventName:
+    ANALYTICS_EVENTS.STARTED,
+
+  context:
+    ANALYTICS_CONTEXTS.SELF,
+
+  pagePath:
+    "/self",
+
+});
+
+
     localStorage.setItem("patientName", name);
     localStorage.setItem("patientAge", age);
     localStorage.setItem("assessmentType", "self");

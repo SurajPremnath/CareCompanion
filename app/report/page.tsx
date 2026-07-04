@@ -10,6 +10,11 @@ import AppBrand from "@/app/components/AppBrand";
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 import type { AssessmentInput } from "@/lib/types/assessment";
 
+import {
+  hasAssessmentBeenSaved,
+  markAssessmentSaved,
+} from "@/lib/reportStorage";
+
 type Row = {
   label: string;
   value: string;
@@ -664,6 +669,11 @@ const assessment: Omit<AssessmentInput, "userId"> = {
 };
 
 void (async () => {
+
+  if (hasAssessmentBeenSaved()) {
+    return;
+  }
+
   const result =
     await assessmentStorage.save(
       assessment
@@ -678,6 +688,8 @@ void (async () => {
     return;
   }
 
+  markAssessmentSaved();
+
 })();
 
     setSummaryRows(reportSummary);
@@ -687,21 +699,6 @@ void (async () => {
     setLoaded(true);
   }, []);
 
-async function saveAssessmentToDatabase(
-  assessment: Omit<AssessmentInput, "userId">
-): Promise<void> {
-  const result =
-    await assessmentStorage.save(assessment);
-
-  if (!result.success) {
-    console.error(
-      "Failed to save assessment:",
-      result.error
-    );
-    return;
-  }
-
-}
 
   if (!loaded) return null;
 

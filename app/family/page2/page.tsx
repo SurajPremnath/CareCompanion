@@ -33,14 +33,23 @@ export default function FamilyPage2() {
 
   const handleNext = () => {
     if (!breathing || !cough) {
-      t("assessment.alertAllQuestions")
-      return;
-    }
+  alert(
+    t("assessment.alertAllQuestions")
+  );
 
-    if (cough !== "no" && !bloodInCough) {
-      t("assessment.alertBloodInCough")
-      return;
-    }
+  return;
+}
+
+if (
+  cough !== "no" &&
+  !bloodInCough
+) {
+  alert(
+    t("assessment.alertBloodInCough")
+  );
+
+  return;
+}
 
     localStorage.setItem("breathing", breathing);
     localStorage.setItem("cough", cough);

@@ -15,6 +15,16 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+} from "@/lib/analytics/analyticsEvents";
+
 type UserProfile = {
   id: string;
   fullName: string;
@@ -217,17 +227,40 @@ if (!result.success) {
     return null;
   }
 
-  const startAssessment = () => {
+  const startAssessment = async () => {
     if (!currentUser || !selectedPatient) {
       return;
     }
 
-    clearAssessmentData();
+clearAssessmentData();
 
-    localStorage.setItem(
-      "assessmentType",
-      "family"
-    );
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.ASSESSMENT,
+
+  eventName:
+    ANALYTICS_EVENTS.STARTED,
+
+  context:
+    ANALYTICS_CONTEXTS.FAMILY,
+
+  pagePath:
+    "/family",
+
+  metadata: {
+
+    patientId:
+      selectedPatient.id,
+
+  },
+
+});
+
+localStorage.setItem(
+  "assessmentType",
+  "family"
+);
 
 localStorage.setItem(
   "patientId",
