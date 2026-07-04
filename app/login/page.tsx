@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/lib/auth/authService";
 import AppBrand from "@/app/components/AppBrand";
 
+import {
+    authSessionService,
+} from "@/lib/analytics/authSessionService";
+
 export default function LoginPage() {
 
     const router = useRouter();
@@ -39,12 +43,14 @@ const [showPassword, setShowPassword] =
 
             setLoading(true);
 
-            await authService.login(
-                email.trim(),
-                password
-            );
+await authService.login(
+    email.trim(),
+    password
+);
 
-            router.replace("/dashboard");
+await authSessionService.start();
+
+router.replace("/dashboard");
 
         } catch (err) {
 

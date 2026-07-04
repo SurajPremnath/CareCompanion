@@ -147,7 +147,7 @@ const {
   }}
 >
   <button
-    onClick={() => router.push("/self")}
+    onClick={() => router.push("/self/page2")}
     style={{
       flex: 1,
       padding: "12px",

@@ -166,7 +166,7 @@ const discomfortAreaOptions = [
   }}
 >
   <button
-    onClick={() => router.push("/self")}
+    onClick={() => router.push("/self/page3")}
     style={{
       flex: 1,
       padding: "12px",

@@ -29,6 +29,16 @@ import {
   medicalImageService,
 } from "@/lib/medical-image/medicalImageService";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_INPUT_METHODS,
+} from "@/lib/analytics/analyticsEvents";
 
 //------------------------------------------------------------
 // Types
@@ -372,6 +382,43 @@ if (exists) {
   }
 
 //------------------------------------------------------------
+// Reading Input Method Selection
+//------------------------------------------------------------
+
+async function selectReadingInputMethod(
+  method: "image" | "manual"
+) {
+
+  setReadingInputMethod(method);
+
+  setImageReadSuccessful(false);
+
+  await analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.DAILY_CARE,
+
+    eventName:
+      ANALYTICS_EVENTS.STARTED,
+
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
+
+    pagePath:
+      "/daily-care",
+
+    inputMethod:
+      method === "image"
+        ? ANALYTICS_INPUT_METHODS.IMAGE
+        : ANALYTICS_INPUT_METHODS.MANUAL,
+
+  });
+
+}
+
+//------------------------------------------------------------
 // Clear Image Readings
 //------------------------------------------------------------
 
@@ -710,15 +757,12 @@ return (
 
 onClick={() => {
 
-  setReadingInputMethod(
+  void selectReadingInputMethod(
     "image"
   );
 
-  setImageReadSuccessful(
-    false
-  );
-
 }}
+
           style={{
             ...methodButton,
 
@@ -748,17 +792,14 @@ onClick={() => {
             saving
           }
 
-          onClick={() => {
+onClick={() => {
 
-  setReadingInputMethod(
+  void selectReadingInputMethod(
     "manual"
   );
 
-  setImageReadSuccessful(
-    false
-  );
-
 }}
+
           style={{
             ...methodButton,
 
@@ -1397,10 +1438,44 @@ if (!result.success) {
   );
 
 }
- 
-    resetForm();
 
-    AppAlert.success("Daily Care saved successfully.");
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.DAILY_CARE,
+
+  eventName:
+    ANALYTICS_EVENTS.COMPLETED,
+
+  context:
+    mode === "self"
+      ? ANALYTICS_CONTEXTS.SELF
+      : ANALYTICS_CONTEXTS.FAMILY,
+
+  pagePath:
+    "/daily-care",
+
+  inputMethod:
+    readingInputMethod === "image"
+      ? ANALYTICS_INPUT_METHODS.IMAGE
+      : ANALYTICS_INPUT_METHODS.MANUAL,
+
+  metadata: {
+
+    patientId:
+      mode === "family"
+        ? formData.patientId
+        : null,
+
+  },
+
+});
+
+resetForm();
+
+AppAlert.success(
+  "Daily Care saved successfully."
+);
 
   }
 

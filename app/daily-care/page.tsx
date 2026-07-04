@@ -15,6 +15,16 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+} from "@/lib/analytics/analyticsEvents";
+
 export default function DailyCarePage() {
 
   const router = useRouter();
@@ -55,7 +65,23 @@ const handleSelfCare = async () => {
 
     }
 
-    setCareMode("self");
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.DAILY_CARE,
+
+  eventName:
+    ANALYTICS_EVENTS.CONTEXT_SELECTED,
+
+  context:
+    ANALYTICS_CONTEXTS.SELF,
+
+  pagePath:
+    "/daily-care",
+
+});
+
+setCareMode("self");
 
   }
   catch {
@@ -65,6 +91,32 @@ const handleSelfCare = async () => {
     );
 
   }
+
+};
+
+//------------------------------------------------------------
+// Family Daily Care
+//------------------------------------------------------------
+
+const handleFamilyCare = async () => {
+
+  await analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.DAILY_CARE,
+
+    eventName:
+      ANALYTICS_EVENTS.CONTEXT_SELECTED,
+
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
+
+    pagePath:
+      "/daily-care",
+
+  });
+
+  setCareMode("family");
 
 };
 
@@ -208,7 +260,7 @@ const handleSelfCare = async () => {
 
     <button
       style={secondaryButton}
-      onClick={() => setCareMode("family")}
+      onClick={handleFamilyCare}
     >
       👨‍👩‍👧 {t("dailyCare.familyMember")}
     </button>

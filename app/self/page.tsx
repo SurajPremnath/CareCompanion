@@ -8,6 +8,9 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+  clearAssessmentData,
+} from "@/lib/assessmentStorage";
 
 export default function SelfPage() {
   const router = useRouter();
@@ -25,7 +28,7 @@ const {
       return;
     }
 
-    localStorage.clear();
+    clearAssessmentData();
     localStorage.setItem("patientName", name);
     localStorage.setItem("patientAge", age);
     localStorage.setItem("assessmentType", "self");

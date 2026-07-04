@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useRef,
+    useState,
+} from "react";
+
 import { useRouter } from "next/navigation";
 
 import { clearAssessmentData } from "@/lib/assessmentStorage";
@@ -8,11 +13,24 @@ import { authService } from "@/lib/auth/authService";
 import { profileRepository } from "@/lib/repositories/profileRepository";
 import AppHeader from "@/app/components/AppHeader";
 
+import {
+    analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+    ANALYTICS_MODULES,
+    ANALYTICS_EVENTS,
+} from "@/lib/analytics/analyticsEvents";
+
 import LanguageSelector from "@/Components/language/LanguageSelector";
 
 import {
     useLanguage,
 } from "@/Components/language/LanguageProvider";
+
+import {
+    authSessionService,
+} from "@/lib/analytics/authSessionService";
 
 type DashboardUser = {
     id: string;
@@ -24,6 +42,9 @@ export default function DashboardPage() {
 
     const router = useRouter();
 
+const dashboardLoadStartedRef =
+    useRef(false);
+
 const {
         t,
     } = useLanguage();
@@ -34,9 +55,15 @@ const {
     const [loading, setLoading] =
         useState(true);
 
-    useEffect(() => {
+useEffect(() => {
 
-        async function loadDashboard() {
+    if (dashboardLoadStartedRef.current) {
+        return;
+    }
+
+    dashboardLoadStartedRef.current = true;
+
+    async function loadDashboard() {
 
             try {
 
@@ -74,6 +101,19 @@ const {
 
                 });
 
+await analyticsService.track({
+
+    module:
+        ANALYTICS_MODULES.DASHBOARD,
+
+    eventName:
+        ANALYTICS_EVENTS.PAGE_VIEWED,
+
+    pagePath:
+        "/dashboard",
+
+});
+
             } catch (error) {
 
                 console.error(
@@ -105,25 +145,70 @@ const {
 
     }, [router]);
 
-    const logout = async () => {
+const logout = async () => {
 
-        try {
+    try {
 
-            await authService.logout();
+        await authSessionService.end();
 
-        } finally {
+        await authService.logout();
 
-            router.replace("/login");
+    } catch (error) {
 
-        }
+        console.error(
+            "Unable to complete logout.",
+            error
+        );
+
+        return;
+
+    }
+
+    router.replace("/login");
+
+};
+
+const trackDashboardFeatureClick =
+    async (
+        feature:
+            | "DAILY_CARE"
+            | "HELP"
+            | "FAMILY_ASSESSMENT"
+            | "SELF_ASSESSMENT"
+            | "ADD_PATIENT"
+            | "REPORTS"
+    ) => {
+
+        await analyticsService.track({
+
+            module:
+                ANALYTICS_MODULES.DASHBOARD,
+
+            eventName:
+                ANALYTICS_EVENTS.FEATURE_CLICKED,
+
+            pagePath:
+                "/dashboard",
+
+            metadata: {
+
+                feature,
+
+            },
+
+        });
 
     };
 
-    const startSelfAssessment = () => {
+    const startSelfAssessment = async () => {
 
         if (!user) {
             return;
         }
+
+await trackDashboardFeatureClick(
+    "SELF_ASSESSMENT"
+);
 
         clearAssessmentData();
 
@@ -168,21 +253,56 @@ const {
 
     };
 
-    const startFamilyAssessment = () => {
+const startFamilyAssessment = async () => {
 
-        router.push("/family");
+    await trackDashboardFeatureClick(
+        "FAMILY_ASSESSMENT"
+    );
 
-    };
+    router.push("/family");
 
-const openHelpCentre = () => {
+};
+
+const openHelpCentre = async () => {
+
+    await trackDashboardFeatureClick(
+        "HELP"
+    );
 
     router.push("/help");
 
 };
 
-const openDailyCare = () => {
+const openDailyCare = async () => {
+
+    await trackDashboardFeatureClick(
+        "DAILY_CARE"
+    );
+
+
 
     router.push("/daily-care");
+
+};
+
+const openAddPatient = async () => {
+
+    await trackDashboardFeatureClick(
+        "ADD_PATIENT"
+    );
+
+    router.push("/add-patient");
+
+};
+
+
+const openReports = async () => {
+
+    await trackDashboardFeatureClick(
+        "REPORTS"
+    );
+
+    router.push("/reports");
 
 };
 
@@ -361,9 +481,7 @@ const openDailyCare = () => {
 >
 
     <button
-        onClick={() =>
-            router.push("/add-patient")
-        }
+        onClick={openAddPatient}
         style={actionButton}
     >
         ➕
@@ -372,9 +490,7 @@ const openDailyCare = () => {
     </button>
 
     <button
-        onClick={() =>
-            router.push("/reports")
-        }
+        onClick={openReports}
         style={actionButton}
     >
         📄
