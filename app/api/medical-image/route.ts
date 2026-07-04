@@ -6,6 +6,10 @@ import type {
   MedicalImageReadings,
 } from "@/lib/medical-image/medicalImageTypes";
 
+import {
+  supabaseAdmin,
+} from "@/lib/supabaseAdmin";
+
 //------------------------------------------------------------
 // Route Configuration
 //------------------------------------------------------------
@@ -207,6 +211,132 @@ export async function POST(
 
   try {
 
+//--------------------------------------------------------
+// Authenticate User
+//--------------------------------------------------------
+
+const authorizationHeader =
+  request.headers.get(
+    "authorization"
+  );
+
+if (
+  !authorizationHeader?.startsWith(
+    "Bearer "
+  )
+) {
+
+  return NextResponse.json(
+    {
+      error:
+        "Authentication required.",
+    },
+    {
+      status: 401,
+    }
+  );
+
+}
+
+const accessToken =
+  authorizationHeader.slice(
+    7
+  );
+
+const {
+  data: {
+    user,
+  },
+  error: authError,
+} =
+  await supabaseAdmin.auth.getUser(
+    accessToken
+  );
+
+if (
+  authError ||
+  !user
+) {
+
+  return NextResponse.json(
+    {
+      error:
+        "Your session is invalid or has expired. Please sign in again.",
+    },
+    {
+      status: 401,
+    }
+  );
+
+}
+
+//--------------------------------------------------------
+// Load Profile And Usage
+//--------------------------------------------------------
+
+const {
+  data: profile,
+  error: profileError,
+} =
+  await supabaseAdmin
+    .from("profiles")
+    .select(
+      "role, medical_image_usage_count"
+    )
+    .eq(
+      "id",
+      user.id
+    )
+    .single();
+
+if (
+  profileError ||
+  !profile
+) {
+
+  console.error(
+    "Medical Image Profile Error:",
+    profileError
+  );
+
+  return NextResponse.json(
+    {
+      error:
+        "Unable to verify image usage allowance.",
+    },
+    {
+      status: 500,
+    }
+  );
+
+}
+
+//--------------------------------------------------------
+// Check Trial Limit
+//--------------------------------------------------------
+
+const isAdmin =
+  profile.role === "ADMIN";
+
+const currentUsage =
+  profile.medical_image_usage_count;
+
+if (
+  !isAdmin &&
+  currentUsage >= 5
+) {
+
+  return NextResponse.json(
+    {
+      error:
+        "Trial image reading limit reached. Please enter readings manually.",
+    },
+    {
+      status: 403,
+    }
+  );
+
+}
     //--------------------------------------------------------
     // Read Form Data
     //--------------------------------------------------------
