@@ -472,6 +472,159 @@ startAssessment:
 alertNameAndAge:
   "অনুগ্রহ করে নাম এবং বয়স লিখুন",
 
+selectPatientToBegin:
+  "মূল্যায়ন শুরু করতে একজন রোগী নির্বাচন করুন।",
+
+noPatientsFound:
+  "কোনো রোগী পাওয়া যায়নি। অনুগ্রহ করে প্রথমে একজন রোগী যোগ করুন।",
+
+selectPatient:
+  "রোগী নির্বাচন করুন",
+
+name:
+  "নাম",
+
+age:
+  "বয়স",
+
+gender:
+  "লিঙ্গ",
+
+relationship:
+  "সম্পর্ক",
+
+addNewPatient:
+  "নতুন রোগী যোগ করুন",
+
+backToDashboard:
+  "ড্যাশবোর্ডে ফিরে যান",
+
+unableToContinue:
+  "এগিয়ে যাওয়া সম্ভব নয়",
+
+profileLoadError:
+  "আপনার প্রোফাইল লোড করা যায়নি। অনুগ্রহ করে আবার সাইন ইন করুন।",
+
+patientLoadError:
+  "রোগীদের তথ্য লোড করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
+
+pageLoadError:
+  "এই পৃষ্ঠাটি লোড করার সময় একটি সমস্যা হয়েছে। অনুগ্রহ করে পৃষ্ঠাটি রিফ্রেশ করে আবার চেষ্টা করুন।",
+
+breathingToday:
+  "আজ রোগীর শ্বাসপ্রশ্বাস কেমন ছিল?",
+
+breathingNormal:
+  "স্বাভাবিক",
+
+breathingSlightlyDifficult:
+  "সামান্য কষ্ট",
+
+breathingVeryDifficult:
+  "খুব কষ্ট",
+
+coughingToday:
+  "আজ রোগীর কি কাশি ছিল?",
+
+coughSometimes:
+  "মাঝে মাঝে",
+
+coughFrequently:
+  "ঘন ঘন",
+
+bloodWhileCoughing:
+  "কাশির সময় কি রক্ত দেখা গেছে?",
+
+alertBloodInCough:
+  "কাশির সময় রক্ত দেখা গেছে কি না অনুগ্রহ করে জানান.",
+
+patientFeverishToday:
+  "আজ রোগীর কি জ্বর জ্বর মনে হচ্ছিল?",
+
+temperatureMeasured:
+  "তাপমাত্রা কি মাপা হয়েছিল?",
+
+enterLatestTemperature:
+  "সর্বশেষ তাপমাত্রা লিখুন",
+
+patientEnergyToday:
+  "আজ রোগীকে কতটা সক্রিয় মনে হয়েছে?",
+
+energyActive:
+  "সক্রিয়",
+
+energyLessActive:
+  "কম সক্রিয়",
+
+energyVeryWeak:
+  "খুব দুর্বল",
+
+alertTemperatureMeasured:
+  "তাপমাত্রা মাপা হয়েছিল কি না অনুগ্রহ করে জানান।",
+
+patientEatingToday:
+  "আজ রোগীর খাওয়া কেমন ছিল?",
+
+patientDrinkingEnoughWater:
+  "রোগী কি আজ পর্যাপ্ত পানি পান করেছেন?",
+
+patientWaterGlasses:
+  "রোগী আনুমানিক কত গ্লাস পানি পান করেছেন?",
+
+oneGlass:
+  "১ গ্লাস",
+
+twoGlasses:
+  "২ গ্লাস",
+
+threeGlasses:
+  "৩ গ্লাস",
+
+fourGlasses:
+  "৪ গ্লাস",
+
+fivePlusGlasses:
+  "৫+ গ্লাস",
+
+patientDiscomfortToday:
+  "রোগীর কি আজ কোনো অস্বস্তি হয়েছে?",
+
+patientDiscomfortWhere:
+  "রোগীর কোথায় অস্বস্তি হয়েছে?",
+
+areaArms:
+  "হাত",
+
+areaLegs:
+  "পা",
+
+alertPatientDiscomfortAreas:
+  "রোগীর কোথায় অস্বস্তি হয়েছে তা নির্বাচন করুন।",
+
+alertOtherDiscomfortArea:
+  "অনুগ্রহ করে অস্বস্তির অন্য স্থানটি উল্লেখ করুন।",
+
+patientWalkingToday:
+  "আজ রোগীর হাঁটাচলা কেমন ছিল?",
+
+walkedEasily:
+  "সহজে হেঁটেছেন",
+
+patientNeedHelpWalking:
+  "রোগীর কি হাঁটার জন্য সাহায্যের প্রয়োজন হয়েছিল?",
+
+alertWalkingHelpNeeded:
+  "হাঁটার জন্য সাহায্যের প্রয়োজন হয়েছিল কি না তা জানান।",
+
+looseMotionsObserved:
+  "পাতলা পায়খানা হয়েছিল কি?",
+
+looseMotionTypeObserved:
+  "কী ধরনের পাতলা পায়খানা হয়েছিল?",
+
+patientConfusedToday:
+  "রোগীকে কি আজ অস্বাভাবিকভাবে বিভ্রান্ত মনে হয়েছে?",
+
 },
 
 };

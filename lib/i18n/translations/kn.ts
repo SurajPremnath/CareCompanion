@@ -470,6 +470,159 @@ startAssessment:
 alertNameAndAge:
   "ದಯವಿಟ್ಟು ಹೆಸರು ಮತ್ತು ವಯಸ್ಸನ್ನು ನಮೂದಿಸಿ",
 
+selectPatientToBegin:
+  "ಮೌಲ್ಯಮಾಪನವನ್ನು ಪ್ರಾರಂಭಿಸಲು ರೋಗಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+
+noPatientsFound:
+  "ಯಾವುದೇ ರೋಗಿಗಳು ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಮೊದಲು ರೋಗಿಯನ್ನು ಸೇರಿಸಿ.",
+
+selectPatient:
+  "ರೋಗಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+
+name:
+  "ಹೆಸರು",
+
+age:
+  "ವಯಸ್ಸು",
+
+gender:
+  "ಲಿಂಗ",
+
+relationship:
+  "ಸಂಬಂಧ",
+
+addNewPatient:
+  "ಹೊಸ ರೋಗಿಯನ್ನು ಸೇರಿಸಿ",
+
+backToDashboard:
+  "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
+
+unableToContinue:
+  "ಮುಂದುವರಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ",
+
+profileLoadError:
+  "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಅನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+
+patientLoadError:
+  "ರೋಗಿಗಳ ಮಾಹಿತಿಯನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+
+pageLoadError:
+  "ಈ ಪುಟವನ್ನು ಲೋಡ್ ಮಾಡುವಾಗ ದೋಷ ಸಂಭವಿಸಿದೆ. ದಯವಿಟ್ಟು ಪುಟವನ್ನು ರಿಫ್ರೆಶ್ ಮಾಡಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+
+breathingToday:
+  "ಇಂದು ರೋಗಿಯ ಉಸಿರಾಟ ಹೇಗಿತ್ತು?",
+
+breathingNormal:
+  "ಸಾಮಾನ್ಯ",
+
+breathingSlightlyDifficult:
+  "ಸ್ವಲ್ಪ ಕಷ್ಟ",
+
+breathingVeryDifficult:
+  "ತುಂಬಾ ಕಷ್ಟ",
+
+coughingToday:
+  "ಇಂದು ರೋಗಿಗೆ ಕೆಮ್ಮು ಇತ್ತೇ?",
+
+coughSometimes:
+  "ಕೆಲವೊಮ್ಮೆ",
+
+coughFrequently:
+  "ಆಗಾಗ್ಗೆ",
+
+bloodWhileCoughing:
+  "ಕೆಮ್ಮುವಾಗ ರಕ್ತ ಕಾಣಿಸಿಕೊಂಡಿತೇ?",
+
+alertBloodInCough:
+  "ಕೆಮ್ಮುವಾಗ ರಕ್ತ ಕಾಣಿಸಿಕೊಂಡಿತೇ ಎಂಬುದನ್ನು ದಯವಿಟ್ಟು ತಿಳಿಸಿ.",
+
+patientFeverishToday:
+  "ಇಂದು ರೋಗಿಗೆ ಜ್ವರ ಇರುವಂತೆ ಕಂಡಿತೇ?",
+
+temperatureMeasured:
+  "ತಾಪಮಾನವನ್ನು ಅಳೆಯಲಾಗಿತ್ತೇ?",
+
+enterLatestTemperature:
+  "ಇತ್ತೀಚಿನ ತಾಪಮಾನವನ್ನು ನಮೂದಿಸಿ",
+
+patientEnergyToday:
+  "ಇಂದು ರೋಗಿ ಎಷ್ಟು ಚಟುವಟಿಕೆಯಿಂದ ಕಂಡರು?",
+
+energyActive:
+  "ಚಟುವಟಿಕೆಯಿಂದ",
+
+energyLessActive:
+  "ಕಡಿಮೆ ಚಟುವಟಿಕೆ",
+
+energyVeryWeak:
+  "ತುಂಬಾ ದುರ್ಬಲ",
+
+alertTemperatureMeasured:
+  "ತಾಪಮಾನವನ್ನು ಅಳೆಯಲಾಗಿತ್ತೇ ಎಂಬುದನ್ನು ದಯವಿಟ್ಟು ತಿಳಿಸಿ.",
+
+patientEatingToday:
+  "ಇಂದು ರೋಗಿಯ ಆಹಾರ ಸೇವನೆ ಹೇಗಿತ್ತು?",
+
+patientDrinkingEnoughWater:
+  "ರೋಗಿಯು ಇಂದು ಸಾಕಷ್ಟು ನೀರು ಕುಡಿದರೇ?",
+
+patientWaterGlasses:
+  "ರೋಗಿಯು ಸರಿಸುಮಾರು ಎಷ್ಟು ಲೋಟ ನೀರು ಕುಡಿದರು?",
+
+oneGlass:
+  "1 ಲೋಟ",
+
+twoGlasses:
+  "2 ಲೋಟಗಳು",
+
+threeGlasses:
+  "3 ಲೋಟಗಳು",
+
+fourGlasses:
+  "4 ಲೋಟಗಳು",
+
+fivePlusGlasses:
+  "5+ ಲೋಟಗಳು",
+
+patientDiscomfortToday:
+  "ರೋಗಿಗೆ ಇಂದು ಯಾವುದೇ ಅಸ್ವಸ್ಥತೆ ಅನುಭವವಾಯಿತೇ?",
+
+patientDiscomfortWhere:
+  "ರೋಗಿಗೆ ಎಲ್ಲಿ ಅಸ್ವಸ್ಥತೆ ಅನುಭವವಾಯಿತು?",
+
+areaArms:
+  "ತೋಳುಗಳು",
+
+areaLegs:
+  "ಕಾಲುಗಳು",
+
+alertPatientDiscomfortAreas:
+  "ರೋಗಿಗೆ ಎಲ್ಲಿ ಅಸ್ವಸ್ಥತೆ ಅನುಭವವಾಯಿತು ಎಂಬುದನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+
+alertOtherDiscomfortArea:
+  "ದಯವಿಟ್ಟು ಇತರ ಅಸ್ವಸ್ಥತೆಯ ಪ್ರದೇಶವನ್ನು ತಿಳಿಸಿ.",
+
+patientWalkingToday:
+  "ಇಂದು ರೋಗಿಯ ನಡೆಯುವಿಕೆ ಹೇಗಿತ್ತು?",
+
+walkedEasily:
+  "ಸುಲಭವಾಗಿ ನಡೆದರು",
+
+patientNeedHelpWalking:
+  "ರೋಗಿಗೆ ನಡೆಯಲು ಸಹಾಯ ಬೇಕಾಯಿತೇ?",
+
+alertWalkingHelpNeeded:
+  "ನಡೆಯಲು ಸಹಾಯ ಬೇಕಾಯಿತೇ ಎಂಬುದನ್ನು ತಿಳಿಸಿ.",
+
+looseMotionsObserved:
+  "ಭೇದಿ ಕಂಡುಬಂದಿತೇ?",
+
+looseMotionTypeObserved:
+  "ಯಾವ ರೀತಿಯ ಭೇದಿ ಕಂಡುಬಂದಿತು?",
+
+patientConfusedToday:
+  "ರೋಗಿ ಇಂದು ಅಸಾಮಾನ್ಯವಾಗಿ ಗೊಂದಲಗೊಂಡಂತೆ ಕಂಡರೇ?",
+
 },
 
 };

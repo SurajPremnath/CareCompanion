@@ -4,8 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AssessmentLayout from "@/Components/AssessmentLayout";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 export default function FamilyPage4() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [appetite, setAppetite] =
     useState("");
@@ -39,7 +44,7 @@ export default function FamilyPage4() {
   const handleNext = () => {
     if (!appetite || !water) {
       alert(
-        "Please answer all questions."
+        t("assessment.alertAllQuestions")
       );
       return;
     }
@@ -49,7 +54,7 @@ export default function FamilyPage4() {
       !waterGlasses
     ) {
       alert(
-        "Please select approximately how many glasses of water were consumed."
+        t("assessment.alertWaterIntake")
       );
       return;
     }
@@ -88,7 +93,7 @@ export default function FamilyPage4() {
             marginBottom: "12px",
           }}
         >
-          Health Check For Today
+          {t("assessment.healthCheckToday")}
         </h2>
 
         <hr />
@@ -99,8 +104,9 @@ export default function FamilyPage4() {
             marginBottom: "6px",
           }}
         >
-          🍽️ How was the patient's
-          eating today?
+          🍽️ {t(
+  "assessment.patientEatingToday"
+)}
         </h3>
 
         <button
@@ -111,7 +117,7 @@ export default function FamilyPage4() {
             setAppetite("normal")
           }
         >
-          😊 Normal
+          😊 {t("assessment.appetiteNormal")}
         </button>
 
         <button
@@ -122,7 +128,7 @@ export default function FamilyPage4() {
             setAppetite("less")
           }
         >
-          😐 Eating Less
+          😐 {t("assessment.appetiteLess")}
         </button>
 
         <button
@@ -133,7 +139,7 @@ export default function FamilyPage4() {
             setAppetite("hardly")
           }
         >
-          😟 Hardly Eating
+          😟 {t("assessment.appetitePoor")}
         </button>
 
         <div
@@ -148,8 +154,9 @@ export default function FamilyPage4() {
             marginBottom: "6px",
           }}
         >
-          💧 Did the patient drink
-          enough water today?
+          💧 {t(
+  "assessment.patientDrinkingEnoughWater"
+)}
         </h3>
 
         <button
@@ -160,7 +167,7 @@ export default function FamilyPage4() {
             setWater("yes");
           }}
         >
-          😊 Yes
+          😊 {t("common.yes")}
         </button>
 
         <button
@@ -172,7 +179,7 @@ export default function FamilyPage4() {
             setWaterGlasses("");
           }}
         >
-          😐 Not Sure
+          😐 {t("assessment.notSure")}
         </button>
 
         <button
@@ -184,7 +191,7 @@ export default function FamilyPage4() {
             setWaterGlasses("");
           }}
         >
-          😟 No
+          😟 {t("common.no")}
         </button>
 
         {water === "yes" && (
@@ -201,9 +208,9 @@ export default function FamilyPage4() {
                 marginBottom: "6px",
               }}
             >
-              🥤 Approximately how
-              many glasses of water
-              did the patient drink?
+              🥤 {t(
+  "assessment.patientWaterGlasses"
+)}
             </h3>
 
             <button
@@ -214,7 +221,7 @@ export default function FamilyPage4() {
                 setWaterGlasses("1")
               }
             >
-              1 Glass
+              {t("assessment.oneGlass")}
             </button>
 
             <button
@@ -225,7 +232,7 @@ export default function FamilyPage4() {
                 setWaterGlasses("2")
               }
             >
-              2 Glasses
+              {t("assessment.twoGlasses")}
             </button>
 
             <button
@@ -236,7 +243,7 @@ export default function FamilyPage4() {
                 setWaterGlasses("3")
               }
             >
-              3 Glasses
+              {t("assessment.threeGlasses")}
             </button>
 
             <button
@@ -247,7 +254,7 @@ export default function FamilyPage4() {
                 setWaterGlasses("4")
               }
             >
-              4 Glasses
+              {t("assessment.fourGlasses")}
             </button>
 
             <button
@@ -258,7 +265,7 @@ export default function FamilyPage4() {
                 setWaterGlasses("5+")
               }
             >
-              5+ Glasses
+              {t("assessment.fivePlusGlasses")}
             </button>
           </>
         )}
@@ -291,7 +298,7 @@ export default function FamilyPage4() {
                 "pointer",
             }}
           >
-            ← Previous
+            ← {t("assessment.previous")}
           </button>
 
           <button
@@ -314,7 +321,7 @@ export default function FamilyPage4() {
                 "pointer",
             }}
           >
-            Next →
+            {t("assessment.next")} →
           </button>
         </div>
       </div>

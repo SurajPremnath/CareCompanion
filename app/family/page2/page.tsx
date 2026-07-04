@@ -4,8 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AssessmentLayout from "@/Components/AssessmentLayout";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 export default function FamilyPage2() {
   const router = useRouter();
+
+ const {
+    t,
+  } = useLanguage();
 
   const [breathing, setBreathing] = useState("");
   const [cough, setCough] = useState("");
@@ -25,12 +33,12 @@ export default function FamilyPage2() {
 
   const handleNext = () => {
     if (!breathing || !cough) {
-      alert("Please answer all questions.");
+      t("assessment.alertAllQuestions")
       return;
     }
 
     if (cough !== "no" && !bloodInCough) {
-      alert("Please answer whether blood was seen while coughing.");
+      t("assessment.alertBloodInCough")
       return;
     }
 
@@ -52,43 +60,59 @@ export default function FamilyPage2() {
         }}
       >
         <h2 style={{ fontSize: "22px", marginBottom: "12px" }}>
-          Health Check For Today
+           {t(
+            "assessment.healthCheckToday"
+          )}
         </h2>
 
         <hr />
 
         <h3 style={{ fontSize: "18px", marginBottom: "6px" }}>
-          🫁 How was the patient's breathing today?
+          🫁 {t(
+            "assessment.breathingToday"
+          )}
         </h3>
 
         <button style={optionStyle(breathing === "normal")} onClick={() => setBreathing("normal")}>
-          😊 Normal
+          😊 {t(
+            "assessment.breathingNormal"
+          )}
         </button>
 
         <button style={optionStyle(breathing === "slightly")} onClick={() => setBreathing("slightly")}>
-          😐 Slightly Difficult
+          😐 {t(
+            "assessment.breathingSlightlyDifficult"
+          )}
         </button>
 
         <button style={optionStyle(breathing === "difficult")} onClick={() => setBreathing("difficult")}>
-          😟 Very Difficult
+          😟 {t(
+            "assessment.breathingVeryDifficult"
+          )}
         </button>
 
         <div style={{ height: "12px" }} />
 
         <h3 style={{ fontSize: "18px", marginBottom: "6px" }}>
-          🤧 Was the patient coughing today?
+          🤧 {t(
+            "assessment.coughingToday"
+          )}
         </h3>
 
         <button style={optionStyle(cough === "no")} onClick={() => setCough("no")}>
-          😊 No
+          😊 {t("common.no")}
         </button>
 
         <button style={optionStyle(cough === "sometimes")} onClick={() => setCough("sometimes")}>
-          😐 Sometimes
+          😐 {t(
+            "assessment.coughSometimes"
+          )}
         </button>
 
         <button style={optionStyle(cough === "frequent")} onClick={() => setCough("frequent")}>
-          😟 Frequently
+          😟 {t(
+            "assessment.coughFrequently"
+          )}
         </button>
 
         {cough !== "no" && cough !== "" && (
@@ -96,15 +120,17 @@ export default function FamilyPage2() {
             <div style={{ height: "12px" }} />
 
             <h3 style={{ fontSize: "18px", marginBottom: "6px" }}>
-              🩸 Was blood seen while coughing?
+              🩸 {t(
+                  "assessment.bloodWhileCoughing"
+                )}
             </h3>
 
             <button style={optionStyle(bloodInCough === "no")} onClick={() => setBloodInCough("no")}>
-              😊 No
+              😊 {t("common.no")}
             </button>
 
             <button style={optionStyle(bloodInCough === "yes")} onClick={() => setBloodInCough("yes")}>
-              😟 Yes
+              😟 {t("common.yes")}
             </button>
           </>
         )}
@@ -123,7 +149,9 @@ export default function FamilyPage2() {
               cursor: "pointer",
             }}
           >
-            ← Previous
+            ← {t(
+              "assessment.previous"
+            )}
           </button>
 
           <button
@@ -140,7 +168,7 @@ export default function FamilyPage2() {
               cursor: "pointer",
             }}
           >
-            Next →
+            {t("assessment.next")} →
           </button>
         </div>
       </div>

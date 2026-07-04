@@ -2,10 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
 import AssessmentLayout from "@/Components/AssessmentLayout";
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
 
 export default function FamilyPage5() {
   const router = useRouter();
+
+  const { t } = useLanguage();
 
   const [discomfort, setDiscomfort] =
     useState("");
@@ -80,7 +86,7 @@ export default function FamilyPage5() {
       !confusion
     ) {
       alert(
-        "Please answer all questions."
+        t("assessment.alertAllQuestions")
       );
       return;
     }
@@ -90,7 +96,7 @@ export default function FamilyPage5() {
       discomfortAreas.length === 0
     ) {
       alert(
-        "Please select where the patient felt discomfort."
+        t("assessment.alertPatientDiscomfortAreas")
       );
       return;
     }
@@ -102,7 +108,7 @@ export default function FamilyPage5() {
       !otherDiscomfortArea.trim()
     ) {
       alert(
-        "Please specify the other discomfort area."
+        t("assessment.alertOtherDiscomfortArea")
       );
       return;
     }
@@ -114,7 +120,7 @@ export default function FamilyPage5() {
       !walkingHelp
     ) {
       alert(
-        "Please indicate whether help was needed."
+        t("assessment.alertWalkingHelpNeeded")
       );
       return;
     }
@@ -124,7 +130,7 @@ export default function FamilyPage5() {
       !looseMotionType
     ) {
       alert(
-        "Please select the loose motion type."
+        t("assessment.alertLooseMotionType")
       );
       return;
     }
@@ -190,14 +196,15 @@ export default function FamilyPage5() {
             marginBottom: "12px",
           }}
         >
-          Health Check For Today
+          {t("assessment.healthCheckToday")}
         </h2>
 
         <hr />
 
         <h3>
-          🤕 Did the patient feel any
-          discomfort today?
+          🤕 {t(
+  "assessment.patientDiscomfortToday"
+)}
         </h3>
 
         <button
@@ -212,7 +219,7 @@ export default function FamilyPage5() {
             );
           }}
         >
-          😊 No
+          😊 {t("common.no")}x
         </button>
 
         <button
@@ -223,7 +230,7 @@ export default function FamilyPage5() {
             setDiscomfort("yes")
           }
         >
-          😐 Yes
+          😐 {t("common.yes")}
         </button>
 
         {discomfort === "yes" && (
@@ -235,41 +242,72 @@ export default function FamilyPage5() {
             />
 
             <h3>
-              📍 Where did the patient
-              feel discomfort?
+              📍 {t(
+  "assessment.patientDiscomfortWhere"
+)}
             </h3>
 
-            {[
-              "Head",
-              "Eyes",
-              "Ears",
-              "Stomach",
-              "Back",
-              "Chest",
-              "Arms",
-              "Legs",
-              "Joints",
-              "Other",
-            ].map((area) => (
-              <button
-                key={area}
-                onClick={() =>
-                  toggleArea(area)
-                }
-                style={optionStyle(
-                  discomfortAreas.includes(
-                    area
-                  )
-                )}
-              >
-                {discomfortAreas.includes(
-                  area
-                )
-                  ? "☑ "
-                  : "☐ "}
-                {area}
-              </button>
-            ))}
+{[
+  {
+    value: "Head",
+    label: t("assessment.areaHead"),
+  },
+  {
+    value: "Eyes",
+    label: t("assessment.areaEyes"),
+  },
+  {
+    value: "Ears",
+    label: t("assessment.areaEars"),
+  },
+  {
+    value: "Stomach",
+    label: t("assessment.areaStomach"),
+  },
+  {
+    value: "Back",
+    label: t("assessment.areaBack"),
+  },
+  {
+    value: "Chest",
+    label: t("assessment.areaChest"),
+  },
+  {
+    value: "Arms",
+    label: t("assessment.areaArms"),
+  },
+  {
+    value: "Legs",
+    label: t("assessment.areaLegs"),
+  },
+  {
+    value: "Joints",
+    label: t("assessment.areaJoints"),
+  },
+  {
+    value: "Other",
+    label: t("assessment.areaOther"),
+  },
+].map((area) => (
+  <button
+    key={area.value}
+    onClick={() =>
+      toggleArea(area.value)
+    }
+    style={optionStyle(
+      discomfortAreas.includes(
+        area.value
+      )
+    )}
+  >
+    {discomfortAreas.includes(
+      area.value
+    )
+      ? "☑ "
+      : "☐ "}
+    {area.label}
+  </button>
+))}
 
             {discomfortAreas.includes(
               "Other"
@@ -284,7 +322,9 @@ export default function FamilyPage5() {
                     e.target.value
                   )
                 }
-                placeholder="Please specify"
+                placeholder={t(
+  "dailyCare.pleaseSpecify"
+)}
                 style={{
                   width: "100%",
                   padding: "12px",
@@ -308,8 +348,9 @@ export default function FamilyPage5() {
         />
 
         <h3>
-          🚶 How was the patient's
-          walking today?
+          🚶 {t(
+  "assessment.patientWalkingToday"
+)}
         </h3>
 
         <button
@@ -320,7 +361,7 @@ export default function FamilyPage5() {
             setWalking("easy")
           }
         >
-          😊 Walked Easily
+          😊 {t("assessment.walkedEasily")}
         </button>
 
         <button
@@ -331,7 +372,9 @@ export default function FamilyPage5() {
             setWalking("some")
           }
         >
-          😐 Some Difficulty
+          😐 {t(
+  "assessment.walkingSomeDifficulty"
+)}
         </button>
 
         <button
@@ -345,7 +388,9 @@ export default function FamilyPage5() {
             )
           }
         >
-          😟 Very Difficult
+          😟 {t(
+  "assessment.walkingVeryDifficult"
+)}
         </button>
 
         {(walking === "some" ||
@@ -359,8 +404,9 @@ export default function FamilyPage5() {
             />
 
             <h3>
-              🧍 Did the patient need
-              help walking?
+              🧍 {t(
+  "assessment.patientNeedHelpWalking"
+)}
             </h3>
 
             <button
@@ -374,7 +420,7 @@ export default function FamilyPage5() {
                 )
               }
             >
-              😊 No
+              😊 {t("common.no")}
             </button>
 
             <button
@@ -388,7 +434,7 @@ export default function FamilyPage5() {
                 )
               }
             >
-              😟 Yes
+              😟 {t("common.yes")}
             </button>
           </>
         )}
@@ -400,8 +446,9 @@ export default function FamilyPage5() {
         />
 
         <h3>
-          🚽 Were loose motions
-          observed?
+          🚽 {t(
+  "assessment.looseMotionsObserved"
+)}
         </h3>
 
         <button
@@ -413,7 +460,7 @@ export default function FamilyPage5() {
             setLooseMotionType("");
           }}
         >
-          😊 No
+          😊 {t("common.no")}
         </button>
 
         <button
@@ -424,7 +471,7 @@ export default function FamilyPage5() {
             setLooseMotions("yes")
           }
         >
-          😟 Yes
+          😟 {t("common.yes")}
         </button>
 
         {looseMotions === "yes" && (
@@ -436,8 +483,9 @@ export default function FamilyPage5() {
             />
 
             <h3>
-              🚽 What type of loose
-              motions were observed?
+              🚽 {t(
+  "assessment.looseMotionTypeObserved"
+)}
             </h3>
 
             <button
@@ -451,7 +499,9 @@ export default function FamilyPage5() {
                 )
               }
             >
-              💧 Watery
+              💧 {t(
+  "assessment.looseMotionWatery"
+)}
             </button>
 
             <button
@@ -465,7 +515,9 @@ export default function FamilyPage5() {
                 )
               }
             >
-              😐 Sticky
+              😐 {t(
+  "assessment.looseMotionSticky"
+)}
             </button>
 
             <button
@@ -479,7 +531,7 @@ export default function FamilyPage5() {
                 )
               }
             >
-              🤔 Not Sure
+              🤔 {t("assessment.notSure")}
             </button>
           </>
         )}
@@ -491,8 +543,9 @@ export default function FamilyPage5() {
         />
 
         <h3>
-          🧠 Did the patient seem
-          unusually confused today?
+          🧠 {t(
+  "assessment.patientConfusedToday"
+)}
         </h3>
 
         <button
@@ -503,7 +556,7 @@ export default function FamilyPage5() {
             setConfusion("no")
           }
         >
-          😊 No
+          😊 {t("common.no")}
         </button>
 
         <button
@@ -514,7 +567,7 @@ export default function FamilyPage5() {
             setConfusion("yes")
           }
         >
-          😟 Yes
+          😟 {t("common.yes")}
         </button>
 
         <div
@@ -545,7 +598,7 @@ export default function FamilyPage5() {
                 "pointer",
             }}
           >
-            ← Previous
+            ← {t("assessment.previous")}
           </button>
 
           <button
@@ -568,7 +621,7 @@ export default function FamilyPage5() {
                 "pointer",
             }}
           >
-            Finish Assessment ✓
+            {t("assessment.finishAssessment")} ✓
           </button>
         </div>
       </div>

@@ -471,6 +471,159 @@ startAssessment:
 alertNameAndAge:
   "ദയവായി പേരും പ്രായവും നൽകുക",
 
+selectPatientToBegin:
+  "വിലയിരുത്തൽ ആരംഭിക്കാൻ ഒരു രോഗിയെ തിരഞ്ഞെടുക്കുക.",
+
+noPatientsFound:
+  "രോഗികളെയൊന്നും കണ്ടെത്തിയില്ല. ദയവായി ആദ്യം ഒരു രോഗിയെ ചേർക്കുക.",
+
+selectPatient:
+  "രോഗിയെ തിരഞ്ഞെടുക്കുക",
+
+name:
+  "പേര്",
+
+age:
+  "പ്രായം",
+
+gender:
+  "ലിംഗം",
+
+relationship:
+  "ബന്ധം",
+
+addNewPatient:
+  "പുതിയ രോഗിയെ ചേർക്കുക",
+
+backToDashboard:
+  "ഡാഷ്ബോർഡിലേക്ക് മടങ്ങുക",
+
+unableToContinue:
+  "തുടരാൻ കഴിയില്ല",
+
+profileLoadError:
+  "നിങ്ങളുടെ പ്രൊഫൈൽ ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല. ദയവായി വീണ്ടും സൈൻ ഇൻ ചെയ്യുക.",
+
+patientLoadError:
+  "രോഗികളുടെ വിവരങ്ങൾ ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക.",
+
+pageLoadError:
+  "ഈ പേജ് ലോഡ് ചെയ്യുന്നതിനിടെ ഒരു പ്രശ്നം സംഭവിച്ചു. ദയവായി പേജ് റിഫ്രെഷ് ചെയ്ത് വീണ്ടും ശ്രമിക്കുക.",
+
+breathingToday:
+  "ഇന്ന് രോഗിയുടെ ശ്വസനം എങ്ങനെയായിരുന്നു?",
+
+breathingNormal:
+  "സാധാരണ",
+
+breathingSlightlyDifficult:
+  "ചെറിയ ബുദ്ധിമുട്ട്",
+
+breathingVeryDifficult:
+  "വളരെ ബുദ്ധിമുട്ട്",
+
+coughingToday:
+  "ഇന്ന് രോഗിക്ക് ചുമ ഉണ്ടായിരുന്നോ?",
+
+coughSometimes:
+  "ഇടയ്ക്കിടെ",
+
+coughFrequently:
+  "പതിവായി",
+
+bloodWhileCoughing:
+  "ചുമയ്ക്കുമ്പോൾ രക്തം കണ്ടോ?",
+
+alertBloodInCough:
+  "ചുമയ്ക്കുമ്പോൾ രക്തം കണ്ടോ എന്ന് ദയവായി അറിയിക്കുക.",
+
+patientFeverishToday:
+  "ഇന്ന് രോഗിക്ക് പനി ഉള്ളതായി തോന്നിയോ?",
+
+temperatureMeasured:
+  "താപനില പരിശോധിച്ചിരുന്നോ?",
+
+enterLatestTemperature:
+  "ഏറ്റവും പുതിയ താപനില രേഖപ്പെടുത്തുക",
+
+patientEnergyToday:
+  "ഇന്ന് രോഗി എത്രത്തോളം സജീവമായി തോന്നി?",
+
+energyActive:
+  "സജീവം",
+
+energyLessActive:
+  "കുറച്ച് സജീവം",
+
+energyVeryWeak:
+  "വളരെ ക്ഷീണിതൻ",
+
+alertTemperatureMeasured:
+  "താപനില പരിശോധിച്ചിരുന്നോ എന്ന് ദയവായി അറിയിക്കുക.",
+
+patientEatingToday:
+  "ഇന്ന് രോഗിയുടെ ഭക്ഷണം കഴിക്കൽ എങ്ങനെയായിരുന്നു?",
+
+patientDrinkingEnoughWater:
+  "രോഗി ഇന്ന് ആവശ്യത്തിന് വെള്ളം കുടിച്ചോ?",
+
+patientWaterGlasses:
+  "രോഗി ഏകദേശം എത്ര ഗ്ലാസ് വെള്ളം കുടിച്ചു?",
+
+oneGlass:
+  "1 ഗ്ലാസ്",
+
+twoGlasses:
+  "2 ഗ്ലാസ്",
+
+threeGlasses:
+  "3 ഗ്ലാസ്",
+
+fourGlasses:
+  "4 ഗ്ലാസ്",
+
+fivePlusGlasses:
+  "5+ ഗ്ലാസ്",
+
+patientDiscomfortToday:
+  "രോഗിക്ക് ഇന്ന് എന്തെങ്കിലും അസ്വസ്ഥത അനുഭവപ്പെട്ടോ?",
+
+patientDiscomfortWhere:
+  "രോഗിക്ക് എവിടെയാണ് അസ്വസ്ഥത അനുഭവപ്പെട്ടത്?",
+
+areaArms:
+  "കൈകൾ",
+
+areaLegs:
+  "കാലുകൾ",
+
+alertPatientDiscomfortAreas:
+  "രോഗിക്ക് എവിടെയാണ് അസ്വസ്ഥത അനുഭവപ്പെട്ടതെന്ന് തിരഞ്ഞെടുക്കുക.",
+
+alertOtherDiscomfortArea:
+  "മറ്റ് അസ്വസ്ഥതയുള്ള ഭാഗം ദയവായി വ്യക്തമാക്കുക.",
+
+patientWalkingToday:
+  "ഇന്ന് രോഗിയുടെ നടത്തം എങ്ങനെയായിരുന്നു?",
+
+walkedEasily:
+  "എളുപ്പത്തിൽ നടന്നു",
+
+patientNeedHelpWalking:
+  "രോഗിക്ക് നടക്കാൻ സഹായം ആവശ്യമുണ്ടായിരുന്നോ?",
+
+alertWalkingHelpNeeded:
+  "നടക്കാൻ സഹായം ആവശ്യമുണ്ടായിരുന്നോ എന്ന് അറിയിക്കുക.",
+
+looseMotionsObserved:
+  "വയറിളക്കം ഉണ്ടായിരുന്നോ?",
+
+looseMotionTypeObserved:
+  "ഏത് തരത്തിലുള്ള വയറിളക്കമാണ് ഉണ്ടായത്?",
+
+patientConfusedToday:
+  "രോഗി ഇന്ന് അസാധാരണമായി ആശയക്കുഴപ്പത്തിലായതായി തോന്നിയോ?",
+
 },
 
 };

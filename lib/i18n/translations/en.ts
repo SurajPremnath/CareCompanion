@@ -501,6 +501,160 @@ startAssessment:
 alertNameAndAge:
   "Please enter name and age",
 
+
+selectPatientToBegin:
+  "Select a patient to begin assessment.",
+
+noPatientsFound:
+  "No patients found. Please add a patient first.",
+
+selectPatient:
+  "Select Patient",
+
+name:
+  "Name",
+
+age:
+  "Age",
+
+gender:
+  "Gender",
+
+relationship:
+  "Relationship",
+
+addNewPatient:
+  "Add New Patient",
+
+backToDashboard:
+  "Back To Dashboard",
+
+unableToContinue:
+  "Unable to Continue",
+
+profileLoadError:
+  "Unable to load your profile. Please sign in again.",
+
+patientLoadError:
+  "Unable to load patients. Please try again.",
+
+pageLoadError:
+  "Something went wrong while loading this page. Please refresh and try again.",
+
+breathingToday:
+  "How was the patient's breathing today?",
+
+breathingNormal:
+  "Normal",
+
+breathingSlightlyDifficult:
+  "Slightly Difficult",
+
+breathingVeryDifficult:
+  "Very Difficult",
+
+coughingToday:
+  "Was the patient coughing today?",
+
+coughSometimes:
+  "Sometimes",
+
+coughFrequently:
+  "Frequently",
+
+bloodWhileCoughing:
+  "Was blood seen while coughing?",
+
+alertBloodInCough:
+  "Please answer whether blood was seen while coughing.",
+
+patientFeverishToday:
+  "Did the patient seem feverish today?",
+
+temperatureMeasured:
+  "Was temperature measured?",
+
+enterLatestTemperature:
+  "Enter latest temperature",
+
+patientEnergyToday:
+  "How energetic did the patient seem today?",
+
+energyActive:
+  "Active",
+
+energyLessActive:
+  "Less Active",
+
+energyVeryWeak:
+  "Very Weak",
+
+alertTemperatureMeasured:
+  "Please indicate whether temperature was measured.",
+
+patientEatingToday:
+  "How was the patient's eating today?",
+
+patientDrinkingEnoughWater:
+  "Did the patient drink enough water today?",
+
+patientWaterGlasses:
+  "Approximately how many glasses of water did the patient drink?",
+
+oneGlass:
+  "1 Glass",
+
+twoGlasses:
+  "2 Glasses",
+
+threeGlasses:
+  "3 Glasses",
+
+fourGlasses:
+  "4 Glasses",
+
+fivePlusGlasses:
+  "5+ Glasses",
+
+patientDiscomfortToday:
+  "Did the patient feel any discomfort today?",
+
+patientDiscomfortWhere:
+  "Where did the patient feel discomfort?",
+
+areaArms:
+  "Arms",
+
+areaLegs:
+  "Legs",
+
+alertPatientDiscomfortAreas:
+  "Please select where the patient felt discomfort.",
+
+alertOtherDiscomfortArea:
+  "Please specify the other discomfort area.",
+
+patientWalkingToday:
+  "How was the patient's walking today?",
+
+walkedEasily:
+  "Walked Easily",
+
+patientNeedHelpWalking:
+  "Did the patient need help walking?",
+
+alertWalkingHelpNeeded:
+  "Please indicate whether help was needed.",
+
+looseMotionsObserved:
+  "Were loose motions observed?",
+
+looseMotionTypeObserved:
+  "What type of loose motions were observed?",
+
+patientConfusedToday:
+  "Did the patient seem unusually confused today?",
+
 },
 
 };

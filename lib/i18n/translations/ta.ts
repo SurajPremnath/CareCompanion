@@ -472,6 +472,159 @@ startAssessment:
 alertNameAndAge:
   "தயவுசெய்து பெயர் மற்றும் வயதை உள்ளிடவும்",
 
+selectPatientToBegin:
+  "மதிப்பீட்டைத் தொடங்க ஒரு நோயாளியைத் தேர்ந்தெடுக்கவும்.",
+
+noPatientsFound:
+  "நோயாளிகள் எவரும் கிடைக்கவில்லை. தயவுசெய்து முதலில் ஒரு நோயாளியைச் சேர்க்கவும்.",
+
+selectPatient:
+  "நோயாளியைத் தேர்ந்தெடுக்கவும்",
+
+name:
+  "பெயர்",
+
+age:
+  "வயது",
+
+gender:
+  "பாலினம்",
+
+relationship:
+  "உறவு",
+
+addNewPatient:
+  "புதிய நோயாளியைச் சேர்க்கவும்",
+
+backToDashboard:
+  "டாஷ்போர்டுக்கு திரும்பவும்",
+
+unableToContinue:
+  "தொடர முடியவில்லை",
+
+profileLoadError:
+  "உங்கள் சுயவிவரத்தை ஏற்ற முடியவில்லை. தயவுசெய்து மீண்டும் உள்நுழையவும்.",
+
+patientLoadError:
+  "நோயாளிகளின் தகவல்களை ஏற்ற முடியவில்லை. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.",
+
+pageLoadError:
+  "இந்தப் பக்கத்தை ஏற்றும்போது சிக்கல் ஏற்பட்டது. தயவுசெய்து பக்கத்தைப் புதுப்பித்து மீண்டும் முயற்சிக்கவும்.",
+
+breathingToday:
+  "இன்று நோயாளியின் சுவாசம் எப்படி இருந்தது?",
+
+breathingNormal:
+  "இயல்பாக இருந்தது",
+
+breathingSlightlyDifficult:
+  "சிறிது சிரமமாக இருந்தது",
+
+breathingVeryDifficult:
+  "மிகவும் சிரமமாக இருந்தது",
+
+coughingToday:
+  "இன்று நோயாளிக்கு இருமல் இருந்ததா?",
+
+coughSometimes:
+  "சில நேரங்களில்",
+
+coughFrequently:
+  "அடிக்கடி",
+
+bloodWhileCoughing:
+  "இருமும்போது இரத்தம் காணப்பட்டதா?",
+
+alertBloodInCough:
+  "இருமும்போது இரத்தம் காணப்பட்டதா என்பதைத் தெரிவிக்கவும்.",
+
+patientFeverishToday:
+  "இன்று நோயாளிக்கு காய்ச்சல் இருப்பது போல் தோன்றியதா?",
+
+temperatureMeasured:
+  "உடல் வெப்பநிலை அளவிடப்பட்டதா?",
+
+enterLatestTemperature:
+  "சமீபத்திய வெப்பநிலையை உள்ளிடவும்",
+
+patientEnergyToday:
+  "இன்று நோயாளி எந்த அளவிற்கு சுறுசுறுப்பாக இருந்தார்?",
+
+energyActive:
+  "சுறுசுறுப்பாக",
+
+energyLessActive:
+  "குறைவான சுறுசுறுப்பு",
+
+energyVeryWeak:
+  "மிகவும் பலவீனமாக",
+
+alertTemperatureMeasured:
+  "உடல் வெப்பநிலை அளவிடப்பட்டதா என்பதைத் தெரிவிக்கவும்.",
+
+patientEatingToday:
+  "இன்று நோயாளியின் உணவு உட்கொள்ளல் எப்படி இருந்தது?",
+
+patientDrinkingEnoughWater:
+  "நோயாளி இன்று போதுமான அளவு தண்ணீர் குடித்தாரா?",
+
+patientWaterGlasses:
+  "நோயாளி தோராயமாக எத்தனை டம்ளர் தண்ணீர் குடித்தார்?",
+
+oneGlass:
+  "1 டம்ளர்",
+
+twoGlasses:
+  "2 டம்ளர்கள்",
+
+threeGlasses:
+  "3 டம்ளர்கள்",
+
+fourGlasses:
+  "4 டம்ளர்கள்",
+
+fivePlusGlasses:
+  "5+ டம்ளர்கள்",
+
+patientDiscomfortToday:
+  "நோயாளிக்கு இன்று ஏதேனும் அசௌகரியம் ஏற்பட்டதா?",
+
+patientDiscomfortWhere:
+  "நோயாளிக்கு எங்கு அசௌகரியம் ஏற்பட்டது?",
+
+areaArms:
+  "கைகள்",
+
+areaLegs:
+  "கால்கள்",
+
+alertPatientDiscomfortAreas:
+  "நோயாளிக்கு எங்கு அசௌகரியம் ஏற்பட்டது என்பதைத் தேர்ந்தெடுக்கவும்.",
+
+alertOtherDiscomfortArea:
+  "மற்ற அசௌகரியம் ஏற்பட்ட பகுதியைக் குறிப்பிடவும்.",
+
+patientWalkingToday:
+  "இன்று நோயாளியின் நடை எப்படி இருந்தது?",
+
+walkedEasily:
+  "எளிதாக நடந்தார்",
+
+patientNeedHelpWalking:
+  "நோயாளிக்கு நடக்க உதவி தேவைப்பட்டதா?",
+
+alertWalkingHelpNeeded:
+  "நடக்க உதவி தேவைப்பட்டதா என்பதைத் தெரிவிக்கவும்.",
+
+looseMotionsObserved:
+  "வயிற்றுப்போக்கு காணப்பட்டதா?",
+
+looseMotionTypeObserved:
+  "எந்த வகையான வயிற்றுப்போக்கு காணப்பட்டது?",
+
+patientConfusedToday:
+  "நோயாளி இன்று வழக்கத்திற்கு மாறாக குழப்பமாகத் தோன்றினாரா?",
+
 },
 
 };

@@ -472,6 +472,159 @@ startAssessment:
 alertNameAndAge:
   "దయచేసి పేరు మరియు వయస్సును నమోదు చేయండి",
 
+selectPatientToBegin:
+  "అంచనాను ప్రారంభించడానికి రోగిని ఎంచుకోండి.",
+
+noPatientsFound:
+  "రోగులు ఎవరూ కనబడలేదు. దయచేసి ముందుగా ఒక రోగిని జోడించండి.",
+
+selectPatient:
+  "రోగిని ఎంచుకోండి",
+
+name:
+  "పేరు",
+
+age:
+  "వయస్సు",
+
+gender:
+  "లింగం",
+
+relationship:
+  "సంబంధం",
+
+addNewPatient:
+  "కొత్త రోగిని జోడించండి",
+
+backToDashboard:
+  "డ్యాష్‌బోర్డ్‌కు తిరిగి వెళ్లండి",
+
+unableToContinue:
+  "కొనసాగించడం సాధ్యం కాదు",
+
+profileLoadError:
+  "మీ ప్రొఫైల్‌ను లోడ్ చేయలేకపోయాం. దయచేసి మళ్లీ సైన్ ఇన్ చేయండి.",
+
+patientLoadError:
+  "రోగుల సమాచారాన్ని లోడ్ చేయలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.",
+
+pageLoadError:
+  "ఈ పేజీని లోడ్ చేస్తున్నప్పుడు సమస్య ఏర్పడింది. దయచేసి పేజీని రిఫ్రెష్ చేసి మళ్లీ ప్రయత్నించండి.",
+
+breathingToday:
+  "ఈరోజు రోగి శ్వాస తీసుకోవడం ఎలా ఉంది?",
+
+breathingNormal:
+  "సాధారణం",
+
+breathingSlightlyDifficult:
+  "కొద్దిగా ఇబ్బంది",
+
+breathingVeryDifficult:
+  "చాలా ఇబ్బంది",
+
+coughingToday:
+  "ఈరోజు రోగికి దగ్గు ఉందా?",
+
+coughSometimes:
+  "అప్పుడప్పుడు",
+
+coughFrequently:
+  "తరచుగా",
+
+bloodWhileCoughing:
+  "దగ్గుతున్నప్పుడు రక్తం కనిపించిందా?",
+
+alertBloodInCough:
+  "దగ్గుతున్నప్పుడు రక్తం కనిపించిందా అనే ప్రశ్నకు దయచేసి సమాధానం ఇవ్వండి.",
+
+patientFeverishToday:
+  "ఈరోజు రోగికి జ్వరం ఉన్నట్లు అనిపించిందా?",
+
+temperatureMeasured:
+  "ఉష్ణోగ్రతను కొలిచారా?",
+
+enterLatestTemperature:
+  "తాజా ఉష్ణోగ్రతను నమోదు చేయండి",
+
+patientEnergyToday:
+  "ఈరోజు రోగి ఎంత చురుకుగా కనిపించారు?",
+
+energyActive:
+  "చురుకుగా",
+
+energyLessActive:
+  "తక్కువ చురుకుగా",
+
+energyVeryWeak:
+  "చాలా బలహీనంగా",
+
+alertTemperatureMeasured:
+  "ఉష్ణోగ్రతను కొలిచారా లేదా అనే విషయాన్ని దయచేసి తెలియజేయండి.",
+
+patientEatingToday:
+  "ఈ రోజు రోగి ఆహారం తీసుకోవడం ఎలా ఉంది?",
+
+patientDrinkingEnoughWater:
+  "రోగి ఈ రోజు తగినంత నీరు తాగారా?",
+
+patientWaterGlasses:
+  "రోగి సుమారుగా ఎన్ని గ్లాసుల నీరు తాగారు?",
+
+oneGlass:
+  "1 గ్లాసు",
+
+twoGlasses:
+  "2 గ్లాసులు",
+
+threeGlasses:
+  "3 గ్లాసులు",
+
+fourGlasses:
+  "4 గ్లాసులు",
+
+fivePlusGlasses:
+  "5+ గ్లాసులు",
+
+patientDiscomfortToday:
+  "రోగికి ఈ రోజు ఏదైనా అసౌకర్యం అనిపించిందా?",
+
+patientDiscomfortWhere:
+  "రోగికి ఎక్కడ అసౌకర్యం అనిపించింది?",
+
+areaArms:
+  "చేతులు",
+
+areaLegs:
+  "కాళ్లు",
+
+alertPatientDiscomfortAreas:
+  "రోగికి ఎక్కడ అసౌకర్యం అనిపించిందో ఎంచుకోండి.",
+
+alertOtherDiscomfortArea:
+  "దయచేసి ఇతర అసౌకర్య ప్రాంతాన్ని పేర్కొనండి.",
+
+patientWalkingToday:
+  "ఈ రోజు రోగి నడక ఎలా ఉంది?",
+
+walkedEasily:
+  "సులభంగా నడిచారు",
+
+patientNeedHelpWalking:
+  "రోగికి నడవడానికి సహాయం అవసరమైందా?",
+
+alertWalkingHelpNeeded:
+  "నడవడానికి సహాయం అవసరమైందో లేదో తెలియజేయండి.",
+
+looseMotionsObserved:
+  "విరేచనాలు గమనించారా?",
+
+looseMotionTypeObserved:
+  "ఏ రకమైన విరేచనాలు గమనించారు?",
+
+patientConfusedToday:
+  "రోగి ఈ రోజు అసాధారణంగా అయోమయంలో ఉన్నట్లు కనిపించారా?",
+
 },
 
 };

@@ -4,8 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AssessmentLayout from "@/Components/AssessmentLayout";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 export default function FamilyPage3() {
   const router = useRouter();
+
+const {
+  t,
+} = useLanguage();
 
   const [fever, setFever] =
     useState("");
@@ -49,7 +57,7 @@ export default function FamilyPage3() {
   const handleNext = () => {
     if (!fever || !energy) {
       alert(
-        "Please answer all questions."
+        t("assessment.alertAllQuestions")
       );
       return;
     }
@@ -59,7 +67,7 @@ export default function FamilyPage3() {
       !temperatureChecked
     ) {
       alert(
-        "Please indicate whether temperature was measured."
+        t("assessment.alertTemperatureMeasured")
       );
       return;
     }
@@ -70,7 +78,7 @@ export default function FamilyPage3() {
       !temperatureReading
     ) {
       alert(
-        "Please enter the temperature reading."
+        t("assessment.alertTemperatureReading")
       );
       return;
     }
@@ -119,7 +127,7 @@ export default function FamilyPage3() {
             marginBottom: "12px",
           }}
         >
-          Health Check For Today
+          {t("assessment.healthCheckToday")}
         </h2>
 
         <hr />
@@ -130,8 +138,9 @@ export default function FamilyPage3() {
             marginBottom: "6px",
           }}
         >
-          🌡️ Did the patient seem
-          feverish today?
+          🌡️ {t(
+  "assessment.patientFeverishToday"
+)}
         </h3>
 
         <button
@@ -144,7 +153,7 @@ export default function FamilyPage3() {
             setTemperatureReading("");
           }}
         >
-          😊 No
+          😊 {t("common.no")}
         </button>
 
         <button
@@ -155,7 +164,7 @@ export default function FamilyPage3() {
             setFever("yes")
           }
         >
-          😟 Yes
+          😟 {t("common.yes")}
         </button>
 
         {fever === "yes" && (
@@ -172,8 +181,9 @@ export default function FamilyPage3() {
                 marginBottom: "6px",
               }}
             >
-              🌡️ Was temperature
-              measured?
+              🌡️ {t(
+  "assessment.temperatureMeasured"
+)}
             </h3>
 
             <button
@@ -187,7 +197,7 @@ export default function FamilyPage3() {
                 )
               }
             >
-              😊 Yes
+              😊 {t("common.yes")}
             </button>
 
             <button
@@ -201,7 +211,7 @@ export default function FamilyPage3() {
                 )
               }
             >
-              😐 No
+              😐 {t("common.no")}
             </button>
 
             {temperatureChecked ===
@@ -226,7 +236,9 @@ export default function FamilyPage3() {
                           .value
                       )
                     }
-                    placeholder="Enter latest temperature"
+                    placeholder={t(
+  "assessment.enterLatestTemperature"
+)}
                     style={{
                       width:
                         "100%",
@@ -322,8 +334,9 @@ export default function FamilyPage3() {
             marginBottom: "6px",
           }}
         >
-          ⚡ How energetic did the
-          patient seem today?
+          ⚡ {t(
+  "assessment.patientEnergyToday"
+)}
         </h3>
 
         {fever === "no" && (
@@ -335,7 +348,9 @@ export default function FamilyPage3() {
               setEnergy("good")
             }
           >
-            😊 Active
+            😊 {t(
+  "assessment.energyActive"
+)}
           </button>
         )}
 
@@ -347,7 +362,9 @@ export default function FamilyPage3() {
             setEnergy("tired")
           }
         >
-          😐 Less Active
+          😐 {t(
+  "assessment.energyLessActive"
+)}
         </button>
 
         <button
@@ -361,7 +378,9 @@ export default function FamilyPage3() {
             )
           }
         >
-          😟 Very Weak
+          😟 {t(
+  "assessment.energyVeryWeak"
+)}
         </button>
 
         <div
@@ -392,7 +411,7 @@ export default function FamilyPage3() {
                 "pointer",
             }}
           >
-            ← Previous
+            ← {t("assessment.previous")}
           </button>
 
           <button
@@ -416,7 +435,7 @@ export default function FamilyPage3() {
                 "pointer",
             }}
           >
-            Next →
+            {t("assessment.next")} →
           </button>
         </div>
       </div>

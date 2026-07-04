@@ -11,6 +11,10 @@ import { patientStorage } from "@/lib/storage/patientStorage";
 import AppHeader from "@/app/components/AppHeader";
 import type { Patient } from "@/lib/types/patient";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 type UserProfile = {
   id: string;
   fullName: string;
@@ -18,6 +22,10 @@ type UserProfile = {
 
 export default function FamilyPage() {
   const router = useRouter();
+
+const {
+  t,
+} = useLanguage();
 
   const [loading, setLoading] = useState(true);
 
@@ -55,7 +63,7 @@ export default function FamilyPage() {
 
         if (!profile) {
           setError(
-            "Unable to load your profile. Please sign in again."
+             t("assessment.profileLoadError")
           );
           return;
         }
@@ -71,10 +79,15 @@ export default function FamilyPage() {
         if (!mounted) return;
 
 if (!result.success) {
-  setError(
-    result.error ??
-      "Unable to load patients. Please try again."
+  console.error(
+    "Unable to load patients:",
+    result.error
   );
+
+  setError(
+    t("assessment.patientLoadError")
+  );
+
   return;
 }
 
@@ -95,7 +108,7 @@ if (!result.success) {
         if (!mounted) return;
 
         setError(
-          "Something went wrong while loading this page. Please refresh and try again."
+          t("assessment.pageLoadError")
         );
       } finally {
         if (mounted) {
@@ -109,7 +122,7 @@ if (!result.success) {
     return () => {
       mounted = false;
     };
-  }, [router]);
+  }, [router, t]);
 
   const selectedPatient = useMemo(() => {
     return (
@@ -139,7 +152,7 @@ if (!result.success) {
             fontWeight: 600,
           }}
         >
-          Loading...
+          {t("common.loading")}
         </div>
       </main>
     );
@@ -175,7 +188,7 @@ if (!result.success) {
                 marginBottom: "16px",
               }}
             >
-              Unable to Continue
+              {t("assessment.unableToContinue")}
             </h2>
 
             <p
@@ -192,7 +205,7 @@ if (!result.success) {
               }
               style={secondaryButton}
             >
-              ← Back To Dashboard
+              ← {t("assessment.backToDashboard")}
             </button>
           </div>
         </div>
@@ -289,7 +302,7 @@ localStorage.setItem(
         >
 
 <AppHeader
-  pageTitle="Family Assessment"
+  pageTitle={t("assessment.familyAssessment")}
   pageIcon="👨‍👩‍👧"
   currentUserName={currentUser.fullName}
 />
@@ -300,7 +313,7 @@ localStorage.setItem(
     marginBottom: "25px",
   }}
 >
-  Select a patient to begin assessment.
+  {t("assessment.selectPatientToBegin")}
 </p>
 
           {patients.length === 0 ? (
@@ -314,8 +327,7 @@ localStorage.setItem(
                   marginBottom: "20px",
                 }}
               >
-                No patients found.
-                Please add a patient first.
+                {t("assessment.noPatientsFound")}
               </div>
 
               <button
@@ -324,7 +336,7 @@ localStorage.setItem(
                 }
                 style={primaryButton}
               >
-                ➕ Add Patient
+                ➕ {t("dashboard.addPatient")}
               </button>
             </>
           ) : (
@@ -336,7 +348,7 @@ localStorage.setItem(
                   marginBottom: "8px",
                 }}
               >
-                Select Patient
+                {t("assessment.selectPatient")}
               </label>
 
               <select
@@ -376,12 +388,12 @@ localStorage.setItem(
                   }}
                 >
                   <div>
-                    <strong>Name:</strong>{" "}
+                    <strong>{t("assessment.name")}:</strong>{" "}
                     {selectedPatient.fullName}
                   </div>
 
                   <div>
-                    <strong>Age:</strong>{" "}
+                    <strong>{t("assessment.age")}:</strong>{" "}
                     {selectedPatient.dateOfBirth
                       ? calculateAge(
                           selectedPatient.dateOfBirth
@@ -390,13 +402,13 @@ localStorage.setItem(
                   </div>
 
                   <div>
-                    <strong>Gender:</strong>{" "}
+                    <strong>{t("assessment.gender")}:</strong>{" "}
                     {selectedPatient.gender ??
                       "-"}
                   </div>
 
                   <div>
-                    <strong>Relationship:</strong>{" "}
+                    <strong>{t("assessment.relationship")}:</strong>{" "}
                     {selectedPatient.relationship ??
                       "-"}
                   </div>
@@ -407,7 +419,7 @@ localStorage.setItem(
                 onClick={startAssessment}
                 style={primaryButton}
               >
-                Start Assessment →
+                {t("assessment.startAssessment")} →
               </button>
 
               <button
@@ -416,7 +428,7 @@ localStorage.setItem(
                 }
                 style={secondaryButton}
               >
-                ➕ Add New Patient
+                ➕ {t("assessment.addNewPatient")}
               </button>
             </>
           )}
@@ -427,7 +439,7 @@ localStorage.setItem(
             }
             style={secondaryButton}
           >
-            ← Back To Dashboard
+            ← {t("assessment.backToDashboard")}
           </button>
 
           <div
@@ -438,7 +450,7 @@ localStorage.setItem(
               color: "#6b7280",
             }}
           >
-            Created by Suraj Premnath
+            {t("dashboard.createdBy")}
           </div>
         </div>
       </div>

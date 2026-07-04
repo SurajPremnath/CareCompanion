@@ -472,6 +472,159 @@ startAssessment:
 alertNameAndAge:
   "कृपया नाव आणि वय नोंदवा",
 
+selectPatientToBegin:
+  "मूल्यांकन सुरू करण्यासाठी रुग्ण निवडा.",
+
+noPatientsFound:
+  "कोणतेही रुग्ण आढळले नाहीत. कृपया प्रथम रुग्ण जोडा.",
+
+selectPatient:
+  "रुग्ण निवडा",
+
+name:
+  "नाव",
+
+age:
+  "वय",
+
+gender:
+  "लिंग",
+
+relationship:
+  "नाते",
+
+addNewPatient:
+  "नवीन रुग्ण जोडा",
+
+backToDashboard:
+  "डॅशबोर्डवर परत जा",
+
+unableToContinue:
+  "पुढे सुरू ठेवता येत नाही",
+
+profileLoadError:
+  "तुमची प्रोफाइल माहिती लोड करता आली नाही. कृपया पुन्हा साइन इन करा.",
+
+patientLoadError:
+  "रुग्णांची माहिती लोड करता आली नाही. कृपया पुन्हा प्रयत्न करा.",
+
+pageLoadError:
+  "हे पृष्ठ लोड करताना काहीतरी चूक झाली. कृपया पृष्ठ रिफ्रेश करून पुन्हा प्रयत्न करा.",
+
+breathingToday:
+  "आज रुग्णाचा श्वास कसा होता?",
+
+breathingNormal:
+  "सामान्य",
+
+breathingSlightlyDifficult:
+  "थोडा त्रास",
+
+breathingVeryDifficult:
+  "खूप त्रास",
+
+coughingToday:
+  "आज रुग्णाला खोकला होता का?",
+
+coughSometimes:
+  "कधीकधी",
+
+coughFrequently:
+  "वारंवार",
+
+bloodWhileCoughing:
+  "खोकताना रक्त दिसले का?",
+
+alertBloodInCough:
+  "खोकताना रक्त दिसले होते का हे कृपया सांगा.",
+
+patientFeverishToday:
+  "आज रुग्णाला ताप आल्यासारखे वाटत होते का?",
+
+temperatureMeasured:
+  "तापमान मोजले होते का?",
+
+enterLatestTemperature:
+  "नवीनतम तापमान नोंदवा",
+
+patientEnergyToday:
+  "आज रुग्ण किती सक्रिय दिसत होता?",
+
+energyActive:
+  "सक्रिय",
+
+energyLessActive:
+  "कमी सक्रिय",
+
+energyVeryWeak:
+  "खूप अशक्त",
+
+alertTemperatureMeasured:
+  "तापमान मोजले होते का हे कृपया सांगा.",
+
+patientEatingToday:
+  "आज रुग्णाचे खाणे कसे होते?",
+
+patientDrinkingEnoughWater:
+  "रुग्णाने आज पुरेसे पाणी प्यायले का?",
+
+patientWaterGlasses:
+  "रुग्णाने अंदाजे किती ग्लास पाणी प्यायले?",
+
+oneGlass:
+  "1 ग्लास",
+
+twoGlasses:
+  "2 ग्लास",
+
+threeGlasses:
+  "3 ग्लास",
+
+fourGlasses:
+  "4 ग्लास",
+
+fivePlusGlasses:
+  "5+ ग्लास",
+
+patientDiscomfortToday:
+  "रुग्णाला आज काही अस्वस्थता जाणवली का?",
+
+patientDiscomfortWhere:
+  "रुग्णाला कुठे अस्वस्थता जाणवली?",
+
+areaArms:
+  "हात",
+
+areaLegs:
+  "पाय",
+
+alertPatientDiscomfortAreas:
+  "कृपया रुग्णाला कुठे अस्वस्थता जाणवली ते निवडा.",
+
+alertOtherDiscomfortArea:
+  "कृपया अस्वस्थतेचे इतर ठिकाण नमूद करा.",
+
+patientWalkingToday:
+  "आज रुग्णाचे चालणे कसे होते?",
+
+walkedEasily:
+  "सहज चालले",
+
+patientNeedHelpWalking:
+  "रुग्णाला चालण्यासाठी मदतीची गरज पडली का?",
+
+alertWalkingHelpNeeded:
+  "कृपया चालण्यासाठी मदतीची गरज पडली का ते सांगा.",
+
+looseMotionsObserved:
+  "जुलाब झाले होते का?",
+
+looseMotionTypeObserved:
+  "कोणत्या प्रकारचे जुलाब झाले होते?",
+
+patientConfusedToday:
+  "रुग्ण आज नेहमीपेक्षा अधिक गोंधळलेला दिसला का?",
+
 },
 
 };

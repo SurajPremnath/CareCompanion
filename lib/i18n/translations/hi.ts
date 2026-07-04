@@ -468,6 +468,159 @@ startAssessment:
 alertNameAndAge:
   "कृपया नाम और आयु दर्ज करें",
 
+selectPatientToBegin:
+  "आकलन शुरू करने के लिए एक रोगी चुनें।",
+
+noPatientsFound:
+  "कोई रोगी नहीं मिला। कृपया पहले एक रोगी जोड़ें।",
+
+selectPatient:
+  "रोगी चुनें",
+
+name:
+  "नाम",
+
+age:
+  "आयु",
+
+gender:
+  "लिंग",
+
+relationship:
+  "रिश्ता",
+
+addNewPatient:
+  "नया रोगी जोड़ें",
+
+backToDashboard:
+  "डैशबोर्ड पर वापस जाएँ",
+
+unableToContinue:
+  "आगे जारी नहीं रख सकते",
+
+profileLoadError:
+  "आपकी प्रोफ़ाइल लोड नहीं हो सकी। कृपया फिर से साइन इन करें।",
+
+patientLoadError:
+  "रोगियों की जानकारी लोड नहीं हो सकी। कृपया फिर से प्रयास करें।",
+
+pageLoadError:
+  "इस पृष्ठ को लोड करते समय कुछ गलत हो गया। कृपया पृष्ठ को रीफ़्रेश करके फिर से प्रयास करें।",
+
+breathingToday:
+  "आज रोगी की साँस लेने की स्थिति कैसी थी?",
+
+breathingNormal:
+  "सामान्य",
+
+breathingSlightlyDifficult:
+  "थोड़ी कठिनाई",
+
+breathingVeryDifficult:
+  "बहुत कठिनाई",
+
+coughingToday:
+  "क्या आज रोगी को खाँसी हो रही थी?",
+
+coughSometimes:
+  "कभी-कभी",
+
+coughFrequently:
+  "बार-बार",
+
+bloodWhileCoughing:
+  "क्या खाँसी के दौरान खून दिखाई दिया?",
+
+alertBloodInCough:
+  "कृपया बताएं कि क्या खाँसी के दौरान खून दिखाई दिया था।",
+
+patientFeverishToday:
+  "क्या आज रोगी को बुखार जैसा महसूस हो रहा था?",
+
+temperatureMeasured:
+  "क्या तापमान मापा गया था?",
+
+enterLatestTemperature:
+  "नवीनतम तापमान दर्ज करें",
+
+patientEnergyToday:
+  "आज रोगी कितना सक्रिय दिखाई दिया?",
+
+energyActive:
+  "सक्रिय",
+
+energyLessActive:
+  "कम सक्रिय",
+
+energyVeryWeak:
+  "बहुत कमजोर",
+
+alertTemperatureMeasured:
+  "कृपया बताएं कि तापमान मापा गया था या नहीं।",
+
+patientEatingToday:
+  "आज मरीज ने कैसा खाना खाया?",
+
+patientDrinkingEnoughWater:
+  "क्या मरीज ने आज पर्याप्त पानी पिया?",
+
+patientWaterGlasses:
+  "मरीज ने लगभग कितने गिलास पानी पिया?",
+
+oneGlass:
+  "1 गिलास",
+
+twoGlasses:
+  "2 गिलास",
+
+threeGlasses:
+  "3 गिलास",
+
+fourGlasses:
+  "4 गिलास",
+
+fivePlusGlasses:
+  "5+ गिलास",
+
+patientDiscomfortToday:
+  "क्या मरीज को आज कोई असुविधा महसूस हुई?",
+
+patientDiscomfortWhere:
+  "मरीज को कहाँ असुविधा महसूस हुई?",
+
+areaArms:
+  "बाँहें",
+
+areaLegs:
+  "पैर",
+
+alertPatientDiscomfortAreas:
+  "कृपया चुनें कि मरीज को कहाँ असुविधा महसूस हुई।",
+
+alertOtherDiscomfortArea:
+  "कृपया अन्य असुविधा वाले स्थान के बारे में बताएं।",
+
+patientWalkingToday:
+  "आज मरीज का चलना कैसा था?",
+
+walkedEasily:
+  "आसानी से चले",
+
+patientNeedHelpWalking:
+  "क्या मरीज को चलने में मदद की जरूरत पड़ी?",
+
+alertWalkingHelpNeeded:
+  "कृपया बताएं कि चलने में मदद की जरूरत पड़ी या नहीं।",
+
+looseMotionsObserved:
+  "क्या दस्त देखे गए?",
+
+looseMotionTypeObserved:
+  "किस प्रकार के दस्त देखे गए?",
+
+patientConfusedToday:
+  "क्या मरीज आज असामान्य रूप से भ्रमित दिखाई दिया?",
+
 },
 
 };
