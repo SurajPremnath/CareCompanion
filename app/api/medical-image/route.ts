@@ -680,15 +680,59 @@ if (!everyDetectedDeviceIsValid) {
 
     }
 
-    //--------------------------------------------------------
-    // Success
-    //--------------------------------------------------------
+//--------------------------------------------------------
+// Increment Successful Image Usage
+//--------------------------------------------------------
 
-    return NextResponse.json({
+if (!isAdmin) {
 
-      data: readings,
+  const nextUsage =
+    currentUsage + 1;
 
-    });
+  const {
+    error: usageUpdateError,
+  } =
+    await supabaseAdmin
+      .from("profiles")
+      .update({
+        medical_image_usage_count:
+          nextUsage,
+      })
+      .eq(
+        "id",
+        user.id
+      );
+
+  if (usageUpdateError) {
+
+    console.error(
+      "Medical Image Usage Update Error:",
+      usageUpdateError
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          "The image was processed, but usage tracking could not be updated. Please try again.",
+      },
+      {
+        status: 500,
+      }
+    );
+
+  }
+
+}
+
+//--------------------------------------------------------
+// Success
+//--------------------------------------------------------
+
+return NextResponse.json({
+
+  data: readings,
+
+});
 
   }
 catch (error: unknown) {

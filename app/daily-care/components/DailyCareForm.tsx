@@ -811,6 +811,17 @@ onClick={() => {
     {t("dailyCare.captureHelp")}
   </p>
 
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "12px",
+  }}
+>
+
+  {/* Take Photo */}
+
   <label
     style={{
       ...imageCaptureButton,
@@ -827,9 +838,9 @@ onClick={() => {
     }}
   >
 
-{processingImage
-  ? t("dailyCare.readingImage")
-  : `📷 ${t("dailyCare.takeOrSelectImage")}`}
+    {processingImage
+      ? t("dailyCare.readingImage")
+      : "📷 Take Photo"}
 
     <input
       type="file"
@@ -848,6 +859,48 @@ onClick={() => {
     />
 
   </label>
+
+
+  {/* Choose Existing Photo */}
+
+  <label
+    style={{
+      ...imageCaptureButton,
+
+      opacity:
+        processingImage || saving
+          ? 0.7
+          : 1,
+
+      cursor:
+        processingImage || saving
+          ? "not-allowed"
+          : "pointer",
+    }}
+  >
+
+    {processingImage
+      ? t("dailyCare.readingImage")
+      : "🖼️ Choose Existing Photo"}
+
+    <input
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      disabled={
+        processingImage ||
+        saving
+      }
+      onChange={
+        handleMedicalImage
+      }
+      style={{
+        display: "none",
+      }}
+    />
+
+  </label>
+
+</div>
 
 </section>
 
