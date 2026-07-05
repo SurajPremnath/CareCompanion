@@ -15,6 +15,16 @@ import {
   markAssessmentSaved,
 } from "@/lib/reportStorage";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+} from "@/lib/analytics/analyticsEvents";
+
 type Row = {
   label: string;
   value: string;
@@ -42,6 +52,9 @@ export default function ReportPage() {
   const [observerRelationship, setObserverRelationship] = useState("");
 
   const reportRef = useRef<HTMLDivElement>(null);
+
+const assessmentProcessingRef =
+  useRef(false);
 
   useEffect(() => {
     const type =
@@ -670,25 +683,91 @@ const assessment: Omit<AssessmentInput, "userId"> = {
 
 void (async () => {
 
-  if (hasAssessmentBeenSaved()) {
+  if (
+    assessmentProcessingRef.current ||
+    hasAssessmentBeenSaved()
+  ) {
     return;
   }
+
+  assessmentProcessingRef.current = true;
 
   const result =
     await assessmentStorage.save(
       assessment
     );
 
-  if (!result.success) {
-    console.error(
-      "Assessment Save Failed",
-      result.error
-    );
+if (!result.success) {
 
-    return;
-  }
+  assessmentProcessingRef.current = false;
+
+  console.error(
+    "Assessment Save Failed",
+    result.error
+  );
+
+  return;
+}
 
   markAssessmentSaved();
+
+  await analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
+
+    eventName:
+      ANALYTICS_EVENTS.COMPLETED,
+
+    context:
+      type === "family"
+        ? ANALYTICS_CONTEXTS.FAMILY
+        : ANALYTICS_CONTEXTS.SELF,
+
+    pagePath:
+      "/report",
+
+    metadata: {
+
+      patientId:
+        type === "family"
+          ? localStorage.getItem(
+              "patientId"
+            )
+          : null,
+
+    },
+
+  });
+
+  await analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
+
+    eventName:
+      ANALYTICS_EVENTS.RESULT_SHOWN,
+
+    context:
+      type === "family"
+        ? ANALYTICS_CONTEXTS.FAMILY
+        : ANALYTICS_CONTEXTS.SELF,
+
+    pagePath:
+      "/report",
+
+    metadata: {
+
+      patientId:
+        type === "family"
+          ? localStorage.getItem(
+              "patientId"
+            )
+          : null,
+
+    },
+
+  });
 
 })();
 
@@ -699,6 +778,107 @@ void (async () => {
     setLoaded(true);
   }, []);
 
+const handleDownloadReport = async () => {
+
+  if (!reportRef.current) {
+    return;
+  }
+
+  await analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
+
+    eventName:
+      ANALYTICS_EVENTS.DOWNLOAD_STARTED,
+
+    context:
+      assessmentType === "family"
+        ? ANALYTICS_CONTEXTS.FAMILY
+        : ANALYTICS_CONTEXTS.SELF,
+
+    pagePath:
+      "/report",
+
+  });
+
+  try {
+
+    await downloadAssessmentPdf(
+      reportRef.current,
+      patientName
+    );
+
+    await analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.ASSESSMENT,
+
+      eventName:
+        ANALYTICS_EVENTS.DOWNLOAD_COMPLETED,
+
+      context:
+        assessmentType === "family"
+          ? ANALYTICS_CONTEXTS.FAMILY
+          : ANALYTICS_CONTEXTS.SELF,
+
+      pagePath:
+        "/report",
+
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Assessment PDF download failed:",
+      error
+    );
+
+    await analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.ASSESSMENT,
+
+      eventName:
+        ANALYTICS_EVENTS.DOWNLOAD_FAILED,
+
+      context:
+        assessmentType === "family"
+          ? ANALYTICS_CONTEXTS.FAMILY
+          : ANALYTICS_CONTEXTS.SELF,
+
+      pagePath:
+        "/report",
+
+    });
+
+  }
+
+};
+
+const handleNewAssessment = async () => {
+
+  await analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
+
+    eventName:
+      ANALYTICS_EVENTS.NEW_ASSESSMENT_CLICKED,
+
+    context:
+      assessmentType === "family"
+        ? ANALYTICS_CONTEXTS.FAMILY
+        : ANALYTICS_CONTEXTS.SELF,
+
+    pagePath:
+      "/report",
+
+  });
+
+router.push("/dashboard");
+
+};
 
   if (!loaded) return null;
 
@@ -742,9 +922,12 @@ void (async () => {
 </h2>
 
           <p>
-            <strong>Patient:</strong>{" "}
-            {patientName} ({patientAge})
-          </p>
+  <strong>Patient:</strong>{" "}
+  {patientName}
+  {patientAge
+    ? ` (${patientAge})`
+    : ""}
+</p>
 
           <p>
             <strong>Assessment:</strong>{" "}
@@ -927,19 +1110,7 @@ void (async () => {
 </div>
       </div>
 <button
-onClick={() => {
-
-  if (!reportRef.current) return;
-
-  downloadAssessmentPdf(
-
-    reportRef.current,
-
-    patientName
-
-  );
-
-}}
+onClick={handleDownloadReport}
 
   style={{
     width: "100%",
@@ -958,9 +1129,7 @@ onClick={() => {
 </button>
 
           <button
-            onClick={() =>
-              router.push("/")
-            }
+            onClick={handleNewAssessment}
             style={{
               width: "100%",
               marginTop: "24px",

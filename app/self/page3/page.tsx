@@ -8,6 +8,16 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+} from "@/lib/analytics/analyticsEvents";
+
 export default function Page3() {
   const router = useRouter();
 
@@ -37,7 +47,7 @@ const {
     fontSize: "15px",
   });
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!appetite || !water) {
       alert(t("assessment.alertAllQuestions"));
       return;
@@ -51,6 +61,26 @@ const {
     localStorage.setItem("appetite", appetite);
     localStorage.setItem("water", water);
     localStorage.setItem("waterGlasses", waterGlasses);
+
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.ASSESSMENT,
+
+  eventName:
+    ANALYTICS_EVENTS.PAGE_REACHED,
+
+  context:
+    ANALYTICS_CONTEXTS.SELF,
+
+  pagePath:
+    "/self/page4",
+
+  metadata: {
+    page: 4,
+  },
+
+});
 
     router.push("/self/page4");
   };

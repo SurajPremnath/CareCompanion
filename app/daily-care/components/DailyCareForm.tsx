@@ -51,6 +51,12 @@ type ReadingInputMethod =
   "manual" |
   null;
 
+type ImageSource =
+  "camera" |
+  "gallery" |
+  null;
+
+
 interface DailyCareFormState {
 
   patientId: string;
@@ -195,6 +201,11 @@ export default function DailyCareForm({
 
 const [processingImage, setProcessingImage] =
   useState(false);
+
+const [
+  activeImageSource,
+  setActiveImageSource
+] = useState<ImageSource>(null);
 
 const [
   readingInputMethod,
@@ -451,7 +462,8 @@ function clearImageReadings() {
 //------------------------------------------------------------
 
 async function handleMedicalImage(
-  event: React.ChangeEvent<HTMLInputElement>
+  event: React.ChangeEvent<HTMLInputElement>,
+  source: Exclude<ImageSource, null>
 ) {
 
   const image =
@@ -473,6 +485,8 @@ async function handleMedicalImage(
     return;
 
   }
+
+setActiveImageSource(source);
 
   setProcessingImage(true);
 
@@ -575,6 +589,8 @@ clearImageReadings();
 
     setProcessingImage(false);
 
+setActiveImageSource(null);
+
   }
 
 }
@@ -582,25 +598,33 @@ clearImageReadings();
   // Reset Form
   //------------------------------------------------------------
 
-  function resetForm() {
+function resetForm() {
 
-    const patientId =
-      formData.patientId;
+  const patientId =
+    formData.patientId;
 
-    const unit =
-      formData.temperatureUnit;
+  const unit =
+    formData.temperatureUnit;
 
-    setFormData({
+  setFormData({
 
-      ...createInitialForm(),
+    ...createInitialForm(),
 
-      patientId,
+    patientId,
 
-      temperatureUnit: unit
+    temperatureUnit: unit
 
-    });
+  });
 
-  }
+  setReadingInputMethod(null);
+
+  setImageReadSuccessful(false);
+
+  setShowVitals(false);
+
+  setShowSymptoms(false);
+
+}
 
 
 
@@ -826,7 +850,11 @@ onClick={() => {
 
     </section>
 
-{readingInputMethod === "image" && (
+{(
+  readingInputMethod === "image" &&
+  !imageReadSuccessful
+) && (
+
   <>
 
 {/*--------------------------------------------------------
@@ -879,9 +907,9 @@ onClick={() => {
     }}
   >
 
-    {processingImage
-      ? t("dailyCare.readingImage")
-      : `📷 ${t("dailyCare.takePhoto")}`}
+{activeImageSource === "camera"
+  ? t("dailyCare.readingImage")
+  : `📷 ${t("dailyCare.takePhoto")}`}
 
     <input
       type="file"
@@ -891,9 +919,12 @@ onClick={() => {
         processingImage ||
         saving
       }
-      onChange={
-        handleMedicalImage
-      }
+onChange={(event) =>
+  handleMedicalImage(
+    event,
+    "camera"
+  )
+}
       style={{
         display: "none",
       }}
@@ -920,9 +951,9 @@ onClick={() => {
     }}
   >
 
-    {processingImage
-      ? t("dailyCare.readingImage")
-      : `🖼️ ${t("dailyCare.chooseExistingPhoto")}`}
+    {activeImageSource === "gallery"
+  ? t("dailyCare.readingImage")
+  : `🖼️ ${t("dailyCare.chooseExistingPhoto")}`}
 
     <input
       type="file"
@@ -931,9 +962,12 @@ onClick={() => {
         processingImage ||
         saving
       }
-      onChange={
-        handleMedicalImage
-      }
+onChange={(event) =>
+  handleMedicalImage(
+    event,
+    "gallery"
+  )
+}
       style={{
         display: "none",
       }}

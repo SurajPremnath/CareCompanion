@@ -8,6 +8,16 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+} from "@/lib/analytics/analyticsEvents";
+
 export default function Page5() {
   const router = useRouter();
 
@@ -44,7 +54,7 @@ const {
 
   const showLooseMotionType = looseMotions === "yes";
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (!walking || !looseMotions) {
       alert(t("assessment.alertAllQuestions"));
       return;
@@ -64,6 +74,26 @@ const {
     localStorage.setItem("walkingHelp", walkingHelp);
     localStorage.setItem("looseMotions", looseMotions);
     localStorage.setItem("looseMotionType", looseMotionType);
+
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.ASSESSMENT,
+
+  eventName:
+    ANALYTICS_EVENTS.PAGE_REACHED,
+
+  context:
+    ANALYTICS_CONTEXTS.SELF,
+
+  pagePath:
+    "/report",
+
+  metadata: {
+    page: "REPORT",
+  },
+
+});
 
     router.push("/report");
   };

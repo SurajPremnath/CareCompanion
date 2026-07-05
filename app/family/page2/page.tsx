@@ -8,6 +8,16 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+} from "@/lib/analytics/analyticsEvents";
+
 export default function FamilyPage2() {
   const router = useRouter();
 
@@ -31,7 +41,7 @@ export default function FamilyPage2() {
     fontSize: "15px",
   });
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!breathing || !cough) {
   alert(
     t("assessment.alertAllQuestions")
@@ -54,6 +64,27 @@ if (
     localStorage.setItem("breathing", breathing);
     localStorage.setItem("cough", cough);
     localStorage.setItem("bloodInCough", bloodInCough);
+
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.ASSESSMENT,
+
+  eventName:
+    ANALYTICS_EVENTS.PAGE_REACHED,
+
+  context:
+    ANALYTICS_CONTEXTS.FAMILY,
+
+  pagePath:
+    "/family/page3",
+
+  metadata: {
+    page: 3,
+  },
+
+});
+
 
     router.push("/family/page3");
   };

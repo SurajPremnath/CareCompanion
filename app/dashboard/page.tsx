@@ -20,6 +20,7 @@ import {
 import {
     ANALYTICS_MODULES,
     ANALYTICS_EVENTS,
+    ANALYTICS_CONTEXTS,
 } from "@/lib/analytics/analyticsEvents";
 
 import LanguageSelector from "@/Components/language/LanguageSelector";
@@ -237,19 +238,35 @@ await trackDashboardFeatureClick(
             "Self"
         );
 
-        localStorage.setItem(
-            "assessmentDate",
-            new Date().toLocaleDateString(
-                "en-IN",
-                {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                }
-            )
-        );
+localStorage.setItem(
+    "assessmentDate",
+    new Date().toLocaleDateString(
+        "en-IN",
+        {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        }
+    )
+);
 
-        router.push("/self/page2");
+await analyticsService.track({
+
+    module:
+        ANALYTICS_MODULES.ASSESSMENT,
+
+    eventName:
+        ANALYTICS_EVENTS.STARTED,
+
+    context:
+        ANALYTICS_CONTEXTS.SELF,
+
+    pagePath:
+        "/self/page2",
+
+});
+
+router.push("/self/page2");
 
     };
 

@@ -8,6 +8,16 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+} from "@/lib/analytics/analyticsEvents";
+
 export default function SelfPage2() {
   const router = useRouter();
 
@@ -41,7 +51,7 @@ const {
     fontSize: "15px",
   });
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!fever) {
       alert(t("assessment.alertFever"));
       return;
@@ -71,6 +81,27 @@ const {
     localStorage.setItem("temperatureReading", temperatureReading);
     localStorage.setItem("temperatureUnit", temperatureUnit);
     localStorage.setItem("energy", energy);
+
+
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.ASSESSMENT,
+
+  eventName:
+    ANALYTICS_EVENTS.PAGE_REACHED,
+
+  context:
+    ANALYTICS_CONTEXTS.SELF,
+
+  pagePath:
+    "/self/page3",
+
+  metadata: {
+    page: 3,
+  },
+
+});
 
     router.push("/self/page3");
   };

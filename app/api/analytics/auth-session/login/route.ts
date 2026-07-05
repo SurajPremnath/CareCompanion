@@ -133,6 +133,57 @@ export async function POST(
         }
 
 
+//----------------------------------------------------
+// Close Previous Open Authentication Sessions
+//----------------------------------------------------
+
+const replacementTime =
+    new Date().toISOString();
+
+
+const {
+    error: closePreviousError,
+} =
+    await supabaseAdmin
+        .from("auth_sessions")
+        .update({
+
+            logged_out_at:
+                replacementTime,
+
+            logout_reason:
+                "SESSION_REPLACED",
+
+        })
+        .eq(
+            "user_id",
+            user.id
+        )
+        .is(
+            "logged_out_at",
+            null
+        );
+
+
+if (closePreviousError) {
+
+    console.error(
+        "Previous Auth Session Close Error:",
+        closePreviousError
+    );
+
+    return NextResponse.json(
+        {
+            error:
+                "Unable to reconcile previous authentication session.",
+        },
+        {
+            status: 500,
+        }
+    );
+
+}
+
         //----------------------------------------------------
         // Create Authentication Session
         //----------------------------------------------------

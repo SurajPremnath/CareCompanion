@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useRef,
+  useState,
+} from "react";
+
 import { useRouter } from "next/navigation";
 
 import AssessmentLayout from "@/Components/AssessmentLayout";
@@ -8,10 +12,23 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+} from "@/lib/analytics/analyticsEvents";
+
 export default function FamilyPage5() {
   const router = useRouter();
 
   const { t } = useLanguage();
+
+const finishProcessingRef =
+  useRef(false);
 
   const [discomfort, setDiscomfort] =
     useState("");
@@ -78,7 +95,7 @@ export default function FamilyPage5() {
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (
       !discomfort ||
       !walking ||
@@ -135,6 +152,12 @@ export default function FamilyPage5() {
       return;
     }
 
+if (finishProcessingRef.current) {
+  return;
+}
+
+finishProcessingRef.current = true;
+
     localStorage.setItem(
       "discomfort",
       discomfort
@@ -176,6 +199,26 @@ export default function FamilyPage5() {
       "confusion",
       confusion
     );
+
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.ASSESSMENT,
+
+  eventName:
+    ANALYTICS_EVENTS.PAGE_REACHED,
+
+  context:
+    ANALYTICS_CONTEXTS.FAMILY,
+
+  pagePath:
+    "/report",
+
+  metadata: {
+    page: "REPORT",
+  },
+
+});
 
     router.push("/report");
   };

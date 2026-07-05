@@ -8,6 +8,16 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+} from "@/lib/analytics/analyticsEvents";
+
 export default function FamilyPage4() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -41,7 +51,7 @@ export default function FamilyPage4() {
     fontSize: "15px",
   });
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!appetite || !water) {
       alert(
         t("assessment.alertAllQuestions")
@@ -73,6 +83,26 @@ export default function FamilyPage4() {
       "waterGlasses",
       waterGlasses
     );
+
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.ASSESSMENT,
+
+  eventName:
+    ANALYTICS_EVENTS.PAGE_REACHED,
+
+  context:
+    ANALYTICS_CONTEXTS.FAMILY,
+
+  pagePath:
+    "/family/page5",
+
+  metadata: {
+    page: 5,
+  },
+
+});
 
     router.push("/family/page5");
   };

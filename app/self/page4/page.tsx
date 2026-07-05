@@ -8,6 +8,16 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
+import {
+  ANALYTICS_MODULES,
+  ANALYTICS_EVENTS,
+  ANALYTICS_CONTEXTS,
+} from "@/lib/analytics/analyticsEvents";
+
 export default function Page4() {
   const router = useRouter();
 
@@ -64,7 +74,7 @@ const discomfortAreaOptions = [
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!discomfort) {
       alert(t("assessment.alertQuestion"));
       return;
@@ -83,6 +93,26 @@ const discomfortAreaOptions = [
     localStorage.setItem("discomfort", discomfort);
     localStorage.setItem("discomfortAreas", JSON.stringify(discomfortAreas));
     localStorage.setItem("otherDiscomfort", otherDiscomfort);
+
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.ASSESSMENT,
+
+  eventName:
+    ANALYTICS_EVENTS.PAGE_REACHED,
+
+  context:
+    ANALYTICS_CONTEXTS.SELF,
+
+  pagePath:
+    "/self/page5",
+
+  metadata: {
+    page: 5,
+  },
+
+});
 
     router.push("/self/page5");
   };
