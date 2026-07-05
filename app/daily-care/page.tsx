@@ -71,7 +71,7 @@ await analyticsService.track({
     ANALYTICS_MODULES.DAILY_CARE,
 
   eventName:
-    ANALYTICS_EVENTS.CONTEXT_SELECTED,
+    ANALYTICS_EVENTS.STARTED,
 
   context:
     ANALYTICS_CONTEXTS.SELF,
@@ -117,6 +117,24 @@ const handleFamilyCare = async () => {
   });
 
   setCareMode("family");
+
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.DAILY_CARE,
+
+  eventName:
+    ANALYTICS_EVENTS.STARTED,
+
+  context:
+    ANALYTICS_CONTEXTS.FAMILY,
+
+  pagePath:
+    "/daily-care",
+
+});
+
+setCareMode("family");
 
 };
 

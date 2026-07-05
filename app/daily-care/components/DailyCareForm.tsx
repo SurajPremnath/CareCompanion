@@ -396,36 +396,13 @@ if (exists) {
 // Reading Input Method Selection
 //------------------------------------------------------------
 
-async function selectReadingInputMethod(
+function selectReadingInputMethod(
   method: "image" | "manual"
 ) {
 
   setReadingInputMethod(method);
 
   setImageReadSuccessful(false);
-
-  await analyticsService.track({
-
-    module:
-      ANALYTICS_MODULES.DAILY_CARE,
-
-    eventName:
-      ANALYTICS_EVENTS.STARTED,
-
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
-
-    pagePath:
-      "/daily-care",
-
-    inputMethod:
-      method === "image"
-        ? ANALYTICS_INPUT_METHODS.IMAGE
-        : ANALYTICS_INPUT_METHODS.MANUAL,
-
-  });
 
 }
 
@@ -1196,6 +1173,16 @@ onChange={(event) =>
 //------------------------------------------------------------
 
 function validateForm(): boolean {
+
+if (!readingInputMethod) {
+
+  AppAlert.warning(
+    "Please choose how you want to record the reading."
+  );
+
+  return false;
+
+}
 
 if (
   mode === "family" &&
