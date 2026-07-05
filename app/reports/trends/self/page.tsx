@@ -14,6 +14,17 @@ import {
 } from "@/lib/trends/trendRequest";
 
 import { authService } from "@/lib/auth/authService";
+
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
 //------------------------------------------------------------
 // Patient Storage
 //------------------------------------------------------------
@@ -189,6 +200,51 @@ period,
   },
 
 };
+
+  //----------------------------------------------------------
+  // Track Valid Trend Generation Request
+  //----------------------------------------------------------
+
+  void analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.REPORTS,
+
+    eventName:
+      ANALYTICS_EVENTS.FEATURE_CLICKED,
+
+    context:
+      ANALYTICS_CONTEXTS.SELF,
+
+    pagePath:
+      "/reports/trends/self",
+
+    metadata: {
+
+      reportCategory:
+        "CLINICAL_TRENDS",
+
+      action:
+        "GENERATE_TRENDS",
+
+      period:
+        trendRequest.period,
+
+      temperature:
+        trendRequest.parameters.temperature,
+
+      bloodPressure:
+        trendRequest.parameters.bloodPressure,
+
+      pulse:
+        trendRequest.parameters.pulse,
+
+      spo2:
+        trendRequest.parameters.spo2,
+
+    },
+
+  });
 
   //----------------------------------------------------------
   // Save Trend Request

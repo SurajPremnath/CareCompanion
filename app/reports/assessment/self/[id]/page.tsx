@@ -16,6 +16,16 @@ import type {
 
 import AppHeader from "@/app/components/AppHeader";
 
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
 export default function SelfAssessmentDetailPage() {
 
   const router = useRouter();
@@ -66,9 +76,45 @@ export default function SelfAssessmentDetailPage() {
 
         }
 
+        const loadedAssessment =
+          result.data ?? null;
+
         setAssessment(
-          result.data ?? null
+          loadedAssessment
         );
+
+        if (loadedAssessment) {
+
+          void analyticsService.track({
+
+            module:
+              ANALYTICS_MODULES.REPORTS,
+
+            eventName:
+              ANALYTICS_EVENTS.VIEWED,
+
+            context:
+              ANALYTICS_CONTEXTS.SELF,
+
+            pagePath:
+              "/reports/assessment/self/[id]",
+
+            metadata: {
+
+              reportCategory:
+                "ASSESSMENT",
+
+              viewType:
+                "DETAIL",
+
+              assessmentId:
+                loadedAssessment.id,
+
+            },
+
+          });
+
+        }
 
 const profile =
   await profileRepository.getCurrentProfile();

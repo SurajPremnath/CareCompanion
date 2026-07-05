@@ -21,6 +21,16 @@ import {
 import { patientStorage } from "@/lib/storage/patientStorage";
 import { Patient } from "@/lib/types/patient";
 
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
 export default function ClinicalTrendsPage() {
 
 
@@ -149,6 +159,48 @@ setSelectedPatientId(
 }, [router]);
 
 //------------------------------------------------------------
+// Explicit Patient Change
+//------------------------------------------------------------
+
+const handlePatientChange = (
+  patientId: string
+) => {
+
+  setSelectedPatientId(
+    patientId
+  );
+
+  void analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.REPORTS,
+
+    eventName:
+      ANALYTICS_EVENTS.FEATURE_CLICKED,
+
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
+
+    pagePath:
+      "/reports/trends",
+
+    metadata: {
+
+      reportCategory:
+        "CLINICAL_TRENDS",
+
+      action:
+        "PATIENT_CHANGED",
+
+      patientId,
+
+    },
+
+  });
+
+};
+
+//------------------------------------------------------------
 // Generate Trends
 //------------------------------------------------------------
 
@@ -227,6 +279,54 @@ period,
 };
 
   //----------------------------------------------------------
+  // Track Valid Trend Generation Request
+  //----------------------------------------------------------
+
+  void analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.REPORTS,
+
+    eventName:
+      ANALYTICS_EVENTS.FEATURE_CLICKED,
+
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
+
+    pagePath:
+      "/reports/trends",
+
+    metadata: {
+
+      reportCategory:
+        "CLINICAL_TRENDS",
+
+      action:
+        "GENERATE_TRENDS",
+
+      patientId:
+        trendRequest.patientId,
+
+      period:
+        trendRequest.period,
+
+      temperature:
+        trendRequest.parameters.temperature,
+
+      bloodPressure:
+        trendRequest.parameters.bloodPressure,
+
+      pulse:
+        trendRequest.parameters.pulse,
+
+      spo2:
+        trendRequest.parameters.spo2,
+
+    },
+
+  });
+
+  //----------------------------------------------------------
   // Save Trend Request
   //----------------------------------------------------------
 
@@ -293,8 +393,10 @@ period,
 <select
   value={selectedPatientId}
   onChange={(event) =>
-    setSelectedPatientId(event.target.value)
-  }
+  handlePatientChange(
+    event.target.value
+  )
+}
   style={selectStyle}
 >
 

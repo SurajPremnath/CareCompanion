@@ -23,6 +23,16 @@ from "@/app/components/common/ClinicalSummaryCard";
 import { DailyCarePdfGenerator } from "@/lib/pdf/DailyCarePdfGenerator";
 import type { DailyCarePdfRequest } from "@/lib/pdf/PdfModels";
 
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
 
 export default function DailyCareReportPage() {
 
@@ -80,6 +90,38 @@ useEffect(() => {
     }
 
 const dailyCare = result.data;
+
+void analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.REPORTS,
+
+  eventName:
+    ANALYTICS_EVENTS.VIEWED,
+
+  context:
+    ANALYTICS_CONTEXTS.FAMILY,
+
+  pagePath:
+    "/reports/daily-care/[id]",
+
+  metadata: {
+
+    reportCategory:
+      "DAILY_CARE",
+
+    viewType:
+      "DETAIL",
+
+    recordId:
+      dailyCare.id,
+
+    patientId:
+      dailyCare.patientId,
+
+  },
+
+});
 
 setRecord(dailyCare);
 
@@ -462,7 +504,7 @@ onClick={async () => {
 
     patientName,
 
-age,
+    age,
 
     caregiverName: null,
 
@@ -471,16 +513,115 @@ age,
     record,
 
     observationSummary: clinicalSummary,
- 
+
   };
 
-await DailyCarePdfGenerator.download(
+  void analyticsService.track({
 
-  request,
+    module:
+      ANALYTICS_MODULES.REPORTS,
 
-  "CareVR_Family_Daily_Care_Report.pdf"
+    eventName:
+      ANALYTICS_EVENTS.DOWNLOAD_STARTED,
 
-);
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
+
+    pagePath:
+      "/reports/daily-care/[id]",
+
+    metadata: {
+
+      reportCategory:
+        "DAILY_CARE",
+
+      recordId:
+        record.id,
+
+      patientId:
+        record.patientId,
+
+    },
+
+  });
+
+  try {
+
+    await DailyCarePdfGenerator.download(
+
+      request,
+
+      "CareVR_Family_Daily_Care_Report.pdf"
+
+    );
+
+    void analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.REPORTS,
+
+      eventName:
+        ANALYTICS_EVENTS.DOWNLOAD_COMPLETED,
+
+      context:
+        ANALYTICS_CONTEXTS.FAMILY,
+
+      pagePath:
+        "/reports/daily-care/[id]",
+
+      metadata: {
+
+        reportCategory:
+          "DAILY_CARE",
+
+        recordId:
+          record.id,
+
+        patientId:
+          record.patientId,
+
+      },
+
+    });
+
+  }
+  catch (error) {
+
+    void analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.REPORTS,
+
+      eventName:
+        ANALYTICS_EVENTS.DOWNLOAD_FAILED,
+
+      context:
+        ANALYTICS_CONTEXTS.FAMILY,
+
+      pagePath:
+        "/reports/daily-care/[id]",
+
+      metadata: {
+
+        reportCategory:
+          "DAILY_CARE",
+
+        recordId:
+          record.id,
+
+        patientId:
+          record.patientId,
+
+        reason:
+          error instanceof Error
+            ? error.message
+            : "UNKNOWN_ERROR",
+
+      },
+
+    });
+
+  }
 
 }}
 

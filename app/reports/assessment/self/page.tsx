@@ -20,6 +20,16 @@ import ReportTable, {
   ReportTableColumn,
 } from "@/app/components/ReportTable";
 
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
 export default function SelfAssessmentHistoryPage() {
 
   const router = useRouter();
@@ -73,6 +83,35 @@ const [profile, setProfile] =
               assessment.assessmentType ===
               "SELF"
           );
+
+        void analyticsService.track({
+
+          module:
+            ANALYTICS_MODULES.REPORTS,
+
+          eventName:
+            ANALYTICS_EVENTS.VIEWED,
+
+          context:
+            ANALYTICS_CONTEXTS.SELF,
+
+          pagePath:
+            "/reports/assessment/self",
+
+          metadata: {
+
+            reportCategory:
+              "ASSESSMENT",
+
+            viewType:
+              "HISTORY",
+
+            recordCount:
+              records.length,
+
+          },
+
+        });
 
 const currentProfile =
   await profileRepository.getCurrentProfile();

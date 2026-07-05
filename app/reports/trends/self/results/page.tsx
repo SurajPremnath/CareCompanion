@@ -43,6 +43,16 @@ import {
   selfTrendPdfGenerator,
 } from "@/lib/trends/selfTrendPdfGenerator";
 
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
 export default function ClinicalTrendResultsPage() {
 
   const router = useRouter();
@@ -118,9 +128,53 @@ const result =
     historyResult.data ?? []
   );
 
-    setTrendResult(result);
+void analyticsService.track({
 
-    setLoading(false);
+  module:
+    ANALYTICS_MODULES.REPORTS,
+
+  eventName:
+    ANALYTICS_EVENTS.VIEWED,
+
+  context:
+    ANALYTICS_CONTEXTS.SELF,
+
+  pagePath:
+    "/reports/trends/self/results",
+
+  metadata: {
+
+    reportCategory:
+      "CLINICAL_TRENDS",
+
+    viewType:
+      "TREND_RESULT",
+
+    period:
+      loadedRequest.period,
+
+    temperature:
+      loadedRequest.parameters.temperature,
+
+    bloodPressure:
+      loadedRequest.parameters.bloodPressure,
+
+    pulse:
+      loadedRequest.parameters.pulse,
+
+    spo2:
+      loadedRequest.parameters.spo2,
+
+    recordCount:
+      historyResult.data?.length ?? 0,
+
+  },
+
+});
+
+setTrendResult(result);
+
+setLoading(false);
 
   }
 
@@ -465,69 +519,160 @@ return (
   <button
     onClick={async () => {
 
-      if (!trendResult) {
+  if (!trendResult) {
 
-        return;
+    return;
+
+  }
+
+  void analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.REPORTS,
+
+    eventName:
+      ANALYTICS_EVENTS.DOWNLOAD_STARTED,
+
+    context:
+      ANALYTICS_CONTEXTS.SELF,
+
+    pagePath:
+      "/reports/trends/self/results",
+
+    metadata: {
+
+      reportCategory:
+        "CLINICAL_TRENDS",
+
+      period:
+        trendRequest?.period ?? null,
+
+    },
+
+  });
+
+  try {
+
+    //----------------------------------------------------------
+    // Capture Charts
+    //----------------------------------------------------------
+
+    const chartImages: string[] = [];
+
+    for (const parameter of trendResult.parameters) {
+
+      if (!parameter.enabled) {
+
+        continue;
 
       }
 
-      //----------------------------------------------------------
-      // Capture Charts
-      //----------------------------------------------------------
-
-      const chartImages: string[] = [];
-
-      for (const parameter of trendResult.parameters) {
-
-        if (!parameter.enabled) {
-
-          continue;
-
-        }
-
-        const element =
-          document.getElementById(
-            `trend-chart-${parameter.parameter}`
-          );
-
-        if (!element) {
-
-          continue;
-
-        }
-
-        const image =
-          await htmlToImage.toPng(
-            element
-          );
-
-        chartImages.push(
-          image
+      const element =
+        document.getElementById(
+          `trend-chart-${parameter.parameter}`
         );
+
+      if (!element) {
+
+        continue;
 
       }
 
-      //----------------------------------------------------------
-      // Build Report
-      //----------------------------------------------------------
-
-      const report =
-        trendReportBuilder.build(
-          trendResult
+      const image =
+        await htmlToImage.toPng(
+          element
         );
 
-      report.chartImages =
-        chartImages;
-
-      //----------------------------------------------------------
-      // Generate PDF
-      //----------------------------------------------------------
-
-      await selfTrendPdfGenerator.generate(
-        report
+      chartImages.push(
+        image
       );
 
-    }}
+    }
+
+    //----------------------------------------------------------
+    // Build Report
+    //----------------------------------------------------------
+
+    const report =
+      trendReportBuilder.build(
+        trendResult
+      );
+
+    report.chartImages =
+      chartImages;
+
+    //----------------------------------------------------------
+    // Generate PDF
+    //----------------------------------------------------------
+
+    await selfTrendPdfGenerator.generate(
+      report
+    );
+
+    void analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.REPORTS,
+
+      eventName:
+        ANALYTICS_EVENTS.DOWNLOAD_COMPLETED,
+
+      context:
+        ANALYTICS_CONTEXTS.SELF,
+
+      pagePath:
+        "/reports/trends/self/results",
+
+      metadata: {
+
+        reportCategory:
+          "CLINICAL_TRENDS",
+
+        period:
+          trendRequest?.period ?? null,
+
+      },
+
+    });
+
+  }
+  catch (error) {
+
+    void analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.REPORTS,
+
+      eventName:
+        ANALYTICS_EVENTS.DOWNLOAD_FAILED,
+
+      context:
+        ANALYTICS_CONTEXTS.SELF,
+
+      pagePath:
+        "/reports/trends/self/results",
+
+      metadata: {
+
+        reportCategory:
+          "CLINICAL_TRENDS",
+
+        period:
+          trendRequest?.period ?? null,
+
+        reason:
+          error instanceof Error
+            ? error.message
+            : "UNKNOWN_ERROR",
+
+      },
+
+    });
+
+  }
+
+}}
+
     style={{
   ...primaryButton,
 

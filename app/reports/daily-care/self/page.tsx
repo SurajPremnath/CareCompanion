@@ -14,6 +14,16 @@ import {
 
 import ReportNavigation from "@/app/components/common/ReportNavigation";
 
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
 export default function DailyCareHistoryPage() {
   const router = useRouter();
 
@@ -72,6 +82,35 @@ const result =
 
       const records =
         result.data ?? [];
+
+void analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.REPORTS,
+
+  eventName:
+    ANALYTICS_EVENTS.VIEWED,
+
+  context:
+    ANALYTICS_CONTEXTS.SELF,
+
+  pagePath:
+    "/reports/daily-care/self",
+
+  metadata: {
+
+    reportCategory:
+      "DAILY_CARE",
+
+    viewType:
+      "HISTORY",
+
+    recordCount:
+      records.length,
+
+  },
+
+});
 
       setHistory(records);
 

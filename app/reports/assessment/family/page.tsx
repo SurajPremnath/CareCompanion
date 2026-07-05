@@ -19,6 +19,16 @@ import ReportTable, {
   ReportTableColumn,
 } from "@/app/components/ReportTable";
 
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
 export default function FamilyAssessmentHistoryPage() {
 
   const router = useRouter();
@@ -130,6 +140,38 @@ export default function FamilyAssessmentHistoryPage() {
         const records =
           result.data ?? [];
 
+        void analyticsService.track({
+
+          module:
+            ANALYTICS_MODULES.REPORTS,
+
+          eventName:
+            ANALYTICS_EVENTS.VIEWED,
+
+          context:
+            ANALYTICS_CONTEXTS.FAMILY,
+
+          pagePath:
+            "/reports/assessment/family",
+
+          metadata: {
+
+            reportCategory:
+              "ASSESSMENT",
+
+            viewType:
+              "HISTORY",
+
+            recordCount:
+              records.length,
+
+            patientId:
+              selectedPatientId,
+
+          },
+
+        });
+
         if (records.length === 0) {
 
           setLatestAssessment(null);
@@ -166,10 +208,51 @@ const selectedPatient =
       patient.id === selectedPatientId
   );
 
+//------------------------------------------------------------
+// Explicit Patient Change
+//------------------------------------------------------------
+
+const handlePatientChange = (
+  patientId: string
+) => {
+
+  setSelectedPatientId(
+    patientId
+  );
+
+  void analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.REPORTS,
+
+    eventName:
+      ANALYTICS_EVENTS.FEATURE_CLICKED,
+
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
+
+    pagePath:
+      "/reports/assessment/family",
+
+    metadata: {
+
+      reportCategory:
+        "ASSESSMENT",
+
+      action:
+        "PATIENT_CHANGED",
+
+      patientId,
+
+    },
+
+  });
+
+};
+
   //------------------------------------------------------------
   // Helpers
   //------------------------------------------------------------
-
   const formatStatus = (
     status: AssessmentStatus
   ) => {
@@ -315,10 +398,10 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
           <select
             value={selectedPatientId}
             onChange={(e) =>
-              setSelectedPatientId(
-                e.target.value
-              )
-            }
+  handlePatientChange(
+    e.target.value
+  )
+}
             style={{
               width: "100%",
               padding: "12px",

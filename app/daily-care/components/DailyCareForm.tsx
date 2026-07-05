@@ -396,7 +396,7 @@ if (exists) {
 // Reading Input Method Selection
 //------------------------------------------------------------
 
-function selectReadingInputMethod(
+async function selectReadingInputMethod(
   method: "image" | "manual"
 ) {
 
@@ -404,8 +404,39 @@ function selectReadingInputMethod(
 
   setImageReadSuccessful(false);
 
-}
+  await analyticsService.track({
 
+    module:
+      ANALYTICS_MODULES.DAILY_CARE,
+
+    eventName:
+      ANALYTICS_EVENTS.INPUT_METHOD_SELECTED,
+
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
+
+    pagePath:
+      "/daily-care",
+
+    inputMethod:
+      method === "image"
+        ? ANALYTICS_INPUT_METHODS.IMAGE
+        : ANALYTICS_INPUT_METHODS.MANUAL,
+
+    metadata: {
+
+      patientId:
+        mode === "family"
+          ? formData.patientId || null
+          : null,
+
+    },
+
+  });
+
+}
 //------------------------------------------------------------
 // Clear Image Readings
 //------------------------------------------------------------
@@ -454,30 +485,138 @@ async function handleMedicalImage(
 
   }
 
-  if (
-    processingImage ||
-    saving
-  ) {
+if (
+  processingImage ||
+  saving
+) {
 
-    return;
+  return;
 
-  }
+}
+
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.DAILY_CARE,
+
+  eventName:
+    ANALYTICS_EVENTS.IMAGE_SOURCE_SELECTED,
+
+  context:
+    mode === "self"
+      ? ANALYTICS_CONTEXTS.SELF
+      : ANALYTICS_CONTEXTS.FAMILY,
+
+  pagePath:
+    "/daily-care",
+
+  inputMethod:
+    ANALYTICS_INPUT_METHODS.IMAGE,
+
+  metadata: {
+
+    source:
+      source === "camera"
+        ? "CAMERA"
+        : "GALLERY",
+
+    patientId:
+      mode === "family"
+        ? formData.patientId || null
+        : null,
+
+  },
+
+});
 
 setActiveImageSource(source);
 
-  setProcessingImage(true);
+setProcessingImage(true);
 
-  try {
+await analyticsService.track({
 
-    const result =
-      await medicalImageService.processImage(
-        image
-      );
+  module:
+    ANALYTICS_MODULES.AI_IMAGE,
+
+  eventName:
+    ANALYTICS_EVENTS.ATTEMPTED,
+
+  context:
+    mode === "self"
+      ? ANALYTICS_CONTEXTS.SELF
+      : ANALYTICS_CONTEXTS.FAMILY,
+
+  pagePath:
+    "/daily-care",
+
+  inputMethod:
+    ANALYTICS_INPUT_METHODS.IMAGE,
+
+  metadata: {
+
+    source:
+      source === "camera"
+        ? "CAMERA"
+        : "GALLERY",
+
+    patientId:
+      mode === "family"
+        ? formData.patientId || null
+        : null,
+
+  },
+
+});
+
+try {
+
+  const result =
+    await medicalImageService.processImage(
+      image
+    );
 
 if (
   !result.success ||
   !result.data
 ) {
+
+  await analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.AI_IMAGE,
+
+    eventName:
+      ANALYTICS_EVENTS.FAILED,
+
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
+
+    pagePath:
+      "/daily-care",
+
+    inputMethod:
+      ANALYTICS_INPUT_METHODS.IMAGE,
+
+    metadata: {
+
+      source:
+        source === "camera"
+          ? "CAMERA"
+          : "GALLERY",
+
+      patientId:
+        mode === "family"
+          ? formData.patientId || null
+          : null,
+
+      reason:
+        "INVALID_MEDICAL_IMAGE",
+
+    },
+
+  });
 
   AppAlert.error(
     t("alerts.invalidMedicalImage")
@@ -543,30 +682,105 @@ setImageReadSuccessful(
   true
 );
 
-    AppAlert.success(
-      t("alerts.imageReadSuccess")
-    );
+await analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.AI_IMAGE,
+
+  eventName:
+    ANALYTICS_EVENTS.SUCCEEDED,
+
+  context:
+    mode === "self"
+      ? ANALYTICS_CONTEXTS.SELF
+      : ANALYTICS_CONTEXTS.FAMILY,
+
+  pagePath:
+    "/daily-care",
+
+  inputMethod:
+    ANALYTICS_INPUT_METHODS.IMAGE,
+
+  metadata: {
+
+    source:
+      source === "camera"
+        ? "CAMERA"
+        : "GALLERY",
+
+    patientId:
+      mode === "family"
+        ? formData.patientId || null
+        : null,
+
+  },
+
+});
+
+AppAlert.success(
+  t("alerts.imageReadSuccess")
+);
 
   }
   catch (error) {
+
+    await analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.AI_IMAGE,
+
+      eventName:
+        ANALYTICS_EVENTS.FAILED,
+
+      context:
+        mode === "self"
+          ? ANALYTICS_CONTEXTS.SELF
+          : ANALYTICS_CONTEXTS.FAMILY,
+
+      pagePath:
+        "/daily-care",
+
+      inputMethod:
+        ANALYTICS_INPUT_METHODS.IMAGE,
+
+      metadata: {
+
+        source:
+          source === "camera"
+            ? "CAMERA"
+            : "GALLERY",
+
+        patientId:
+          mode === "family"
+            ? formData.patientId || null
+            : null,
+
+        reason:
+          error instanceof Error
+            ? error.message
+            : "UNKNOWN_ERROR",
+
+      },
+
+    });
 
     console.error(
       "Medical Image Capture Error:",
       error
     );
 
-AppAlert.error(
-  t("alerts.imageProcessingFailed")
-);
+    AppAlert.error(
+      t("alerts.imageProcessingFailed")
+    );
 
-clearImageReadings();
+    clearImageReadings();
 
   }
   finally {
 
     setProcessingImage(false);
 
-setActiveImageSource(null);
+    setActiveImageSource(null);
 
   }
 
@@ -603,7 +817,43 @@ function resetForm() {
 
 }
 
+//------------------------------------------------------------
+// Back To Dashboard
+//------------------------------------------------------------
 
+async function handleBackToDashboard() {
+
+  await analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.DAILY_CARE,
+
+    eventName:
+      ANALYTICS_EVENTS.BACK_TO_DASHBOARD_CLICKED,
+
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
+
+    pagePath:
+      "/daily-care",
+
+    metadata: {
+
+      patientId:
+        mode === "family"
+          ? formData.patientId || null
+          : null,
+
+    },
+
+  });
+
+  window.location.href =
+    "/dashboard";
+
+}
 
   //------------------------------------------------------------
   // JSX Continues In Part 2
@@ -1147,15 +1397,17 @@ onChange={(event) =>
       </button>
 
 <button
-    type="button"
-    disabled={saving}
-    onClick={() => window.location.href = "/dashboard"}
-    style={{
-        ...secondaryButton,
-        flex: 1
-    }}
+  type="button"
+  disabled={saving}
+  onClick={() => {
+    void handleBackToDashboard();
+  }}
+  style={{
+    ...secondaryButton,
+    flex: 1
+  }}
 >
-    🏠 {t("dailyCare.backToDashboard")}
+  🏠 {t("dailyCare.backToDashboard")}
 </button>
 
     </div>

@@ -1,10 +1,118 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+
 import AppHeader from "@/app/components/AppHeader";
+
+import {
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
 
 export default function ReportsPage() {
   const router = useRouter();
+
+  const openedTrackedRef =
+    useRef(false);
+
+  //------------------------------------------------------------
+  // Track Reports Landing Page Open
+  //------------------------------------------------------------
+
+  useEffect(() => {
+
+    if (openedTrackedRef.current) {
+
+      return;
+
+    }
+
+    openedTrackedRef.current = true;
+
+    void analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.REPORTS,
+
+      eventName:
+        ANALYTICS_EVENTS.OPENED,
+
+      pagePath:
+        "/reports",
+
+      metadata: {
+
+        viewType:
+          "LANDING",
+
+      },
+
+    });
+
+  }, []);
+
+  //------------------------------------------------------------
+  // Report Category Navigation
+  //------------------------------------------------------------
+
+  const handleReportCategoryClick = async (
+    reportCategory: string,
+    href: string
+  ) => {
+
+    await analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.REPORTS,
+
+      eventName:
+        ANALYTICS_EVENTS.FEATURE_CLICKED,
+
+      pagePath:
+        "/reports",
+
+      metadata: {
+
+        reportCategory,
+
+      },
+
+    });
+
+    router.push(href);
+
+  };
+
+  //------------------------------------------------------------
+  // Back to Dashboard
+  //------------------------------------------------------------
+
+  const handleBackToDashboard = async () => {
+
+    await analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.REPORTS,
+
+      eventName:
+        ANALYTICS_EVENTS
+          .BACK_TO_DASHBOARD_CLICKED,
+
+      pagePath:
+        "/reports",
+
+    });
+
+    router.push(
+      "/dashboard"
+    );
+
+  };
 
   const cardStyle: React.CSSProperties = {
     border: "1px solid #e5e7eb",
@@ -47,8 +155,11 @@ export default function ReportsPage() {
           <div
             style={cardStyle}
             onClick={() =>
-              router.push("/reports/daily-care/select")
-            }
+  void handleReportCategoryClick(
+    "DAILY_CARE",
+    "/reports/daily-care/select"
+  )
+}
           >
             <h2
               style={{
@@ -84,8 +195,11 @@ export default function ReportsPage() {
           <div
             style={cardStyle}
             onClick={() =>
-              router.push("/reports/assessment")
-            }
+  void handleReportCategoryClick(
+    "ASSESSMENT",
+    "/reports/assessment"
+  )
+}
           >
             <h2
               style={{
@@ -125,8 +239,11 @@ export default function ReportsPage() {
 <div
   style={cardStyle}
   onClick={() =>
-    router.push("/reports/trends/selector")
-  }
+  void handleReportCategoryClick(
+    "CLINICAL_TRENDS",
+    "/reports/trends/selector"
+  )
+}
 >
   <h2
     style={{
@@ -163,7 +280,9 @@ export default function ReportsPage() {
         </div>
 
         <button
-          onClick={() => router.push("/dashboard")}
+          onClick={() =>
+  void handleBackToDashboard()
+}
           style={{
             marginTop: "32px",
             width: "100%",

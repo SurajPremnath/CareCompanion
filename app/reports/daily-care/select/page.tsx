@@ -1,11 +1,59 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+
 import AppHeader from "@/app/components/AppHeader";
+
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
 
 export default function DailyCareReportSelectorPage() {
 
   const router = useRouter();
+
+  //------------------------------------------------------------
+  // Daily Care Report Context Selection
+  //------------------------------------------------------------
+
+  const handleContextSelection = async (
+    context:
+      | typeof ANALYTICS_CONTEXTS.SELF
+      | typeof ANALYTICS_CONTEXTS.FAMILY,
+    href: string
+  ) => {
+
+    await analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.REPORTS,
+
+      eventName:
+        ANALYTICS_EVENTS.CONTEXT_SELECTED,
+
+      context,
+
+      pagePath:
+        "/reports/daily-care/select",
+
+      metadata: {
+
+        reportCategory:
+          "DAILY_CARE",
+
+      },
+
+    });
+
+    router.push(href);
+
+  };
 
   const cardStyle: React.CSSProperties = {
     border: "1px solid #e5e7eb",
@@ -55,8 +103,11 @@ export default function DailyCareReportSelectorPage() {
           <div
             style={cardStyle}
             onClick={() =>
-              router.push("/reports/daily-care/self")
-            }
+  void handleContextSelection(
+    ANALYTICS_CONTEXTS.SELF,
+    "/reports/daily-care/self"
+  )
+}
           >
 
             <h2
@@ -97,8 +148,11 @@ export default function DailyCareReportSelectorPage() {
           <div
             style={cardStyle}
             onClick={() =>
-              router.push("/reports/daily-care")
-            }
+  void handleContextSelection(
+    ANALYTICS_CONTEXTS.FAMILY,
+    "/reports/daily-care"
+  )
+}
           >
 
             <h2

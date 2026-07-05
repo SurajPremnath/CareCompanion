@@ -5,8 +5,55 @@ import AppHeader from "@/app/components/AppHeader";
 
 import ReportNavigation from "@/app/components/common/ReportNavigation";
 
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
 export default function AssessmentReportsPage() {
   const router = useRouter();
+
+  //------------------------------------------------------------
+  // Assessment Report Context Selection
+  //------------------------------------------------------------
+
+  const handleContextSelection = async (
+    context:
+      | typeof ANALYTICS_CONTEXTS.SELF
+      | typeof ANALYTICS_CONTEXTS.FAMILY,
+    href: string
+  ) => {
+
+    await analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.REPORTS,
+
+      eventName:
+        ANALYTICS_EVENTS.CONTEXT_SELECTED,
+
+      context,
+
+      pagePath:
+        "/reports/assessment",
+
+      metadata: {
+
+        reportCategory:
+          "ASSESSMENT",
+
+      },
+
+    });
+
+    router.push(href);
+
+  };
 
   return (
     <main style={pageStyle}>
@@ -38,8 +85,11 @@ export default function AssessmentReportsPage() {
           <button
             style={primaryButtonStyle}
             onClick={() =>
-              router.push("/reports/assessment/family")
-            }
+  void handleContextSelection(
+    ANALYTICS_CONTEXTS.FAMILY,
+    "/reports/assessment/family"
+  )
+}
           >
             Open
           </button>
@@ -66,8 +116,11 @@ export default function AssessmentReportsPage() {
           <button
             style={primaryButtonStyle}
             onClick={() =>
-              router.push("/reports/assessment/self")
-            }
+  void handleContextSelection(
+    ANALYTICS_CONTEXTS.SELF,
+    "/reports/assessment/self"
+  )
+}
           >
             Open
           </button>

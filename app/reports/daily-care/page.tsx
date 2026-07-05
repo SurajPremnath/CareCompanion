@@ -15,6 +15,16 @@ import {
 
 import ReportNavigation from "@/app/components/common/ReportNavigation";
 
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
 export default function DailyCareHistoryPage() {
   const router = useRouter();
 
@@ -143,6 +153,38 @@ useEffect(() => {
       const records =
         result.data ?? [];
 
+      void analyticsService.track({
+
+        module:
+          ANALYTICS_MODULES.REPORTS,
+
+        eventName:
+          ANALYTICS_EVENTS.VIEWED,
+
+        context:
+          ANALYTICS_CONTEXTS.FAMILY,
+
+        pagePath:
+          "/reports/daily-care",
+
+        metadata: {
+
+          reportCategory:
+            "DAILY_CARE",
+
+          viewType:
+            "HISTORY",
+
+          recordCount:
+            records.length,
+
+          patientId:
+            selectedPatientId,
+
+        },
+
+      });
+
       setHistory(records);
 
       if (records.length > 0) {
@@ -175,6 +217,48 @@ useEffect(() => {
   loadHistory();
 
 }, [selectedPatientId]);
+
+//------------------------------------------------------------
+// Explicit Patient Change
+//------------------------------------------------------------
+
+const handlePatientChange = (
+  patientId: string
+) => {
+
+  setSelectedPatientId(
+    patientId
+  );
+
+  void analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.REPORTS,
+
+    eventName:
+      ANALYTICS_EVENTS.FEATURE_CLICKED,
+
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
+
+    pagePath:
+      "/reports/daily-care",
+
+    metadata: {
+
+      reportCategory:
+        "DAILY_CARE",
+
+      action:
+        "PATIENT_CHANGED",
+
+      patientId,
+
+    },
+
+  });
+
+};
 
   //------------------------------------------------------------
   // Loading
@@ -237,8 +321,10 @@ useEffect(() => {
   <select
     value={selectedPatientId}
     onChange={(e) =>
-      setSelectedPatientId(e.target.value)
-    }
+  handlePatientChange(
+    e.target.value
+  )
+}
     style={{
       width: "100%",
       padding: "12px",

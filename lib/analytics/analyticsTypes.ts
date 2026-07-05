@@ -61,6 +61,7 @@ export type AnalyticsEventName =
   | "DISCOVERED"
   | "FEATURE_CLICKED"
   | "OPENED"
+  | "BACK_TO_DASHBOARD_CLICKED"
 
 
   //----------------------------------------------------------
@@ -68,6 +69,8 @@ export type AnalyticsEventName =
   //----------------------------------------------------------
 
   | "CONTEXT_SELECTED"
+  | "INPUT_METHOD_SELECTED"
+  | "IMAGE_SOURCE_SELECTED"
   | "STARTED"
   | "PAGE_REACHED"
   | "DATA_ENTERED"

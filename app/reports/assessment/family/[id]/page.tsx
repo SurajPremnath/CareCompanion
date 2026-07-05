@@ -17,6 +17,15 @@ import type {
 
 import AppHeader from "@/app/components/AppHeader";
 
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
 
 export default function FamilyAssessmentDetailPage() {
 
@@ -68,9 +77,48 @@ export default function FamilyAssessmentDetailPage() {
 
         }
 
+        const loadedAssessment =
+          result.data ?? null;
+
         setAssessment(
-          result.data ?? null
+          loadedAssessment
         );
+
+        if (loadedAssessment) {
+
+          void analyticsService.track({
+
+            module:
+              ANALYTICS_MODULES.REPORTS,
+
+            eventName:
+              ANALYTICS_EVENTS.VIEWED,
+
+            context:
+              ANALYTICS_CONTEXTS.FAMILY,
+
+            pagePath:
+              "/reports/assessment/family/[id]",
+
+            metadata: {
+
+              reportCategory:
+                "ASSESSMENT",
+
+              viewType:
+                "DETAIL",
+
+              assessmentId:
+                loadedAssessment.id,
+
+              patientId:
+                loadedAssessment.patientId,
+
+            },
+
+          });
+
+        }
 
 if (result.data?.patientId) {
 

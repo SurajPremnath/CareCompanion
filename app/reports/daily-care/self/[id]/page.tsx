@@ -31,6 +31,16 @@ from "@/lib/pdf/DailyCarePdfGenerator";
 import type { DailyCarePdfRequest }
 from "@/lib/pdf/PdfModels";
 
+import {
+  ANALYTICS_CONTEXTS,
+  ANALYTICS_EVENTS,
+  ANALYTICS_MODULES,
+} from "@/lib/analytics/analyticsEvents";
+
+import {
+  analyticsService,
+} from "@/lib/analytics/analyticsService";
+
 
 export default function DailyCareReportPage() {
 
@@ -88,6 +98,35 @@ useEffect(() => {
     }
 
 const dailyCare = result.data;
+
+void analyticsService.track({
+
+  module:
+    ANALYTICS_MODULES.REPORTS,
+
+  eventName:
+    ANALYTICS_EVENTS.VIEWED,
+
+  context:
+    ANALYTICS_CONTEXTS.SELF,
+
+  pagePath:
+    "/reports/daily-care/self/[id]",
+
+  metadata: {
+
+    reportCategory:
+      "DAILY_CARE",
+
+    viewType:
+      "DETAIL",
+
+    recordId:
+      dailyCare.id,
+
+  },
+
+});
 
 setRecord(dailyCare);
 
@@ -448,7 +487,7 @@ onClick={async () => {
 
     patientName,
 
-age,
+    age,
 
     caregiverName: null,
 
@@ -460,13 +499,103 @@ age,
 
   };
 
-await DailyCarePdfGenerator.download(
+  void analyticsService.track({
 
-  request,
+    module:
+      ANALYTICS_MODULES.REPORTS,
 
-  "CareVR_Self_Daily_Care_Report.pdf"
+    eventName:
+      ANALYTICS_EVENTS.DOWNLOAD_STARTED,
 
-);
+    context:
+      ANALYTICS_CONTEXTS.SELF,
+
+    pagePath:
+      "/reports/daily-care/self/[id]",
+
+    metadata: {
+
+      reportCategory:
+        "DAILY_CARE",
+
+      recordId:
+        record.id,
+
+    },
+
+  });
+
+  try {
+
+    await DailyCarePdfGenerator.download(
+
+      request,
+
+      "CareVR_Self_Daily_Care_Report.pdf"
+
+    );
+
+    void analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.REPORTS,
+
+      eventName:
+        ANALYTICS_EVENTS.DOWNLOAD_COMPLETED,
+
+      context:
+        ANALYTICS_CONTEXTS.SELF,
+
+      pagePath:
+        "/reports/daily-care/self/[id]",
+
+      metadata: {
+
+        reportCategory:
+          "DAILY_CARE",
+
+        recordId:
+          record.id,
+
+      },
+
+    });
+
+  }
+  catch (error) {
+
+    void analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.REPORTS,
+
+      eventName:
+        ANALYTICS_EVENTS.DOWNLOAD_FAILED,
+
+      context:
+        ANALYTICS_CONTEXTS.SELF,
+
+      pagePath:
+        "/reports/daily-care/self/[id]",
+
+      metadata: {
+
+        reportCategory:
+          "DAILY_CARE",
+
+        recordId:
+          record.id,
+
+        reason:
+          error instanceof Error
+            ? error.message
+            : "UNKNOWN_ERROR",
+
+      },
+
+    });
+
+  }
 
 }}
 

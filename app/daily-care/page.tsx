@@ -65,22 +65,6 @@ const handleSelfCare = async () => {
 
     }
 
-await analyticsService.track({
-
-  module:
-    ANALYTICS_MODULES.DAILY_CARE,
-
-  eventName:
-    ANALYTICS_EVENTS.STARTED,
-
-  context:
-    ANALYTICS_CONTEXTS.SELF,
-
-  pagePath:
-    "/daily-care",
-
-});
-
 setCareMode("self");
 
   }
@@ -100,23 +84,7 @@ setCareMode("self");
 
 const handleFamilyCare = async () => {
 
-  await analyticsService.track({
-
-    module:
-      ANALYTICS_MODULES.DAILY_CARE,
-
-    eventName:
-      ANALYTICS_EVENTS.CONTEXT_SELECTED,
-
-    context:
-      ANALYTICS_CONTEXTS.FAMILY,
-
-    pagePath:
-      "/daily-care",
-
-  });
-
-  setCareMode("family");
+setCareMode("family");
 
 await analyticsService.track({
 
