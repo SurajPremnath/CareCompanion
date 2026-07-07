@@ -41,6 +41,7 @@ type DashboardUser = {
     id: string;
     fullName: string;
     email: string;
+    role: string;
 };
 
 export default function DashboardPage() {
@@ -99,15 +100,16 @@ useEffect(() => {
 
                 }
 
-                setUser({
+setUser({
 
-                    id: profile.id,
+    id: profile.id,
 
-                    fullName: profile.fullName,
+    fullName: profile.fullName,
 
-                    email: profile.email
+    email: profile.email,
 
-                });
+    role: profile.role,
+});
 
 await analyticsService.track({
 
@@ -563,6 +565,35 @@ const openReports = async () => {
     </button>
 
 </div>
+
+
+{user.role === "ADMIN" && (
+
+    <button
+        type="button"
+        onClick={() =>
+            router.push(
+                "/admin/performance"
+            )
+        }
+        style={{
+            width: "100%",
+            padding: "16px",
+            marginBottom: "14px",
+            background: "#ffffff",
+            color: "#111827",
+            border: "1px solid #d1d5db",
+            borderRadius: "10px",
+            fontSize: "16px",
+            fontWeight: 700,
+            cursor: "pointer",
+        }}
+    >
+        📊 Performance Diagnostics
+    </button>
+
+)}
+
 
 <button
     onClick={logout}

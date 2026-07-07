@@ -31,13 +31,14 @@ export class ProfileRepository extends BaseRepository {
       this.handleError(error);
     }
 
-    return {
-      id: data.id,
-      email: data.email,
-      fullName: data.full_name,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    };
+return {
+  id: data.id,
+  email: data.email,
+  fullName: data.full_name,
+  role: data.role,
+  createdAt: data.created_at,
+  updatedAt: data.updated_at
+};
   }
 
   /**
@@ -60,13 +61,14 @@ export class ProfileRepository extends BaseRepository {
       this.handleError(error);
     }
 
-    return {
-      id: data.id,
-      email: data.email,
-      fullName: data.full_name,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    };
+return {
+  id: data.id,
+  email: data.email,
+  fullName: data.full_name,
+  role: data.role,
+  createdAt: data.created_at,
+  updatedAt: data.updated_at
+};
   }
 
 }

@@ -5,6 +5,8 @@ export interface Profile {
 
   fullName: string;
 
+  role: string;
+
   createdAt: string;
 
   updatedAt: string;
