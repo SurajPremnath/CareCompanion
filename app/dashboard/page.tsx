@@ -161,6 +161,17 @@ const logout = async () => {
 
         await authSessionService.end();
 
+    } catch (error) {
+
+        console.error(
+            "Unable to close analytics auth session.",
+            error
+        );
+
+    }
+
+    try {
+
         await authService.logout();
 
         router.replace("/login");
@@ -177,7 +188,6 @@ const logout = async () => {
     }
 
 };
-
 const trackDashboardFeatureClick =
     async (
         feature:
