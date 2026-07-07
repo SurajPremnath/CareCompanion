@@ -53,32 +53,36 @@ useEffect(() => {
 
   const loadHistory = async () => {
 
-    try {
+try {
 
-      setLoading(true);
+  setLoading(true);
 
-const user =
-  await authService.getCurrentUser();
+  const [
+    user,
+    result,
+  ] = await Promise.all([
 
-setProfileName(
-  user?.user_metadata?.full_name ??
-  "User"
-);
+    authService.getCurrentUser(),
 
+    selfDailyCareStorage.getUserHistory(),
 
-const result =
-  await selfDailyCareStorage.getUserHistory();
+  ]);
 
-      if (!result.success) {
+  setProfileName(
+    user?.user_metadata?.full_name ??
+    "User"
+  );
 
-        setError(
-          result.error ??
-          "Unable to load Daily Care history."
-        );
+  if (!result.success) {
 
-        return;
+    setError(
+      result.error ??
+      "Unable to load Daily Care history."
+    );
 
-      }
+    return;
+
+  }
 
       const records =
         result.data ?? [];

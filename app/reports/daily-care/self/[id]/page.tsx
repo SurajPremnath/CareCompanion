@@ -60,10 +60,13 @@ const [patientName, setPatientName] =
     useState("");
 
 const [dateOfBirth, setDateOfBirth] =
-    useState<string | null>(null);
+  useState<string | null>(null);
+
+const [loadingProfile, setLoadingProfile] =
+  useState(true);
 
 const [error, setError] =
-    useState("");
+  useState("");
 
 useEffect(() => {
 
@@ -128,34 +131,51 @@ void analyticsService.track({
 
 });
 
-setRecord(dailyCare);
-
-const user =
-    await authService.getCurrentUser();
-
-setPatientName(
-
-    user?.user_metadata?.full_name ??
-
-    "User"
-
+setRecord(
+  dailyCare
 );
 
-const profileResult =
-    await selfProfileStorage.getProfile();
+setLoading(
+  false
+);
 
-if (
+try {
+
+  const [
+    user,
+    profileResult,
+  ] = await Promise.all([
+
+  authService.getCurrentUser(),
+
+  selfProfileStorage.getProfile(),
+
+]);
+
+  setPatientName(
+    user?.user_metadata?.full_name ??
+    "User"
+  );
+
+  if (
     profileResult.success &&
     profileResult.data
-) {
+  ) {
 
     setDateOfBirth(
-        profileResult.data.dateOfBirth
+      profileResult.data.dateOfBirth
     );
 
-}
+  }
 
-setLoading(false);
+}
+finally {
+
+  setLoadingProfile(
+    false
+  );
+
+}
 
   };
 
@@ -289,7 +309,9 @@ return (
         <strong>Patient</strong>
 
         <div>
-          {patientName || "Unknown Patient"}
+          {loadingProfile
+  ? "Loading profile..."
+  : patientName || "Unknown Patient"}
         </div>
 
       </div>
@@ -477,6 +499,7 @@ return (
 >
 
 <button
+disabled={loadingProfile}
 onClick={async () => {
 
   const request: DailyCarePdfRequest = {
@@ -600,16 +623,25 @@ onClick={async () => {
 }}
 
   style={{
-    padding: "12px 20px",
-    borderRadius: "10px",
-    border: "none",
-    cursor: "pointer",
-    background: "#2563eb",
-    color: "#ffffff",
-    fontWeight: 600,
-  }}
+  padding: "12px 20px",
+  borderRadius: "10px",
+  border: "none",
+  cursor:
+    loadingProfile
+      ? "not-allowed"
+      : "pointer",
+  background: "#2563eb",
+  color: "#ffffff",
+  fontWeight: 600,
+  opacity:
+    loadingProfile
+      ? 0.6
+      : 1,
+}}
 >
-  📄 Generate PDF Report
+  {loadingProfile
+  ? "Loading profile details..."
+  : "📄 Generate PDF Report"}
 </button>
 
         <button

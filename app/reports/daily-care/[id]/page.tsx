@@ -52,11 +52,13 @@ const [patientName, setPatientName] =
     useState("");
 
 const [age, setAge] =
-    useState<number | null>(null);
+  useState<number | null>(null);
+
+const [loadingPatient, setLoadingPatient] =
+  useState(true);
 
 const [error, setError] =
   useState("");
-
 useEffect(() => {
 
   const loadReport = async () => {
@@ -89,91 +91,118 @@ useEffect(() => {
 
     }
 
-const dailyCare = result.data;
+const dailyCare =
+  result.data;
 
-void analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.REPORTS,
+    module:
+      ANALYTICS_MODULES.REPORTS,
 
-  eventName:
-    ANALYTICS_EVENTS.VIEWED,
+    eventName:
+      ANALYTICS_EVENTS.VIEWED,
 
-  context:
-    ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
 
-  pagePath:
-    "/reports/daily-care/[id]",
+    pagePath:
+      "/reports/daily-care/[id]",
 
-  metadata: {
+    metadata: {
 
-    reportCategory:
-      "DAILY_CARE",
+      reportCategory:
+        "DAILY_CARE",
 
-    viewType:
-      "DETAIL",
+      viewType:
+        "DETAIL",
 
-    recordId:
-      dailyCare.id,
+      recordId:
+        dailyCare.id,
 
-    patientId:
-      dailyCare.patientId,
+      patientId:
+        dailyCare.patientId,
 
-  },
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not affect report display
+  });
 
-setRecord(dailyCare);
+setRecord(
+  dailyCare
+);
 
-const patientResult =
+setLoading(
+  false
+);
+
+try {
+
+  const patientResult =
     await patientStorage.getPatient(
-        dailyCare.patientId
+      dailyCare.patientId
     );
 
-if (
+  if (
     patientResult.success &&
     patientResult.data
-) {
+  ) {
 
     setPatientName(
-        patientResult.data.fullName
+      patientResult.data.fullName
     );
 
-if (patientResult.data.dateOfBirth) {
+    if (
+      patientResult.data.dateOfBirth
+    ) {
 
-    const dob =
-        new Date(patientResult.data.dateOfBirth);
+      const dob =
+        new Date(
+          patientResult.data.dateOfBirth
+        );
 
-    const today =
+      const today =
         new Date();
 
-    let calculatedAge =
+      let calculatedAge =
         today.getFullYear() -
         dob.getFullYear();
 
-    const monthDifference =
+      const monthDifference =
         today.getMonth() -
         dob.getMonth();
 
-    if (
+      if (
         monthDifference < 0 ||
         (
-            monthDifference === 0 &&
-            today.getDate() < dob.getDate()
+          monthDifference === 0 &&
+          today.getDate() <
+            dob.getDate()
         )
-    ) {
+      ) {
 
         calculatedAge--;
 
+      }
+
+      setAge(
+        calculatedAge
+      );
+
     }
 
-    setAge(calculatedAge);
+  }
 
 }
+finally {
+
+  setLoadingPatient(
+    false
+  );
 
 }
-setLoading(false);
-
   };
 
   loadReport();
@@ -303,7 +332,9 @@ return (
         <strong>Patient</strong>
 
         <div>
-          {patientName || "Unknown Patient"}
+          {loadingPatient
+  ? "Loading patient..."
+  : patientName || "Unknown Patient"}
         </div>
 
       </div>
@@ -494,6 +525,7 @@ return (
 >
 
 <button
+disabled={loadingPatient}
 onClick={async () => {
 
   const request: DailyCarePdfRequest = {
@@ -625,17 +657,26 @@ onClick={async () => {
 
 }}
 
-  style={{
-    padding: "12px 20px",
-    borderRadius: "10px",
-    border: "none",
-    cursor: "pointer",
-    background: "#2563eb",
-    color: "#ffffff",
-    fontWeight: 600,
-  }}
+style={{
+  padding: "12px 20px",
+  borderRadius: "10px",
+  border: "none",
+  cursor:
+    loadingPatient
+      ? "not-allowed"
+      : "pointer",
+  background: "#2563eb",
+  color: "#ffffff",
+  fontWeight: 600,
+  opacity:
+    loadingPatient
+      ? 0.6
+      : 1,
+}}
 >
-  📄 Generate PDF Report
+  {loadingPatient
+  ? "Loading patient details..."
+  : "📄 Generate PDF Report"}
 </button>
 
         <button

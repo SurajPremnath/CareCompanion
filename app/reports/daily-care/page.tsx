@@ -28,11 +28,14 @@ import {
 export default function DailyCareHistoryPage() {
   const router = useRouter();
 
-  const [loading, setLoading] =
-    useState(true);
+const [loading, setLoading] =
+  useState(true);
 
-  const [history, setHistory] =
-    useState<DailyCare[]>([]);
+const [loadingHistory, setLoadingHistory] =
+  useState(false);
+
+const [history, setHistory] =
+  useState<DailyCare[]>([]);
 
   const [latestRecord, setLatestRecord] =
     useState<DailyCare | null>(null);
@@ -48,6 +51,123 @@ export default function DailyCareHistoryPage() {
 
   const [selectedPatientId, setSelectedPatientId] =
     useState("");
+
+//------------------------------------------------------------
+// Load History
+//------------------------------------------------------------
+
+const loadHistory = async (
+  patientId: string,
+  isInitialLoad = false
+) => {
+
+  try {
+
+    if (!isInitialLoad) {
+
+      setLoadingHistory(true);
+
+    }
+
+    const result =
+      await dailyCareStorage.getPatientHistory(
+        patientId
+      );
+
+    if (!result.success) {
+
+      setError(
+        result.error ??
+        "Unable to load Daily Care history."
+      );
+
+      return;
+
+    }
+
+    const records =
+      result.data ?? [];
+
+    void analyticsService
+      .track({
+
+        module:
+          ANALYTICS_MODULES.REPORTS,
+
+        eventName:
+          ANALYTICS_EVENTS.VIEWED,
+
+        context:
+          ANALYTICS_CONTEXTS.FAMILY,
+
+        pagePath:
+          "/reports/daily-care",
+
+        metadata: {
+
+          reportCategory:
+            "DAILY_CARE",
+
+          viewType:
+            "HISTORY",
+
+          recordCount:
+            records.length,
+
+          patientId,
+
+        },
+
+      })
+      .catch(() => {
+        // Analytics must not delay history display
+      });
+
+    setHistory(
+      records
+    );
+
+    if (records.length > 0) {
+
+      setLatestRecord(
+        records[0]
+      );
+
+      setHistoryRecords(
+        records.slice(1)
+      );
+
+    }
+    else {
+
+      setLatestRecord(
+        null
+      );
+
+      setHistoryRecords(
+        []
+      );
+
+    }
+
+  }
+  finally {
+
+  if (isInitialLoad) {
+
+    setLoading(false);
+
+  }
+  else {
+
+    setLoadingHistory(false);
+
+  }
+
+}
+
+};
+
 
 //------------------------------------------------------------
 // Load Patients
@@ -94,8 +214,16 @@ setPatients(
   loadedPatients
 );
 
+const firstPatientId =
+  loadedPatients[0].id;
+
 setSelectedPatientId(
-  loadedPatients[0].id
+  firstPatientId
+);
+
+await loadHistory(
+  firstPatientId,
+  true
 );
 
     }
@@ -116,107 +244,7 @@ setSelectedPatientId(
 }, [router]);
 
 
-//------------------------------------------------------------
-// Load History
-//------------------------------------------------------------
 
-useEffect(() => {
-
-  if (!selectedPatientId) {
-
-    return;
-
-  }
-
-  const loadHistory = async () => {
-
-    try {
-
-      setLoading(true);
-
-      const result =
-        await dailyCareStorage.getPatientHistory(
-          selectedPatientId
-        );
-
-      if (!result.success) {
-
-        setError(
-          result.error ??
-          "Unable to load Daily Care history."
-        );
-
-        return;
-
-      }
-
-      const records =
-        result.data ?? [];
-
-      void analyticsService.track({
-
-        module:
-          ANALYTICS_MODULES.REPORTS,
-
-        eventName:
-          ANALYTICS_EVENTS.VIEWED,
-
-        context:
-          ANALYTICS_CONTEXTS.FAMILY,
-
-        pagePath:
-          "/reports/daily-care",
-
-        metadata: {
-
-          reportCategory:
-            "DAILY_CARE",
-
-          viewType:
-            "HISTORY",
-
-          recordCount:
-            records.length,
-
-          patientId:
-            selectedPatientId,
-
-        },
-
-      });
-
-      setHistory(records);
-
-      if (records.length > 0) {
-
-        setLatestRecord(
-          records[0]
-        );
-
-        setHistoryRecords(
-          records.slice(1)
-        );
-
-      } else {
-
-        setLatestRecord(null);
-
-        setHistoryRecords([]);
-
-      }
-
-    }
-    finally {
-
-      setLoading(false);
-
-    }
-
-  };
-
-  loadHistory();
-
-}, [selectedPatientId]);
 
 //------------------------------------------------------------
 // Explicit Patient Change
@@ -230,33 +258,41 @@ const handlePatientChange = (
     patientId
   );
 
-  void analyticsService.track({
+  void analyticsService
+    .track({
 
-    module:
-      ANALYTICS_MODULES.REPORTS,
+      module:
+        ANALYTICS_MODULES.REPORTS,
 
-    eventName:
-      ANALYTICS_EVENTS.FEATURE_CLICKED,
+      eventName:
+        ANALYTICS_EVENTS.FEATURE_CLICKED,
 
-    context:
-      ANALYTICS_CONTEXTS.FAMILY,
+      context:
+        ANALYTICS_CONTEXTS.FAMILY,
 
-    pagePath:
-      "/reports/daily-care",
+      pagePath:
+        "/reports/daily-care",
 
-    metadata: {
+      metadata: {
 
-      reportCategory:
-        "DAILY_CARE",
+        reportCategory:
+          "DAILY_CARE",
 
-      action:
-        "PATIENT_CHANGED",
+        action:
+          "PATIENT_CHANGED",
 
-      patientId,
+        patientId,
 
-    },
+      },
 
-  });
+    })
+    .catch(() => {
+      // Analytics must not delay patient change
+    });
+
+  void loadHistory(
+    patientId
+  );
 
 };
 
@@ -354,6 +390,25 @@ const handlePatientChange = (
           Latest entries are shown first.
         </p>
 
+{loadingHistory && (
+
+  <div
+    style={{
+      padding: "16px",
+      marginBottom: "24px",
+      borderRadius: "8px",
+      background: "#f8fafc",
+      color: "#475569",
+      textAlign: "center",
+    }}
+  >
+
+    Loading history...
+
+  </div>
+
+)}
+
         {error && (
 
           <div style={errorStyle}>
@@ -364,8 +419,9 @@ const handlePatientChange = (
 
         )}
 
-        {!error &&
-         history.length === 0 && (
+        {!loadingHistory &&
+ !error &&
+ history.length === 0 && (
 
           <div style={emptyStyle}>
 
@@ -375,7 +431,8 @@ const handlePatientChange = (
 
         )}
 
-{latestRecord && (
+{!loadingHistory &&
+ latestRecord && (
 
   <div
     style={{
@@ -459,7 +516,8 @@ const handlePatientChange = (
 
 )}
 
-        {historyRecords.length > 0 && (
+        {!loadingHistory &&
+ historyRecords.length > 0 && (
 
   <>
 

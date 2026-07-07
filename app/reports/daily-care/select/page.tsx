@@ -22,14 +22,15 @@ export default function DailyCareReportSelectorPage() {
   // Daily Care Report Context Selection
   //------------------------------------------------------------
 
-  const handleContextSelection = async (
-    context:
-      | typeof ANALYTICS_CONTEXTS.SELF
-      | typeof ANALYTICS_CONTEXTS.FAMILY,
-    href: string
-  ) => {
+  const handleContextSelection = (
+  context:
+    | typeof ANALYTICS_CONTEXTS.SELF
+    | typeof ANALYTICS_CONTEXTS.FAMILY,
+  href: string
+) => {
 
-    await analyticsService.track({
+  void analyticsService
+    .track({
 
       module:
         ANALYTICS_MODULES.REPORTS,
@@ -49,11 +50,16 @@ export default function DailyCareReportSelectorPage() {
 
       },
 
+    })
+    .catch(() => {
+      // Analytics must not block report navigation
     });
 
-    router.push(href);
+  router.push(
+    href
+  );
 
-  };
+};
 
   const cardStyle: React.CSSProperties = {
     border: "1px solid #e5e7eb",
