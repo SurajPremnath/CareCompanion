@@ -56,6 +56,9 @@ const {
     const [loading, setLoading] =
         useState(true);
 
+const [loggingOut, setLoggingOut] =
+    useState(false);
+
 useEffect(() => {
 
     if (dashboardLoadStartedRef.current) {
@@ -148,11 +151,19 @@ await analyticsService.track({
 
 const logout = async () => {
 
+    if (loggingOut) {
+        return;
+    }
+
+    setLoggingOut(true);
+
     try {
 
         await authSessionService.end();
 
         await authService.logout();
+
+        router.replace("/login");
 
     } catch (error) {
 
@@ -161,11 +172,9 @@ const logout = async () => {
             error
         );
 
-        return;
+        setLoggingOut(false);
 
     }
-
-    router.replace("/login");
 
 };
 
@@ -517,12 +526,25 @@ const openReports = async () => {
 
 </div>
 
-                <button
-                    onClick={logout}
-                    style={logoutButton}
-                >
-                    🚪 {t("dashboard.logout")}
-                </button>
+<button
+    onClick={logout}
+    disabled={loggingOut}
+    style={{
+        ...logoutButton,
+        opacity:
+            loggingOut
+                ? 0.7
+                : 1,
+        cursor:
+            loggingOut
+                ? "not-allowed"
+                : "pointer",
+    }}
+>
+    {loggingOut
+        ? "Logging out…"
+        : `🚪 ${t("dashboard.logout")}`}
+</button>
 
                 <div
                     style={{
