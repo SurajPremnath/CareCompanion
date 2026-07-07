@@ -389,11 +389,24 @@ const openAddPatient = async () => {
 };
 
 
-const openReports = async () => {
+const openReports = () => {
 
     trackDashboardFeatureClick(
         "REPORTS"
     );
+
+    performanceTracker.start({
+
+        fromPath:
+            "/dashboard",
+
+        toPath:
+            "/reports",
+
+        feature:
+            "DASHBOARD_TO_REPORTS",
+
+    });
 
     router.push("/reports");
 

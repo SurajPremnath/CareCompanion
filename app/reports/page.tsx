@@ -14,6 +14,10 @@ import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
 
+import {
+  performanceTracker,
+} from "@/lib/performance/performanceTracker";
+
 export default function ReportsPage() {
   const router = useRouter();
 
@@ -34,25 +38,36 @@ export default function ReportsPage() {
 
     openedTrackedRef.current = true;
 
-    void analyticsService.track({
+void performanceTracker.complete({
 
-      module:
-        ANALYTICS_MODULES.REPORTS,
+  toPath:
+    "/reports",
 
-      eventName:
-        ANALYTICS_EVENTS.OPENED,
+});
 
-      pagePath:
-        "/reports",
+void analyticsService
+  .track({
 
-      metadata: {
+    module:
+      ANALYTICS_MODULES.REPORTS,
 
-        viewType:
-          "LANDING",
+    eventName:
+      ANALYTICS_EVENTS.OPENED,
 
-      },
+    pagePath:
+      "/reports",
 
-    });
+    metadata: {
+
+      viewType:
+        "LANDING",
+
+    },
+
+  })
+  .catch(() => {
+    // Analytics must not block reports page readiness
+  });
 
   }, []);
 
