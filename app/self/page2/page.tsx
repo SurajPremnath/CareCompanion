@@ -83,7 +83,7 @@ const handleBackToDashboard = () => {
     fontSize: "15px",
   });
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (!fever) {
       alert(t("assessment.alertFever"));
       return;
@@ -115,27 +115,33 @@ const handleBackToDashboard = () => {
     localStorage.setItem("energy", energy);
 
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.ASSESSMENT,
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
 
-  eventName:
-    ANALYTICS_EVENTS.PAGE_REACHED,
+    eventName:
+      ANALYTICS_EVENTS.PAGE_REACHED,
 
-  context:
-    ANALYTICS_CONTEXTS.SELF,
+    context:
+      ANALYTICS_CONTEXTS.SELF,
 
-  pagePath:
-    "/self/page3",
+    pagePath:
+      "/self/page3",
 
-  metadata: {
-    page: 3,
-  },
+    metadata: {
+      page: 3,
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not block assessment navigation
+  });
 
-    router.push("/self/page3");
+router.push(
+  "/self/page3"
+);
   };
 
   return (

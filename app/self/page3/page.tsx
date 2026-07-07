@@ -47,7 +47,7 @@ const {
     fontSize: "15px",
   });
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (!appetite || !water) {
       alert(t("assessment.alertAllQuestions"));
       return;
@@ -62,27 +62,33 @@ const {
     localStorage.setItem("water", water);
     localStorage.setItem("waterGlasses", waterGlasses);
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.ASSESSMENT,
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
 
-  eventName:
-    ANALYTICS_EVENTS.PAGE_REACHED,
+    eventName:
+      ANALYTICS_EVENTS.PAGE_REACHED,
 
-  context:
-    ANALYTICS_CONTEXTS.SELF,
+    context:
+      ANALYTICS_CONTEXTS.SELF,
 
-  pagePath:
-    "/self/page4",
+    pagePath:
+      "/self/page4",
 
-  metadata: {
-    page: 4,
-  },
+    metadata: {
+      page: 4,
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not block assessment navigation
+  });
 
-    router.push("/self/page4");
+router.push(
+  "/self/page4"
+);
   };
 
   return (

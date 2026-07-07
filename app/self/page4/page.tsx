@@ -74,7 +74,7 @@ const discomfortAreaOptions = [
     }
   };
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (!discomfort) {
       alert(t("assessment.alertQuestion"));
       return;
@@ -94,27 +94,33 @@ const discomfortAreaOptions = [
     localStorage.setItem("discomfortAreas", JSON.stringify(discomfortAreas));
     localStorage.setItem("otherDiscomfort", otherDiscomfort);
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.ASSESSMENT,
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
 
-  eventName:
-    ANALYTICS_EVENTS.PAGE_REACHED,
+    eventName:
+      ANALYTICS_EVENTS.PAGE_REACHED,
 
-  context:
-    ANALYTICS_CONTEXTS.SELF,
+    context:
+      ANALYTICS_CONTEXTS.SELF,
 
-  pagePath:
-    "/self/page5",
+    pagePath:
+      "/self/page5",
 
-  metadata: {
-    page: 5,
-  },
+    metadata: {
+      page: 5,
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not block assessment navigation
+  });
 
-    router.push("/self/page5");
+router.push(
+  "/self/page5"
+);
   };
 
   return (

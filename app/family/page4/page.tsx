@@ -51,7 +51,7 @@ export default function FamilyPage4() {
     fontSize: "15px",
   });
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (!appetite || !water) {
       alert(
         t("assessment.alertAllQuestions")
@@ -84,27 +84,33 @@ export default function FamilyPage4() {
       waterGlasses
     );
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.ASSESSMENT,
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
 
-  eventName:
-    ANALYTICS_EVENTS.PAGE_REACHED,
+    eventName:
+      ANALYTICS_EVENTS.PAGE_REACHED,
 
-  context:
-    ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
 
-  pagePath:
-    "/family/page5",
+    pagePath:
+      "/family/page5",
 
-  metadata: {
-    page: 5,
-  },
+    metadata: {
+      page: 5,
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not block assessment navigation
+  });
 
-    router.push("/family/page5");
+router.push(
+  "/family/page5"
+);
   };
 
   return (

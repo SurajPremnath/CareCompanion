@@ -54,7 +54,7 @@ const {
 
   const showLooseMotionType = looseMotions === "yes";
 
-  const handleFinish = async () => {
+  const handleFinish = () => {
     if (!walking || !looseMotions) {
       alert(t("assessment.alertAllQuestions"));
       return;
@@ -75,27 +75,33 @@ const {
     localStorage.setItem("looseMotions", looseMotions);
     localStorage.setItem("looseMotionType", looseMotionType);
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.ASSESSMENT,
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
 
-  eventName:
-    ANALYTICS_EVENTS.PAGE_REACHED,
+    eventName:
+      ANALYTICS_EVENTS.PAGE_REACHED,
 
-  context:
-    ANALYTICS_CONTEXTS.SELF,
+    context:
+      ANALYTICS_CONTEXTS.SELF,
 
-  pagePath:
-    "/report",
+    pagePath:
+      "/report",
 
-  metadata: {
-    page: "REPORT",
-  },
+    metadata: {
+      page: "REPORT",
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not block report navigation
+  });
 
-    router.push("/report");
+router.push(
+  "/report"
+);
   };
 
   return (

@@ -257,35 +257,39 @@ if (!result.success) {
     return null;
   }
 
-  const startAssessment = async () => {
+  const startAssessment = () => {
     if (!currentUser || !selectedPatient) {
       return;
     }
 
 clearAssessmentData();
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.ASSESSMENT,
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
 
-  eventName:
-    ANALYTICS_EVENTS.STARTED,
+    eventName:
+      ANALYTICS_EVENTS.STARTED,
 
-  context:
-    ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
 
-  pagePath:
-    "/family",
+    pagePath:
+      "/family",
 
-  metadata: {
+    metadata: {
 
-    patientId:
-      selectedPatient.id,
+      patientId:
+        selectedPatient.id,
 
-  },
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not block assessment navigation
+  });
 
 localStorage.setItem(
   "assessmentType",

@@ -64,7 +64,7 @@ const {
     fontSize: "15px",
   });
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (!fever || !energy) {
       alert(
         t("assessment.alertAllQuestions")
@@ -118,27 +118,33 @@ const {
       energy
     );
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.ASSESSMENT,
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
 
-  eventName:
-    ANALYTICS_EVENTS.PAGE_REACHED,
+    eventName:
+      ANALYTICS_EVENTS.PAGE_REACHED,
 
-  context:
-    ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
 
-  pagePath:
-    "/family/page4",
+    pagePath:
+      "/family/page4",
 
-  metadata: {
-    page: 4,
-  },
+    metadata: {
+      page: 4,
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not block assessment navigation
+  });
 
-    router.push("/family/page4");
+router.push(
+  "/family/page4"
+);
   };
 
   return (

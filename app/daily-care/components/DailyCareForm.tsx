@@ -253,37 +253,45 @@ const [
   // Load Patients
   //------------------------------------------------------------
 
-  useEffect(() => {
+useEffect(() => {
 
-    const loadPatients = async () => {
+  if (mode !== "family") {
 
-      setLoadingPatients(true);
+    setLoadingPatients(false);
 
-      try {
+    return;
 
-        const result =
-          await patientStorage.getPatients();
+  }
 
-        if (result.success) {
+  const loadPatients = async () => {
 
-          setPatients(
-            result.data ?? []
-          );
+    setLoadingPatients(true);
 
-        }
+    try {
+
+      const result =
+        await patientStorage.getPatients();
+
+      if (result.success) {
+
+        setPatients(
+          result.data ?? []
+        );
 
       }
-      finally {
 
-        setLoadingPatients(false);
+    }
+    finally {
 
-      }
+      setLoadingPatients(false);
 
-    };
+    }
 
-    loadPatients();
+  };
 
-  }, []);
+  void loadPatients();
+
+}, [mode]);
 
   //------------------------------------------------------------
   // Field Updates
@@ -415,50 +423,20 @@ if (exists) {
 // Reading Input Method Selection
 //------------------------------------------------------------
 
-async function selectReadingInputMethod(
+function selectReadingInputMethod(
   method: "image" | "manual" | "voice"
-) 
-{
+) {
 
-  setReadingInputMethod(method);
+  setReadingInputMethod(
+    method
+  );
 
-  setImageReadSuccessful(false);
-
-  await analyticsService.track({
-
-    module:
-      ANALYTICS_MODULES.DAILY_CARE,
-
-    eventName:
-      ANALYTICS_EVENTS.INPUT_METHOD_SELECTED,
-
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
-
-    pagePath:
-      "/daily-care",
-
-inputMethod:
-  method === "image"
-    ? ANALYTICS_INPUT_METHODS.IMAGE
-    : method === "voice"
-    ? ANALYTICS_INPUT_METHODS.VOICE
-    : ANALYTICS_INPUT_METHODS.MANUAL,
-
-    metadata: {
-
-      patientId:
-        mode === "family"
-          ? formData.patientId || null
-          : null,
-
-    },
-
-  });
+  setImageReadSuccessful(
+    false
+  );
 
 }
+
 //------------------------------------------------------------
 // Clear Image Readings
 //------------------------------------------------------------
@@ -516,79 +494,87 @@ if (
 
 }
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.DAILY_CARE,
+    module:
+      ANALYTICS_MODULES.DAILY_CARE,
 
-  eventName:
-    ANALYTICS_EVENTS.IMAGE_SOURCE_SELECTED,
+    eventName:
+      ANALYTICS_EVENTS.IMAGE_SOURCE_SELECTED,
 
-  context:
-    mode === "self"
-      ? ANALYTICS_CONTEXTS.SELF
-      : ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
 
-  pagePath:
-    "/daily-care",
+    pagePath:
+      "/daily-care",
 
-  inputMethod:
-    ANALYTICS_INPUT_METHODS.IMAGE,
+    inputMethod:
+      ANALYTICS_INPUT_METHODS.IMAGE,
 
-  metadata: {
+    metadata: {
 
-    source:
-      source === "camera"
-        ? "CAMERA"
-        : "GALLERY",
+      source:
+        source === "camera"
+          ? "CAMERA"
+          : "GALLERY",
 
-    patientId:
-      mode === "family"
-        ? formData.patientId || null
-        : null,
+      patientId:
+        mode === "family"
+          ? formData.patientId || null
+          : null,
 
-  },
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not delay image processing
+  });
 
 setActiveImageSource(source);
 
 setProcessingImage(true);
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.AI_IMAGE,
+    module:
+      ANALYTICS_MODULES.AI_IMAGE,
 
-  eventName:
-    ANALYTICS_EVENTS.ATTEMPTED,
+    eventName:
+      ANALYTICS_EVENTS.ATTEMPTED,
 
-  context:
-    mode === "self"
-      ? ANALYTICS_CONTEXTS.SELF
-      : ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
 
-  pagePath:
-    "/daily-care",
+    pagePath:
+      "/daily-care",
 
-  inputMethod:
-    ANALYTICS_INPUT_METHODS.IMAGE,
+    inputMethod:
+      ANALYTICS_INPUT_METHODS.IMAGE,
 
-  metadata: {
+    metadata: {
 
-    source:
-      source === "camera"
-        ? "CAMERA"
-        : "GALLERY",
+      source:
+        source === "camera"
+          ? "CAMERA"
+          : "GALLERY",
 
-    patientId:
-      mode === "family"
-        ? formData.patientId || null
-        : null,
+      patientId:
+        mode === "family"
+          ? formData.patientId || null
+          : null,
 
-  },
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not delay image processing
+  });
 
 try {
 
@@ -602,7 +588,8 @@ if (
   !result.data
 ) {
 
-  await analyticsService.track({
+  void analyticsService
+  .track({
 
     module:
       ANALYTICS_MODULES.AI_IMAGE,
@@ -638,6 +625,9 @@ if (
 
     },
 
+  })
+  .catch(() => {
+    // Analytics must not delay image error feedback
   });
 
   AppAlert.error(
@@ -704,83 +694,91 @@ setImageReadSuccessful(
   true
 );
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.AI_IMAGE,
+    module:
+      ANALYTICS_MODULES.AI_IMAGE,
 
-  eventName:
-    ANALYTICS_EVENTS.SUCCEEDED,
+    eventName:
+      ANALYTICS_EVENTS.SUCCEEDED,
 
-  context:
-    mode === "self"
-      ? ANALYTICS_CONTEXTS.SELF
-      : ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
 
-  pagePath:
-    "/daily-care",
+    pagePath:
+      "/daily-care",
 
-  inputMethod:
-    ANALYTICS_INPUT_METHODS.IMAGE,
+    inputMethod:
+      ANALYTICS_INPUT_METHODS.IMAGE,
 
-  metadata: {
+    metadata: {
 
-    source:
-      source === "camera"
-        ? "CAMERA"
-        : "GALLERY",
+      source:
+        source === "camera"
+          ? "CAMERA"
+          : "GALLERY",
 
-    patientId:
-      mode === "family"
-        ? formData.patientId || null
-        : null,
+      patientId:
+        mode === "family"
+          ? formData.patientId || null
+          : null,
 
-  },
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not delay image result display
+  });
 
   }
   catch (error) {
 
-    await analyticsService.track({
+    void analyticsService
+  .track({
 
-      module:
-        ANALYTICS_MODULES.AI_IMAGE,
+    module:
+      ANALYTICS_MODULES.AI_IMAGE,
 
-      eventName:
-        ANALYTICS_EVENTS.FAILED,
+    eventName:
+      ANALYTICS_EVENTS.FAILED,
 
-      context:
-        mode === "self"
-          ? ANALYTICS_CONTEXTS.SELF
-          : ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
 
-      pagePath:
-        "/daily-care",
+    pagePath:
+      "/daily-care",
 
-      inputMethod:
-        ANALYTICS_INPUT_METHODS.IMAGE,
+    inputMethod:
+      ANALYTICS_INPUT_METHODS.IMAGE,
 
-      metadata: {
+    metadata: {
 
-        source:
-          source === "camera"
-            ? "CAMERA"
-            : "GALLERY",
+      source:
+        source === "camera"
+          ? "CAMERA"
+          : "GALLERY",
 
-        patientId:
-          mode === "family"
-            ? formData.patientId || null
-            : null,
+      patientId:
+        mode === "family"
+          ? formData.patientId || null
+          : null,
 
-        reason:
-          error instanceof Error
-            ? error.message
-            : "UNKNOWN_ERROR",
+      reason:
+        error instanceof Error
+          ? error.message
+          : "UNKNOWN_ERROR",
 
-      },
+    },
 
-    });
+  })
+  .catch(() => {
+    // Analytics must not delay image error feedback
+  });
 
     console.error(
       "Medical Image Capture Error:",
@@ -852,7 +850,8 @@ async function handleMedicalVoice(
 
   setProcessingVoice(true);
 
-  await analyticsService.track({
+void analyticsService
+  .track({
 
     module:
       ANALYTICS_MODULES.AI_VOICE,
@@ -880,6 +879,9 @@ async function handleMedicalVoice(
 
     },
 
+  })
+  .catch(() => {
+    // Analytics must not delay voice processing
   });
 
 
@@ -893,38 +895,42 @@ async function handleMedicalVoice(
 
     if (!result.success) {
 
-      await analyticsService.track({
+      void analyticsService
+  .track({
 
-        module:
-          ANALYTICS_MODULES.AI_VOICE,
+    module:
+      ANALYTICS_MODULES.AI_VOICE,
 
-        eventName:
-          ANALYTICS_EVENTS.FAILED,
+    eventName:
+      ANALYTICS_EVENTS.FAILED,
 
-        context:
-          mode === "self"
-            ? ANALYTICS_CONTEXTS.SELF
-            : ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
 
-        pagePath:
-          "/daily-care",
+    pagePath:
+      "/daily-care",
 
-        inputMethod:
-          ANALYTICS_INPUT_METHODS.VOICE,
+    inputMethod:
+      ANALYTICS_INPUT_METHODS.VOICE,
 
-        metadata: {
+    metadata: {
 
-          patientId:
-            mode === "family"
-              ? formData.patientId || null
-              : null,
+      patientId:
+        mode === "family"
+          ? formData.patientId || null
+          : null,
 
-          reason:
-            result.error,
+      reason:
+        result.error,
 
-        },
+    },
 
-      });
+  })
+  .catch(() => {
+    // Analytics must not delay voice error feedback
+  });
 
 
       AppAlert.error(
@@ -1019,41 +1025,45 @@ otherPainLocation:
     }
 
 
-    await analyticsService.track({
+    void analyticsService
+  .track({
 
-      module:
-        ANALYTICS_MODULES.AI_VOICE,
+    module:
+      ANALYTICS_MODULES.AI_VOICE,
 
-      eventName:
-        ANALYTICS_EVENTS.SUCCEEDED,
+    eventName:
+      ANALYTICS_EVENTS.SUCCEEDED,
 
-      context:
-        mode === "self"
-          ? ANALYTICS_CONTEXTS.SELF
-          : ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
 
-      pagePath:
-        "/daily-care",
+    pagePath:
+      "/daily-care",
 
-      inputMethod:
-        ANALYTICS_INPUT_METHODS.VOICE,
+    inputMethod:
+      ANALYTICS_INPUT_METHODS.VOICE,
 
-      metadata: {
+    metadata: {
 
-        patientId:
-          mode === "family"
-            ? formData.patientId || null
-            : null,
+      patientId:
+        mode === "family"
+          ? formData.patientId || null
+          : null,
 
-        usageUsed:
-          usage.used,
+      usageUsed:
+        usage.used,
 
-        usageRemaining:
-          usage.remaining,
+      usageRemaining:
+        usage.remaining,
 
-      },
+    },
 
-    });
+  })
+  .catch(() => {
+    // Analytics must not delay voice success feedback
+  });
 
 
 if (usage.unlimited) {
@@ -1080,40 +1090,44 @@ else {
     );
 
 
-    await analyticsService.track({
+    void analyticsService
+  .track({
 
-      module:
-        ANALYTICS_MODULES.AI_VOICE,
+    module:
+      ANALYTICS_MODULES.AI_VOICE,
 
-      eventName:
-        ANALYTICS_EVENTS.FAILED,
+    eventName:
+      ANALYTICS_EVENTS.FAILED,
 
-      context:
-        mode === "self"
-          ? ANALYTICS_CONTEXTS.SELF
-          : ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
 
-      pagePath:
-        "/daily-care",
+    pagePath:
+      "/daily-care",
 
-      inputMethod:
-        ANALYTICS_INPUT_METHODS.VOICE,
+    inputMethod:
+      ANALYTICS_INPUT_METHODS.VOICE,
 
-      metadata: {
+    metadata: {
 
-        patientId:
-          mode === "family"
-            ? formData.patientId || null
-            : null,
+      patientId:
+        mode === "family"
+          ? formData.patientId || null
+          : null,
 
-        reason:
-          error instanceof Error
-            ? error.message
-            : "UNKNOWN_ERROR",
+      reason:
+        error instanceof Error
+          ? error.message
+          : "UNKNOWN_ERROR",
 
-      },
+    },
 
-    });
+  })
+  .catch(() => {
+    // Analytics must not delay voice error feedback
+  });
 
 
     AppAlert.error(
@@ -2209,39 +2223,43 @@ if (!result.success) {
 
 }
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.DAILY_CARE,
+    module:
+      ANALYTICS_MODULES.DAILY_CARE,
 
-  eventName:
-    ANALYTICS_EVENTS.COMPLETED,
+    eventName:
+      ANALYTICS_EVENTS.COMPLETED,
 
-  context:
-    mode === "self"
-      ? ANALYTICS_CONTEXTS.SELF
-      : ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
 
-  pagePath:
-    "/daily-care",
+    pagePath:
+      "/daily-care",
 
-inputMethod:
-  readingInputMethod === "image"
-    ? ANALYTICS_INPUT_METHODS.IMAGE
-    : readingInputMethod === "voice"
-    ? ANALYTICS_INPUT_METHODS.VOICE
-    : ANALYTICS_INPUT_METHODS.MANUAL,
+    inputMethod:
+      readingInputMethod === "image"
+        ? ANALYTICS_INPUT_METHODS.IMAGE
+        : readingInputMethod === "voice"
+        ? ANALYTICS_INPUT_METHODS.VOICE
+        : ANALYTICS_INPUT_METHODS.MANUAL,
 
-  metadata: {
+    metadata: {
 
-    patientId:
-      mode === "family"
-        ? formData.patientId
-        : null,
+      patientId:
+        mode === "family"
+          ? formData.patientId
+          : null,
 
-  },
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not delay save confirmation
+  });
 
 resetForm();
 

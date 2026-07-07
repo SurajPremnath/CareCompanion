@@ -200,27 +200,33 @@ finishProcessingRef.current = true;
       confusion
     );
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.ASSESSMENT,
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
 
-  eventName:
-    ANALYTICS_EVENTS.PAGE_REACHED,
+    eventName:
+      ANALYTICS_EVENTS.PAGE_REACHED,
 
-  context:
-    ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
 
-  pagePath:
-    "/report",
+    pagePath:
+      "/report",
 
-  metadata: {
-    page: "REPORT",
-  },
+    metadata: {
+      page: "REPORT",
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not block report navigation
+  });
 
-    router.push("/report");
+router.push(
+  "/report"
+);
   };
 
   return (

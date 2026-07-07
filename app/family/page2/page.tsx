@@ -41,7 +41,7 @@ export default function FamilyPage2() {
     fontSize: "15px",
   });
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (!breathing || !cough) {
   alert(
     t("assessment.alertAllQuestions")
@@ -65,28 +65,33 @@ if (
     localStorage.setItem("cough", cough);
     localStorage.setItem("bloodInCough", bloodInCough);
 
-await analyticsService.track({
+void analyticsService
+  .track({
 
-  module:
-    ANALYTICS_MODULES.ASSESSMENT,
+    module:
+      ANALYTICS_MODULES.ASSESSMENT,
 
-  eventName:
-    ANALYTICS_EVENTS.PAGE_REACHED,
+    eventName:
+      ANALYTICS_EVENTS.PAGE_REACHED,
 
-  context:
-    ANALYTICS_CONTEXTS.FAMILY,
+    context:
+      ANALYTICS_CONTEXTS.FAMILY,
 
-  pagePath:
-    "/family/page3",
+    pagePath:
+      "/family/page3",
 
-  metadata: {
-    page: 3,
-  },
+    metadata: {
+      page: 3,
+    },
 
-});
+  })
+  .catch(() => {
+    // Analytics must not block assessment navigation
+  });
 
-
-    router.push("/family/page3");
+router.push(
+  "/family/page3"
+);
   };
 
   return (
