@@ -107,9 +107,23 @@ void analyticsService
   // Back to Dashboard
   //------------------------------------------------------------
 
-  const handleBackToDashboard = async () => {
+const handleBackToDashboard = () => {
 
-    await analyticsService.track({
+  performanceTracker.start({
+
+    fromPath:
+      "/reports",
+
+    toPath:
+      "/dashboard",
+
+    feature:
+      "REPORTS_TO_DASHBOARD",
+
+  });
+
+  void analyticsService
+    .track({
 
       module:
         ANALYTICS_MODULES.REPORTS,
@@ -121,13 +135,16 @@ void analyticsService
       pagePath:
         "/reports",
 
+    })
+    .catch(() => {
+      // Analytics must not block dashboard navigation
     });
 
-    router.push(
-      "/dashboard"
-    );
+  router.push(
+    "/dashboard"
+  );
 
-  };
+};
 
   const cardStyle: React.CSSProperties = {
     border: "1px solid #e5e7eb",
@@ -295,9 +312,7 @@ void analyticsService
         </div>
 
         <button
-          onClick={() =>
-  void handleBackToDashboard()
-}
+          onClick={handleBackToDashboard}
           style={{
             marginTop: "32px",
             width: "100%",
