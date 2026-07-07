@@ -33,6 +33,10 @@ import {
     authSessionService,
 } from "@/lib/analytics/authSessionService";
 
+import {
+    performanceTracker,
+} from "@/lib/performance/performanceTracker";
+
 type DashboardUser = {
     id: string;
     fullName: string;
@@ -148,6 +152,30 @@ await analyticsService.track({
         loadDashboard();
 
     }, [router]);
+
+
+useEffect(() => {
+
+    if (
+        loading ||
+        !user
+    ) {
+
+        return;
+
+    }
+
+    void performanceTracker.complete({
+
+        toPath:
+            "/dashboard",
+
+    });
+
+}, [
+    loading,
+    user,
+]);
 
 const logout = async () => {
 

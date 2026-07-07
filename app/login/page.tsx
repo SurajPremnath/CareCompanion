@@ -10,6 +10,10 @@ import {
     authSessionService,
 } from "@/lib/analytics/authSessionService";
 
+import {
+    performanceTracker,
+} from "@/lib/performance/performanceTracker";
+
 export default function LoginPage() {
 
     const router = useRouter();
@@ -39,20 +43,35 @@ const [showPassword, setShowPassword] =
             return;
         }
 
-        try {
+try {
 
-            setLoading(true);
+    setLoading(true);
 
-await authService.login(
-    email.trim(),
-    password
-);
+    performanceTracker.start({
+
+        fromPath:
+            "/login",
+
+        toPath:
+            "/dashboard",
+
+        feature:
+            "LOGIN_TO_DASHBOARD",
+
+    });
+
+    await authService.login(
+        email.trim(),
+        password
+    );
 
 await authSessionService.start();
 
 router.replace("/dashboard");
 
         } catch (err) {
+
+performanceTracker.cancel();
 
             const message =
                 err instanceof Error
