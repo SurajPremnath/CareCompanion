@@ -969,29 +969,20 @@ async function handleMedicalVoice(
           ? String(draft.spo2)
           : "",
 
-symptoms: Array.from(
-  new Set([
-    ...previous.symptoms,
-    ...draft.symptoms,
-  ])
-),
+symptoms:
+  draft.symptoms,
 
 otherSymptom:
-  draft.otherSymptom ??
-  previous.otherSymptom,
+  draft.otherSymptom ?? "",
 
-painLocations: Array.from(
-  new Set([
-    ...previous.painLocations,
-    ...draft.painLocations,
-  ])
-),
+painLocations:
+  draft.painLocations,
 
 otherPainLocation:
-  draft.otherPainLocation ??
-  previous.otherPainLocation,
+  draft.otherPainLocation ?? "",
 
-    }));
+}));
+
 
 
     const hasVitals =
