@@ -841,6 +841,8 @@ async function handleMedicalVoice(
 
   }
 
+  clearVoiceVitals();
+
   setProcessingVoice(true);
 
   await analyticsService.track({
@@ -1428,8 +1430,6 @@ onClick={() => {
             saving
           }
 onClick={() => {
-
-  clearVoiceVitals();
 
   void selectReadingInputMethod(
     "voice"

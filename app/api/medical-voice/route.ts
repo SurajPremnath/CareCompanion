@@ -667,9 +667,17 @@ const interpretationResponse =
 
               "Extract only information explicitly stated by the speaker. " +
 
-              "Do not infer symptoms that were not mentioned. " +
+"Do not infer symptoms that were not explicitly stated as present. " +
 
-              "Do not infer that an unmentioned symptom is absent. " +
+"Handle symptom negation strictly. If the speaker says that they do not have a symptom, including expressions such as no cough, no body pain, no fever, do not have cough, do not have body pain, or equivalent negated expressions in any supported language, do not include that symptom in the symptoms array. " +
+
+"If multiple symptoms are negated together, such as 'no body pain or cough', treat every symptom in that negated phrase as absent and do not include any of them in the symptoms array. " +
+
+"A temperature measurement and a fever symptom declaration are separate observations. A temperature value alone, regardless of how high it is, must not cause FEVER to be added to the symptoms array. Add FEVER only when the speaker explicitly states that they have fever or uses a directly equivalent expression. " +
+
+"Do not include a symptom merely because the symptom name appears in a negated statement. " +
+
+"Do not infer that an unmentioned symptom is absent. " +
 
               "Do not invent measurements, units, symptoms, or pain locations. " +
 
