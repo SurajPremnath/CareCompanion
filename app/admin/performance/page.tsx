@@ -428,23 +428,41 @@ export default function PerformanceDiagnosticsPage() {
                                         </div>
 
 
-                                        <div>
-                                            <strong>
-                                                Context:
-                                            </strong>{" "}
-                                            {record.context ??
-                                                "—"}
-                                        </div>
+<div>
+    <strong>
+        Context:
+    </strong>{" "}
+    {record.context ??
+        "—"}
+</div>
 
 
-                                        <div>
-                                            <strong>
-                                                Completed:
-                                            </strong>{" "}
-                                            {formatDateTime(
-                                                record.completedAt
-                                            )}
-                                        </div>
+<div>
+    <strong>
+        Device:
+    </strong>{" "}
+    {record.deviceType ??
+        "UNKNOWN"}
+</div>
+
+
+<div>
+    <strong>
+        Platform:
+    </strong>{" "}
+    {record.platform ??
+        "UNKNOWN"}
+</div>
+
+
+<div>
+    <strong>
+        Completed:
+    </strong>{" "}
+    {formatDateTime(
+        record.completedAt
+    )}
+</div>
 
                                     </div>
 

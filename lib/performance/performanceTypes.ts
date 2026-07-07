@@ -16,6 +16,25 @@ export type PerformanceContext =
   | "FAMILY"
   | null;
 
+//------------------------------------------------------------
+// Device Information
+//------------------------------------------------------------
+
+export type PerformanceDeviceType =
+  | "MOBILE"
+  | "TABLET"
+  | "DESKTOP"
+  | "UNKNOWN";
+
+
+export type PerformancePlatform =
+  | "IOS"
+  | "ANDROID"
+  | "WINDOWS"
+  | "MACOS"
+  | "LINUX"
+  | "UNKNOWN";
+
 
 //------------------------------------------------------------
 // Pending Performance Transition
@@ -67,5 +86,9 @@ export interface PerformanceRecord {
   durationMs: number;
 
   status: PerformanceStatus;
+
+  deviceType?: PerformanceDeviceType;
+
+  platform?: PerformancePlatform;
 
 }

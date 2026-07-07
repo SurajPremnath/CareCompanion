@@ -1,6 +1,8 @@
 import type {
   PendingPerformanceTransition,
   PerformanceContext,
+  PerformanceDeviceType,
+  PerformancePlatform,
   PerformanceRecord,
   PerformanceStatus,
 } from "./performanceTypes";
@@ -66,6 +68,133 @@ function getJourneyId():
 
 }
 
+//------------------------------------------------------------
+// Detect Device Type
+//------------------------------------------------------------
+
+function detectDeviceType():
+  PerformanceDeviceType {
+
+  const userAgent =
+    navigator.userAgent.toLowerCase();
+
+  const isTablet =
+    /ipad|tablet|playbook|silk/.test(
+      userAgent
+    ) ||
+    (
+      /android/.test(
+        userAgent
+      ) &&
+      !/mobile/.test(
+        userAgent
+      )
+    );
+
+
+  if (isTablet) {
+
+    return "TABLET";
+
+  }
+
+
+  const isMobile =
+    /iphone|ipod|android.*mobile|windows phone/.test(
+      userAgent
+    );
+
+
+  if (isMobile) {
+
+    return "MOBILE";
+
+  }
+
+
+  if (
+    userAgent.length > 0
+  ) {
+
+    return "DESKTOP";
+
+  }
+
+
+  return "UNKNOWN";
+
+}
+
+
+//------------------------------------------------------------
+// Detect Platform
+//------------------------------------------------------------
+
+function detectPlatform():
+  PerformancePlatform {
+
+  const userAgent =
+    navigator.userAgent.toLowerCase();
+
+
+  if (
+    /iphone|ipad|ipod/.test(
+      userAgent
+    )
+  ) {
+
+    return "IOS";
+
+  }
+
+
+  if (
+    /android/.test(
+      userAgent
+    )
+  ) {
+
+    return "ANDROID";
+
+  }
+
+
+  if (
+    /windows/.test(
+      userAgent
+    )
+  ) {
+
+    return "WINDOWS";
+
+  }
+
+
+  if (
+    /macintosh|mac os x/.test(
+      userAgent
+    )
+  ) {
+
+    return "MACOS";
+
+  }
+
+
+  if (
+    /linux/.test(
+      userAgent
+    )
+  ) {
+
+    return "LINUX";
+
+  }
+
+
+  return "UNKNOWN";
+
+}
 
 //------------------------------------------------------------
 // Start Transition
@@ -256,6 +385,12 @@ async function complete({
         ),
 
       status,
+
+      deviceType:
+        detectDeviceType(),
+
+      platform:
+        detectPlatform(),
 
     };
 
