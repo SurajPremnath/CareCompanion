@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { patientStorage } from "@/lib/storage/patientStorage";
 
@@ -45,6 +46,10 @@ import {
 } from "@/lib/medical-voice/medicalVoiceService";
 
 import VoiceRecorder from "@/Components/daily-care/VoiceRecorder";
+
+import {
+  performanceTracker,
+} from "@/lib/performance/performanceTracker";
 
 //------------------------------------------------------------
 // Types
@@ -188,6 +193,8 @@ export default function DailyCareForm({
   selfPatientId
 
 }: DailyCareFormProps) {
+
+  const router = useRouter();
 
  const {
     t,
@@ -1158,37 +1165,62 @@ function resetForm() {
 // Back To Dashboard
 //------------------------------------------------------------
 
-async function handleBackToDashboard() {
+function handleBackToDashboard() {
 
-  await analyticsService.track({
+  performanceTracker.start({
 
-    module:
-      ANALYTICS_MODULES.DAILY_CARE,
+    fromPath:
+      "/daily-care",
 
-    eventName:
-      ANALYTICS_EVENTS.BACK_TO_DASHBOARD_CLICKED,
+    toPath:
+      "/dashboard",
+
+    feature:
+      mode === "self"
+        ? "DAILY_CARE_SELF_TO_DASHBOARD"
+        : "DAILY_CARE_FAMILY_TO_DASHBOARD",
 
     context:
       mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
-
-    pagePath:
-      "/daily-care",
-
-    metadata: {
-
-      patientId:
-        mode === "family"
-          ? formData.patientId || null
-          : null,
-
-    },
+        ? "SELF"
+        : "FAMILY",
 
   });
 
-  window.location.href =
-    "/dashboard";
+  void analyticsService
+    .track({
+
+      module:
+        ANALYTICS_MODULES.DAILY_CARE,
+
+      eventName:
+        ANALYTICS_EVENTS.BACK_TO_DASHBOARD_CLICKED,
+
+      context:
+        mode === "self"
+          ? ANALYTICS_CONTEXTS.SELF
+          : ANALYTICS_CONTEXTS.FAMILY,
+
+      pagePath:
+        "/daily-care",
+
+      metadata: {
+
+        patientId:
+          mode === "family"
+            ? formData.patientId || null
+            : null,
+
+      },
+
+    })
+    .catch(() => {
+      // Analytics must not block dashboard navigation
+    });
+
+  router.push(
+    "/dashboard"
+  );
 
 }
 
@@ -1866,9 +1898,7 @@ onChange={(event) =>
 <button
   type="button"
   disabled={saving}
-  onClick={() => {
-    void handleBackToDashboard();
-  }}
+  onClick={handleBackToDashboard}
   style={{
     ...secondaryButton,
     flex: 1

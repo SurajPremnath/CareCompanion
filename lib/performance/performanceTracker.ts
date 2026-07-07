@@ -232,9 +232,8 @@ function start({
   }
 
 
-  const startedAtMs =
-    performance.now();
-
+const startedAtMs =
+  Date.now();
 
   const pendingTransition:
     PendingPerformanceTransition = {
@@ -347,8 +346,8 @@ async function complete({
   }
 
 
-  const completedAtMs =
-    performance.now();
+const completedAtMs =
+  Date.now();
 
 
   const record:

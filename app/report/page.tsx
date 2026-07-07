@@ -25,6 +25,10 @@ import {
   ANALYTICS_CONTEXTS,
 } from "@/lib/analytics/analyticsEvents";
 
+import {
+  performanceTracker,
+} from "@/lib/performance/performanceTracker";
+
 type Row = {
   label: string;
   value: string;
@@ -856,27 +860,53 @@ const handleDownloadReport = async () => {
 
 };
 
-const handleNewAssessment = async () => {
+const handleNewAssessment = () => {
 
-  await analyticsService.track({
+  performanceTracker.start({
 
-    module:
-      ANALYTICS_MODULES.ASSESSMENT,
+    fromPath:
+      "/report",
 
-    eventName:
-      ANALYTICS_EVENTS.NEW_ASSESSMENT_CLICKED,
+    toPath:
+      "/dashboard",
+
+    feature:
+      assessmentType === "family"
+        ? "FAMILY_ASSESSMENT_REPORT_TO_DASHBOARD"
+        : "SELF_ASSESSMENT_REPORT_TO_DASHBOARD",
 
     context:
       assessmentType === "family"
-        ? ANALYTICS_CONTEXTS.FAMILY
-        : ANALYTICS_CONTEXTS.SELF,
-
-    pagePath:
-      "/report",
+        ? "FAMILY"
+        : "SELF",
 
   });
 
-router.push("/dashboard");
+  void analyticsService
+    .track({
+
+      module:
+        ANALYTICS_MODULES.ASSESSMENT,
+
+      eventName:
+        ANALYTICS_EVENTS.NEW_ASSESSMENT_CLICKED,
+
+      context:
+        assessmentType === "family"
+          ? ANALYTICS_CONTEXTS.FAMILY
+          : ANALYTICS_CONTEXTS.SELF,
+
+      pagePath:
+        "/report",
+
+    })
+    .catch(() => {
+      // Analytics must not block dashboard navigation
+    });
+
+  router.push(
+    "/dashboard"
+  );
 
 };
 

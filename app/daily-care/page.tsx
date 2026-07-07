@@ -25,6 +25,10 @@ import {
   ANALYTICS_CONTEXTS,
 } from "@/lib/analytics/analyticsEvents";
 
+import {
+  performanceTracker,
+} from "@/lib/performance/performanceTracker";
+
 export default function DailyCarePage() {
 
   const router = useRouter();
@@ -103,6 +107,31 @@ await analyticsService.track({
 });
 
 setCareMode("family");
+
+};
+
+//------------------------------------------------------------
+// Back To Dashboard
+//------------------------------------------------------------
+
+const handleBackToDashboard = () => {
+
+  performanceTracker.start({
+
+    fromPath:
+      "/daily-care",
+
+    toPath:
+      "/dashboard",
+
+    feature:
+      "DAILY_CARE_TO_DASHBOARD",
+
+  });
+
+  router.push(
+    "/dashboard"
+  );
 
 };
 
@@ -252,9 +281,7 @@ setCareMode("family");
     </button>
 
 <button
-  onClick={() =>
-    router.push("/dashboard")
-  }
+  onClick={handleBackToDashboard}
   style={backButton}
 >
   ← {t("dailyCare.backToDashboard")}

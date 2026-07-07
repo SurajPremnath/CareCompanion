@@ -12,6 +12,10 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+  performanceTracker,
+} from "@/lib/performance/performanceTracker";
+
 export default function AddPatientPage() {
 
   const router = useRouter();
@@ -215,6 +219,31 @@ AppAlert.success(
       }
 
     };
+
+//------------------------------------------------------------
+// Back To Dashboard
+//------------------------------------------------------------
+
+const handleBackToDashboard = () => {
+
+  performanceTracker.start({
+
+    fromPath:
+      "/add-patient",
+
+    toPath:
+      "/dashboard",
+
+    feature:
+      "ADD_PATIENT_TO_DASHBOARD",
+
+  });
+
+  router.push(
+    "/dashboard"
+  );
+
+};
 
   //------------------------------------------------------------
   // Loading Screen
@@ -436,14 +465,12 @@ AppAlert.success(
         </button>
 
         <button
-          onClick={() =>
-            router.push("/dashboard")
-          }
-          disabled={saving}
-          style={secondaryButton}
-        >
-          ← {t("addPatient.backToDashboard")}
-        </button>
+  onClick={handleBackToDashboard}
+  disabled={saving}
+  style={secondaryButton}
+>
+  ← {t("addPatient.backToDashboard")}
+</button>
 
         <div
           style={{

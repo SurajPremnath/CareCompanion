@@ -25,6 +25,10 @@ import {
   ANALYTICS_CONTEXTS,
 } from "@/lib/analytics/analyticsEvents";
 
+import {
+  performanceTracker,
+} from "@/lib/performance/performanceTracker";
+
 type UserProfile = {
   id: string;
   fullName: string;
@@ -49,6 +53,34 @@ const {
 
   const [selectedPatientId, setSelectedPatientId] =
     useState("");
+
+//------------------------------------------------------------
+// Back To Dashboard
+//------------------------------------------------------------
+
+const handleBackToDashboard = () => {
+
+  performanceTracker.start({
+
+    fromPath:
+      "/family",
+
+    toPath:
+      "/dashboard",
+
+    feature:
+      "FAMILY_ASSESSMENT_TO_DASHBOARD",
+
+    context:
+      "FAMILY",
+
+  });
+
+  router.push(
+    "/dashboard"
+  );
+
+};
 
   useEffect(() => {
     let mounted = true;
@@ -210,13 +242,11 @@ if (!result.success) {
             </p>
 
             <button
-              onClick={() =>
-                router.push("/dashboard")
-              }
-              style={secondaryButton}
-            >
-              ← {t("assessment.backToDashboard")}
-            </button>
+  onClick={handleBackToDashboard}
+  style={secondaryButton}
+>
+  ← {t("assessment.backToDashboard")}
+</button>
           </div>
         </div>
       </main>
@@ -467,13 +497,11 @@ localStorage.setItem(
           )}
 
           <button
-            onClick={() =>
-              router.push("/dashboard")
-            }
-            style={secondaryButton}
-          >
-            ← {t("assessment.backToDashboard")}
-          </button>
+  onClick={handleBackToDashboard}
+  style={secondaryButton}
+>
+  ← {t("assessment.backToDashboard")}
+</button>
 
           <div
             style={{

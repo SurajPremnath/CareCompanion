@@ -18,6 +18,10 @@ import {
   ANALYTICS_CONTEXTS,
 } from "@/lib/analytics/analyticsEvents";
 
+import {
+  performanceTracker,
+} from "@/lib/performance/performanceTracker";
+
 export default function SelfPage2() {
   const router = useRouter();
 
@@ -38,6 +42,34 @@ const {
     setTemperatureUnit(localStorage.getItem("temperatureUnit") || "F");
     setEnergy(localStorage.getItem("energy") || "");
   }, []);
+
+//------------------------------------------------------------
+// Back To Dashboard
+//------------------------------------------------------------
+
+const handleBackToDashboard = () => {
+
+  performanceTracker.start({
+
+    fromPath:
+      "/self/page2",
+
+    toPath:
+      "/dashboard",
+
+    feature:
+      "SELF_ASSESSMENT_TO_DASHBOARD",
+
+    context:
+      "SELF",
+
+  });
+
+  router.push(
+    "/dashboard"
+  );
+
+};
 
   const optionStyle = (selected: boolean) => ({
     width: "100%",
@@ -234,8 +266,8 @@ await analyticsService.track({
   }}
 >
   <button
-    onClick={() => router.push("/dashboard")}
-    style={{
+  onClick={handleBackToDashboard}
+  style={{
       flex: 1,
       padding: "12px",
       backgroundColor: "#e5e7eb",
