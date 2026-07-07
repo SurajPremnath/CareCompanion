@@ -40,6 +40,12 @@ import {
   ANALYTICS_INPUT_METHODS,
 } from "@/lib/analytics/analyticsEvents";
 
+import {
+  medicalVoiceService,
+} from "@/lib/medical-voice/medicalVoiceService";
+
+import VoiceRecorder from "@/Components/daily-care/VoiceRecorder";
+
 //------------------------------------------------------------
 // Types
 //------------------------------------------------------------
@@ -49,6 +55,7 @@ type TemperatureUnit = "F" | "C";
 type ReadingInputMethod =
   "image" |
   "manual" |
+  "voice" |
   null;
 
 type ImageSource =
@@ -201,6 +208,11 @@ export default function DailyCareForm({
 
 const [processingImage, setProcessingImage] =
   useState(false);
+
+const [
+  processingVoice,
+  setProcessingVoice
+] = useState(false);
 
 const [
   activeImageSource,
@@ -397,8 +409,9 @@ if (exists) {
 //------------------------------------------------------------
 
 async function selectReadingInputMethod(
-  method: "image" | "manual"
-) {
+  method: "image" | "manual" | "voice"
+) 
+{
 
   setReadingInputMethod(method);
 
@@ -420,10 +433,12 @@ async function selectReadingInputMethod(
     pagePath:
       "/daily-care",
 
-    inputMethod:
-      method === "image"
-        ? ANALYTICS_INPUT_METHODS.IMAGE
-        : ANALYTICS_INPUT_METHODS.MANUAL,
+inputMethod:
+  method === "image"
+    ? ANALYTICS_INPUT_METHODS.IMAGE
+    : method === "voice"
+    ? ANALYTICS_INPUT_METHODS.VOICE
+    : ANALYTICS_INPUT_METHODS.MANUAL,
 
     metadata: {
 
@@ -717,10 +732,6 @@ await analyticsService.track({
 
 });
 
-AppAlert.success(
-  t("alerts.imageReadSuccess")
-);
-
   }
   catch (error) {
 
@@ -785,6 +796,339 @@ AppAlert.success(
   }
 
 }
+
+//------------------------------------------------------------
+// Clear Voice Vital Readings
+//------------------------------------------------------------
+
+function clearVoiceVitals() {
+
+  setFormData(previous => ({
+
+    ...previous,
+
+    temperature: "",
+
+    systolic: "",
+
+    diastolic: "",
+
+    pulse: "",
+
+    spo2: ""
+
+  }));
+
+  setShowVitals(false);
+
+}
+
+//------------------------------------------------------------
+// Medical Voice Processing
+//------------------------------------------------------------
+
+async function handleMedicalVoice(
+  audio: File
+) {
+
+  if (
+    processingVoice ||
+    processingImage ||
+    saving
+  ) {
+
+    return;
+
+  }
+
+  setProcessingVoice(true);
+
+  await analyticsService.track({
+
+    module:
+      ANALYTICS_MODULES.AI_VOICE,
+
+    eventName:
+      ANALYTICS_EVENTS.ATTEMPTED,
+
+    context:
+      mode === "self"
+        ? ANALYTICS_CONTEXTS.SELF
+        : ANALYTICS_CONTEXTS.FAMILY,
+
+    pagePath:
+      "/daily-care",
+
+    inputMethod:
+      ANALYTICS_INPUT_METHODS.VOICE,
+
+    metadata: {
+
+      patientId:
+        mode === "family"
+          ? formData.patientId || null
+          : null,
+
+    },
+
+  });
+
+
+  try {
+
+    const result =
+      await medicalVoiceService.processVoice(
+        audio
+      );
+
+
+    if (!result.success) {
+
+      await analyticsService.track({
+
+        module:
+          ANALYTICS_MODULES.AI_VOICE,
+
+        eventName:
+          ANALYTICS_EVENTS.FAILED,
+
+        context:
+          mode === "self"
+            ? ANALYTICS_CONTEXTS.SELF
+            : ANALYTICS_CONTEXTS.FAMILY,
+
+        pagePath:
+          "/daily-care",
+
+        inputMethod:
+          ANALYTICS_INPUT_METHODS.VOICE,
+
+        metadata: {
+
+          patientId:
+            mode === "family"
+              ? formData.patientId || null
+              : null,
+
+          reason:
+            result.error,
+
+        },
+
+      });
+
+
+      AppAlert.error(
+        result.error
+      );
+
+      return;
+
+    }
+
+
+    const {
+      draft,
+      usage,
+    } =
+      result.data;
+
+
+    setFormData(previous => ({
+
+      ...previous,
+
+      temperature:
+        draft.temperature !== null
+          ? String(draft.temperature)
+          : "",
+
+      temperatureUnit:
+        draft.temperatureUnit ??
+        previous.temperatureUnit,
+
+      systolic:
+        draft.systolic !== null
+          ? String(draft.systolic)
+          : "",
+
+      diastolic:
+        draft.diastolic !== null
+          ? String(draft.diastolic)
+          : "",
+
+      pulse:
+        draft.pulse !== null
+          ? String(draft.pulse)
+          : "",
+
+      spo2:
+        draft.spo2 !== null
+          ? String(draft.spo2)
+          : "",
+
+symptoms: Array.from(
+  new Set([
+    ...previous.symptoms,
+    ...draft.symptoms,
+  ])
+),
+
+otherSymptom:
+  draft.otherSymptom ??
+  previous.otherSymptom,
+
+painLocations: Array.from(
+  new Set([
+    ...previous.painLocations,
+    ...draft.painLocations,
+  ])
+),
+
+otherPainLocation:
+  draft.otherPainLocation ??
+  previous.otherPainLocation,
+
+    }));
+
+
+    const hasVitals =
+
+      draft.systolic !== null ||
+
+      draft.diastolic !== null ||
+
+      draft.pulse !== null ||
+
+      draft.spo2 !== null;
+
+
+    if (hasVitals) {
+
+      setShowVitals(true);
+
+    }
+
+
+    if (
+      draft.symptoms.length > 0
+    ) {
+
+      setShowSymptoms(true);
+
+    }
+
+
+    await analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.AI_VOICE,
+
+      eventName:
+        ANALYTICS_EVENTS.SUCCEEDED,
+
+      context:
+        mode === "self"
+          ? ANALYTICS_CONTEXTS.SELF
+          : ANALYTICS_CONTEXTS.FAMILY,
+
+      pagePath:
+        "/daily-care",
+
+      inputMethod:
+        ANALYTICS_INPUT_METHODS.VOICE,
+
+      metadata: {
+
+        patientId:
+          mode === "family"
+            ? formData.patientId || null
+            : null,
+
+        usageUsed:
+          usage.used,
+
+        usageRemaining:
+          usage.remaining,
+
+      },
+
+    });
+
+
+if (usage.unlimited) {
+
+  AppAlert.success(
+    "Voice processed successfully. Please review the details before saving."
+  );
+
+}
+else {
+
+  AppAlert.success(
+    `Voice processed successfully. ${usage.remaining} of ${usage.limit} trial uses remaining. Please review the details before saving.`
+  );
+
+}
+
+  }
+  catch (error) {
+
+    console.error(
+      "Medical Voice Processing Error:",
+      error
+    );
+
+
+    await analyticsService.track({
+
+      module:
+        ANALYTICS_MODULES.AI_VOICE,
+
+      eventName:
+        ANALYTICS_EVENTS.FAILED,
+
+      context:
+        mode === "self"
+          ? ANALYTICS_CONTEXTS.SELF
+          : ANALYTICS_CONTEXTS.FAMILY,
+
+      pagePath:
+        "/daily-care",
+
+      inputMethod:
+        ANALYTICS_INPUT_METHODS.VOICE,
+
+      metadata: {
+
+        patientId:
+          mode === "family"
+            ? formData.patientId || null
+            : null,
+
+        reason:
+          error instanceof Error
+            ? error.message
+            : "UNKNOWN_ERROR",
+
+      },
+
+    });
+
+
+    AppAlert.error(
+      "Unable to process the voice recording."
+    );
+
+  }
+  finally {
+
+    setProcessingVoice(false);
+
+  }
+
+}
+
   //------------------------------------------------------------
   // Reset Form
   //------------------------------------------------------------
@@ -1073,9 +1417,140 @@ onClick={() => {
           ✍️ {t("dailyCare.enterManually")}
         </button>
 
+
+        {/* Record With Voice */}
+
+        <button
+          type="button"
+          disabled={
+            processingImage ||
+            processingVoice ||
+            saving
+          }
+onClick={() => {
+
+  clearVoiceVitals();
+
+  void selectReadingInputMethod(
+    "voice"
+  );
+
+}}
+          style={{
+            ...methodButton,
+
+            border:
+              readingInputMethod === "voice"
+                ? "2px solid #2563eb"
+                : "1px solid #d1d5db",
+
+            background:
+              readingInputMethod === "voice"
+                ? "#eff6ff"
+                : "#ffffff",
+
+            color:
+              readingInputMethod === "voice"
+                ? "#1d4ed8"
+                : "#111827",
+          }}
+        >
+          🎙️ Record with Voice
+        </button>
+
       </div>
 
     </section>
+
+{readingInputMethod === "voice" && (
+
+  <section style={cardStyle}>
+
+    <h3 style={sectionTitle}>
+      🎙️ Record Daily Care
+    </h3>
+
+<p
+  style={{
+    marginTop: 0,
+    marginBottom: "12px",
+    color: "#6b7280",
+    lineHeight: 1.5,
+  }}
+>
+  Speak naturally in your preferred language.
+  You can mention temperature, blood pressure,
+  pulse, oxygen level, symptoms, or pain details.
+</p>
+
+<p
+  style={{
+    marginTop: 0,
+    marginBottom: "16px",
+    color: "#92400e",
+    fontWeight: 600,
+    lineHeight: 1.5,
+  }}
+>
+  🔇 For best results, speak clearly and record in a
+  quiet place with minimal background noise.
+</p>
+
+
+<div
+  style={{
+    padding: "14px 16px",
+    marginBottom: "16px",
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    borderRadius: "10px",
+    lineHeight: 1.5,
+    color: "#374151",
+  }}
+>
+  <strong>For example:</strong>
+
+  <div
+    style={{
+      marginTop: "6px",
+    }}
+  >
+    “Temperature is 99.2 Fahrenheit, BP is 120 over 80,
+    oxygen is 96, pulse is 92, and I have cough and
+    body pain in my back.”
+  </div>
+</div>
+
+
+{processingVoice ? (
+
+      <p
+        style={{
+          textAlign: "center",
+          fontWeight: 600,
+          color: "#2563eb",
+        }}
+      >
+        Understanding your recording…
+      </p>
+
+    ) : (
+
+      <VoiceRecorder
+        onRecordingReady={
+          handleMedicalVoice
+        }
+        disabled={
+          saving ||
+          processingImage
+        }
+      />
+
+    )}
+
+  </section>
+
+)}
 
 {(
   readingInputMethod === "image" &&
@@ -1211,6 +1686,7 @@ onChange={(event) =>
 
 {(
   readingInputMethod === "manual" ||
+  readingInputMethod === "voice" ||
   imageReadSuccessful
 ) && (
   <>
@@ -1728,10 +2204,12 @@ await analyticsService.track({
   pagePath:
     "/daily-care",
 
-  inputMethod:
-    readingInputMethod === "image"
-      ? ANALYTICS_INPUT_METHODS.IMAGE
-      : ANALYTICS_INPUT_METHODS.MANUAL,
+inputMethod:
+  readingInputMethod === "image"
+    ? ANALYTICS_INPUT_METHODS.IMAGE
+    : readingInputMethod === "voice"
+    ? ANALYTICS_INPUT_METHODS.VOICE
+    : ANALYTICS_INPUT_METHODS.MANUAL,
 
   metadata: {
 

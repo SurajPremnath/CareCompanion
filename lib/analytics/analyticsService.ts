@@ -17,18 +17,124 @@ import {
 
 
 //------------------------------------------------------------
+// Effect-Driven View Deduplication
+//------------------------------------------------------------
+
+const VIEW_DEDUPLICATION_WINDOW_MS =
+  1500;
+
+
+//------------------------------------------------------------
 // Analytics Service
 //------------------------------------------------------------
 
 class AnalyticsService {
 
+  private readonly recentViewEvents =
+    new Map<string, number>();
+
+  //----------------------------------------------------------
+  // Build Stable View Fingerprint
+  //----------------------------------------------------------
+
+  private buildViewFingerprint(
+    event: AnalyticsEventInput
+  ): string {
+
+    const metadataEntries =
+      Object.entries(
+        event.metadata ?? {}
+      )
+        .sort(
+          ([keyA], [keyB]) =>
+            keyA.localeCompare(keyB)
+        );
+
+    return JSON.stringify({
+
+      module:
+        event.module,
+
+      eventName:
+        event.eventName,
+
+      context:
+        event.context ?? null,
+
+      pagePath:
+        event.pagePath ?? null,
+
+      metadata:
+        metadataEntries,
+
+    });
+
+  }
+
+
+  //----------------------------------------------------------
+  // Detect Duplicate View Event
+  //----------------------------------------------------------
+
+  private isDuplicateView(
+    event: AnalyticsEventInput
+  ): boolean {
+
+    if (
+      event.eventName !== "VIEWED"
+    ) {
+
+      return false;
+
+    }
+
+    const fingerprint =
+      this.buildViewFingerprint(
+        event
+      );
+
+    const now =
+      Date.now();
+
+    const previousTimestamp =
+      this.recentViewEvents.get(
+        fingerprint
+      );
+
+    if (
+      previousTimestamp !== undefined &&
+      now - previousTimestamp <
+        VIEW_DEDUPLICATION_WINDOW_MS
+    ) {
+
+      return true;
+
+    }
+
+    this.recentViewEvents.set(
+      fingerprint,
+      now
+    );
+
+    return false;
+
+  }
+
   //----------------------------------------------------------
   // Track Authenticated Event
   //----------------------------------------------------------
 
-  async track(
+    async track(
     event: AnalyticsEventInput
   ): Promise<void> {
+
+    if (
+      this.isDuplicateView(event)
+    ) {
+
+      return;
+
+    }
 
     try {
 
