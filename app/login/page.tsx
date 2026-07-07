@@ -60,12 +60,16 @@ try {
 
     });
 
-    await authService.login(
-        email.trim(),
-        password
-    );
+await authService.login(
+    email.trim(),
+    password
+);
 
-await authSessionService.start();
+void authSessionService
+    .start()
+    .catch(() => {
+        // Analytics must not block login navigation
+    });
 
 router.replace("/dashboard");
 

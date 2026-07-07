@@ -111,18 +111,22 @@ setUser({
     role: profile.role,
 });
 
-await analyticsService.track({
+void analyticsService
+    .track({
 
-    module:
-        ANALYTICS_MODULES.DASHBOARD,
+        module:
+            ANALYTICS_MODULES.DASHBOARD,
 
-    eventName:
-        ANALYTICS_EVENTS.PAGE_VIEWED,
+        eventName:
+            ANALYTICS_EVENTS.PAGE_VIEWED,
 
-    pagePath:
-        "/dashboard",
+        pagePath:
+            "/dashboard",
 
-});
+    })
+    .catch(() => {
+        // Analytics must not block dashboard rendering
+    });
 
             } catch (error) {
 
