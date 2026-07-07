@@ -191,18 +191,29 @@ const logout = async () => {
 
     setLoggingOut(true);
 
-    try {
+performanceTracker.start({
 
-        await authSessionService.end();
+    fromPath:
+        "/dashboard",
 
-    } catch (error) {
+    toPath:
+        "/login",
 
-        console.error(
-            "Unable to close analytics auth session.",
-            error
-        );
+    feature:
+        "LOGOUT_TO_LOGIN",
 
-    }
+});
+
+    void authSessionService
+        .end()
+        .catch((error) => {
+
+            console.error(
+                "Unable to close analytics auth session.",
+                error
+            );
+
+        });
 
     try {
 
@@ -217,13 +228,16 @@ const logout = async () => {
             error
         );
 
+performanceTracker.cancel();
+
         setLoggingOut(false);
 
     }
 
 };
+
 const trackDashboardFeatureClick =
-    async (
+    (
         feature:
             | "DAILY_CARE"
             | "HELP"
@@ -231,26 +245,30 @@ const trackDashboardFeatureClick =
             | "SELF_ASSESSMENT"
             | "ADD_PATIENT"
             | "REPORTS"
-    ) => {
+    ): void => {
 
-        await analyticsService.track({
+        void analyticsService
+            .track({
 
-            module:
-                ANALYTICS_MODULES.DASHBOARD,
+                module:
+                    ANALYTICS_MODULES.DASHBOARD,
 
-            eventName:
-                ANALYTICS_EVENTS.FEATURE_CLICKED,
+                eventName:
+                    ANALYTICS_EVENTS.FEATURE_CLICKED,
 
-            pagePath:
-                "/dashboard",
+                pagePath:
+                    "/dashboard",
 
-            metadata: {
+                metadata: {
 
-                feature,
+                    feature,
 
-            },
+                },
 
-        });
+            })
+            .catch(() => {
+                // Analytics must not block feature navigation
+            });
 
     };
 
@@ -260,7 +278,7 @@ const trackDashboardFeatureClick =
             return;
         }
 
-await trackDashboardFeatureClick(
+trackDashboardFeatureClick(
     "SELF_ASSESSMENT"
 );
 
@@ -303,21 +321,26 @@ localStorage.setItem(
     )
 );
 
-await analyticsService.track({
+void analyticsService
+    .track({
 
-    module:
-        ANALYTICS_MODULES.ASSESSMENT,
+        module:
+            ANALYTICS_MODULES.ASSESSMENT,
 
-    eventName:
-        ANALYTICS_EVENTS.STARTED,
+        eventName:
+            ANALYTICS_EVENTS.STARTED,
 
-    context:
-        ANALYTICS_CONTEXTS.SELF,
+        context:
+            ANALYTICS_CONTEXTS.SELF,
 
-    pagePath:
-        "/self/page2",
+        pagePath:
+            "/self/page2",
 
-});
+    })
+    .catch(() => {
+        // Analytics must not block assessment navigation
+    });
+
 
 router.push("/self/page2");
 
@@ -325,7 +348,7 @@ router.push("/self/page2");
 
 const startFamilyAssessment = async () => {
 
-    await trackDashboardFeatureClick(
+    trackDashboardFeatureClick(
         "FAMILY_ASSESSMENT"
     );
 
@@ -335,7 +358,7 @@ const startFamilyAssessment = async () => {
 
 const openHelpCentre = async () => {
 
-    await trackDashboardFeatureClick(
+    trackDashboardFeatureClick(
         "HELP"
     );
 
@@ -345,7 +368,7 @@ const openHelpCentre = async () => {
 
 const openDailyCare = async () => {
 
-    await trackDashboardFeatureClick(
+    trackDashboardFeatureClick(
         "DAILY_CARE"
     );
 
@@ -357,7 +380,7 @@ const openDailyCare = async () => {
 
 const openAddPatient = async () => {
 
-    await trackDashboardFeatureClick(
+    trackDashboardFeatureClick(
         "ADD_PATIENT"
     );
 
@@ -368,7 +391,7 @@ const openAddPatient = async () => {
 
 const openReports = async () => {
 
-    await trackDashboardFeatureClick(
+    trackDashboardFeatureClick(
         "REPORTS"
     );
 

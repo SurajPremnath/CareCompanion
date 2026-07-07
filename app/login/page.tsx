@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, {
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { useRouter } from "next/navigation";
 
 import { authService } from "@/lib/auth/authService";
@@ -18,6 +22,9 @@ export default function LoginPage() {
 
     const router = useRouter();
 
+const loginPageReadyRef =
+    useRef(false);
+
     const [email, setEmail] = useState("");
 
     const [password, setPassword] = useState("");
@@ -28,6 +35,23 @@ export default function LoginPage() {
 
 const [showPassword, setShowPassword] =
     useState(false);
+
+useEffect(() => {
+
+    if (loginPageReadyRef.current) {
+        return;
+    }
+
+    loginPageReadyRef.current = true;
+
+    void performanceTracker.complete({
+
+        toPath:
+            "/login",
+
+    });
+
+}, []);
 
     const handleLogin = async () => {
 
