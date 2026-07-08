@@ -270,6 +270,9 @@ helpAndFaqs:
 
 helpAndFaqsDescription:
     "CareVR का उपयोग करना सीखें और अपने प्रश्नों के उत्तर पाएँ",
+
+backToHome:
+    "होम पर वापस जाएँ",
 },
 
 addPatient: {

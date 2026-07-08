@@ -284,6 +284,8 @@ helpAndFaqs:
 helpAndFaqsDescription:
     "Learn how to use CareVR and find answers",
 
+backToHome:
+    "Back to Home",
 },
 
 addPatient: {

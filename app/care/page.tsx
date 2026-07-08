@@ -33,6 +33,10 @@ import {
     selfDailyCareStorage,
 } from "@/lib/storage/SelfDailyCareStorage";
 
+import {
+    useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 type CareMode =
     | "self"
     | "family"
@@ -46,6 +50,10 @@ type EntryMode =
 export default function CarePage() {
 
     const router = useRouter();
+
+    const {
+        t,
+    } = useLanguage();
 
     const [loading, setLoading] =
         useState(true);
@@ -1230,6 +1238,15 @@ const commonReading = {
 
                 )}
 
+                <button
+                    type="button"
+                    onClick={() =>
+                        router.push("/dashboard")
+                    }
+                    style={backButton}
+                >
+                    ← {t("dashboard.backToHome")}
+                </button>
                 
             </div>
 

@@ -271,6 +271,9 @@ helpAndFaqs:
 
 helpAndFaqsDescription:
     "CareVR ಅನ್ನು ಬಳಸುವ ವಿಧಾನವನ್ನು ತಿಳಿಯಿರಿ ಮತ್ತು ಉತ್ತರಗಳನ್ನು ಪಡೆಯಿರಿ",
+
+backToHome:
+    "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
 },
 
 addPatient: {

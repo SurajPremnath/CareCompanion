@@ -274,6 +274,9 @@ helpAndFaqs:
 
 helpAndFaqsDescription:
     "CareVR ఎలా ఉపయోగించాలో తెలుసుకోండి మరియు సమాధానాలు పొందండి",
+
+backToHome:
+    "హోమ్‌కు తిరిగి వెళ్లండి",
 },
 
 addPatient: {

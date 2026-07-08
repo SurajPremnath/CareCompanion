@@ -275,6 +275,8 @@ helpAndFaqs:
 helpAndFaqsDescription:
     "CareVR-ஐ பயன்படுத்துவது எப்படி என்பதை அறிந்து பதில்களைப் பெறுங்கள்",
 
+backToHome:
+    "முகப்புக்குத் திரும்பு",
 },
 
 addPatient: {
