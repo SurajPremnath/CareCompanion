@@ -3,12 +3,22 @@ import type {
   PainLocation,
 } from "@/lib/types/dailyCare";
 
+export type MedicalVoiceOverallObservation =
+    | "NO_CONCERNS_REPORTED"
+    | "CONCERNS_REPORTED";
+
+export type MedicalVoiceProcessingMode =
+    | "daily_care"
+    | "care_recording";
 
 //------------------------------------------------------------
 // Voice Daily Care Structured Draft
 //------------------------------------------------------------
 
 export interface MedicalVoiceDailyCareDraft {
+
+overallObservation:
+    MedicalVoiceOverallObservation | null;
 
   temperature: number | null;
 
@@ -36,7 +46,6 @@ export interface MedicalVoiceDailyCareDraft {
 
   otherPainLocation:
     string | null;
-
 }
 
 

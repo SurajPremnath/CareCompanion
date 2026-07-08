@@ -280,6 +280,30 @@ export const as: TranslationDictionary = {
 
     createdBy:
       "Suraj Premnath-ৰ দ্বাৰা নিৰ্মিত",
+
+home:
+    "মুখ্য পৃষ্ঠা",
+
+whatWouldYouLikeToDo:
+    "আপুনি কি কৰিব বিচাৰে?",
+
+recordHealth:
+    "স্বাস্থ্য তথ্য ৰেকৰ্ড কৰক",
+
+recordHealthDescription:
+    "নিজৰ বা পৰিয়ালৰ কোনো সদস্যৰ স্বাস্থ্য তথ্য ৰেকৰ্ড কৰক",
+
+viewHealth:
+    "স্বাস্থ্য তথ্য চাওক",
+
+viewHealthDescription:
+    "স্বাস্থ্য সময়ৰেখা, প্ৰতিবেদন আৰু প্ৰৱণতা চাওক",
+
+helpAndFaqs:
+    "সহায়তা আৰু সাধাৰণ প্ৰশ্ন",
+
+helpAndFaqsDescription:
+    "CareVR কেনেকৈ ব্যৱহাৰ কৰিব লাগে জানক আৰু উত্তৰ বিচাৰি পাওক",
   },
 
   addPatient: {

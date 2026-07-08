@@ -251,6 +251,29 @@ dashboard: {
   createdBy:
     "సూరజ్ ప్రేమ్‌నాథ్ రూపొందించారు",
 
+home:
+    "హోమ్",
+
+whatWouldYouLikeToDo:
+    "మీరు ఏమి చేయాలనుకుంటున్నారు?",
+
+recordHealth:
+    "ఆరోగ్య సమాచారాన్ని నమోదు చేయండి",
+
+recordHealthDescription:
+    "మీ లేదా కుటుంబ సభ్యుని ఆరోగ్య సమాచారాన్ని నమోదు చేయండి",
+
+viewHealth:
+    "ఆరోగ్య సమాచారాన్ని చూడండి",
+
+viewHealthDescription:
+    "ఆరోగ్య కాలక్రమం, నివేదికలు మరియు ధోరణులను చూడండి",
+
+helpAndFaqs:
+    "సహాయం మరియు సాధారణ ప్రశ్నలు",
+
+helpAndFaqsDescription:
+    "CareVR ఎలా ఉపయోగించాలో తెలుసుకోండి మరియు సమాధానాలు పొందండి",
 },
 
 addPatient: {

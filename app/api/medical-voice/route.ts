@@ -216,6 +216,29 @@ function toNullableText(
 
 }
 
+//------------------------------------------------------------
+// Overall Observation
+//------------------------------------------------------------
+
+function toOverallObservation(
+  value: unknown
+):
+  | "NO_CONCERNS_REPORTED"
+  | "CONCERNS_REPORTED"
+  | null {
+
+  if (
+    value === "NO_CONCERNS_REPORTED" ||
+    value === "CONCERNS_REPORTED"
+  ) {
+
+    return value;
+
+  }
+
+  return null;
+
+}
 
 //------------------------------------------------------------
 // Parse Structured Voice Draft
@@ -256,7 +279,7 @@ function parseVoiceDraft(
       : [];
 
 
-  const painLocations =
+    const painLocations =
     Array.isArray(
       parsed.painLocations
     )
@@ -273,6 +296,11 @@ function parseVoiceDraft(
 
 
   return {
+
+    overallObservation:
+      toOverallObservation(
+        parsed.overallObservation
+      ),
 
     temperature:
       toNullableNumber(
@@ -476,6 +504,14 @@ export async function POST(
       );
 
 
+const modeValue =
+    formData.get("mode");
+
+const mode =
+    modeValue === "care_recording"
+        ? "care_recording"
+        : "daily_care";
+
     //--------------------------------------------------------
     // Validate Audio
     //--------------------------------------------------------
@@ -624,17 +660,21 @@ const transcript =
 
     if (!transcript) {
 
-      return NextResponse.json(
-        {
-          error:
-            "No clear speech could be understood. Please record again.",
-        },
-        {
-          status: 422,
-        }
-      );
+  const errorMessage =
+    mode === "care_recording"
+      ? "We could not understand how you are feeling today. Please record again in your own words."
+      : "No clear speech could be understood. Please record again.";
 
+  return NextResponse.json(
+    {
+      error: errorMessage,
+    },
+    {
+      status: 422,
     }
+  );
+
+}
 
 //--------------------------------------------------------
 // Interpret Transcript Into Daily Care Structure
@@ -665,7 +705,17 @@ const interpretationResponse =
 
               "The transcript may be in English, Hindi, Kannada, Tamil, Telugu, Malayalam, Marathi, Bengali, Gujarati, Punjabi, Odia, Assamese, or a natural mixture of these languages and English medical terminology. " +
 
-              "Extract only information explicitly stated by the speaker. " +
+              "Identify whether the speaker explicitly reports general wellbeing. " +
+
+"Set overallObservation to NO_CONCERNS_REPORTED when the speaker clearly communicates that they or the person being described are okay, fine, good, doing well, all good, have nothing concerning to report, or express an equivalent meaning. " +
+
+"Interpret wellbeing statements semantically and not only by exact English phrases. Support equivalent expressions in all supported languages and natural code-switched speech. " +
+
+"Do not convert a general wellbeing statement into invented normal vital readings or invented negative symptom observations. " +
+
+"If the speaker reports general wellbeing together with an explicit health observation, preserve both the overallObservation and every explicit health observation. " +
+
+"Do not classify uncertain statements such as I don't know, I am not sure, or maybe I am okay as NO_CONCERNS_REPORTED. " +
 
 "Do not infer symptoms that were not explicitly stated as present. " +
 
@@ -696,9 +746,9 @@ const interpretationResponse =
               "Temperature unit must be F, C, or null. Do not infer the unit if it was not stated. " +
 
               "Return JSON only with exactly these keys: " +
-              "temperature, temperatureUnit, systolic, diastolic, pulse, spo2, symptoms, otherSymptom, painLocations, otherPainLocation. " +
+"overallObservation, temperature, temperatureUnit, systolic, diastolic, pulse, spo2, symptoms, otherSymptom, painLocations, otherPainLocation. " +
 
-              "Use null for unknown scalar values and empty arrays for unmentioned symptoms or pain locations. " +
+              "Use null for overallObservation and unknown scalar values when not explicitly supported by the transcript. Use empty arrays for unmentioned symptoms or pain locations. " +
 
               "\n\nTranscript:\n" +
               transcript,
@@ -772,7 +822,7 @@ catch (error) {
 // Ensure At Least One Health Observation Exists
 //--------------------------------------------------------
 
-const hasObservation =
+const hasStructuredObservation =
 
   draft.temperature !== null ||
 
@@ -793,12 +843,33 @@ const hasObservation =
   draft.otherPainLocation !== null;
 
 
-if (!hasObservation) {
+const hasCareObservation =
+
+  hasStructuredObservation ||
+
+  draft.overallObservation !== null;
+
+
+const hasValidObservation =
+
+  mode === "care_recording"
+
+    ? hasCareObservation
+
+    : hasStructuredObservation;
+
+
+if (!hasValidObservation) {
+
+  const errorMessage =
+    mode === "care_recording"
+      ? "We could not understand how you are feeling today. Please record again in your own words."
+      : "No Daily Care health observation could be identified. Please record temperature, vitals, symptoms, or pain details.";
 
   return NextResponse.json(
     {
       error:
-        "No Daily Care health observation could be identified. Please record temperature, vitals, symptoms, or pain details.",
+        errorMessage,
     },
     {
       status: 422,

@@ -12,9 +12,14 @@ export interface DailyCareRow {
 
   patient_id: string;
 
-  recorded_at: string;
+recorded_at: string;
 
-  temperature: number;
+overall_status:
+  "NO_CONCERNS_REPORTED"
+  | "CONCERNS_REPORTED"
+  | null;
+
+temperature: number | null;
 
   temperature_unit: "F" | "C";
 
@@ -58,9 +63,12 @@ export class DailyCareMapper {
 
       patientId: row.patient_id,
 
-      recordedAt: row.recorded_at,
+recordedAt: row.recorded_at,
 
-      temperature: row.temperature,
+overallStatus:
+  row.overall_status,
+
+temperature: row.temperature,
 
       temperatureUnit: row.temperature_unit,
 
@@ -111,7 +119,10 @@ otherPainLocation:
 
       recorded_at: dailyCare.recordedAt,
 
-      temperature: dailyCare.temperature,
+overall_status:
+  dailyCare.overallStatus,
+
+temperature: dailyCare.temperature,
 
       temperature_unit: dailyCare.temperatureUnit,
 

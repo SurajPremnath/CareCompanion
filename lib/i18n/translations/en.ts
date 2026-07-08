@@ -260,6 +260,30 @@ dashboard: {
     createdBy:
         "Created by Suraj Premnath",
 
+home:
+    "Home",
+
+whatWouldYouLikeToDo:
+    "What would you like to do?",
+
+recordHealth:
+    "Record Health",
+
+recordHealthDescription:
+    "Record a health update for yourself or a family member",
+
+viewHealth:
+    "View Health",
+
+viewHealthDescription:
+    "View health timeline, reports and trends",
+
+helpAndFaqs:
+    "Help & FAQs",
+
+helpAndFaqsDescription:
+    "Learn how to use CareVR and find answers",
+
 },
 
 addPatient: {

@@ -247,6 +247,29 @@ dashboard: {
   createdBy:
     "सूरज प्रेमनाथ द्वारा निर्मित",
 
+home:
+    "होम",
+
+whatWouldYouLikeToDo:
+    "आप क्या करना चाहेंगे?",
+
+recordHealth:
+    "स्वास्थ्य रिकॉर्ड करें",
+
+recordHealthDescription:
+    "अपने या परिवार के किसी सदस्य के स्वास्थ्य की जानकारी रिकॉर्ड करें",
+
+viewHealth:
+    "स्वास्थ्य देखें",
+
+viewHealthDescription:
+    "स्वास्थ्य समयरेखा, रिपोर्ट और रुझान देखें",
+
+helpAndFaqs:
+    "सहायता और सामान्य प्रश्न",
+
+helpAndFaqsDescription:
+    "CareVR का उपयोग करना सीखें और अपने प्रश्नों के उत्तर पाएँ",
 },
 
 addPatient: {

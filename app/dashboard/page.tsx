@@ -6,12 +6,25 @@ import {
     useState,
 } from "react";
 
-import { useRouter } from "next/navigation";
+import {
+    useRouter,
+} from "next/navigation";
 
-import { clearAssessmentData } from "@/lib/assessmentStorage";
-import { authService } from "@/lib/auth/authService";
-import { profileRepository } from "@/lib/repositories/profileRepository";
+import {
+    authService,
+} from "@/lib/auth/authService";
+
+import {
+    profileRepository,
+} from "@/lib/repositories/profileRepository";
+
 import AppHeader from "@/app/components/AppHeader";
+
+import LanguageSelector from "@/Components/language/LanguageSelector";
+
+import {
+    useLanguage,
+} from "@/Components/language/LanguageProvider";
 
 import {
     analyticsService,
@@ -20,14 +33,7 @@ import {
 import {
     ANALYTICS_MODULES,
     ANALYTICS_EVENTS,
-    ANALYTICS_CONTEXTS,
 } from "@/lib/analytics/analyticsEvents";
-
-import LanguageSelector from "@/Components/language/LanguageSelector";
-
-import {
-    useLanguage,
-} from "@/Components/language/LanguageProvider";
 
 import {
     authSessionService,
@@ -37,117 +43,183 @@ import {
     performanceTracker,
 } from "@/lib/performance/performanceTracker";
 
+
 type DashboardUser = {
+
     id: string;
+
     fullName: string;
+
     email: string;
+
     role: string;
+
 };
+
+
+type HomeFeature =
+    | "RECORD_HEALTH"
+    | "VIEW_HEALTH"
+    | "HELP";
+
 
 export default function DashboardPage() {
 
-    const router = useRouter();
+    const router =
+        useRouter();
 
-const dashboardLoadStartedRef =
-    useRef(false);
+    const dashboardLoadStartedRef =
+        useRef(false);
 
-const {
+    const {
         t,
     } = useLanguage();
 
-    const [user, setUser] =
-        useState<DashboardUser | null>(null);
 
-    const [loading, setLoading] =
+    const [
+        user,
+        setUser,
+    ] =
+        useState<DashboardUser | null>(
+            null
+        );
+
+
+    const [
+        loading,
+        setLoading,
+    ] =
         useState(true);
 
-const [loggingOut, setLoggingOut] =
-    useState(false);
 
-useEffect(() => {
+    const [
+        loggingOut,
+        setLoggingOut,
+    ] =
+        useState(false);
 
-    if (dashboardLoadStartedRef.current) {
-        return;
-    }
 
-    dashboardLoadStartedRef.current = true;
+    //------------------------------------------------------------
+    // Load User
+    //------------------------------------------------------------
 
-    async function loadDashboard() {
+    useEffect(() => {
+
+        if (
+            dashboardLoadStartedRef.current
+        ) {
+
+            return;
+
+        }
+
+        dashboardLoadStartedRef.current =
+            true;
+
+
+        async function loadDashboard() {
 
             try {
 
                 const authUser =
-                    await authService.getCurrentUser();
+                    await authService
+                        .getCurrentUser();
+
 
                 if (!authUser) {
 
-                    router.replace("/login");
+                    router.replace(
+                        "/login"
+                    );
 
                     return;
 
                 }
 
+
                 const profile =
-                    await profileRepository.getCurrentProfile();
+                    await profileRepository
+                        .getCurrentProfile();
+
 
                 if (!profile) {
 
                     await authService.logout();
 
-                    router.replace("/login");
+                    router.replace(
+                        "/login"
+                    );
 
                     return;
 
                 }
 
-setUser({
 
-    id: profile.id,
+                setUser({
 
-    fullName: profile.fullName,
+                    id:
+                        profile.id,
 
-    email: profile.email,
+                    fullName:
+                        profile.fullName,
 
-    role: profile.role,
-});
+                    email:
+                        profile.email,
 
-void analyticsService
-    .track({
+                    role:
+                        profile.role,
 
-        module:
-            ANALYTICS_MODULES.DASHBOARD,
+                });
 
-        eventName:
-            ANALYTICS_EVENTS.PAGE_VIEWED,
 
-        pagePath:
-            "/dashboard",
+                void analyticsService
+                    .track({
 
-    })
-    .catch(() => {
-        // Analytics must not block dashboard rendering
-    });
+                        module:
+                            ANALYTICS_MODULES
+                                .DASHBOARD,
 
-            } catch (error) {
+                        eventName:
+                            ANALYTICS_EVENTS
+                                .PAGE_VIEWED,
+
+                        pagePath:
+                            "/dashboard",
+
+                    })
+                    .catch(() => {
+
+                        // Analytics must not block rendering
+
+                    });
+
+            }
+            catch (error) {
 
                 console.error(
-                    "Unable to load dashboard.",
+                    "Unable to load home page.",
                     error
                 );
+
 
                 try {
 
                     await authService.logout();
 
-                } catch {
+                }
+                catch {
 
                     // Ignore logout failure
 
                 }
 
-                router.replace("/login");
 
-            } finally {
+                router.replace(
+                    "/login"
+                );
+
+            }
+            finally {
 
                 setLoading(false);
 
@@ -155,278 +227,233 @@ void analyticsService
 
         }
 
-        loadDashboard();
+
+        void loadDashboard();
 
     }, [router]);
 
 
-useEffect(() => {
+    //------------------------------------------------------------
+    // Performance Completion
+    //------------------------------------------------------------
 
-    if (
-        loading ||
-        !user
-    ) {
+    useEffect(() => {
 
-        return;
+        if (
+            loading ||
+            !user
+        ) {
 
-    }
+            return;
 
-    void performanceTracker.complete({
+        }
 
-        toPath:
-            "/dashboard",
 
-    });
+        void performanceTracker.complete({
 
-}, [
-    loading,
-    user,
-]);
-
-const logout = async () => {
-
-    if (loggingOut) {
-        return;
-    }
-
-    setLoggingOut(true);
-
-performanceTracker.start({
-
-    fromPath:
-        "/dashboard",
-
-    toPath:
-        "/login",
-
-    feature:
-        "LOGOUT_TO_LOGIN",
-
-});
-
-    void authSessionService
-        .end()
-        .catch((error) => {
-
-            console.error(
-                "Unable to close analytics auth session.",
-                error
-            );
+            toPath:
+                "/dashboard",
 
         });
 
-    try {
+    }, [
+        loading,
+        user,
+    ]);
 
-        await authService.logout();
 
-        router.replace("/login");
+    //------------------------------------------------------------
+    // Analytics
+    //------------------------------------------------------------
 
-    } catch (error) {
+    const trackFeatureClick =
+        (
+            feature: HomeFeature
+        ): void => {
 
-        console.error(
-            "Unable to complete logout.",
-            error
+            void analyticsService
+                .track({
+
+                    module:
+                        ANALYTICS_MODULES
+                            .DASHBOARD,
+
+                    eventName:
+                        ANALYTICS_EVENTS
+                            .FEATURE_CLICKED,
+
+                    pagePath:
+                        "/dashboard",
+
+                    metadata: {
+
+                        feature,
+
+                    },
+
+                })
+                .catch(() => {
+
+                    // Analytics must not block navigation
+
+                });
+
+        };
+
+
+    //------------------------------------------------------------
+    // Navigation
+    //------------------------------------------------------------
+
+    const openRecordHealth = () => {
+
+        trackFeatureClick(
+            "RECORD_HEALTH"
         );
 
-performanceTracker.cancel();
 
-        setLoggingOut(false);
+        performanceTracker.start({
 
-    }
+            fromPath:
+                "/dashboard",
 
-};
+            toPath:
+                "/care",
 
-const trackDashboardFeatureClick =
-    (
-        feature:
-            | "DAILY_CARE"
-            | "HELP"
-            | "FAMILY_ASSESSMENT"
-            | "SELF_ASSESSMENT"
-            | "ADD_PATIENT"
-            | "REPORTS"
-    ): void => {
+            feature:
+                "DASHBOARD_TO_CARE",
 
-        void analyticsService
-            .track({
+        });
 
-                module:
-                    ANALYTICS_MODULES.DASHBOARD,
 
-                eventName:
-                    ANALYTICS_EVENTS.FEATURE_CLICKED,
+        router.push(
+            "/care"
+        );
 
-                pagePath:
-                    "/dashboard",
+    };
 
-                metadata: {
 
-                    feature,
+    const openViewHealth = () => {
 
-                },
+        trackFeatureClick(
+            "VIEW_HEALTH"
+        );
 
-            })
-            .catch(() => {
-                // Analytics must not block feature navigation
+
+        performanceTracker.start({
+
+            fromPath:
+                "/dashboard",
+
+            toPath:
+                "/reports",
+
+            feature:
+                "DASHBOARD_TO_REPORTS",
+
+        });
+
+
+        router.push(
+            "/reports"
+        );
+
+    };
+
+
+    const openHelp = () => {
+
+        trackFeatureClick(
+            "HELP"
+        );
+
+
+        router.push(
+            "/help"
+        );
+
+    };
+
+
+    //------------------------------------------------------------
+    // Logout
+    //------------------------------------------------------------
+
+    const logout = async () => {
+
+        if (loggingOut) {
+
+            return;
+
+        }
+
+
+        setLoggingOut(true);
+
+
+        performanceTracker.start({
+
+            fromPath:
+                "/dashboard",
+
+            toPath:
+                "/login",
+
+            feature:
+                "LOGOUT_TO_LOGIN",
+
+        });
+
+
+        void authSessionService
+            .end()
+            .catch((error) => {
+
+                console.error(
+                    "Unable to close analytics auth session.",
+                    error
+                );
+
             });
 
-    };
 
-    const startSelfAssessment = async () => {
+        try {
 
-        if (!user) {
-            return;
+            await authService.logout();
+
+
+            router.replace(
+                "/login"
+            );
+
         }
+        catch (error) {
 
-trackDashboardFeatureClick(
-    "SELF_ASSESSMENT"
-);
+            console.error(
+                "Unable to complete logout.",
+                error
+            );
 
-        clearAssessmentData();
 
-        localStorage.setItem(
-            "assessmentType",
-            "self"
-        );
+            performanceTracker.cancel();
 
-        localStorage.setItem(
-            "patientName",
-            user.fullName
-        );
 
-        localStorage.setItem(
-            "patientAge",
-            ""
-        );
+            setLoggingOut(false);
 
-        localStorage.setItem(
-            "observerName",
-            user.fullName
-        );
-
-        localStorage.setItem(
-            "observerRelationship",
-            "Self"
-        );
-
-localStorage.setItem(
-    "assessmentDate",
-    new Date().toLocaleDateString(
-        "en-IN",
-        {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
         }
-    )
-);
-
-void analyticsService
-    .track({
-
-        module:
-            ANALYTICS_MODULES.ASSESSMENT,
-
-        eventName:
-            ANALYTICS_EVENTS.STARTED,
-
-        context:
-            ANALYTICS_CONTEXTS.SELF,
-
-        pagePath:
-            "/self/page2",
-
-    })
-    .catch(() => {
-        // Analytics must not block assessment navigation
-    });
-
-
-router.push("/self/page2");
 
     };
 
-const startFamilyAssessment = async () => {
 
-    trackDashboardFeatureClick(
-        "FAMILY_ASSESSMENT"
-    );
-
-    router.push("/family");
-
-};
-
-const openHelpCentre = async () => {
-
-    trackDashboardFeatureClick(
-        "HELP"
-    );
-
-    router.push("/help");
-
-};
-
-const openDailyCare = async () => {
-
-    trackDashboardFeatureClick(
-        "DAILY_CARE"
-    );
-
-
-
-    router.push("/daily-care");
-
-};
-
-const openAddPatient = async () => {
-
-    trackDashboardFeatureClick(
-        "ADD_PATIENT"
-    );
-
-    router.push("/add-patient");
-
-};
-
-
-const openReports = () => {
-
-    trackDashboardFeatureClick(
-        "REPORTS"
-    );
-
-    performanceTracker.start({
-
-        fromPath:
-            "/dashboard",
-
-        toPath:
-            "/reports",
-
-        feature:
-            "DASHBOARD_TO_REPORTS",
-
-    });
-
-    router.push("/reports");
-
-};
+    //------------------------------------------------------------
+    // Loading
+    //------------------------------------------------------------
 
     if (loading) {
 
         return (
 
-            <main
-                style={{
-                    minHeight: "100vh",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    background: "#f8fafc",
-                    fontFamily:
-                        "Inter, Arial, sans-serif",
-                }}
-            >
+            <main style={loadingContainer}>
 
                 {t("dashboard.loading")}
 
@@ -436,234 +463,175 @@ const openReports = () => {
 
     }
 
+
     if (!user) {
+
         return null;
+
     }
+
+
+    //------------------------------------------------------------
+    // UI
+    //------------------------------------------------------------
 
     return (
 
-        <main
-            style={{
-                minHeight: "100vh",
-                background: "#f8fafc",
-                padding: "20px",
-                fontFamily:
-                    "Inter, Arial, sans-serif",
-            }}
-        >
+        <main style={pageContainer}>
 
-            <div
-                style={{
-                    maxWidth: "900px",
-                    margin: "0 auto",
-                    background: "#ffffff",
-                    padding: "32px",
-                    borderRadius: "16px",
-                    border: "1px solid #d1d5db",
-                    boxShadow:
-                        "0 2px 8px rgba(0,0,0,0.05)",
-                }}
-            >
+            <div style={pageCard}>
 
-<AppHeader
-    pageTitle={t("dashboard.title")}
-    pageIcon="🏠"
-    currentUserName={user.fullName}
-/>
-
-<div
-    style={{
-        marginTop: "20px",
-        marginBottom: "24px",
-        padding: "16px",
-        background: "#f8fafc",
-        border: "1px solid #e2e8f0",
-        borderRadius: "12px",
-    }}
->
-    <LanguageSelector />
-</div>
-
-<h3
-    style={{
-        marginTop: "20px",
-        marginBottom: "16px",
-        fontSize: "22px",
-        fontWeight: 700,
-        color: "#111827",
-    }}
->
-    🌡 {t("dashboard.dailyCareSection")}
-</h3>
-
-<div
-    style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "16px",
-        marginBottom: "20px",
-    }}
->
-
-    <button
-        onClick={openDailyCare}
-        style={actionButton}
-    >
-        ❤️
-        <br />
-        {t("dashboard.dailyCare")}
-    </button>
-
-    <button
-        onClick={openHelpCentre}
-        style={actionButton}
-    >
-        ❓
-        <br />
-        {t("dashboard.helpCentre")}
-    </button>
-
-</div>
-
-<h3
-    style={{
-        marginBottom: "16px",
-        fontSize: "22px",
-        fontWeight: 700,
-        color: "#111827",
-    }}
->
-    🩺 {t("dashboard.assessmentSection")}
-</h3>
-
-<div
-    style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "16px",
-        marginBottom: "30px",
-    }}
->
-
-    <button
-        onClick={startFamilyAssessment}
-        style={actionButton}
-    >
-        👨‍👩‍👧
-        <br />
-        {t("dashboard.familyAssessment")}
-    </button>
-
-    <button
-        onClick={startSelfAssessment}
-        style={actionButton}
-    >
-        🧍
-        <br />
-        {t("dashboard.selfAssessment")}
-    </button>
-
-</div>
-
-<h3
-    style={{
-        marginTop: "8px",
-        marginBottom: "16px",
-        fontSize: "22px",
-        fontWeight: 700,
-        color: "#111827",
-    }}
->
-    📁 {t("dashboard.patientManagement")}
-</h3>
-
-<div
-    style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "16px",
-        marginBottom: "24px",
-    }}
->
-
-    <button
-        onClick={openAddPatient}
-        style={actionButton}
-    >
-        ➕
-        <br />
-        {t("dashboard.addPatient")}
-    </button>
-
-    <button
-        onClick={openReports}
-        style={actionButton}
-    >
-        📄
-        <br />
-        {t("dashboard.reports")}
-    </button>
-
-</div>
+                <AppHeader
+                    pageTitle={t("dashboard.home")}
+                    pageIcon="🏠"
+                    currentUserName={
+                        user.fullName
+                    }
+                />
 
 
-{user.role === "ADMIN" && (
+                <div style={languageBox}>
 
-    <button
-        type="button"
-        onClick={() =>
-            router.push(
-                "/admin/performance"
-            )
-        }
-        style={{
-            width: "100%",
-            padding: "16px",
-            marginBottom: "14px",
-            background: "#ffffff",
-            color: "#111827",
-            border: "1px solid #d1d5db",
-            borderRadius: "10px",
-            fontSize: "16px",
-            fontWeight: 700,
-            cursor: "pointer",
-        }}
-    >
-        📊 Performance Diagnostics
-    </button>
+                    <LanguageSelector />
 
-)}
+                </div>
 
 
-<button
-    onClick={logout}
-    disabled={loggingOut}
-    style={{
-        ...logoutButton,
-        opacity:
-            loggingOut
-                ? 0.7
-                : 1,
-        cursor:
-            loggingOut
-                ? "not-allowed"
-                : "pointer",
-    }}
->
-    {loggingOut
-        ? "Logging out…"
-        : `🚪 ${t("dashboard.logout")}`}
-</button>
+                <section style={homeSection}>
 
-                <div
+                    <h2 style={questionTitle}>
+                        {t("dashboard.whatWouldYouLikeToDo")}
+                    </h2>
+
+
+                    <div style={actionGrid}>
+
+                        <button
+                            type="button"
+                            onClick={
+                                openRecordHealth
+                            }
+                            style={actionButton}
+                        >
+
+                            <span style={actionIcon}>
+                                ❤️
+                            </span>
+
+                            <span style={actionTitle}>
+                                {t("dashboard.recordHealth")}
+                            </span>
+
+                            <span style={actionDescription}>
+                                {t("dashboard.recordHealthDescription")}
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            onClick={
+                                openViewHealth
+                            }
+                            style={actionButton}
+                        >
+
+                            <span style={actionIcon}>
+                                📊
+                            </span>
+
+                            <span style={actionTitle}>
+                                {t("dashboard.viewHealth")}
+                            </span>
+
+                            <span style={actionDescription}>
+                                {t("dashboard.viewHealthDescription")}
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            onClick={
+                                openHelp
+                            }
+                            style={actionButton}
+                        >
+
+                            <span style={actionIcon}>
+                                ❓
+                            </span>
+
+                            <span style={actionTitle}>
+                                {t("dashboard.helpAndFaqs")}
+                            </span>
+
+                            <span style={actionDescription}>
+                                {t("dashboard.helpAndFaqsDescription")}
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+                {user.role === "ADMIN" && (
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            router.push(
+                                "/admin/performance"
+                            )
+                        }
+                        style={adminButton}
+                    >
+                        📊 Performance Diagnostics
+                    </button>
+
+                )}
+
+
+                <button
+                    type="button"
+                    onClick={logout}
+                    disabled={loggingOut}
                     style={{
-                        marginTop: "22px",
-                        textAlign: "center",
-                        fontSize: "12px",
-                        color: "#6b7280",
+                        ...logoutButton,
+
+                        opacity:
+                            loggingOut
+                                ? 0.7
+                                : 1,
+
+                        cursor:
+                            loggingOut
+                                ? "not-allowed"
+                                : "pointer",
                     }}
                 >
-                    {t("dashboard.createdBy")}
+
+                    {
+                        loggingOut
+                            ? "Logging out…"
+                            : `🚪 ${t(
+                                "dashboard.logout"
+                            )}`
+                    }
+
+                </button>
+
+
+                <div style={footerStyle}>
+
+                    {t(
+                        "dashboard.createdBy"
+                    )}
+
                 </div>
 
             </div>
@@ -674,48 +642,318 @@ const openReports = () => {
 
 }
 
-const actionButton: React.CSSProperties = {
 
-    padding: "22px",
+//------------------------------------------------------------
+// Styles
+//------------------------------------------------------------
 
-    background: "#ffffff",
+const pageContainer:
+    React.CSSProperties = {
 
-    border: "1px solid #d1d5db",
+        minHeight:
+            "100vh",
 
-    borderRadius: "12px",
+        background:
+            "#f8fafc",
 
-    cursor: "pointer",
+        padding:
+            "20px",
 
-    fontWeight: "bold",
+        fontFamily:
+            "Inter, Arial, sans-serif",
 
-    fontSize: "16px",
+    };
 
-    minHeight: "110px",
 
-    transition: "0.2s"
+const pageCard:
+    React.CSSProperties = {
 
-};
+        maxWidth:
+            "900px",
 
-const logoutButton: React.CSSProperties = {
+        margin:
+            "0 auto",
 
-    width: "100%",
+        background:
+            "#ffffff",
 
-    padding: "14px",
+        padding:
+            "32px",
 
-    background: "#dc2626",
+        borderRadius:
+            "16px",
 
-    color: "#ffffff",
+        border:
+            "1px solid #d1d5db",
 
-    border: "none",
+        boxShadow:
+            "0 2px 8px rgba(0,0,0,0.05)",
 
-    borderRadius: "10px",
+    };
 
-    cursor: "pointer",
 
-    fontWeight: "bold",
+const loadingContainer:
+    React.CSSProperties = {
 
-    fontSize: "16px",
+        minHeight:
+            "100vh",
 
-    marginTop: "10px"
+        display:
+            "flex",
 
-};
+        justifyContent:
+            "center",
+
+        alignItems:
+            "center",
+
+        background:
+            "#f8fafc",
+
+        fontFamily:
+            "Inter, Arial, sans-serif",
+
+    };
+
+
+const languageBox:
+    React.CSSProperties = {
+
+        marginTop:
+            "20px",
+
+        marginBottom:
+            "24px",
+
+        padding:
+            "16px",
+
+        background:
+            "#f8fafc",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "12px",
+
+    };
+
+
+const homeSection:
+    React.CSSProperties = {
+
+        marginTop:
+            "8px",
+
+        marginBottom:
+            "24px",
+
+    };
+
+
+const questionTitle:
+    React.CSSProperties = {
+
+        marginTop:
+            0,
+
+        marginBottom:
+            "20px",
+
+        fontSize:
+            "24px",
+
+        fontWeight:
+            700,
+
+        color:
+            "#111827",
+
+    };
+
+
+const actionGrid:
+    React.CSSProperties = {
+
+        display:
+            "grid",
+
+        gridTemplateColumns:
+            "repeat(auto-fit, minmax(220px, 1fr))",
+
+        gap:
+            "16px",
+
+    };
+
+
+const actionButton:
+    React.CSSProperties = {
+
+        minHeight:
+            "180px",
+
+        padding:
+            "24px",
+
+        display:
+            "flex",
+
+        flexDirection:
+            "column",
+
+        alignItems:
+            "center",
+
+        justifyContent:
+            "center",
+
+        gap:
+            "10px",
+
+        background:
+            "#ffffff",
+
+        color:
+            "#111827",
+
+        border:
+            "1px solid #d1d5db",
+
+        borderRadius:
+            "14px",
+
+        cursor:
+            "pointer",
+
+        textAlign:
+            "center",
+
+    };
+
+
+const actionIcon:
+    React.CSSProperties = {
+
+        fontSize:
+            "34px",
+
+    };
+
+
+const actionTitle:
+    React.CSSProperties = {
+
+        fontSize:
+            "19px",
+
+        fontWeight:
+            700,
+
+        color:
+            "#111827",
+
+    };
+
+
+const actionDescription:
+    React.CSSProperties = {
+
+        fontSize:
+            "14px",
+
+        lineHeight:
+            1.5,
+
+        color:
+            "#6b7280",
+
+    };
+
+
+const adminButton:
+    React.CSSProperties = {
+
+        width:
+            "100%",
+
+        padding:
+            "16px",
+
+        marginBottom:
+            "14px",
+
+        background:
+            "#ffffff",
+
+        color:
+            "#111827",
+
+        border:
+            "1px solid #d1d5db",
+
+        borderRadius:
+            "10px",
+
+        fontSize:
+            "16px",
+
+        fontWeight:
+            700,
+
+        cursor:
+            "pointer",
+
+    };
+
+
+const logoutButton:
+    React.CSSProperties = {
+
+        width:
+            "100%",
+
+        padding:
+            "14px",
+
+        background:
+            "#dc2626",
+
+        color:
+            "#ffffff",
+
+        border:
+            "none",
+
+        borderRadius:
+            "10px",
+
+        fontWeight:
+            "bold",
+
+        fontSize:
+            "16px",
+
+        marginTop:
+            "10px",
+
+    };
+
+
+const footerStyle:
+    React.CSSProperties = {
+
+        marginTop:
+            "22px",
+
+        textAlign:
+            "center",
+
+        fontSize:
+            "12px",
+
+        color:
+            "#6b7280",
+
+    };

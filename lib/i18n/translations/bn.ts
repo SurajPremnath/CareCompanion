@@ -251,6 +251,29 @@ dashboard: {
   createdBy:
     "সুরজ প্রেমনাথ দ্বারা নির্মিত",
 
+home:
+    "হোম",
+
+whatWouldYouLikeToDo:
+    "আপনি কী করতে চান?",
+
+recordHealth:
+    "স্বাস্থ্য তথ্য রেকর্ড করুন",
+
+recordHealthDescription:
+    "নিজের বা পরিবারের কোনো সদস্যের স্বাস্থ্য তথ্য রেকর্ড করুন",
+
+viewHealth:
+    "স্বাস্থ্য তথ্য দেখুন",
+
+viewHealthDescription:
+    "স্বাস্থ্য সময়রেখা, রিপোর্ট এবং প্রবণতা দেখুন",
+
+helpAndFaqs:
+    "সহায়তা এবং সাধারণ প্রশ্ন",
+
+helpAndFaqsDescription:
+    "CareVR কীভাবে ব্যবহার করতে হয় তা জানুন এবং উত্তর খুঁজে নিন",
 },
 
 addPatient: {

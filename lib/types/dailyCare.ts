@@ -3,6 +3,10 @@
 // Daily Care Domain Types
 // ==========================================================
 
+export type DailyCareOverallStatus =
+  | "NO_CONCERNS_REPORTED"
+  | "CONCERNS_REPORTED";
+
 export interface DailyCare {
 
   id: string;
@@ -16,6 +20,8 @@ export interface DailyCare {
    */
   recordedAt: string;
 
+overallStatus:
+  DailyCareOverallStatus | null;
   /**
    * Body temperature in Celsius.
    */
@@ -110,6 +116,9 @@ export interface CreateDailyCareRequest {
   patientId: string;
 
   recordedAt: string;
+
+overallStatus:
+  DailyCareOverallStatus | null;
 
   temperature: number | null;
 

@@ -12,9 +12,14 @@ export interface SelfDailyCareRow {
 
   user_id: string;
 
-  recorded_at: string;
+recorded_at: string;
 
-  temperature: number | null;
+overall_status:
+  | "NO_CONCERNS_REPORTED"
+  | "CONCERNS_REPORTED"
+  | null;
+
+temperature: number | null;
 
   temperature_unit: "F" | "C";
 
@@ -66,7 +71,10 @@ export class SelfDailyCareMapper {
 
       recordedAt: row.recorded_at,
 
-      temperature: row.temperature,
+overallStatus:
+  row.overall_status,
+
+temperature: row.temperature,
 
       temperatureUnit: row.temperature_unit,
 
@@ -118,7 +126,10 @@ export class SelfDailyCareMapper {
 
       recorded_at: dailyCare.recordedAt,
 
-      temperature: dailyCare.temperature,
+overall_status:
+  dailyCare.overallStatus,
+
+temperature: dailyCare.temperature,
 
       temperature_unit: dailyCare.temperatureUnit,
 

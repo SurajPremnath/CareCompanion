@@ -2111,13 +2111,15 @@ async function handleSave() {
 
     const reading = {
 
-      patientId:
-        formData.patientId,
+  patientId:
+    formData.patientId,
 
-      recordedAt:
+  recordedAt:
     `${formData.date}T${formData.time}:00`,
 
-temperature:
+  overallStatus: null,
+
+  temperature:
   formData.temperature.trim()
     ? Number(formData.temperature)
     : null,
@@ -2176,13 +2178,16 @@ if (mode === "family") {
 else {
 
   result =
-    await selfDailyCareStorage.save({
+  await selfDailyCareStorage.save({
 
-      recordedAt:
-        reading.recordedAt,
+    recordedAt:
+      reading.recordedAt,
 
-      temperature:
-        reading.temperature,
+    overallStatus:
+      reading.overallStatus,
+
+    temperature:
+      reading.temperature,
 
       temperatureUnit:
         reading.temperatureUnit,

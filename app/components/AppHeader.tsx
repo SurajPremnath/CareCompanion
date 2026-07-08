@@ -1,7 +1,7 @@
 "use client";
 
 interface AppHeaderProps {
-  pageTitle: string;
+  pageTitle?: string;
   pageIcon?: string;
   currentUserName?: string;
 }
@@ -72,24 +72,26 @@ export default function AppHeader({
         )}
       </div>
 
-      {/* Page Title */}
-      <div
-        style={{
-          marginTop: "28px",
-        }}
-      >
-        <h2
+            {/* Page Title */}
+      {pageTitle && (
+        <div
           style={{
-            margin: 0,
-            fontSize: "28px",
-            fontWeight: 700,
-            color: "#1f2937",
+            marginTop: "28px",
           }}
         >
-          {pageIcon ? `${pageIcon} ` : ""}
-          {pageTitle}
-        </h2>
-      </div>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: "28px",
+              fontWeight: 700,
+              color: "#1f2937",
+            }}
+          >
+            {pageIcon ? `${pageIcon} ` : ""}
+            {pageTitle}
+          </h2>
+        </div>
+      )}
     </header>
   );
 }

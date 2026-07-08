@@ -6,6 +6,9 @@ import {
   supabase,
 } from "@/lib/supabase";
 
+import type {
+    MedicalVoiceProcessingMode,
+} from "./medicalVoiceTypes";
 
 //------------------------------------------------------------
 // Medical Voice Service
@@ -14,8 +17,10 @@ import {
 export const medicalVoiceService = {
 
   async processVoice(
-    audio: File
-  ): Promise<MedicalVoiceProcessingResult> {
+    audio: File,
+    mode: MedicalVoiceProcessingMode =
+        "daily_care"
+): Promise<MedicalVoiceProcessingResult> {
 
     try {
 
@@ -61,7 +66,10 @@ export const medicalVoiceService = {
         audio
       );
 
-
+formData.append(
+    "mode",
+    mode
+);
       //------------------------------------------------------
       // Process Voice
       //------------------------------------------------------

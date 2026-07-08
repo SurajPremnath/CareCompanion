@@ -277,6 +277,30 @@ export const gu: TranslationDictionary = {
 
     createdBy:
       "Suraj Premnath દ્વારા બનાવેલ",
+
+home:
+    "હોમ",
+
+whatWouldYouLikeToDo:
+    "તમે શું કરવા માંગો છો?",
+
+recordHealth:
+    "આરોગ્ય માહિતી નોંધો",
+
+recordHealthDescription:
+    "તમારી અથવા પરિવારના સભ્યની આરોગ્ય માહિતી નોંધો",
+
+viewHealth:
+    "આરોગ્ય માહિતી જુઓ",
+
+viewHealthDescription:
+    "આરોગ્ય સમયરેખા, અહેવાલો અને વલણો જુઓ",
+
+helpAndFaqs:
+    "મદદ અને સામાન્ય પ્રશ્નો",
+
+helpAndFaqsDescription:
+    "CareVR નો ઉપયોગ કેવી રીતે કરવો તે જાણો અને જવાબો મેળવો",
   },
 
   addPatient: {

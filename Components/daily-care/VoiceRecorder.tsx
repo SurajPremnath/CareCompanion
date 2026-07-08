@@ -456,40 +456,84 @@ setIsRecording(
       ) : (
 
         <button
-          type="button"
-          onClick={
-            stopRecording
-          }
-          className="
-            w-full
-            rounded-xl
-            bg-red-600
-            px-4
-            py-3
-            font-semibold
-            text-white
-          "
-        >
-          ⏹ Stop Recording
-        </button>
+  type="button"
+  onClick={
+    stopRecording
+  }
+  style={{
+    width: "100%",
+    padding: "14px 16px",
+    backgroundColor: "#dc2626",
+    color: "#ffffff",
+    border: "2px solid #b91c1c",
+    borderRadius: "12px",
+    fontSize: "16px",
+    fontWeight: 700,
+    cursor: "pointer",
+  }}
+>
+  ⏹ Stop Recording
+</button>
 
-      )}
-
-
+ )}
       {isRecording && (
 
-        <p
-          className="
-            text-center
-            text-sm
-            font-medium
-            text-red-600
-          "
-        >
-          Recording… Speak naturally.
-        </p>
+  <div
+    className="
+      flex
+      flex-col
+      items-center
+      gap-1
+      rounded-xl
+      border
+      border-red-200
+      bg-red-50
+      px-4
+      py-3
+    "
+    role="status"
+    aria-live="polite"
+  >
 
-      )}
+    <div
+      className="
+        flex
+        items-center
+        gap-2
+        font-bold
+        text-red-600
+      "
+    >
+      <span
+        className="
+          inline-block
+          h-3
+          w-3
+          rounded-full
+          bg-red-600
+          animate-pulse
+        "
+        aria-hidden="true"
+      />
+
+      RECORDING
+
+    </div>
+
+    <p
+      className="
+        m-0
+        text-center
+        text-sm
+        text-red-700
+      "
+    >
+      Speak naturally. Tap Stop when finished.
+    </p>
+
+  </div>
+
+)}
 
 
 

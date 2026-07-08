@@ -3,6 +3,10 @@
 // Self Daily Care Domain Types
 // ==========================================================
 
+export type SelfDailyCareOverallStatus =
+  | "NO_CONCERNS_REPORTED"
+  | "CONCERNS_REPORTED";
+
 export interface SelfDailyCare {
 
   id: string;
@@ -14,6 +18,8 @@ export interface SelfDailyCare {
    */
   recordedAt: string;
 
+overallStatus:
+  SelfDailyCareOverallStatus | null;
   /**
    * Body temperature.
    */
@@ -109,6 +115,9 @@ export interface SelfMedicationEntry {
 export interface CreateSelfDailyCareRequest {
 
   recordedAt: string;
+
+overallStatus:
+  SelfDailyCareOverallStatus | null;
 
   temperature: number | null;
 

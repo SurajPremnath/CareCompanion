@@ -280,6 +280,31 @@ export const pa: TranslationDictionary = {
 
     createdBy:
       "Suraj Premnath ਦੁਆਰਾ ਬਣਾਇਆ ਗਿਆ",
+
+home:
+    "ਮੁੱਖ ਪੰਨਾ",
+
+whatWouldYouLikeToDo:
+    "ਤੁਸੀਂ ਕੀ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?",
+
+recordHealth:
+    "ਸਿਹਤ ਜਾਣਕਾਰੀ ਦਰਜ ਕਰੋ",
+
+recordHealthDescription:
+    "ਆਪਣੀ ਜਾਂ ਪਰਿਵਾਰ ਦੇ ਕਿਸੇ ਮੈਂਬਰ ਦੀ ਸਿਹਤ ਜਾਣਕਾਰੀ ਦਰਜ ਕਰੋ",
+
+viewHealth:
+    "ਸਿਹਤ ਜਾਣਕਾਰੀ ਵੇਖੋ",
+
+viewHealthDescription:
+    "ਸਿਹਤ ਸਮਾਂਰੇਖਾ, ਰਿਪੋਰਟਾਂ ਅਤੇ ਰੁਝਾਨ ਵੇਖੋ",
+
+helpAndFaqs:
+    "ਮਦਦ ਅਤੇ ਆਮ ਸਵਾਲ",
+
+helpAndFaqsDescription:
+    "CareVR ਦੀ ਵਰਤੋਂ ਕਰਨੀ ਸਿੱਖੋ ਅਤੇ ਆਪਣੇ ਸਵਾਲਾਂ ਦੇ ਜਵਾਬ ਲੱਭੋ",
+
   },
 
   addPatient: {

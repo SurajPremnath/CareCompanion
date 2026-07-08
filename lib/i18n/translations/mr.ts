@@ -251,6 +251,29 @@ dashboard: {
   createdBy:
     "सूरज प्रेमनाथ यांनी तयार केले",
 
+home:
+    "मुख्यपृष्ठ",
+
+whatWouldYouLikeToDo:
+    "तुम्हाला काय करायचे आहे?",
+
+recordHealth:
+    "आरोग्य माहिती नोंदवा",
+
+recordHealthDescription:
+    "स्वतःची किंवा कुटुंबातील सदस्याची आरोग्य माहिती नोंदवा",
+
+viewHealth:
+    "आरोग्य माहिती पहा",
+
+viewHealthDescription:
+    "आरोग्य कालरेषा, अहवाल आणि कल पहा",
+
+helpAndFaqs:
+    "मदत आणि सामान्य प्रश्न",
+
+helpAndFaqsDescription:
+    "CareVR कसे वापरायचे ते जाणून घ्या आणि प्रश्नांची उत्तरे मिळवा",
 },
 
 addPatient: {

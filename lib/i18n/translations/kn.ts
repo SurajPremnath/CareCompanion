@@ -248,6 +248,29 @@ dashboard: {
   createdBy:
     "ಸೂರಜ್ ಪ್ರೇಮ್‌ನಾಥ್ ಅವರಿಂದ ರಚಿಸಲಾಗಿದೆ",
 
+home:
+    "ಮುಖಪುಟ",
+
+whatWouldYouLikeToDo:
+    "ನೀವು ಏನು ಮಾಡಲು ಬಯಸುತ್ತೀರಿ?",
+
+recordHealth:
+    "ಆರೋಗ್ಯ ಮಾಹಿತಿ ದಾಖಲಿಸಿ",
+
+recordHealthDescription:
+    "ನಿಮ್ಮ ಅಥವಾ ಕುಟುಂಬದ ಸದಸ್ಯರ ಆರೋಗ್ಯ ಮಾಹಿತಿಯನ್ನು ದಾಖಲಿಸಿ",
+
+viewHealth:
+    "ಆರೋಗ್ಯ ಮಾಹಿತಿ ವೀಕ್ಷಿಸಿ",
+
+viewHealthDescription:
+    "ಆರೋಗ್ಯ ಕಾಲಕ್ರಮ, ವರದಿಗಳು ಮತ್ತು ಪ್ರವೃತ್ತಿಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+
+helpAndFaqs:
+    "ಸಹಾಯ ಮತ್ತು ಸಾಮಾನ್ಯ ಪ್ರಶ್ನೆಗಳು",
+
+helpAndFaqsDescription:
+    "CareVR ಅನ್ನು ಬಳಸುವ ವಿಧಾನವನ್ನು ತಿಳಿಯಿರಿ ಮತ್ತು ಉತ್ತರಗಳನ್ನು ಪಡೆಯಿರಿ",
 },
 
 addPatient: {

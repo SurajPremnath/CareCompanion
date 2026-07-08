@@ -73,16 +73,16 @@ try {
 
     performanceTracker.start({
 
-        fromPath:
-            "/login",
+    fromPath:
+        "/login",
 
-        toPath:
-            "/dashboard",
+    toPath:
+        "/dashboard",
 
-        feature:
-            "LOGIN_TO_DASHBOARD",
+    feature:
+        "LOGIN_TO_DASHBOARD",
 
-    });
+});
 
 await authService.login(
     email.trim(),
