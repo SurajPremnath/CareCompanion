@@ -182,7 +182,7 @@ router.push(
 
         <div style={{ display: "flex", gap: "10px", marginTop: "18px" }}>
           <button
-            onClick={() => router.push("/family")}
+            onClick={() => router.push("/dashboard")}
             style={{
               flex: 1,
               padding: "12px",
@@ -194,9 +194,7 @@ router.push(
               cursor: "pointer",
             }}
           >
-            ← {t(
-              "assessment.previous"
-            )}
+            ← {t("assessment.backToDashboard")}
           </button>
 
           <button

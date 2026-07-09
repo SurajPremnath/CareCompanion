@@ -366,17 +366,8 @@ setClarificationError(null);
 
     }
 
-    function openMedicationManagement() {
-
-        /*
-         Medication Management route
-         will be connected after the
-         new module is created.
-        */
-
-    }
-
-        //------------------------------------------------------------
+    
+    //------------------------------------------------------------
     // Process Voice Recording
     //------------------------------------------------------------
 
@@ -1203,20 +1194,6 @@ const commonReading = {
 
                                 <span>
                                     Daily Care
-                                </span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={
-                                    openMedicationManagement
-                                }
-                                style={moduleButton}
-                            >
-                                💊
-
-                                <span>
-                                    Medication Management
                                 </span>
                             </button>
 

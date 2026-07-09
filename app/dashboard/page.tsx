@@ -44,6 +44,26 @@ import {
 } from "@/lib/performance/performanceTracker";
 
 
+import HelpWorkspace from "@/app/components/dashboard/HelpWorkspace";
+
+import PersonSelector, {
+    type PersonSelection,
+} from "@/Components/patient/PersonSelector";
+
+import ActionOptions, {
+type ActionOption,
+    type MedicationDetailOption,
+} from "@/Components/dashboard/ActionOptions";
+
+import PrescriptionWorkspace
+    from "@/Components/dashboard/PrescriptionWorkspace";
+
+import ConsultationWorkspace
+    from "@/Components/dashboard/ConsultationWorkspace";
+
+import VoiceCareWorkspace
+    from "@/Components/dashboard/VoiceCareWorkspace";
+
 type DashboardUser = {
 
     id: string;
@@ -59,6 +79,8 @@ type DashboardUser = {
 
 type HomeFeature =
     | "RECORD_HEALTH"
+    | "MEDICATION_MANAGEMENT"
+    | "ASSESSMENT"
     | "VIEW_HEALTH"
     | "HELP";
 
@@ -67,6 +89,9 @@ export default function DashboardPage() {
 
     const router =
         useRouter();
+
+const SHOW_PERFORMANCE_DIAGNOSTICS =
+    false;
 
     const dashboardLoadStartedRef =
         useRef(false);
@@ -98,6 +123,41 @@ export default function DashboardPage() {
     ] =
         useState(false);
 
+const [
+    selectedAction,
+    setSelectedAction,
+] =
+    useState<HomeFeature | "">(
+        ""
+    );
+
+const [
+    medicationDetail,
+    setMedicationDetail,
+] =
+    useState<MedicationDetailOption>(
+        ""
+    );
+
+const [
+    recordHealthOption,
+    setRecordHealthOption,
+] =
+    useState<ActionOption>(
+        ""
+    );
+
+const [
+    personSelection,
+    setPersonSelection,
+] =
+    useState<PersonSelection>({
+
+        mode: "SELF",
+
+        patientId: null,
+
+    });
 
     //------------------------------------------------------------
     // Load User
@@ -375,6 +435,84 @@ export default function DashboardPage() {
     };
 
 
+const openMedicationManagement = () => {
+
+    trackFeatureClick(
+        "MEDICATION_MANAGEMENT"
+    );
+
+
+    performanceTracker.start({
+
+        fromPath:
+            "/dashboard",
+
+        toPath:
+            "/medications",
+
+        feature:
+            "DASHBOARD_TO_MEDICATIONS",
+
+    });
+
+
+    router.push(
+        "/medications"
+    );
+
+};
+
+//------------------------------------------------------------
+// Start Assessment
+//------------------------------------------------------------
+
+const handleStartAssessment = () => {
+
+    if (
+        personSelection.mode === "SELF"
+    ) {
+
+        router.push(
+            "/self/page2"
+        );
+
+        return;
+
+    }
+
+
+    if (
+        personSelection.mode === "FAMILY" &&
+        personSelection.patientId
+    ) {
+
+        router.push(
+            "/family/page2"
+        );
+
+    }
+
+};
+
+const handleActionOption = (
+    option: ActionOption
+) => {
+
+    if (
+        selectedAction ===
+        "RECORD_HEALTH"
+    ) {
+
+        setRecordHealthOption(
+            option
+        );
+
+        return;
+
+    }
+
+};
+
     //------------------------------------------------------------
     // Logout
     //------------------------------------------------------------
@@ -470,6 +608,25 @@ export default function DashboardPage() {
 
     }
 
+const showPersonSelector =
+
+    selectedAction === "RECORD_HEALTH" ||
+
+    selectedAction === "MEDICATION_MANAGEMENT" ||
+
+    selectedAction === "ASSESSMENT" ||
+
+    selectedAction === "VIEW_HEALTH";
+
+
+const isPersonSelectionComplete =
+
+    personSelection.mode === "SELF" ||
+
+    (
+        personSelection.mode === "FAMILY" &&
+        personSelection.patientId !== null
+    );
 
     //------------------------------------------------------------
     // UI
@@ -481,14 +638,14 @@ export default function DashboardPage() {
 
             <div style={pageCard}>
 
-                <AppHeader
-                    pageTitle={t("dashboard.home")}
-                    pageIcon="🏠"
-                    currentUserName={
-                        user.fullName
-                    }
-                />
-
+<AppHeader
+    pageTitle={t("dashboard.title")}
+    pageIcon="🏠"
+    currentUserName={user.fullName}
+    compact
+    helpLabel={t("dashboard.helpAndFaqs")}
+    onHelpClick={openHelp}
+/>
 
                 <div style={languageBox}>
 
@@ -497,90 +654,332 @@ export default function DashboardPage() {
                 </div>
 
 
-                <section style={homeSection}>
+<section style={homeSection}>
 
-                    <h2 style={questionTitle}>
-                        {t("dashboard.whatWouldYouLikeToDo")}
-                    </h2>
+    <div style={personSelectorWrapper}>
+
+        <PersonSelector
+            value={
+                personSelection
+            }
+onChange={(selection) => {
+
+    setPersonSelection(
+        selection
+    );
+
+    setSelectedAction(
+        ""
+    );
+
+    setRecordHealthOption(
+        ""
+    );
+
+}}
+            question="Who is this for?"
+        />
+
+    </div>
+
+{isPersonSelectionComplete && (
+
+    <div style={mainActionWrapper}>
+
+    <h2 style={questionTitle}>
+        {t("dashboard.whatWouldYouLikeToDo")}
+    </h2>
+
+<div
+    className="main-action-grid"
+    style={mainActionGrid}
+>
+
+    <button
+        type="button"
+        onClick={() => {
+
+    setSelectedAction(
+        "RECORD_HEALTH"
+    );
+
+    setRecordHealthOption(
+        ""
+    );
+
+}}
+        style={mainActionButton}
+    >
+
+<span
+    style={{
+        ...mainActionCircle,
+
+        ...(selectedAction ===
+        "RECORD_HEALTH"
+            ? selectedActionCircle
+            : {}),
+    }}
+>
+    ❤️
+</span>
+
+<span
+    style={{
+        ...mainActionLabel,
+
+        ...(selectedAction ===
+        "RECORD_HEALTH"
+            ? selectedActionLabel
+            : {}),
+    }}
+>
+    {t("dashboard.recordHealth")}
+</span>
+
+    </button>
 
 
-                    <div style={actionGrid}>
+    <button
+        type="button"
+        onClick={() => {
 
-                        <button
-                            type="button"
-                            onClick={
-                                openRecordHealth
-                            }
-                            style={actionButton}
-                        >
+    setSelectedAction(
+        "MEDICATION_MANAGEMENT"
+    );
 
-                            <span style={actionIcon}>
-                                ❤️
-                            </span>
+    setRecordHealthOption(
+        ""
+    );
 
-                            <span style={actionTitle}>
-                                {t("dashboard.recordHealth")}
-                            </span>
+}}
+        style={mainActionButton}
+    >
 
-                            <span style={actionDescription}>
-                                {t("dashboard.recordHealthDescription")}
-                            </span>
+        <span
+            style={{
+                ...mainActionCircle,
 
-                        </button>
+                ...(selectedAction ===
+                "MEDICATION_MANAGEMENT"
+                    ? selectedActionCircle
+                    : {}),
+            }}
+        >
+            💊
+        </span>
 
+<span
+    style={{
+        ...mainActionLabel,
 
-                        <button
-                            type="button"
-                            onClick={
-                                openViewHealth
-                            }
-                            style={actionButton}
-                        >
+        ...(selectedAction ===
+        "MEDICATION_MANAGEMENT"
+            ? selectedActionLabel
+            : {}),
+    }}
+>
+{t("dashboard.medicationManagement")}    
+</span>
 
-                            <span style={actionIcon}>
-                                📊
-                            </span>
-
-                            <span style={actionTitle}>
-                                {t("dashboard.viewHealth")}
-                            </span>
-
-                            <span style={actionDescription}>
-                                {t("dashboard.viewHealthDescription")}
-                            </span>
-
-                        </button>
+    </button>
 
 
-                        <button
-                            type="button"
-                            onClick={
-                                openHelp
-                            }
-                            style={actionButton}
-                        >
+    <button
+        type="button"
+        onClick={() => {
 
-                            <span style={actionIcon}>
-                                ❓
-                            </span>
+    setSelectedAction(
+        "ASSESSMENT"
+    );
 
-                            <span style={actionTitle}>
-                                {t("dashboard.helpAndFaqs")}
-                            </span>
+    setRecordHealthOption(
+        ""
+    );
 
-                            <span style={actionDescription}>
-                                {t("dashboard.helpAndFaqsDescription")}
-                            </span>
+}}
+        style={mainActionButton}
+    >
 
-                        </button>
+        <span
+            style={{
+                ...mainActionCircle,
 
-                    </div>
+                ...(selectedAction ===
+                "ASSESSMENT"
+                    ? selectedActionCircle
+                    : {}),
+            }}
+        >
+            🩺
+        </span>
+
+<span
+    style={{
+        ...mainActionLabel,
+
+        ...(selectedAction ===
+        "ASSESSMENT"
+            ? selectedActionLabel
+            : {}),
+    }}
+>
+{t("dashboard.healthCheckAssessment")}    
+</span>
+
+    </button>
+
+
+    <button
+        type="button"
+        onClick={() => {
+
+    setSelectedAction(
+        "VIEW_HEALTH"
+    );
+
+    setRecordHealthOption(
+        ""
+    );
+
+}}
+        style={mainActionButton}
+    >
+
+        <span
+            style={{
+                ...mainActionCircle,
+
+                ...(selectedAction ===
+                "VIEW_HEALTH"
+                    ? selectedActionCircle
+                    : {}),
+            }}
+        >
+            📊
+        </span>
+
+<span
+    style={{
+        ...mainActionLabel,
+
+        ...(selectedAction ===
+        "VIEW_HEALTH"
+            ? selectedActionLabel
+            : {}),
+    }}
+>
+{t("dashboard.healthHistory")}
+</span>
+
+    </button>
+
+</div>
+
+    </div>
+
+)}
+
+
+{isPersonSelectionComplete &&
+    selectedAction !== "" &&
+    selectedAction !== "HELP" && (
+
+    <div style={actionOptionsWrapper}>
+
+<ActionOptions
+    selectedAction={
+        selectedAction
+    }
+    onStartAssessment={
+        handleStartAssessment
+    }
+onOptionChange={
+    handleActionOption
+}
+    onMedicationDetailChange={
+        setMedicationDetail
+    }
+
+/>
+    </div>
+
+)}
+
+{selectedAction === "RECORD_HEALTH" &&
+    recordHealthOption === "VOICE" && (
+
+    <div style={workspaceContainer}>
+
+        <VoiceCareWorkspace
+            mode={
+                personSelection.mode === "SELF"
+                    ? "self"
+                    : "family"
+            }
+            patientId={
+                personSelection.patientId ??
+                undefined
+            }
+            currentUserName={
+                user.fullName
+            }
+        />
+
+    </div>
+
+)}
+
+{selectedAction === "MEDICATION_MANAGEMENT" &&
+    (
+        medicationDetail === "TAKE_PHOTO" ||
+        medicationDetail === "CHOOSE_PHOTOS" ||
+        medicationDetail === "UPLOAD_PDF"
+    ) && (
+
+    <PrescriptionWorkspace
+        method={
+            medicationDetail
+        }
+    />
+
+)}
+
+{selectedAction === "MEDICATION_MANAGEMENT" &&
+    (
+        medicationDetail === "IN_PERSON" ||
+        medicationDetail === "VIDEO" ||
+        medicationDetail === "PHONE" ||
+        medicationDetail === "HOME_VISIT" ||
+        medicationDetail === "OTHER"
+    ) && (
+
+    <ConsultationWorkspace
+        mode={
+            medicationDetail
+        }
+    />
+
+)}
+
+{selectedAction === "HELP" && (
+
+    <div style={workspaceContainer}>
+
+        <HelpWorkspace />
+
+    </div>
+
+)}
+
+
+
 
                 </section>
 
 
-                {user.role === "ADMIN" && (
-
+                {user.role === "ADMIN" && 
+		 SHOW_PERFORMANCE_DIAGNOSTICS && (
                     <button
                         type="button"
                         onClick={() =>
@@ -635,6 +1034,21 @@ export default function DashboardPage() {
                 </div>
 
             </div>
+
+<style jsx>{`
+    @media (max-width: 640px) {
+
+        .main-action-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr)) !important;
+
+            gap: 18px 12px !important;
+
+            padding: 18px 12px !important;
+        }
+
+    }
+`}</style>
 
         </main>
 
@@ -719,14 +1133,14 @@ const loadingContainer:
 const languageBox:
     React.CSSProperties = {
 
-        marginTop:
-            "20px",
+marginTop:
+    "12px",
 
-        marginBottom:
-            "24px",
+marginBottom:
+    "20px",
 
-        padding:
-            "16px",
+padding:
+    "14px 16px",
 
         background:
             "#f8fafc",
@@ -759,10 +1173,10 @@ const questionTitle:
             0,
 
         marginBottom:
-            "20px",
+            "16px",
 
         fontSize:
-            "24px",
+            "16px",
 
         fontWeight:
             700,
@@ -772,6 +1186,44 @@ const questionTitle:
 
     };
 
+
+const actionSelect:
+    React.CSSProperties = {
+
+        width:
+            "100%",
+
+        padding:
+            "16px",
+
+        marginBottom:
+            "24px",
+
+        background:
+            "#ffffff",
+
+        color:
+            "#111827",
+
+        border:
+            "1px solid #d1d5db",
+
+        borderRadius:
+            "10px",
+
+        fontSize:
+            "17px",
+
+        fontWeight:
+            600,
+
+        cursor:
+            "pointer",
+
+        boxSizing:
+            "border-box",
+
+    };
 
 const actionGrid:
     React.CSSProperties = {
@@ -955,5 +1407,256 @@ const footerStyle:
 
         color:
             "#6b7280",
+
+    };
+
+const workspaceContainer:
+    React.CSSProperties = {
+
+        marginTop:
+            "8px",
+
+        padding:
+            "24px",
+
+        background:
+            "#f8fafc",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "12px",
+
+    };
+
+
+const workspaceTitle:
+    React.CSSProperties = {
+
+        marginTop:
+            0,
+
+        marginBottom:
+            "8px",
+
+        fontSize:
+            "22px",
+
+        fontWeight:
+            700,
+
+        color:
+            "#111827",
+
+    };
+
+
+const workspaceText:
+    React.CSSProperties = {
+
+        margin:
+            0,
+
+        color:
+            "#6b7280",
+
+        lineHeight:
+            1.6,
+
+    };
+
+const personSelectorWrapper:
+    React.CSSProperties = {
+
+
+width:
+            "100%",
+
+        marginTop:
+            "24px",
+
+
+    };
+
+const mainActionWrapper:
+    React.CSSProperties = {
+
+        marginTop:
+            "24px",
+
+    };
+
+const actionOptionsWrapper:
+    React.CSSProperties = {
+
+        marginTop:
+            "20px",
+
+        padding:
+            "20px",
+
+        background:
+            "#f8fafc",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "12px",
+
+    };
+
+const mainActionGrid:
+    React.CSSProperties = {
+
+        display:
+            "grid",
+
+        gridTemplateColumns:
+            "repeat(4, minmax(0, 1fr))",
+
+        gap:
+            "16px",
+
+        width:
+            "100%",
+
+        padding:
+            "20px 24px",
+
+        background:
+            "#f8fafc",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "12px",
+
+        boxSizing:
+            "border-box",
+
+    };
+
+
+const mainActionButton:
+    React.CSSProperties = {
+
+        display:
+            "flex",
+
+        flexDirection:
+            "column",
+
+        alignItems:
+            "center",
+
+        justifyContent:
+            "flex-start",
+
+        gap:
+            "8px",
+
+        padding:
+            "8px 4px",
+
+        background:
+            "transparent",
+
+        border:
+            "none",
+
+        cursor:
+            "pointer",
+
+        fontFamily:
+            "inherit",
+
+    };
+
+
+const mainActionCircle:
+    React.CSSProperties = {
+
+        width:
+            "58px",
+
+        height:
+            "58px",
+
+        display:
+            "flex",
+
+        alignItems:
+            "center",
+
+        justifyContent:
+            "center",
+
+        background:
+            "#f8fafc",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "50%",
+
+        fontSize:
+            "25px",
+
+        boxSizing:
+            "border-box",
+
+    };
+
+
+const selectedActionCircle:
+    React.CSSProperties = {
+
+        background:
+            "#dbeafe",
+
+        border:
+            "3px solid #2563eb",
+
+        boxShadow:
+            "0 0 0 4px rgba(37, 99, 235, 0.12)",
+
+    };
+
+
+const mainActionLabel:
+    React.CSSProperties = {
+
+        fontSize:
+            "14px",
+
+        fontWeight:
+            700,
+
+        lineHeight:
+            1.3,
+
+        textAlign:
+            "center",
+
+color:
+    "#374151",
+
+        maxWidth:
+            "130px",
+
+    };
+
+const selectedActionLabel:
+    React.CSSProperties = {
+
+        color:
+            "#1d4ed8",
+
+        fontWeight:
+            800,
 
     };

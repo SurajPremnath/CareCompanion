@@ -264,7 +264,7 @@ home:
     "Home",
 
 whatWouldYouLikeToDo:
-    "What would you like to do?",
+    "What do you want to do?",
 
 recordHealth:
     "Record Health",
@@ -286,6 +286,15 @@ helpAndFaqsDescription:
 
 backToHome:
     "Back to Home",
+
+medicationManagement:
+    "Medication Management",
+
+healthCheckAssessment:
+    "Health Check Assessment",
+
+healthHistory:
+    "Health History",
 },
 
 addPatient: {
