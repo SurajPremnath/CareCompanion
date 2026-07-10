@@ -11,6 +11,7 @@ import {
 
 export type ActionOption =
     | "VOICE"
+    | "UPLOAD"
     | "MANUAL"
     | "ADD_PRESCRIPTION"
     | "CONSULTATION_MODE"
@@ -145,7 +146,7 @@ const [
             How would you like to record health?
         </label>
 
-        <div style={optionGridTwo}>
+        <div style={optionGridThree}>
 
             <button
                 type="button"
@@ -160,7 +161,13 @@ const [
                     );
 
                 }}
-                style={optionButton}
+                style={{
+    ...optionButton,
+
+    ...(selectedOption === "VOICE"
+        ? selectedOptionButton
+        : {}),
+}}
             >
 
                 <span style={optionIcon}>
@@ -173,6 +180,38 @@ const [
 
             </button>
 
+<button
+    type="button"
+    onClick={() => {
+
+        setSelectedOption(
+            "UPLOAD"
+        );
+
+        onOptionChange?.(
+            "UPLOAD"
+        );
+
+    }}
+    style={{
+    ...optionButton,
+
+    ...(selectedOption === "UPLOAD"
+        ? selectedOptionButton
+        : {}),
+}}
+>
+
+    <span style={optionIcon}>
+        📷
+    </span>
+
+    <span style={optionLabel}>
+        Upload Reading
+    </span>
+
+</button>
+
 
             <button
                 type="button"
@@ -187,7 +226,13 @@ const [
                     );
 
                 }}
-                style={optionButton}
+                style={{
+    ...optionButton,
+
+    ...(selectedOption === "MANUAL"
+        ? selectedOptionButton
+        : {}),
+}}
             >
 
                 <span style={optionIcon}>
@@ -625,6 +670,19 @@ const optionButton:
 
     };
 
+const selectedOptionButton:
+    React.CSSProperties = {
+
+        background:
+            "#eff6ff",
+
+        border:
+            "3px solid #2563eb",
+
+        boxShadow:
+            "0 0 0 4px rgba(37, 99, 235, 0.12)",
+
+    };
 
 const optionIcon:
     React.CSSProperties = {
@@ -649,5 +707,19 @@ const optionLabel:
 
         textAlign:
             "center",
+
+    };
+
+const optionGridThree:
+    React.CSSProperties = {
+
+        display:
+            "grid",
+
+        gridTemplateColumns:
+            "repeat(3, minmax(0, 1fr))",
+
+        gap:
+            "16px",
 
     };

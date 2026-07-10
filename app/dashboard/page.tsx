@@ -46,6 +46,9 @@ import {
 
 import HelpWorkspace from "@/app/components/dashboard/HelpWorkspace";
 
+import ManualCareWorkspace
+    from "@/Components/dashboard/ManualCareWorkspace";
+
 import PersonSelector, {
     type PersonSelection,
 } from "@/Components/patient/PersonSelector";
@@ -63,6 +66,9 @@ import ConsultationWorkspace
 
 import VoiceCareWorkspace
     from "@/Components/dashboard/VoiceCareWorkspace";
+
+import UploadCareWorkspace
+    from "@/Components/dashboard/UploadCareWorkspace";
 
 type DashboardUser = {
 
@@ -912,6 +918,54 @@ onOptionChange={
     <div style={workspaceContainer}>
 
         <VoiceCareWorkspace
+            mode={
+                personSelection.mode === "SELF"
+                    ? "self"
+                    : "family"
+            }
+            patientId={
+                personSelection.patientId ??
+                undefined
+            }
+            currentUserName={
+                user.fullName
+            }
+        />
+
+    </div>
+
+)}
+
+{selectedAction === "RECORD_HEALTH" &&
+    recordHealthOption === "MANUAL" && (
+
+    <div style={workspaceContainer}>
+
+        <ManualCareWorkspace
+            mode={
+                personSelection.mode === "SELF"
+                    ? "self"
+                    : "family"
+            }
+            patientId={
+                personSelection.patientId ??
+                undefined
+            }
+            currentUserName={
+                user.fullName
+            }
+        />
+
+    </div>
+
+)}
+
+{selectedAction === "RECORD_HEALTH" &&
+    recordHealthOption === "UPLOAD" && (
+
+    <div style={workspaceContainer}>
+
+        <UploadCareWorkspace
             mode={
                 personSelection.mode === "SELF"
                     ? "self"

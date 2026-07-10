@@ -4,6 +4,7 @@ import VoiceRecorder from
     "@/Components/daily-care/VoiceRecorder";
 
 import {
+    useEffect,
     useState,
 } from "react";
 
@@ -69,6 +70,19 @@ const [
 
 
 const [
+    showTranscript,
+    setShowTranscript,
+] = useState(false);
+
+
+const [
+    audioPlaybackUrl,
+    setAudioPlaybackUrl,
+] = useState<string | null>(
+    null
+);
+
+const [
     voiceDraft,
     setVoiceDraft,
 ] = useState<
@@ -82,12 +96,6 @@ const [
 ] = useState<string | null>(
     null
 );
-
-
-const [
-    voiceConfirmed,
-    setVoiceConfirmed,
-] = useState(false);
 
 
 const [
@@ -114,6 +122,24 @@ const [
     null
 );
 
+
+useEffect(() => {
+
+    return () => {
+
+        if (audioPlaybackUrl) {
+
+            URL.revokeObjectURL(
+                audioPlaybackUrl
+            );
+
+        }
+
+    };
+
+}, [audioPlaybackUrl]);
+
+
     const recordingName =
 
         mode === "self"
@@ -133,6 +159,18 @@ const needsFeverTemperatureClarification =
 
 function resetVoiceSession() {
 
+    if (audioPlaybackUrl) {
+
+        URL.revokeObjectURL(
+            audioPlaybackUrl
+        );
+
+    }
+
+    setAudioPlaybackUrl(null);
+
+    setShowTranscript(false);
+
     setProcessingVoice(false);
 
     setVoiceTranscript(null);
@@ -141,8 +179,6 @@ function resetVoiceSession() {
 
     setVoiceError(null);
 
-    setVoiceConfirmed(false);
-
     setFeverTemperature("");
 
     setFeverTemperatureUnknown(false);
@@ -150,6 +186,7 @@ function resetVoiceSession() {
     setClarificationError(null);
 
 }
+
 async function processVoiceRecording(
     audio: File
 ) {
@@ -162,9 +199,27 @@ async function processVoiceRecording(
 
     setVoiceDraft(null);
 
-    setVoiceConfirmed(false);
+setShowTranscript(false);
 
 
+if (audioPlaybackUrl) {
+
+    URL.revokeObjectURL(
+        audioPlaybackUrl
+    );
+
+}
+
+
+const playbackUrl =
+    URL.createObjectURL(
+        audio
+    );
+
+
+setAudioPlaybackUrl(
+    playbackUrl
+);
 
     const result =
         await medicalVoiceService.processVoice(
@@ -199,40 +254,7 @@ async function processVoiceRecording(
 
 }
 
-function confirmVoice() {
 
-    if (
-        !voiceTranscript ||
-        !voiceDraft
-    ) {
-
-        return;
-
-    }
-
-
-    if (
-        needsFeverTemperatureClarification &&
-        !feverTemperature &&
-        !feverTemperatureUnknown
-    ) {
-
-        setClarificationError(
-            "Please select the temperature or choose I DON'T KNOW."
-        );
-
-        return;
-
-    }
-
-
-    setVoiceError(null);
-
-    setClarificationError(null);
-
-    setVoiceConfirmed(true);
-
-}
 
 function reRecordVoice() {
 
@@ -265,6 +287,22 @@ async function saveVoiceObservation() {
 
     }
 
+
+if (
+    needsFeverTemperatureClarification &&
+    !feverTemperature &&
+    !feverTemperatureUnknown
+) {
+
+    setClarificationError(
+        "Please select the temperature or choose I DON'T KNOW."
+    );
+
+    return;
+
+}
+
+setClarificationError(null);
 
     setSavingVoice(true);
 
@@ -422,17 +460,21 @@ async function saveVoiceObservation() {
 
         <section>
 
-            <h3>
-                {
-                    mode === "self"
-                        ? "Tell us how are you feeling today"
-                        : `Tell us how ${recordingName} is today`
-                }
-            </h3>
+{!voiceDraft &&
+    !processingVoice && (
 
-            {!voiceTranscript &&
+    <h3>
+        {
+            mode === "self"
+                ? "Tell us how are you feeling today"
+                : `Tell us how ${recordingName} is today`
+        }
+    </h3>
+
+)}
+
+{!voiceDraft &&
     !processingVoice &&
-    !voiceConfirmed &&
     !voiceError && (
 
     <VoiceRecorder
@@ -473,7 +515,7 @@ async function saveVoiceObservation() {
 )}
 
 {voiceError &&
-    !voiceConfirmed && (
+    !voiceDraft && (
 
     <div>
 
@@ -495,23 +537,55 @@ async function saveVoiceObservation() {
 )}
 
 
-{voiceTranscript &&
-    !voiceConfirmed && (
+{voiceDraft && voiceTranscript && (
 
-    <div>
+    <div style={reviewContainer}>
 
-        <h3>
-            Transcript
+        <h3 style={reviewTitle}>
+            Review Recording
         </h3>
 
-        <p>
-            {voiceTranscript}
+        <p style={reviewDescription}>
+            Your health update is ready.
+            You can review it or save directly.
         </p>
+
+
+        {audioPlaybackUrl && (
+
+            <div style={playbackContainer}>
+
+                <audio
+                    controls
+                    src={audioPlaybackUrl}
+                    style={audioPlayer}
+                />
+
+            </div>
+
+        )}
+
+
+        {showTranscript && (
+
+            <div style={transcriptContainer}>
+
+                <h4 style={transcriptTitle}>
+                    Transcript
+                </h4>
+
+                <p style={transcriptText}>
+                    {voiceTranscript}
+                </p>
+
+            </div>
+
+        )}
 
 
         {needsFeverTemperatureClarification && (
 
-            <div>
+            <div style={clarificationContainer}>
 
                 <h3>
                     You mentioned fever.
@@ -521,92 +595,92 @@ async function saveVoiceObservation() {
                     Do you know the temperature?
                 </p>
 
-<div style={feverControlRow}>
 
-                <select
-                    value={
-                        feverTemperature
-                    }
+                <div style={feverControlRow}>
 
-style={temperatureSelect}
+                    <select
+                        value={
+                            feverTemperature
+                        }
+                        style={temperatureSelect}
+                        disabled={
+                            feverTemperatureUnknown
+                        }
+                        onChange={(event) => {
 
-                    disabled={
-                        feverTemperatureUnknown
-                    }
-                    onChange={(event) => {
+                            setFeverTemperature(
+                                event.target.value
+                            );
 
-                        setFeverTemperature(
-                            event.target.value
-                        );
+                            setFeverTemperatureUnknown(
+                                false
+                            );
 
-                        setFeverTemperatureUnknown(
-                            false
-                        );
+                            setClarificationError(
+                                null
+                            );
 
-                        setClarificationError(
-                            null
-                        );
+                        }}
+                    >
 
-                    }}
-                >
-
-                    <option value="">
-                        Select temperature
-                    </option>
-
-
-                    {Array.from(
-                        { length: 111 },
-                        (_, index) =>
-                            (
-                                99 +
-                                index / 10
-                            ).toFixed(1)
-                    ).map(
-                        temperature => (
-
-                            <option
-                                key={
-                                    temperature
-                                }
-                                value={
-                                    temperature
-                                }
-                            >
-                                {temperature}°F
-                            </option>
-
-                        )
-                    )}
-
-                </select>
+                        <option value="">
+                            Select temperature
+                        </option>
 
 
-                <button
-                    type="button"
-                    onClick={() => {
+                        {Array.from(
+                            { length: 111 },
+                            (_, index) =>
+                                (
+                                    99 +
+                                    index / 10
+                                ).toFixed(1)
+                        ).map(
+                            temperature => (
 
-                        setFeverTemperature("");
+                                <option
+                                    key={
+                                        temperature
+                                    }
+                                    value={
+                                        temperature
+                                    }
+                                >
+                                    {temperature}°F
+                                </option>
 
-                        setFeverTemperatureUnknown(
-                            true
-                        );
+                            )
+                        )}
 
-                        setClarificationError(
-                            null
-                        );
+                    </select>
 
-                    }}
 
-style={unknownButton}
-                >
-                    I DON&apos;T KNOW
-                </button>
-</div>
+                    <button
+                        type="button"
+                        onClick={() => {
+
+                            setFeverTemperature("");
+
+                            setFeverTemperatureUnknown(
+                                true
+                            );
+
+                            setClarificationError(
+                                null
+                            );
+
+                        }}
+                        style={unknownButton}
+                    >
+                        I DON&apos;T KNOW
+                    </button>
+
+                </div>
+
 
                 {clarificationError && (
 
-                    <p>
+                    <p style={errorText}>
                         {clarificationError}
                     </p>
 
@@ -617,15 +691,38 @@ style={unknownButton}
         )}
 
 
-        <div>
+        {voiceError && (
+
+            <p style={errorText}>
+                {voiceError}
+            </p>
+
+        )}
+
+
+        <div
+            className="voice-review-actions"
+            style={reviewActionRow}
+        >
 
             <button
                 type="button"
-                onClick={
-                    confirmVoice
+                onClick={() =>
+                    setShowTranscript(
+                        previous =>
+                            !previous
+                    )
                 }
+                disabled={
+                    savingVoice
+                }
+                style={secondaryActionButton}
             >
-                ✓ Confirm
+                {
+                    showTranscript
+                        ? "📄 Hide Transcript"
+                        : "📄 Show Transcript"
+                }
             </button>
 
 
@@ -634,53 +731,40 @@ style={unknownButton}
                 onClick={
                     reRecordVoice
                 }
+                disabled={
+                    savingVoice
+                }
+                style={secondaryActionButton}
             >
                 🎙️ Re-record
             </button>
 
+
+            <button
+                type="button"
+                onClick={
+                    saveVoiceObservation
+                }
+                disabled={
+                    savingVoice
+                }
+                style={{
+                    ...saveButton,
+
+                    opacity:
+                        savingVoice
+                            ? 0.7
+                            : 1,
+                }}
+            >
+                {
+                    savingVoice
+                        ? "Saving..."
+                        : "✓ Save"
+                }
+            </button>
+
         </div>
-
-    </div>
-
-)}
-
-{voiceConfirmed && (
-
-    <div>
-
-        <p>
-            ✓ Recording confirmed
-        </p>
-
-        <p>
-            Your health update is ready to save.
-        </p>
-
-
-        {voiceError && (
-
-    <p>
-        {voiceError}
-    </p>
-
-)}
-
-
-        <button
-            type="button"
-            onClick={
-                saveVoiceObservation
-            }
-            disabled={
-                savingVoice
-            }
-        >
-            {
-                savingVoice
-                    ? "Saving..."
-                    : "Save Health Update"
-            }
-        </button>
 
     </div>
 
@@ -702,6 +786,20 @@ style={unknownButton}
         100% {
             transform:
                 translateX(320%);
+        }
+
+    }
+
+    @media (max-width: 640px) {
+
+        .voice-review-actions {
+            flex-direction: column;
+        }
+
+        .voice-review-actions button {
+            width: 100%;
+            min-width: 0;
+            flex: none;
         }
 
     }
@@ -894,5 +992,247 @@ const unknownButton:
 
         whiteSpace:
             "nowrap",
+
+    };
+
+const reviewContainer:
+    React.CSSProperties = {
+
+        marginTop:
+            "16px",
+
+        padding:
+            "20px",
+
+        background:
+            "#f8fafc",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "12px",
+
+    };
+
+
+const reviewTitle:
+    React.CSSProperties = {
+
+        margin:
+            "0 0 8px",
+
+        fontSize:
+            "22px",
+
+        color:
+            "#111827",
+
+    };
+
+
+const reviewDescription:
+    React.CSSProperties = {
+
+        margin:
+            "0 0 20px",
+
+        color:
+            "#64748b",
+
+        lineHeight:
+            1.5,
+
+    };
+
+
+const playbackContainer:
+    React.CSSProperties = {
+
+        marginBottom:
+            "16px",
+
+    };
+
+
+const audioPlayer:
+    React.CSSProperties = {
+
+        width:
+            "100%",
+
+        maxWidth:
+            "520px",
+
+    };
+
+
+const transcriptContainer:
+    React.CSSProperties = {
+
+        marginBottom:
+            "16px",
+
+        padding:
+            "16px",
+
+        background:
+            "#ffffff",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "10px",
+
+    };
+
+
+const transcriptTitle:
+    React.CSSProperties = {
+
+        margin:
+            "0 0 8px",
+
+        color:
+            "#111827",
+
+    };
+
+
+const transcriptText:
+    React.CSSProperties = {
+
+        margin:
+            0,
+
+        color:
+            "#374151",
+
+        lineHeight:
+            1.6,
+
+    };
+
+
+const clarificationContainer:
+    React.CSSProperties = {
+
+        marginBottom:
+            "16px",
+
+        padding:
+            "16px",
+
+        background:
+            "#ffffff",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "10px",
+
+    };
+
+
+const reviewActionRow:
+    React.CSSProperties = {
+
+        display:
+            "flex",
+
+        flexWrap:
+            "wrap",
+
+        gap:
+            "12px",
+
+        marginTop:
+            "20px",
+
+    };
+
+
+const secondaryActionButton:
+    React.CSSProperties = {
+
+        flex:
+            "1 1 180px",
+
+        minHeight:
+            "50px",
+
+        padding:
+            "12px 16px",
+
+        background:
+            "#ffffff",
+
+        color:
+            "#1f2937",
+
+        border:
+            "1px solid #d1d5db",
+
+        borderRadius:
+            "10px",
+
+        fontSize:
+            "15px",
+
+        fontWeight:
+            700,
+
+        cursor:
+            "pointer",
+
+    };
+
+
+const saveButton:
+    React.CSSProperties = {
+
+        flex:
+            "1 1 180px",
+
+        minHeight:
+            "50px",
+
+        padding:
+            "12px 16px",
+
+        background:
+            "#2563eb",
+
+        color:
+            "#ffffff",
+
+        border:
+            "none",
+
+        borderRadius:
+            "10px",
+
+        fontSize:
+            "16px",
+
+        fontWeight:
+            700,
+
+        cursor:
+            "pointer",
+
+    };
+
+
+const errorText:
+    React.CSSProperties = {
+
+        color:
+            "#b91c1c",
+
+        fontWeight:
+            600,
 
     };

@@ -96,8 +96,61 @@ formData.append(
         );
 
 
-      const result =
-        await response.json();
+const responseText =
+  await response.text();
+
+
+let result:
+  {
+    error?: string;
+    data?: MedicalVoiceProcessingResult extends {
+      success: true;
+      data: infer T;
+    }
+      ? T
+      : never;
+  } = {};
+
+
+try {
+
+  result =
+    responseText
+      ? JSON.parse(responseText)
+      : {};
+
+}
+catch {
+
+  console.error(
+    "Medical Voice API returned non-JSON response:",
+    {
+      status:
+        response.status,
+
+      statusText:
+        response.statusText,
+
+      contentType:
+        response.headers.get(
+          "content-type"
+        ),
+
+      responseText,
+    }
+  );
+
+
+  return {
+
+    success: false,
+
+    error:
+      "The voice service returned an unexpected server response. Please try again.",
+
+  };
+
+}
 
 
       //------------------------------------------------------
@@ -119,20 +172,38 @@ formData.append(
       }
 
 
-      //------------------------------------------------------
-      // Success
-      //------------------------------------------------------
+//------------------------------------------------------
+// Validate Success Payload
+//------------------------------------------------------
 
-      return {
+if (!result.data) {
 
-        success: true,
+  return {
 
-        data:
-          result.data,
+    success: false,
 
-      };
+    error:
+      "The voice service returned an incomplete response. Please try again.",
 
-    }
+  };
+
+}
+
+
+//------------------------------------------------------
+// Success
+//------------------------------------------------------
+
+return {
+
+  success: true,
+
+  data:
+    result.data,
+
+};
+
+}
 catch (error) {
 
   console.error(
