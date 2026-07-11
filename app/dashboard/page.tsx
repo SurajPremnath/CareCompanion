@@ -748,13 +748,17 @@ onChange={(selection) => {
 
     <button
         type="button"
-        onClick={() => {
+onClick={() => {
 
     setSelectedAction(
         "MEDICATION_MANAGEMENT"
     );
 
     setRecordHealthOption(
+        ""
+    );
+
+    setMedicationDetail(
         ""
     );
 
@@ -906,7 +910,9 @@ onOptionChange={
     onMedicationDetailChange={
         setMedicationDetail
     }
-
+selectedMedicationDetail={
+    medicationDetail
+}
 />
     </div>
 
@@ -992,10 +998,37 @@ onOptionChange={
     ) && (
 
     <PrescriptionWorkspace
-        method={
-            medicationDetail
-        }
-    />
+    method={
+        medicationDetail
+    }
+
+    userId={
+        user.id
+    }
+
+    recordContext={
+    personSelection.mode === "FAMILY"
+        ? "FAMILY"
+        : "SELF"
+}
+
+    patientId={
+        personSelection.patientId
+    }
+
+    familyId={
+        null
+    }
+
+onCancelReview={() => {
+
+    setMedicationDetail(
+        ""
+    );
+
+}}
+
+/>
 
 )}
 

@@ -326,6 +326,11 @@ function parsePrescription(
         parsed.hospitalOrClinic
       ),
 
+    diagnosisOrAssessment:
+      toNullableString(
+        parsed.diagnosisOrAssessment
+      ),
+
     medicines,
 
     additionalInstructions:
@@ -360,13 +365,21 @@ const EXTRACTION_INSTRUCTIONS =
 
   "Use exactly these top-level keys: " +
 
-  "patientName, patientDateOfBirth, doctorName, consultationDate, consultationMode, hospitalOrClinic, medicines, additionalInstructions. " +
+  "patientName, patientDateOfBirth, doctorName, consultationDate, consultationMode, hospitalOrClinic, diagnosisOrAssessment, medicines, additionalInstructions. " +
 
   "consultationMode must be one of IN_PERSON, VIDEO, PHONE, HOME_VISIT, OTHER, or null. " +
 
   "Only populate consultationMode when it is explicitly stated or clearly indicated in the document. " +
 
   "Do not infer IN_PERSON merely because a physical document exists. " +
+
+  "Extract diagnosisOrAssessment only when a diagnosis, clinical impression, assessment, provisional diagnosis, working diagnosis, or equivalent clinical assessment is explicitly written and reliably readable in the supplied document. " +
+
+  "Preserve the source wording where practical. " +
+
+  "Do not infer diagnosisOrAssessment from medicines, symptoms, tests, investigations, procedures, or general medical knowledge. " +
+
+  "If diagnosisOrAssessment is not explicitly stated or cannot be read reliably, return null. " +
 
   "For a discharge summary, consultationDate should represent the discharge date when clearly available. " +
 

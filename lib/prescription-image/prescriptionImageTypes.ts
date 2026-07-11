@@ -53,6 +53,8 @@ export interface ExtractedPrescription {
 
   hospitalOrClinic: string | null;
 
+  diagnosisOrAssessment: string | null;
+
   medicines: ExtractedPrescriptionMedicine[];
 
   additionalInstructions: string | null;

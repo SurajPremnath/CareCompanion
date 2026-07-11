@@ -95,7 +95,7 @@ void authSessionService
         // Analytics must not block login navigation
     });
 
-router.replace("/dashboard");
+router.replace("/consent");
 
         } catch (err) {
 
@@ -228,6 +228,20 @@ performanceTracker.cancel();
                         ? "Signing In..."
                         : "Sign In"}
                 </button>
+
+<button
+    type="button"
+    onClick={async () => {
+
+        await authService.signInWithGoogle();
+
+    }}
+    disabled={loading}
+    style={secondaryButtonStyle}
+>
+    Continue with Google
+</button>
+
 
                 <button
                     onClick={() =>

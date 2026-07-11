@@ -51,6 +51,9 @@ interface ActionOptionsProps {
     onOptionChange?:
         (option: ActionOption) => void;
 
+selectedMedicationDetail?:
+    MedicationDetailOption;
+
     onMedicationDetailChange?:
         (
             detail:
@@ -72,6 +75,8 @@ export default function ActionOptions({
     onOptionChange,
 
     onMedicationDetailChange,
+
+    selectedMedicationDetail,
 
 }: ActionOptionsProps) {
 
@@ -100,6 +105,7 @@ const [
     useState(
         ""
     );
+
 
     //--------------------------------------------------------
     // Assessment
@@ -254,24 +260,95 @@ const [
 
 
 
-                {
-                    selectedAction ===
-                        "MEDICATION_MANAGEMENT" && (
+{selectedAction === "MEDICATION_MANAGEMENT" && (
 
-                        <>
+    <>
 
-                            <option value="ADD_PRESCRIPTION">
-                                📄 Add Prescription
-                            </option>
+        <label style={label}>
+            What would you like to do?
+        </label>
 
-                            <option value="CONSULTATION_MODE">
-                                🩺 Mode of Consultation
-                            </option>
 
-                        </>
+        <div style={optionGridTwo}>
 
-                    )
-                }
+            <button
+                type="button"
+                onClick={() => {
+
+                    setSelectedOption(
+                        "ADD_PRESCRIPTION"
+                    );
+
+                    setMedicationDetailOption(
+                        ""
+                    );
+
+                    onMedicationDetailChange?.(
+                        ""
+                    );
+
+                }}
+                style={{
+    ...optionButton,
+
+    ...(selectedOption === "ADD_PRESCRIPTION"
+        ? selectedOptionButton
+        : {}),
+}}
+            >
+
+                <span style={optionIcon}>
+                    📄
+                </span>
+
+                <span style={optionLabel}>
+                    Add Prescription
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                onClick={() => {
+
+                    setSelectedOption(
+                        "CONSULTATION_MODE"
+                    );
+
+                    setMedicationDetailOption(
+                        ""
+                    );
+
+                    onMedicationDetailChange?.(
+                        ""
+                    );
+
+                }}
+                style={{
+    ...optionButton,
+
+    ...(selectedOption === "CONSULTATION_MODE"
+        ? selectedOptionButton
+        : {}),
+}}
+            >
+
+                <span style={optionIcon}>
+                    🩺
+                </span>
+
+                <span style={optionLabel}>
+                    Mode of Consultation
+                </span>
+
+            </button>
+
+        </div>
+
+    </>
+
+)}
 
 
                 {
@@ -312,45 +389,101 @@ const [
         </label>
 
 
-        <select
-            value={
-                medicationDetailOption
-            }
-onChange={(event) => {
+<div style={optionGridThree}>
 
-    const nextDetail =
-        event.target.value as
-            MedicationDetailOption;
+    <button
+        type="button"
+        onClick={() => {
 
-    setMedicationDetailOption(
-        nextDetail
-    );
+            setMedicationDetailOption(
+                "TAKE_PHOTO"
+            );
 
-    onMedicationDetailChange?.(
-        nextDetail
-    );
+            onMedicationDetailChange?.(
+                "TAKE_PHOTO"
+            );
 
-}}	
-            style={selectStyle}
-        >
+        }}
+        style={{
+            ...optionButton,
 
-            <option value="">
-                Select upload method
-            </option>
+            ...(selectedMedicationDetail === "TAKE_PHOTO"
+    ? selectedOptionButton
+    : {}),
+        }}
+    >
+        <span style={optionIcon}>
+            📷
+        </span>
 
-            <option value="TAKE_PHOTO">
-                📷 Take Photo
-            </option>
+        <span style={optionLabel}>
+            Take Photo
+        </span>
+    </button>
 
-            <option value="CHOOSE_PHOTOS">
-                🖼️ Choose Photos
-            </option>
 
-            <option value="UPLOAD_PDF">
-                📄 Upload PDF
-            </option>
+    <button
+        type="button"
+        onClick={() => {
 
-        </select>
+            setMedicationDetailOption(
+                "CHOOSE_PHOTOS"
+            );
+
+            onMedicationDetailChange?.(
+                "CHOOSE_PHOTOS"
+            );
+
+        }}
+        style={{
+            ...optionButton,
+
+            ...(selectedMedicationDetail === "CHOOSE_PHOTOS"
+    ? selectedOptionButton
+    : {}),
+        }}
+    >
+        <span style={optionIcon}>
+            🖼️
+        </span>
+
+        <span style={optionLabel}>
+            Choose Photos
+        </span>
+    </button>
+
+
+    <button
+        type="button"
+        onClick={() => {
+
+            setMedicationDetailOption(
+                "UPLOAD_PDF"
+            );
+
+            onMedicationDetailChange?.(
+                "UPLOAD_PDF"
+            );
+
+        }}
+        style={{
+            ...optionButton,
+
+            ...(selectedMedicationDetail === "UPLOAD_PDF"
+    ? selectedOptionButton
+    : {}),
+        }}
+    >
+        <span style={optionIcon}>
+            📄
+        </span>
+
+        <span style={optionLabel}>
+            Upload PDF
+        </span>
+    </button>
+
+</div>        
 
     </div>
 
@@ -366,63 +499,163 @@ onChange={(event) => {
         </label>
 
 
-        <select
-            value={
-                medicationDetailOption
-            }
-onChange={(event) => {
+<div style={optionGridThree}>
 
-    const nextMode =
-        event.target.value as
-            MedicationDetailOption;
+    <button
+        type="button"
+        onClick={() => {
 
-    setMedicationDetailOption(
-        nextMode
-    );
+            setMedicationDetailOption(
+                "IN_PERSON"
+            );
 
-    onMedicationDetailChange?.(
-        nextMode
-    );
+            onMedicationDetailChange?.(
+                "IN_PERSON"
+            );
 
-    if (
-        nextMode !== "OTHER"
-    ) {
+        }}
+        style={{
+    ...optionButton,
 
-        setOtherConsultationMode(
-            ""
-        );
-
-    }
-
+    ...(medicationDetailOption === "IN_PERSON"
+        ? selectedOptionButton
+        : {}),
 }}
-            style={selectStyle}
-        >
+    >
+        <span style={optionIcon}>
+            🩺
+        </span>
 
-            <option value="">
-                Select consultation mode
-            </option>
+        <span style={optionLabel}>
+            In Person
+        </span>
+    </button>
 
-            <option value="IN_PERSON">
-                🩺 In Person
-            </option>
 
-            <option value="VIDEO">
-                📹 Video Consultation
-            </option>
+    <button
+        type="button"
+        onClick={() => {
 
-            <option value="PHONE">
-                📞 Phone Consultation
-            </option>
+            setMedicationDetailOption(
+                "VIDEO"
+            );
 
-            <option value="HOME_VISIT">
-                🏠 Home Visit
-            </option>
+            onMedicationDetailChange?.(
+                "VIDEO"
+            );
 
-            <option value="OTHER">
-                ✏️ Other
-            </option>
+        }}
+        style={{
+    ...optionButton,
 
-        </select>
+    ...(medicationDetailOption === "VIDEO"
+        ? selectedOptionButton
+        : {}),
+}}
+    >
+        <span style={optionIcon}>
+            📹
+        </span>
+
+        <span style={optionLabel}>
+            Video
+        </span>
+    </button>
+
+
+    <button
+        type="button"
+        onClick={() => {
+
+            setMedicationDetailOption(
+                "PHONE"
+            );
+
+            onMedicationDetailChange?.(
+                "PHONE"
+            );
+
+        }}
+        style={{
+    ...optionButton,
+
+    ...(medicationDetailOption === "PHONE"
+        ? selectedOptionButton
+        : {}),
+}}
+    >
+        <span style={optionIcon}>
+            📞
+        </span>
+
+        <span style={optionLabel}>
+            Phone
+        </span>
+    </button>
+
+
+    <button
+        type="button"
+        onClick={() => {
+
+            setMedicationDetailOption(
+                "HOME_VISIT"
+            );
+
+            onMedicationDetailChange?.(
+                "HOME_VISIT"
+            );
+
+        }}
+        style={{
+    ...optionButton,
+
+    ...(medicationDetailOption === "HOME_VISIT"
+        ? selectedOptionButton
+        : {}),
+}}
+    >
+        <span style={optionIcon}>
+            🏠
+        </span>
+
+        <span style={optionLabel}>
+            Home Visit
+        </span>
+    </button>
+
+
+    <button
+        type="button"
+        onClick={() => {
+
+            setMedicationDetailOption(
+                "OTHER"
+            );
+
+            onMedicationDetailChange?.(
+                "OTHER"
+            );
+
+        }}
+        style={{
+    ...optionButton,
+
+    ...(medicationDetailOption === "OTHER"
+        ? selectedOptionButton
+        : {}),
+}}
+    >
+        <span style={optionIcon}>
+            ✏️
+        </span>
+
+        <span style={optionLabel}>
+            Other
+        </span>
+    </button>
+
+</div>
 
 
         {medicationDetailOption === "OTHER" && (
