@@ -734,7 +734,7 @@ const isPersonSelectionComplete =
 
 <p
     style={{
-        marginTop: "12px",
+        marginTop: "16px",
         fontSize: "14px",
         color: "#6b7280",
         fontWeight: 500,
@@ -743,7 +743,7 @@ const isPersonSelectionComplete =
         gap: "6px",
     }}
 >
-    🔒 Health features will be available after you review and accept the CareVR consent.
+    🔒 Health features will be unlocked after you review and accept the CareVR consent.
 </p>
 
     </div>
