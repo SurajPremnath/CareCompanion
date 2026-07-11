@@ -12,7 +12,7 @@ export interface ConsentRow {
 
     privacy_policy_version: number;
 
-    terms_version: number;
+    termsVersion: number;
 
     medical_disclaimer_version: number;
 
@@ -49,7 +49,7 @@ export class ConsentMapper {
             row.privacy_policy_version,
 
         termsVersion:
-            row.terms_version,
+            row.termsVersion,
 
         medicalDisclaimerVersion:
             row.medical_disclaimer_version,

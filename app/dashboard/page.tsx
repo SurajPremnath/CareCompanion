@@ -70,6 +70,10 @@ import VoiceCareWorkspace
 import UploadCareWorkspace
     from "@/Components/dashboard/UploadCareWorkspace";
 
+import {
+    consentStorage,
+} from "@/lib/consent/storage/consentStorage";
+
 type DashboardUser = {
 
     id: string;
@@ -122,6 +126,11 @@ const SHOW_PERFORMANCE_DIAGNOSTICS =
     ] =
         useState(true);
 
+const [
+    consentGranted,
+    setConsentGranted,
+] =
+    useState(false);
 
     const [
         loggingOut,
@@ -207,6 +216,14 @@ const [
                     await profileRepository
                         .getCurrentProfile();
 
+
+const consentGranted =
+    await consentStorage
+        .hasAcceptedCurrentConsent();
+
+setConsentGranted(
+    consentGranted
+);
 
                 if (!profile) {
 
@@ -653,6 +670,86 @@ const isPersonSelectionComplete =
     onHelpClick={openHelp}
 />
 
+{!consentGranted && (
+
+    <div
+        style={{
+
+            background: "#fef3c7",
+
+            border: "1px solid #fcd34d",
+
+            borderRadius: "12px",
+
+            padding: "18px",
+
+            marginTop: "18px",
+
+            marginBottom: "18px",
+
+        }}
+    >
+
+        <h3
+            style={{
+                marginTop: 0,
+            }}
+        >
+            ⚠ Consent Required
+        </h3>
+
+        <p>
+
+            Before using CareVR, please review and
+            accept the Privacy Policy, Terms of Use
+            and Medical Disclaimer.
+
+        </p>
+
+        <button
+            type="button"
+            onClick={() =>
+                router.push("/consent")
+            }
+            style={{
+
+                background: "#2563eb",
+
+                color: "#fff",
+
+                border: "none",
+
+                borderRadius: "8px",
+
+                padding: "10px 18px",
+
+                cursor: "pointer",
+
+            }}
+        >
+
+            Review & Accept
+
+        </button>
+
+<p
+    style={{
+        marginTop: "12px",
+        fontSize: "14px",
+        color: "#6b7280",
+        fontWeight: 500,
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+    }}
+>
+    🔒 Health features will be available after you review and accept the CareVR consent.
+</p>
+
+    </div>
+
+)}
+
                 <div style={languageBox}>
 
                     <LanguageSelector />
@@ -668,8 +765,13 @@ const isPersonSelectionComplete =
             value={
                 personSelection
             }
+disabled={!consentGranted}
 onChange={(selection) => {
+if (!consentGranted) {
 
+            return;
+
+        }
     setPersonSelection(
         selection
     );
@@ -701,20 +803,41 @@ onChange={(selection) => {
     style={mainActionGrid}
 >
 
-    <button
-        type="button"
-        onClick={() => {
+<button
+    type="button"
+disabled={!consentGranted}
+    onClick={() => {
 
-    setSelectedAction(
-        "RECORD_HEALTH"
-    );
+        if (!consentGranted) {
 
-    setRecordHealthOption(
-        ""
-    );
+            return;
+
+        }
+
+        setSelectedAction(
+            "RECORD_HEALTH"
+        );
+
+        setRecordHealthOption(
+            ""
+        );
+
+    }}
+        style={{
+
+    ...mainActionButton,
+
+    opacity:
+        consentGranted
+            ? 1
+            : 0.45,
+
+    cursor:
+        consentGranted
+            ? "pointer"
+            : "not-allowed",
 
 }}
-        style={mainActionButton}
     >
 
 <span
@@ -746,24 +869,44 @@ onChange={(selection) => {
     </button>
 
 
-    <button
-        type="button"
-onClick={() => {
+<button
+    type="button"
+disabled={!consentGranted}
+    onClick={() => {
+        if (!consentGranted) {
 
-    setSelectedAction(
-        "MEDICATION_MANAGEMENT"
-    );
+            return;
 
-    setRecordHealthOption(
-        ""
-    );
+        }
+
+        setSelectedAction(
+            "MEDICATION_MANAGEMENT"
+        );
+
+        setRecordHealthOption(
+            ""
+        );
 
     setMedicationDetail(
         ""
     );
 
+    }}
+        style={{
+
+    ...mainActionButton,
+
+    opacity:
+        consentGranted
+            ? 1
+            : 0.45,
+
+    cursor:
+        consentGranted
+            ? "pointer"
+            : "not-allowed",
+
 }}
-        style={mainActionButton}
     >
 
         <span
@@ -795,20 +938,40 @@ onClick={() => {
     </button>
 
 
-    <button
-        type="button"
-        onClick={() => {
+<button
+    type="button"
+disabled={!consentGranted}
+    onClick={() => {
+        if (!consentGranted) {
 
-    setSelectedAction(
-        "ASSESSMENT"
-    );
+            return;
 
-    setRecordHealthOption(
-        ""
-    );
+        }
+
+        setSelectedAction(
+            "ASSESSMENT"
+        );
+
+        setRecordHealthOption(
+            ""
+        );
+
+    }}
+        style={{
+
+    ...mainActionButton,
+
+    opacity:
+        consentGranted
+            ? 1
+            : 0.45,
+
+    cursor:
+        consentGranted
+            ? "pointer"
+            : "not-allowed",
 
 }}
-        style={mainActionButton}
     >
 
         <span
@@ -840,20 +1003,40 @@ onClick={() => {
     </button>
 
 
-    <button
-        type="button"
-        onClick={() => {
+<button
+    type="button"
+disabled={!consentGranted}
+    onClick={() => {
+        if (!consentGranted) {
 
-    setSelectedAction(
-        "VIEW_HEALTH"
-    );
+            return;
 
-    setRecordHealthOption(
-        ""
-    );
+        }
+
+        setSelectedAction(
+            "VIEW_HEALTH"
+        );
+
+        setRecordHealthOption(
+            ""
+        );
+
+    }}
+        style={{
+
+    ...mainActionButton,
+
+    opacity:
+        consentGranted
+            ? 1
+            : 0.45,
+
+    cursor:
+        consentGranted
+            ? "pointer"
+            : "not-allowed",
 
 }}
-        style={mainActionButton}
     >
 
         <span

@@ -95,7 +95,7 @@ void authSessionService
         // Analytics must not block login navigation
     });
 
-router.replace("/consent");
+router.replace("/dashboard");
 
         } catch (err) {
 

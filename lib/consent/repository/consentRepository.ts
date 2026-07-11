@@ -11,8 +11,71 @@ import type {
 
 import { BaseRepository } from "@/lib/repositories/BaseRepository";
 
+import {
+    CURRENT_CONSENT_VERSION,
+} from "@/lib/constants/consentVersions";
+
+
 export class ConsentRepository
     extends BaseRepository {
+
+
+async hasAcceptedCurrentConsent(): Promise<boolean> {
+
+    const consent =
+        await this.getCurrentUserConsent();
+
+    if (!consent) {
+
+        return false;
+
+    }
+
+    return (
+
+        consent.accepted &&
+
+        consent.consentVersion ===
+CURRENT_CONSENT_VERSION
+
+    );
+
+}
+
+async create(
+    consent: Omit<
+        Consent,
+        "id" |
+        "createdAt" |
+        "updatedAt"
+    >
+): Promise<Consent> {
+
+    const payload =
+        ConsentMapper.toInsert(
+            consent
+        );
+
+    const {
+        data,
+        error,
+    } = await supabase
+        .from("user_consents")
+        .insert(payload)
+        .select()
+        .single();
+
+    if (error) {
+
+        throw error;
+
+    }
+
+    return ConsentMapper.toDomain(
+        data as ConsentRow
+    );
+
+}
 
 async getCurrentUserConsent(): Promise<Consent | null> {
 
@@ -26,7 +89,14 @@ async getCurrentUserConsent(): Promise<Consent | null> {
         .from("user_consents")
         .select("*")
         .eq("user_id", userId)
-        .maybeSingle();
+        .order(
+    "accepted_at",
+    {
+        ascending: false,
+    }
+)
+.limit(1)
+.maybeSingle();
 
     if (error) {
 

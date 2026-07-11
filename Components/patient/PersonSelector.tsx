@@ -18,6 +18,20 @@ import type {
 // Types
 //------------------------------------------------------------
 
+type PersonSelectorProps = {
+
+    value: PersonSelection;
+
+    onChange: (
+        value: PersonSelection
+    ) => void;
+
+    question: string;
+
+    disabled?: boolean;
+
+};
+
 export type PersonMode =
     | "SELF"
     | "FAMILY"
@@ -35,20 +49,7 @@ export interface PersonSelection {
 }
 
 
-interface PersonSelectorProps {
 
-    value:
-        PersonSelection;
-
-    onChange:
-        (
-            value: PersonSelection
-        ) => void;
-
-    question?:
-        string;
-
-}
 
 
 //------------------------------------------------------------
@@ -63,6 +64,8 @@ export default function PersonSelector({
 
     question =
         "Who is this for?",
+
+    disabled = false,
 
 }: PersonSelectorProps) {
 
@@ -186,14 +189,35 @@ return (
         </label>
 
 
-        <div style={container}>
+        <div
+    style={{
+
+        ...container,
+
+        opacity:
+            disabled
+                ? 0.55
+                : 1,
+
+        pointerEvents:
+            disabled
+                ? "none"
+                : "auto",
+
+    }}
+>
 
             <div style={modeOptions}>
 
     <button
         type="button"
+disabled={disabled}
         onClick={() => {
+if (disabled) {
 
+        return;
+
+    }
             onChange({
 
                 mode:
@@ -234,8 +258,13 @@ return (
 
     <button
         type="button"
+disabled={disabled}
         onClick={() => {
+if (disabled) {
 
+        return;
+
+    }
             onChange({
 
                 mode:
@@ -307,6 +336,7 @@ return (
                     ) : (
 
                         <select
+disabled={disabled}
                             value={
                                 value.patientId ??
                                 ""
