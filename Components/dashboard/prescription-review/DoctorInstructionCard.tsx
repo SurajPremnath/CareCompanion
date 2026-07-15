@@ -1,5 +1,7 @@
 "use client";
 
+import { expandMedicalText } from "@/lib/medicalFormatter";
+
 import type {
     ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
@@ -48,7 +50,7 @@ prescription.doctorInstructions.map(
 
 <li key={index}>
 
-{item}
+{expandMedicalText(item)}
 
 </li>
 

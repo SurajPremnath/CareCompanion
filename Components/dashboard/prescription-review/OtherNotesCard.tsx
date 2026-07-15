@@ -1,5 +1,7 @@
 "use client";
 
+import { expandMedicalText } from "@/lib/medicalFormatter";
+
 import type {
     ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
@@ -22,11 +24,11 @@ export default function OtherNotesCard({
 
 }:Props){
 
-    if(
-        !prescription.additionalNotes
-    ){
-        return null;
-    }
+if (
+    prescription.additionalNotes.length === 0
+) {
+    return null;
+}
 
     return(
 
@@ -38,11 +40,21 @@ export default function OtherNotesCard({
 
 </h3>
 
-<p>
+<div>
 
-{prescription.additionalNotes}
+    {prescription.additionalNotes.map(
+        (note, index) => (
 
-</p>
+            <p key={index}>
+
+                {expandMedicalText(note)}
+
+            </p>
+
+        )
+    )}
+
+</div>
 
 </section>
 

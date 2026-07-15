@@ -270,6 +270,13 @@ Examples include:
 • Consultation Date
 • Symptoms
 • Past Medical History
+
+Every section of the document MUST be processed independently.
+
+Do not skip the Past Medical History section even if another diagnosis has already been identified.
+
+Every readable historical medical condition or previous surgery must be extracted before continuing.
+
 • Examination Findings
 • Diagnosis / Assessment
 • Medicines
@@ -373,6 +380,59 @@ Previous Surgery
 Hernia
 
 Drug Allergy
+
+When extracting Past Medical History:
+
+If a word is incomplete, partially readable, abbreviated,
+or cannot be read with high confidence,
+
+DO NOT reconstruct the word.
+
+DO NOT infer the missing word.
+
+DO NOT replace it with the most likely medical term.
+
+Ignore the unreadable word and extract only the clearly
+readable clinical history.
+
+Examples
+
+Doctor writes:
+
+"Add. Hernia"
+
+Return:
+
+Hernia
+
+NOT
+
+Add. Hernia
+
+Additional Hernia
+
+Add. Surgery Hernia
+
+Doctor writes:
+
+"Aden."
+
+Return:
+
+null
+
+NOT
+
+Adenoid
+
+Adenectomy
+
+Aden. Surgery
+
+When a history item contains both readable and unreadable
+words, preserve only the clinically meaningful readable
+portion if it remains accurate by itself.
+Otherwise return null.
 
 Never include
 
@@ -575,13 +635,35 @@ Questions asked by the doctor and patient responses must NEVER be classified as 
 Other Notes
 ------------------------------------------------------------
 
-If information does not clearly belong to any category above,
+Additional Notes is the LAST possible category.
 
-place it in Additional Notes.
+Before placing anything into Additional Notes, you MUST attempt to classify it into:
+
+• Diagnosis / Assessment
+• Clinical Assessment
+• Symptoms
+• Past Medical History
+• Examination Findings
+• Investigations
+• Medicines
+• Doctor Instructions
+• Follow-up Plan
+• Lifestyle
+• Social History
+
+Do NOT use Additional Notes as a default bucket.
+
+Never concatenate multiple handwritten findings into one Additional Note.
+
+Each Additional Note must represent exactly ONE independent clinical statement.
+
+If a handwritten line contains multiple clinical concepts, split them into their appropriate structured categories.
+
+Only information that genuinely belongs to none of the structured categories should appear in Additional Notes.
 
 Do not guess.
 
-Preserve the doctor's original meaning.
+Preserve the doctor's wording exactly.
 
 ------------------------------------------------------------
 STEP 4A – Clinical Context Interpretation
@@ -884,20 +966,115 @@ If confidence is low,
 
 return null rather than guessing.
 
-If a handwritten word is less than 90% certain,
+If ANY clinically significant word
+cannot be read with high confidence,
 
-do not classify it.
+DO NOT complete the phrase.
+
+DO NOT infer the missing word.
+
+DO NOT replace it with the closest medical term.
+
+DO NOT expand abbreviations.
+
+DO NOT reconstruct partially readable handwriting.
+
+Examples
+
+Doctor writes
+
+HTN
+
+↓
+
+Hypertension ✅
+
+Doctor writes
+
+DM
+
+↓
+
+Diabetes Mellitus ✅
+
+Doctor writes
+
+Aden.
+
+↓
+
+DO NOT return
+
+Aden. Surgery
+
+Adenoid Surgery
+
+Adenectomy
+
+Adenoma
 
 Return null.
 
-Never create a diagnosis,
+Doctor writes
 
-allergy,
+? BPH
 
+↓
+
+? BPH
+
+Preserve exactly.
+
+If a handwritten medical history item,
+diagnosis,
 medicine,
+investigation,
+or instruction
+contains both readable and unreadable words:
 
-or history item
+• Preserve the readable clinical concept.
 
+• Ignore only the unreadable word.
+
+• Never discard an otherwise valid clinical concept because one adjacent word is unreadable.
+
+Examples
+
+"Add. Hernia"
+
+↓
+
+Return
+
+Hernia
+
+"Aden."
+
+↓
+
+Return
+
+null
+
+"HTN ×20 yrs"
+
+↓
+
+Return
+
+Hypertension (20 years)
+
+Only discard the entire item when the clinical concept itself cannot be identified with confidence.
+
+It is better to omit uncertain information
+than to introduce incorrect medical information.
+
+Never create a diagnosis,
+history item,
+medicine,
+investigation,
+procedure,
+or surgery
 from uncertain handwriting.
 
 ------------------------------------------------------------
@@ -917,6 +1094,22 @@ Before producing JSON verify that
 • advice is not diagnosis
 
 Only then return JSON.
+
+Before returning JSON, verify that:
+
+• No investigation appears inside Additional Notes.
+
+• No diagnosis appears inside Additional Notes.
+
+• No symptom appears inside Additional Notes.
+
+• No medicine appears inside Additional Notes.
+
+• No doctor instruction appears inside Additional Notes.
+
+• Additional Notes does not contain multiple unrelated clinical concepts merged into one sentence.
+
+If any of the above is true, reclassify those items before returning JSON.
 
 `;
 
@@ -1046,7 +1239,7 @@ Use exactly these properties.
 
   ],
 
-  "additionalNotes": string | null,
+  "additionalNotes": string[],
 
   "investigations": string[],
 

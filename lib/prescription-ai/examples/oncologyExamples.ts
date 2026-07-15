@@ -50,7 +50,7 @@ x One Month
             ],
 
             additionalNotes:
-                null,
+    [],
 
             investigations: [],
 

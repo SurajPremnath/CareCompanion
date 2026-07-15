@@ -753,84 +753,68 @@ setExtractedPrescription(
     // Save Prescription
     //--------------------------------------------------------
 
-    async function savePrescription() {
+async function savePrescription(
+    reviewedPrescription: ExtractedPrescription
+) {
 
-        if (
-            !extractedPrescription ||
-            saving
-        ) {
+    if (saving) {
 
-            return;
-
-        }
-
-        setValidationError(
-            null
-        );
-
-        setSaveSuccess(
-            null
-        );
-
-        setSaving(
-            true
-        );
-
-        try {
-
-            await prescriptionStorage
-                .savePrescription(
-
-                    extractedPrescription,
-
-                    {
-
-                        userId,
-
-                        patientId,
-
-                        familyId,
-
-                        recordContext,
-
-                    }
-
-                );
-
-            removeAllSelectedFiles();
-
-            setSaveSuccess(
-                "Prescription saved successfully."
-            );
-
-        }
-        catch (error) {
-
-            console.error(
-                "Prescription Save Error:",
-                error
-            );
-
-            setValidationError(
-
-                error instanceof Error
-
-                    ? error.message
-
-                    : "Unable to save prescription."
-
-            );
-
-        }
-        finally {
-
-            setSaving(
-                false
-            );
-
-        }
+        return;
 
     }
+
+    setValidationError(null);
+
+    setSaveSuccess(null);
+
+    setSaving(true);
+
+    try {
+
+        await prescriptionStorage
+            .savePrescription(
+
+                reviewedPrescription,
+
+                {
+                    userId,
+                    patientId,
+                    familyId,
+                    recordContext,
+                }
+
+            );
+
+        removeAllSelectedFiles();
+
+        setSaveSuccess(
+            "Prescription saved successfully."
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "Prescription Save Error:",
+            error
+        );
+
+        setValidationError(
+
+            error instanceof Error
+                ? error.message
+                : "Unable to save prescription."
+
+        );
+
+    }
+    finally {
+
+        setSaving(false);
+
+    }
+
+}
 
     //--------------------------------------------------------
     // UI

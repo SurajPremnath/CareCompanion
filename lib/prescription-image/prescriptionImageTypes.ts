@@ -159,7 +159,7 @@ followUpPlan: string[];
 
     medicines: ExtractedPrescriptionMedicine[];
 
-    additionalNotes: string | null;
+    additionalNotes: string[];
 
     // New fields (Phase 1)
 

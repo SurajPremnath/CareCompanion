@@ -449,9 +449,9 @@ followUpPlan:
 
   medicines,
 
-  additionalNotes:
-    toNullableString(
-      parsed.additionalNotes
+additionalNotes:
+    toStringArray(
+        parsed.additionalNotes
     ),
 
 documentType:
@@ -893,6 +893,10 @@ export async function POST(
     const outputText =
       response.output_text?.trim();
 
+console.log(
+    "RAW GPT RESPONSE\n",
+    outputText
+);
 
     if (!outputText) {
 
@@ -971,7 +975,7 @@ prescription.examinationFindings.length > 0 ||
 
   prescription.medicines.length > 0 ||
 
-  prescription.additionalNotes !== null ||
+  prescription.additionalNotes.length > 0 ||
 
   prescription.investigations.length > 0;
 

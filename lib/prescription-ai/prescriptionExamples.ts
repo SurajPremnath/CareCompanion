@@ -79,7 +79,7 @@ expectedExtraction: {
 
     followUpPlan?: string[];
 
-    additionalNotes: string | null;
+    additionalNotes: string[];
 
 };
 

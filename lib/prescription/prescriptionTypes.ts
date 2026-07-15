@@ -51,6 +51,116 @@ export interface PrescriptionMedicineInput {
 
 
 //------------------------------------------------------------
+// Prescription Vital Input
+//------------------------------------------------------------
+
+export interface PrescriptionVitalInput {
+
+    weight: string | null;
+
+    height: string | null;
+
+    bmi: string | null;
+
+    bloodPressure: string | null;
+
+    pulse: string | null;
+
+    respiratoryRate: string | null;
+
+    spo2: string | null;
+
+    temperature: string | null;
+
+}
+
+//------------------------------------------------------------
+// Prescription Symptom Input
+//------------------------------------------------------------
+
+export interface PrescriptionSymptomInput {
+
+    symptom: string;
+
+    duration: string | null;
+
+    displayOrder: number;
+
+}
+
+//------------------------------------------------------------
+// Prescription History Input
+//------------------------------------------------------------
+
+export interface PrescriptionHistoryInput {
+
+    category: string;
+
+    value: string;
+
+    displayOrder: number;
+
+}
+
+//------------------------------------------------------------
+// Prescription Assessment Input
+//------------------------------------------------------------
+
+export interface PrescriptionAssessmentInput {
+
+    assessmentType:
+
+        | "DIAGNOSIS"
+
+        | "CLINICAL_ASSESSMENT"
+
+        | "EXAMINATION_FINDING"
+
+        | "PLAN";
+
+    value: string;
+
+    displayOrder: number;
+
+}
+
+//------------------------------------------------------------
+// Prescription Investigation Input
+//------------------------------------------------------------
+
+export interface PrescriptionInvestigationInput {
+
+    investigation: string;
+
+    displayOrder: number;
+
+}
+
+//------------------------------------------------------------
+// Prescription Instruction Input
+//------------------------------------------------------------
+
+export interface PrescriptionInstructionInput {
+
+    instruction: string;
+
+    displayOrder: number;
+
+}
+
+//------------------------------------------------------------
+// Prescription Note Input
+//------------------------------------------------------------
+
+export interface PrescriptionNoteInput {
+
+    note: string;
+
+    displayOrder: number;
+
+}
+
+//------------------------------------------------------------
 // Prescription Save Input
 //------------------------------------------------------------
 
@@ -76,10 +186,31 @@ export interface PrescriptionSaveInput {
 
     diagnosisOrAssessment: string | null;
 
-    additionalNotes: string | null;
+vitals:
+    PrescriptionVitalInput | null;
 
-    medicines:
-        PrescriptionMedicineInput[];
+symptoms:
+    PrescriptionSymptomInput[];
+
+history:
+    PrescriptionHistoryInput[];
+
+assessments:
+    PrescriptionAssessmentInput[];
+
+investigations:
+    PrescriptionInvestigationInput[];
+
+instructions:
+    PrescriptionInstructionInput[];
+
+notes:
+    PrescriptionNoteInput[];
+
+additionalNotes: string | null;
+
+medicines:
+    PrescriptionMedicineInput[];
 
 }
 

@@ -14,6 +14,22 @@ Never guess.
 
 If something is unreadable, return null.
 
+Never assume.
+
+Never hallucinate.
+
+Never partially reconstruct an unreadable handwritten word.
+
+Never complete an incomplete medical term.
+
+Never replace an unreadable word with the most likely medical word.
+
+Never expand an abbreviation unless it is a universally accepted medical abbreviation or the full form is explicitly written elsewhere in the same document.
+
+If a clinically significant word cannot be read with high confidence, omit that clinical item rather than guessing.
+
+It is always preferable to omit uncertain clinical information than to introduce incorrect medical information.
+
 Always preserve clinical accuracy.
 
 ------------------------------------------------------------
@@ -261,7 +277,71 @@ Classify these carefully.
 
 • Only return information as additionalNotes when it cannot be confidently classified into any other section.
 
+Before adding anything to additionalNotes, exhaustively evaluate every structured category.
+
+If a statement can reasonably belong to a structured category, it MUST NOT appear in additionalNotes.
+
+Do not concatenate multiple findings into one additional note.
+
+Each remaining additional note must represent exactly one independent clinical statement.
+
 Do not use additionalNotes as the default category.
+
+------------------------------------------------------------
+
+CLINICAL CLASSIFICATION
+
+------------------------------------------------------------
+
+Every handwritten clinical statement MUST first be classified before deciding where it belongs.
+
+Never concatenate multiple handwritten statements into one sentence.
+
+Never merge unrelated findings.
+
+Process one handwritten statement at a time.
+
+For every extracted statement, evaluate the following categories in order:
+
+1. Diagnosis
+2. Clinical Assessment
+3. Past Medical History
+4. Symptom
+5. Vital
+6. Investigation
+7. Medicine
+8. Doctor Instruction
+9. Lifestyle
+10. Social History
+11. Follow-up Plan
+12. Supplement / Vitamin / Mineral
+13. Current Long-term Therapy
+
+If a statement clearly belongs to one of the above categories, place it there.
+
+Do NOT place classified information into additionalNotes.
+
+Only use additionalNotes when the information genuinely cannot be classified into any structured category.
+
+Examples
+
+"? BPH"
+→ Diagnosis / Clinical Assessment
+
+"Statin Therapy"
+→ Current Long-term Therapy
+
+"Iron"
+→ Supplement
+
+"Vitamin B12"
+→ Supplement
+
+"Vitamin D"
+→ Supplement
+
+"Check PSA"
+→ Investigation
 
 ------------------------------------------------------------
 

@@ -215,8 +215,8 @@ Paracetamol SOS
 
             ],
 
-            additionalNotes:
-                null,
+additionalNotes:
+    [],
 
         },
 

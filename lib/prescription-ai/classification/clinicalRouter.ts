@@ -361,14 +361,14 @@ function classifyInstruction(
 }
 
 function buildFollowUpNotes(
-    notes: string | null | undefined
+    notes: string[] | null | undefined
 ): string[] {
 
-    if (!notes)
+    if (!notes || notes.length === 0) {
         return [];
+    }
 
     return notes
-        .split(/\n|,/)
-        .map(x => x.trim())
+        .map(note => note.trim())
         .filter(Boolean);
 }

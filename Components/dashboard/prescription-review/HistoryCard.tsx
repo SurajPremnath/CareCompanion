@@ -1,5 +1,7 @@
 "use client";
 
+import { expandMedicalText } from "@/lib/medicalFormatter";
+
 import type {
     ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
@@ -10,16 +12,18 @@ interface HistoryCardProps {
 
 }
 
-function formatMedicalHistory(
-    text: string
-): string {
+function formatMedicalHistory(text: string): string {
 
-    return text
-        .replace(/^HTN\b/i, "Hypertension")
-        .replace(/\bx\s*(\d+)\s*yrs\b/i, " ($1 years)")
-        .replace(/\bveg\b/i, "Vegetarian")
-        .replace(/\bmixed diet\b/i, "Mixed Diet")
-        .replace(/\blive in apt\b/i, "Lives in Apartment");
+    return expandMedicalText(text)
+
+.replace(
+    /\blive\s+i?n?\s+apt\b/i,
+    "\nLives in Apartment"
+)
+.replace(
+    /\blives\s+in\s+apartment\b/i,
+    "\nLives in Apartment"
+)
 
 }
 
@@ -93,22 +97,19 @@ export default function HistoryCard({
 
                 {
 
-                    prescription.pastMedicalHistory.map(
+prescription.pastMedicalHistory
 
-                        (item, index) => (
+    .map((item, index) => (
+        <li
+            key={index}
+            style={bulletItem}
+        >
 
-                            <li
-                                key={index}
-                                style={bulletItem}
-                            >
+            {formatMedicalHistory(item)}
 
-                                {formatMedicalHistory(item)}
+        </li>
 
-                            </li>
-
-                        )
-
-                    )
+    ))
 
                 }
 
@@ -160,12 +161,22 @@ export default function HistoryCard({
                                                 style={bulletItem}
                                             >
 
-                                                {formatMedicalHistory(
+{formatMedicalHistory(item.value)
+    .split("\n")
+    .map((line, index) => (
 
-                                                    item.value
+        <div
+            key={index}
+            style={{
+                marginTop: index === 0 ? 0 : 6,
+                marginLeft: index === 0 ? 0 : 18,
+            }}
+        >
+            {line.trim()}
+        </div>
 
-                                                )}
-
+    ))
+}
                                             </li>
 
                                         )

@@ -1,5 +1,7 @@
 "use client";
 
+import { expandMedicalText } from "@/lib/medicalFormatter";
+
 import type {
     ExtractedPrescription,
     ConsultationMode,
@@ -15,6 +17,10 @@ interface PatientCardProps {
 
     onConsultationModeChange: (
         value: ConsultationMode
+    ) => void;
+
+    onConsultationDateChange: (
+        value: string
     ) => void;
 
 }
@@ -97,6 +103,8 @@ export default function PatientCard({
 
     onConsultationModeChange,
 
+    onConsultationDateChange,
+
 }:PatientCardProps){
 
 return(
@@ -127,8 +135,10 @@ return(
 
 <td style={cell}>
 
-{toTitleCase(
+{expandMedicalText(
+toTitleCase(
 prescription.hospitalOrClinic
+)
 )}
 
 </td>
@@ -137,13 +147,82 @@ prescription.hospitalOrClinic
 
 <tr>
 
-<td style={label}>Consultation Date</td>
+<td style={label}>
+
+Consultation Date
+
+</td>
 
 <td style={cell}>
 
-{formatDate(
+<div
+style={{
+display:"flex",
+flexDirection:"column",
+gap:"8px",
+maxWidth:"260px",
+}}
+>
+
+<div
+style={{
+display:"flex",
+alignItems:"center",
+gap:"8px",
+fontSize:"14px",
+fontWeight:600,
+color:"#334155",
+}}
+>
+
+<span>🤖 AI Extracted Date</span>
+
+</div>
+<input
+type="date"
+value={
 prescription.consultationDate
-)}
+? new Date(
+prescription.consultationDate
+).toISOString().split("T")[0]
+: ""
+}
+onChange={(e)=>
+    onConsultationDateChange(
+        e.target.value
+    )
+}
+style={{
+padding:"10px 12px",
+border:"1px solid #cbd5e1",
+borderRadius:"8px",
+fontSize:"15px",
+width:"220px",
+}}
+/>
+
+<div
+style={{
+display:"flex",
+alignItems:"center",
+gap:"6px",
+fontSize:"13px",
+color:"#b45309",
+fontWeight:500,
+}}
+>
+
+<span>⚠️</span>
+
+<span>
+
+If the date is incorrect, select the correct consultation date.
+
+</span>
+
+</div>
+
+</div>
 
 </td>
 

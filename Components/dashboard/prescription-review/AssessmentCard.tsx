@@ -1,5 +1,7 @@
 "use client";
 
+import { expandMedicalText } from "@/lib/medicalFormatter";
+
 import type {
     ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
@@ -54,29 +56,23 @@ export default function AssessmentCard({
 
 }: AssessmentCardProps) {
 
-    const additionalDiagnoses =
+const diagnosis = expandMedicalText(
+    prescription.diagnosisOrAssessment ?? ""
+).toLowerCase();
 
-        prescription.clinicalAssessments.filter(item => {
+const additionalDiagnoses =
+    prescription.clinicalAssessments.filter((item) => {
 
-            const value =
+        const value = expandMedicalText(item)
+            .toLowerCase()
+            .trim();
 
-                item
-                    .toLowerCase()
-                    .trim();
+        return (
+            value !== diagnosis &&
+            value.length > 3
+        );
 
-            return (
-
-                value !==
-                prescription.diagnosisOrAssessment
-                    ?.toLowerCase()
-
-                &&
-
-                value.length > 3
-
-            );
-
-        });
+    });
 
     const hasAssessment =
 
@@ -116,11 +112,12 @@ export default function AssessmentCard({
 
                         <p>
 
-                            {
 
-                                prescription.diagnosisOrAssessment
 
-                            }
+                                {expandMedicalText(
+    prescription.diagnosisOrAssessment
+)}
+
 
                         </p>
 
@@ -155,7 +152,7 @@ export default function AssessmentCard({
                                             style={bulletItem}
                                         >
 
-                                            {item}
+                                            {expandMedicalText(item)}
 
                                         </li>
 
@@ -198,11 +195,7 @@ export default function AssessmentCard({
                                             style={bulletItem}
                                         >
 
-                                            {
-
-                                                item.finding
-
-                                            }
+{expandMedicalText(item.finding)}
 
                                         </li>
 

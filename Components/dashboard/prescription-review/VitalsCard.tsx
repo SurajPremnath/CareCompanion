@@ -1,5 +1,7 @@
 "use client";
 
+import { expandMedicalText } from "@/lib/medicalFormatter";
+
 import type {
 ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";

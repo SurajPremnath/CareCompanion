@@ -2,6 +2,53 @@ import type { PrescriptionExample } from "../prescriptionExamples";
 
 export const GENERAL_MEDICINE_EXAMPLES: PrescriptionExample[] = [
 
+{
+    title:
+        "Past Medical History Extraction",
+
+    doctorWrites: `
+
+Past
+
+HTN ×20 yrs
+
+Add. Hernia
+
+`,
+
+expectedExtraction: {
+
+    diagnosis:
+        null,
+
+    clinicalAssessments: [],
+
+    medicines: [],
+
+    investigations: [],
+
+    doctorInstructions: [],
+
+    additionalNotes: [],
+
+    history: [
+
+        {
+            category: "MEDICAL",
+            value: "Hypertension (20 years)",
+        },
+
+        {
+            category: "SURGICAL",
+            value: "Hernia",
+        },
+
+    ],
+
+},
+
+},
+
     {
 
         title:
@@ -52,7 +99,7 @@ ECG
             ],
 
             additionalNotes:
-                null,
+    [],
 
             investigations: [
 

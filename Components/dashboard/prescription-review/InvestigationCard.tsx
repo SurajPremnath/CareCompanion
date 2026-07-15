@@ -1,5 +1,7 @@
 "use client";
 
+import { expandMedicalText } from "@/lib/medicalFormatter";
+
 import type {
     ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
@@ -54,7 +56,7 @@ export default function InvestigationCard({
                 {items.map((item,index)=>(
 
                     <li key={index}>
-                        {item}
+{expandMedicalText(item)}
                     </li>
 
                 ))}

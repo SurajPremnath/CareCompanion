@@ -136,54 +136,236 @@ export function mapReviewedPrescriptionToSaveInput(
     // Build Save Input
     //--------------------------------------------------------
 
-    return {
+return {
 
-        userId:
-            context.userId,
+    userId:
+        context.userId,
 
-        patientId:
-            context.recordContext === "SELF"
-                ? null
-                : context.patientId,
+    patientId:
+        context.recordContext === "SELF"
+            ? null
+            : context.patientId,
 
-        familyId:
-            context.familyId,
+    familyId:
+        context.familyId,
 
-        recordContext:
-            context.recordContext,
+    recordContext:
+        context.recordContext,
 
-        doctorName:
-            normaliseOptionalText(
-                reviewedPrescription.doctorName
-            ),
+    doctorName:
+        normaliseOptionalText(
+            reviewedPrescription.doctorName
+        ),
 
-        consultationDate:
-            normaliseOptionalText(
-                reviewedPrescription.consultationDate
-            ),
+    consultationDate:
+        normaliseOptionalText(
+            reviewedPrescription.consultationDate
+        ),
 
-        consultationMode:
-            reviewedPrescription.consultationMode,
+    consultationMode:
+        reviewedPrescription.consultationMode,
 
-        hospitalOrClinic:
-            normaliseOptionalText(
-                reviewedPrescription.hospitalOrClinic
-            ),
+    hospitalOrClinic:
+        normaliseOptionalText(
+            reviewedPrescription.hospitalOrClinic
+        ),
 
-        diagnosisOrAssessment:
-            normaliseOptionalText(
-                reviewedPrescription
-                    .diagnosisOrAssessment
-            ),
+    diagnosisOrAssessment:
+        normaliseOptionalText(
+            reviewedPrescription
+                .diagnosisOrAssessment
+        ),
 
-        additionalNotes:
-            normaliseOptionalText(
-                reviewedPrescription
-                    .additionalNotes
-            ),
+    //--------------------------------------------------------
+    // New Normalized Sections
+    //--------------------------------------------------------
 
-        medicines,
+    vitals:
+        reviewedPrescription.consultationVitals
+            ? {
 
-    };
+                weight:
+                    normaliseOptionalText(
+                        reviewedPrescription.consultationVitals.weight
+                    ),
+
+                height:
+                    normaliseOptionalText(
+                        reviewedPrescription.consultationVitals.height
+                    ),
+
+                bmi:
+                    normaliseOptionalText(
+                        reviewedPrescription.consultationVitals.bmi
+                    ),
+
+                bloodPressure:
+                    normaliseOptionalText(
+                        reviewedPrescription.consultationVitals.bloodPressure
+                    ),
+
+                pulse:
+                    normaliseOptionalText(
+                        reviewedPrescription.consultationVitals.pulse
+                    ),
+
+                respiratoryRate:
+                    normaliseOptionalText(
+                        reviewedPrescription.consultationVitals.respiratoryRate
+                    ),
+
+                spo2:
+                    normaliseOptionalText(
+                        reviewedPrescription.consultationVitals.spo2
+                    ),
+
+                temperature:
+                    normaliseOptionalText(
+                        reviewedPrescription.consultationVitals.temperature
+                    ),
+
+            }
+            : null,
+
+    symptoms:
+
+        reviewedPrescription.presentingComplaints.map(
+            (item, index) => ({
+
+                symptom: item.complaint,
+
+                duration:
+                    normaliseOptionalText(
+                        item.duration
+                    ),
+
+                displayOrder:
+                    index,
+
+            })
+        ),
+
+    history:
+
+        reviewedPrescription.history.map(
+            (item, index) => ({
+
+                category:
+                    item.category,
+
+                value:
+                    item.value,
+
+                displayOrder:
+                    index,
+
+            })
+        ),
+
+    assessments: [
+
+        ...(reviewedPrescription.diagnosisOrAssessment
+            ? [{
+                assessmentType: "DIAGNOSIS" as const,
+                value: reviewedPrescription.diagnosisOrAssessment,
+                displayOrder: 0,
+            }]
+            : []),
+
+        ...reviewedPrescription.clinicalAssessments.map(
+            (item, index) => ({
+
+                assessmentType:
+                    "CLINICAL_ASSESSMENT" as const,
+
+                value: item,
+
+                displayOrder:
+                    index + 1,
+
+            })
+        ),
+
+        ...reviewedPrescription.examinationFindings.map(
+            (item, index) => ({
+
+                assessmentType:
+                    "EXAMINATION_FINDING" as const,
+
+                value:
+                    item.finding,
+
+                displayOrder:
+                    index,
+
+            })
+        ),
+
+        ...reviewedPrescription.clinicalPlan.map(
+            (item, index) => ({
+
+                assessmentType:
+                    "PLAN" as const,
+
+                value:
+                    item,
+
+                displayOrder:
+                    index,
+
+            })
+        ),
+
+    ],
+
+    investigations:
+
+        reviewedPrescription.investigations.map(
+            (item, index) => ({
+
+                investigation:
+                    item,
+
+                displayOrder:
+                    index,
+
+            })
+        ),
+
+    instructions:
+
+        reviewedPrescription.doctorInstructions.map(
+            (item, index) => ({
+
+                instruction:
+                    item,
+
+                displayOrder:
+                    index,
+
+            })
+        ),
+
+notes:
+
+    reviewedPrescription.additionalNotes
+
+        .map(
+            (note, index) => ({
+
+                note,
+
+                displayOrder: index,
+
+            })
+        ),
+
+    //--------------------------------------------------------
+
+additionalNotes: null,
+
+    medicines,
+
+};
 
 }
