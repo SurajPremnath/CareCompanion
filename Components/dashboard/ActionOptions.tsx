@@ -388,6 +388,48 @@ const [
             How would you like to add the prescription?
         </label>
 
+{/* Upload Guidance */}
+
+<div
+    style={{
+        background: "#FFF9E6",
+        border: "1px solid #E8D27A",
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 16,
+        fontSize: 14,
+        lineHeight: 1.6,
+    }}
+>
+
+    <strong>
+        📷 For Best Results
+    </strong>
+
+    <div>
+
+        • Supported formats: JPG, JPEG and PNG
+
+        <br />
+
+        • Use clear, well-lit images
+
+        <br />
+
+        • Crop unnecessary background
+
+        <br />
+
+        • Recommended image size: 300 KB – 1 MB
+
+        <br />
+
+        • Maximum supported size: 2 MB per image
+
+    </div>
+
+</div>
+
 
 <div style={optionGridThree}>
 

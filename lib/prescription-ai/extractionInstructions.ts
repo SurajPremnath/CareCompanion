@@ -113,7 +113,6 @@ ${COMMON_MEDICAL_ABBREVIATIONS.join(", ")}
 // Clinical Understanding Instructions
 //------------------------------------------------------------
 
-
 const CLINICAL_UNDERSTANDING = `
 
 You are an experienced physician reviewing a real clinical document.
@@ -191,52 +190,71 @@ Prem Nath
 
 Consultation Date
 
-Read ONLY the handwritten consultation date.
+The consultation date is one of the highest priority fields.
 
-Ignore
+Before extracting it, carefully inspect the entire first page.
 
-• Registration number
+The consultation date is commonly handwritten:
+
+• Next to "Dt"
+• Next to "Date"
+• Near the doctor's name or signature
+• In the patient information area
+
+Read the handwritten date character-by-character.
+
+Zoom in mentally before interpreting the digits.
+
+Treat each digit independently.
+
+Pay particular attention to distinguishing:
+
+• 3 vs 5
+• 5 vs 6
+• 6 vs 8
+• 1 vs 7
+
+Do not use nearby numbers such as:
+
 • UHID
-• Patient age
-• Phone numbers
+• Registration Number
+• Mobile Number
+• Patient ID
+• Age
+• Weight
+• Blood Pressure
+• Pulse
 
-Do NOT convert formats.
+If multiple date-like values exist, choose the one that is most likely to represent the consultation date based on its location and surrounding labels.
 
-Return exactly what is written.
+Assume Indian date format:
+
+DD/MM/YYYY
+DD/MM/YY
+DD-MM-YYYY
+DD-MM-YY
+
+Return ONLY:
+
+YYYY-MM-DD
 
 Examples
 
-8/6/26
+Dt: 5/6/26
 
 ↓
 
-8/6/26
+2026-06-05
 
-If the date is unreadable,
-
-return null.
-
-Examples
-
-5/6/26
+Date: 08/11/25
 
 ↓
 
-5/6/26
+2025-11-08
 
-Doctor Name
+If the date is partially readable but one digit is uncertain, spend additional effort inspecting that digit before returning null.
 
-Copy exactly as written.
-
-Hospital
-
-Copy exactly as written.
-
-If any identity field is unclear,
-
-return null.
-
-Never guess.
+Return null only if the handwritten consultation date genuinely cannot be determined.
 
 ------------------------------------------------------------
 STEP 1 – Understand the Document
@@ -927,7 +945,13 @@ Never invent diagnoses.
 
 Never infer strengths.
 
-Never infer dates.
+Never invent unreadable dates.
+
+If the consultation date is readable,
+convert it to ISO format (YYYY-MM-DD).
+
+If the handwritten date is not readable with confidence,
+return null.
 
 ------------------------------------------------------------
 STEP 6 – Consultation Type

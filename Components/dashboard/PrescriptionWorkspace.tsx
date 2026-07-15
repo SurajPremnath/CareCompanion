@@ -208,6 +208,8 @@ const [
             null
         );
 
+const MAX_IMAGE_SIZE =
+    2 * 1024 * 1024; // 2 MB
 
     //--------------------------------------------------------
     // Initial Picker
@@ -258,20 +260,56 @@ const [
 async function handleFiles(
     event: React.ChangeEvent<HTMLInputElement>
 ) {
-        const files =
-            Array.from(
-                event.target.files ?? []
-            );
 
-        event.target.value = "";
+const files =
+    Array.from(
+        event.target.files ?? []
+    );
 
-        if (
-            files.length === 0
-        ) {
+const oversizedFiles =
+    files.filter(
+        file =>
+            file.size > MAX_IMAGE_SIZE
+    );
 
-            return;
+if (
+    oversizedFiles.length > 0
+) {
 
-        }
+    const fileNames =
+        oversizedFiles
+            .map(
+                file =>
+                    `• ${file.name}`
+            )
+            .join("\n");
+
+    setValidationError(
+
+        "Unable to upload the selected prescription image(s).\n\n" +
+
+        "The following file(s) exceed the supported size:\n\n" +
+
+        fileNames +
+
+        "\n\nFor the best experience (especially on iPhone):\n\n" +
+
+        "• Recommended size: 300 KB - 1 MB per image\n" +
+
+        "• Maximum supported: 2 MB per image\n" +
+
+        "• Crop unnecessary background before uploading\n\n" +
+
+        "Please reduce the image size and try again."
+
+    );
+
+
+    event.target.value = "";
+
+    return;
+
+}
 
         setValidationError(
             null
@@ -726,18 +764,27 @@ setExtractedPrescription(
 );
 
         }
-        catch (error) {
+catch (error) {
 
-            console.error(
-                "Prescription Read Error:",
-                error
-            );
+    console.error(
+        "Prescription Read Error:",
+        error
+    );
 
-            setValidationError(
-                "Unable to process the prescription."
-            );
+    if (error instanceof Error) {
 
-        }
+        setValidationError(error.message);
+
+    }
+    else {
+
+        setValidationError(
+            "Unable to process the prescription."
+        );
+
+    }
+
+}
         finally {
 
             setProcessing(
@@ -820,27 +867,27 @@ async function savePrescription(
     // UI
     //--------------------------------------------------------
 
-    return (
+return (
 
-        <div style={workspaceContainer}>
-
+<div style={workspaceContainer}>
             {/* Hidden Camera Input */}
 
 
             {/* Hidden Gallery Input */}
 
-            <input
-                ref={galleryInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                onChange={(event) =>
-                    handleFiles(event)
-                }
-                style={{
-                    display: "none",
-                }}
-            />
+
+<input
+    ref={galleryInputRef}
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    multiple
+    onChange={(event) =>
+        handleFiles(event)
+    }
+    style={{
+        display: "none",
+    }}
+/>
 
             {/* Hidden PDF Input */}
 
@@ -989,6 +1036,7 @@ async function savePrescription(
                 )
 
             }
+
 
             {/* Progress */}
 

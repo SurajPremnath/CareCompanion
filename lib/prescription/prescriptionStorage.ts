@@ -93,73 +93,57 @@ function normaliseConsultationDate(
     }
 
 
-    //--------------------------------------------------------
-    // DD/MM/YYYY or DD-MM-YYYY
-    //--------------------------------------------------------
+//--------------------------------------------------------
+// DD/MM/YYYY, DD/MM/YY, DD-MM-YYYY or DD-MM-YY
+//--------------------------------------------------------
 
-    const dayFirstMatch =
-        trimmedValue.match(
-            /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
-        );
+const dayFirstMatch =
+    trimmedValue.match(
+        /^(\d{1,2})[/-](\d{1,2})[/-](\d{2}|\d{4})$/
+    );
 
+if (dayFirstMatch) {
 
-    if (dayFirstMatch) {
+    const day =
+        Number(dayFirstMatch[1]);
 
-        const day =
-            Number(
-                dayFirstMatch[1]
-            );
+    const month =
+        Number(dayFirstMatch[2]);
 
-        const month =
-            Number(
-                dayFirstMatch[2]
-            );
+    let year =
+        Number(dayFirstMatch[3]);
 
-        const year =
-            Number(
-                dayFirstMatch[3]
-            );
+    if (year < 100) {
 
-
-        const candidate =
-            new Date(
-                Date.UTC(
-                    year,
-                    month - 1,
-                    day
-                )
-            );
-
-
-        const isValid =
-            candidate.getUTCFullYear() === year &&
-            candidate.getUTCMonth() === month - 1 &&
-            candidate.getUTCDate() === day;
-
-
-        if (isValid) {
-
-            return [
-                year.toString().padStart(
-                    4,
-                    "0"
-                ),
-
-                month.toString().padStart(
-                    2,
-                    "0"
-                ),
-
-                day.toString().padStart(
-                    2,
-                    "0"
-                ),
-
-            ].join("-");
-
-        }
+        year += 2000;
 
     }
+
+    const candidate =
+        new Date(
+            Date.UTC(
+                year,
+                month - 1,
+                day
+            )
+        );
+
+    const isValid =
+        candidate.getUTCFullYear() === year &&
+        candidate.getUTCMonth() === month - 1 &&
+        candidate.getUTCDate() === day;
+
+    if (isValid) {
+
+        return [
+            year.toString().padStart(4, "0"),
+            month.toString().padStart(2, "0"),
+            day.toString().padStart(2, "0"),
+        ].join("-");
+
+    }
+
+}
 
 
     //--------------------------------------------------------

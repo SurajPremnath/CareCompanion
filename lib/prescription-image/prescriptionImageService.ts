@@ -17,6 +17,7 @@ export const prescriptionImageService = {
     files: File[]
   ): Promise<PrescriptionImageProcessingResult> {
 
+
     try {
 
       //------------------------------------------------------
@@ -52,6 +53,8 @@ export const prescriptionImageService = {
         await supabase.auth.getSession();
 
 
+
+
       if (
         sessionError ||
         !session?.access_token
@@ -69,23 +72,22 @@ export const prescriptionImageService = {
       }
 
 
-      //------------------------------------------------------
-      // Build Form Data
-      //------------------------------------------------------
+//------------------------------------------------------
+// Build Form Data
+//------------------------------------------------------
 
-      const formData =
-        new FormData();
+const formData =
+    new FormData();
 
 
-      for (const file of files) {
+for (const file of files) {
 
-        formData.append(
-          "documents",
-          file
-        );
+    formData.append(
+        "documents",
+        file
+    );
 
-      }
-
+}
 
       //------------------------------------------------------
       // Call Prescription API
@@ -112,7 +114,7 @@ export const prescriptionImageService = {
         );
 
 
-      const result =
+     const result =
         await response.json();
 
 
@@ -149,24 +151,36 @@ export const prescriptionImageService = {
       };
 
     }
-    catch (error) {
+catch (error) {
 
-      console.error(
+    console.error(
         "Prescription Document Processing Error:",
         error
-      );
+    );
 
+    if (error instanceof Error) {
 
-      return {
+        return {
+
+            success: false,
+
+            error:
+                `CLIENT ERROR: ${error.name}: ${error.message}`,
+
+        };
+
+    }
+
+    return {
 
         success: false,
 
         error:
-          "Unable to process the prescription document.",
+            "CLIENT ERROR: Unknown error",
 
-      };
+    };
 
-    }
+}
 
   },
 

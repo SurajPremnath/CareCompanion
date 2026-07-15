@@ -1,4 +1,3 @@
-
 import OpenAI, {
   toFile,
 } from "openai";
@@ -83,6 +82,7 @@ function getOpenAIClient(): OpenAI {
   });
 
 }
+
 
 //------------------------------------------------------------
 // Nullable String
@@ -498,6 +498,7 @@ export async function POST(
         "authorization"
       );
 
+
     if (
       !authorizationHeader?.startsWith(
         "Bearer "
@@ -559,10 +560,12 @@ export async function POST(
     const formData =
       await request.formData();
 
+
     const documentEntries =
       formData.getAll(
         "documents"
       );
+
 
     const documents =
       documentEntries.filter(
@@ -572,14 +575,6 @@ export async function POST(
           item instanceof File
       );
 
-console.log(
-    "Documents:",
-    documents.map(file => ({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-    }))
-);
 
     if (
       documents.length === 0
@@ -1009,15 +1004,10 @@ if (!hasUsefulPrescriptionData) {
   }
   catch (error: unknown) {
 
-console.error("Prescription Document Route Error");
-
-if (error instanceof Error) {
-    console.error("Name:", error.name);
-    console.error("Message:", error.message);
-    console.error("Stack:", error.stack);
-} else {
-    console.error(error);
-}
+    console.error(
+      "Prescription Document Route Error:",
+      error
+    );
 
 
     const apiError =
