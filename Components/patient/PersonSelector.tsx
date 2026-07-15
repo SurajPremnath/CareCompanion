@@ -46,8 +46,10 @@ export interface PersonSelection {
     patientId:
         string | null;
 
-}
+    patientName:
+        string | null;
 
+}
 
 
 
@@ -218,15 +220,18 @@ if (disabled) {
         return;
 
     }
-            onChange({
+onChange({
 
-                mode:
-                    "SELF",
+    mode:
+        "SELF",
 
-                patientId:
-                    null,
+    patientId:
+        null,
 
-            });
+    patientName:
+        null,
+
+});
 
         }}
         style={{
@@ -265,15 +270,18 @@ if (disabled) {
         return;
 
     }
-            onChange({
+onChange({
 
-                mode:
-                    "FAMILY",
+    mode:
+        "FAMILY",
 
-                patientId:
-                    null,
+    patientId:
+        null,
 
-            });
+    patientName:
+        null,
+
+});
 
         }}
         style={{
@@ -343,16 +351,24 @@ disabled={disabled}
                             }
                             onChange={(event) => {
 
-                                onChange({
+const selectedPatient =
+    patients.find(
+        patient =>
+            patient.id === event.target.value
+    );
 
-                                    mode:
-                                        "FAMILY",
+onChange({
 
-                                    patientId:
-                                        event.target.value ||
-                                        null,
+    mode:
+        "FAMILY",
 
-                                });
+    patientId:
+        event.target.value || null,
+
+    patientName:
+        selectedPatient?.fullName ?? null,
+
+});
 
                             }}
                             style={selectStyle}

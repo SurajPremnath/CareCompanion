@@ -8,6 +8,10 @@ import type {
 
 import type { Result } from "@/lib/types/result";
 
+import { ClinicalEventBuilder } from "@/lib/builders/clinicalEventBuilder";
+
+import { ClinicalEventStorage } from "@/lib/storage/clinicalEventStorage";
+
 export class DailyCareStorage {
 
   //------------------------------------------------------------
@@ -63,6 +67,27 @@ const savedDailyCare =
   await dailyCareRepository.create(
     dailyCare
   );
+
+try {
+
+  const clinicalEvent =
+    ClinicalEventBuilder.fromDailyCare(
+      savedDailyCare
+    );
+
+  await ClinicalEventStorage.create(
+    clinicalEvent
+  );
+
+}
+catch (error) {
+
+  console.error(
+    "Unable to create Clinical Event:",
+    error
+  );
+
+}
 
       return {
 

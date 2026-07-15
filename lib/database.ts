@@ -39,3 +39,25 @@ is_completed: boolean;
   updated_at: string;
 
 }
+
+export interface ClinicalEventRow {
+  id: string;
+
+  user_id: string;
+
+  patient_id: string | null;
+
+  event_type: string;
+
+  source_table: string;
+
+  source_id: string;
+
+  event_date: string;
+
+  title: string;
+
+  summary: string | null;
+
+  created_at: string;
+}

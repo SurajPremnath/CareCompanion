@@ -1,0 +1,174 @@
+{
+  "benchmark": "CareVR Gold Standard Consultation v1",
+  "version": 1,
+  "documentType": "Consultation Prescription",
+  "source": "Real Consultation",
+  "status": "Approved",
+
+  "consultationVitals": {
+
+    "weight": "72.2 kg",
+
+    "bloodPressure": "114/78 mmHg",
+
+    "pulse": "115/min",
+
+    "spo2": "95%",
+
+    "temperature": "35.4°C",
+
+    "respiratoryRate": null,
+
+    "height": null,
+
+    "bmi": null
+
+},
+
+  "presentingComplaints": [
+
+    {
+        "complaint": "Tiredness",
+        "duration": "1 week"
+    },
+
+    {
+        "complaint": "Leg pain",
+        "duration": null
+    },
+
+    {
+        "complaint": "Dry cough",
+        "duration": null
+    },
+
+    {
+        "complaint": "Chest congestion",
+        "duration": "1 week"
+    },
+
+    {
+        "complaint": "Shortness of breath on exertion",
+        "duration": null
+    },
+
+    {
+        "complaint": "Mild chest tightness",
+        "duration": null
+    },
+
+    {
+        "complaint": "Giddiness",
+        "duration": null
+    },
+
+    {
+        "complaint": "Feverish every evening",
+        "duration": null
+    }
+
+],
+
+"history": [
+
+    {
+        "category": "MEDICAL",
+        "value": "Hypertension"
+    },
+
+    {
+        "category": "MEDICAL",
+        "value": "Diabetes Mellitus"
+    },
+
+    {
+        "category": "MEDICAL",
+        "value": "Hernia"
+    },
+
+    {
+        "category": "MEDICATION",
+        "value": "Stopped Statin"
+    },
+
+    {
+        "category": "LIFESTYLE",
+        "value": "Mostly Vegetarian"
+    },
+
+    {
+        "category": "SOCIAL",
+        "value": "Lives in Apartment"
+    },
+
+    {
+        "category": "SOCIAL",
+        "value": "No Recent Travel"
+    }
+
+],
+
+"examinationFindings": [
+
+    {
+        "finding": "Bilateral wheeze"
+    },
+
+    {
+        "finding": "Bilateral air entry"
+    },
+
+    {
+        "finding": "No pedal edema"
+    },
+
+    {
+        "finding": "No pallor"
+    }
+
+],
+
+"clinicalAssessments": [
+
+    "Likely Viral URTI",
+
+    "Nutritional Deficiency",
+
+    "? Benign Prostatic Hyperplasia (BPH)"
+
+],
+
+  "medicines": [],
+
+"investigations": [
+
+    "Complete Blood Count (CBC)",
+
+    "Chest X-Ray",
+
+    "Prostate Specific Antigen (PSA)",
+
+    "Ultrasound Abdomen and Pelvis",
+
+    "Iron Studies",
+
+    "Vitamin B12",
+
+    "Vitamin D"
+
+],
+
+"doctorInstructions": [
+
+    "Steam inhalation",
+
+    "Betadine gargle",
+
+    "Take medicines with warm water where advised",
+
+    "Use Paracetamol if fever develops"
+
+],
+
+
+}

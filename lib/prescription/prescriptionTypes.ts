@@ -15,7 +15,11 @@ export type PrescriptionConsultationMode =
     | "IN_PERSON"
     | "VIDEO"
     | "PHONE"
+    | "WHATSAPP"
+    | "EMAIL"
     | "HOME_VISIT"
+    | "HOSPITAL_ADMISSION"
+    | "HOSPITAL_DISCHARGE"
     | "OTHER";
 
 
@@ -72,7 +76,7 @@ export interface PrescriptionSaveInput {
 
     diagnosisOrAssessment: string | null;
 
-    additionalInstructions: string | null;
+    additionalNotes: string | null;
 
     medicines:
         PrescriptionMedicineInput[];
@@ -108,7 +112,7 @@ export interface PrescriptionRecord {
 
     diagnosisOrAssessment: string | null;
 
-    additionalInstructions: string | null;
+    additionalNotes: string | null;
 
     reviewedAt: string;
 

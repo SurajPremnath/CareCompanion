@@ -172,6 +172,8 @@ const [
 
         patientId: null,
 
+        patientName: null,
+
     });
 
     //------------------------------------------------------------
@@ -1198,6 +1200,13 @@ selectedMedicationDetail={
     patientId={
         personSelection.patientId
     }
+
+patientName={
+    personSelection.mode === "SELF"
+        ? user.fullName
+        : personSelection.patientName ?? ""
+}
+
 
     familyId={
         null

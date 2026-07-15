@@ -224,9 +224,9 @@ function validateContext(
 
 export const prescriptionStorage = {
 
-    async saveReviewedPrescription(
+    async savePrescription(
 
-        reviewedPrescription:
+        prescription:
             ExtractedPrescription,
 
         context:
@@ -251,11 +251,11 @@ export const prescriptionStorage = {
         const preparedPrescription:
             ExtractedPrescription = {
 
-                ...reviewedPrescription,
+                ...prescription,
 
                 consultationDate:
                     normaliseConsultationDate(
-                        reviewedPrescription
+                        prescription
                             .consultationDate
                     ),
 

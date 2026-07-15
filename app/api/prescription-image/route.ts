@@ -7,15 +7,24 @@ import {
 } from "next/server";
 
 import type {
+
   ConsultationMode,
+
+  MedicalDocumentType,
+
   ExtractedPrescription,
+
   ExtractedPrescriptionMedicine,
+
 } from "@/lib/prescription-image/prescriptionImageTypes";
 
 import {
   supabaseAdmin,
 } from "@/lib/supabaseAdmin";
 
+import {
+    EXTRACTION_INSTRUCTIONS,
+} from "@/lib/prescription-ai/extractionInstructions";
 
 //------------------------------------------------------------
 // Route Configuration
@@ -146,7 +155,11 @@ function toConsultationMode(
     value === "IN_PERSON" ||
     value === "VIDEO" ||
     value === "PHONE" ||
+    value === "WHATSAPP" ||
+    value === "EMAIL" ||
     value === "HOME_VISIT" ||
+    value === "HOSPITAL_ADMISSION" ||
+    value === "HOSPITAL_DISCHARGE" ||
     value === "OTHER"
   ) {
 
@@ -154,11 +167,25 @@ function toConsultationMode(
 
   }
 
-
   return null;
 
 }
 
+//------------------------------------------------------------
+// Document Type
+//------------------------------------------------------------
+
+
+function toDocumentType(
+  value: unknown
+): MedicalDocumentType {
+
+  if (value === "PRESCRIPTION") {
+    return "PRESCRIPTION";
+  }
+
+  return "PRESCRIPTION";
+}
 
 //------------------------------------------------------------
 // Parse Medicine
@@ -294,120 +321,157 @@ function parsePrescription(
       : [];
 
 
-  return {
+return {
 
-    patientName:
-      toNullableString(
-        parsed.patientName
-      ),
+  patientName:
+    toNullableString(
+      parsed.patientName
+    ),
 
-    patientDateOfBirth:
-      toNullableString(
-        parsed.patientDateOfBirth
-      ),
+  patientDateOfBirth:
+    toNullableString(
+      parsed.patientDateOfBirth
+    ),
 
-    doctorName:
-      toNullableString(
-        parsed.doctorName
-      ),
+patientAge:
+    null,
 
-    consultationDate:
-      toNullableString(
-        parsed.consultationDate
-      ),
+patientGender:
+    null,
 
-    consultationMode:
-      toConsultationMode(
-        parsed.consultationMode
-      ),
+patientUHID:
+    null,
 
-    hospitalOrClinic:
-      toNullableString(
-        parsed.hospitalOrClinic
-      ),
+  doctorName:
+    toNullableString(
+      parsed.doctorName
+    ),
 
-    diagnosisOrAssessment:
-      toNullableString(
-        parsed.diagnosisOrAssessment
-      ),
+  consultationDate:
+    toNullableString(
+      parsed.consultationDate
+    ),
 
-    medicines,
+  consultationMode:
+    toConsultationMode(
+      parsed.consultationMode
+    ),
 
-    additionalInstructions:
-      toNullableString(
-        parsed.additionalInstructions
-      ),
+consultationVitals: parsed.consultationVitals &&
+typeof parsed.consultationVitals === "object"
+    ? {
+          weight: toNullableString((parsed.consultationVitals as any).weight),
+          height: toNullableString((parsed.consultationVitals as any).height),
+          bmi: toNullableString((parsed.consultationVitals as any).bmi),
+          bloodPressure: toNullableString((parsed.consultationVitals as any).bloodPressure),
+          pulse: toNullableString((parsed.consultationVitals as any).pulse),
+          respiratoryRate: toNullableString((parsed.consultationVitals as any).respiratoryRate),
+          spo2: toNullableString((parsed.consultationVitals as any).spo2),
+          temperature: toNullableString((parsed.consultationVitals as any).temperature),
+      }
+    : null,
 
-  };
+  hospitalOrClinic:
+    toNullableString(
+      parsed.hospitalOrClinic
+    ),
+
+  diagnosisOrAssessment:
+    toNullableString(
+      parsed.diagnosisOrAssessment
+    ),
+
+clinicalAssessments:
+    toStringArray(
+        parsed.clinicalAssessments
+    ),
+
+symptoms:
+    toStringArray(
+        parsed.symptoms
+    ),
+
+presentingComplaints:
+    Array.isArray(parsed.presentingComplaints)
+        ? parsed.presentingComplaints.map((item: any) => ({
+              complaint:
+                  typeof item?.complaint === "string"
+                      ? item.complaint.trim()
+                      : "",
+
+              duration:
+                  typeof item?.duration === "string"
+                      ? item.duration.trim()
+                      : null,
+          }))
+        : [],
+
+pastMedicalHistory:
+    toStringArray(
+        parsed.pastMedicalHistory
+    ),
+
+history:
+    Array.isArray(parsed.history)
+        ? parsed.history.map((item: any) => ({
+              category:
+                  item.category ?? "OTHER",
+              value:
+                  typeof item.value === "string"
+                      ? item.value.trim()
+                      : "",
+          }))
+        : [],
+
+examinationFindings:
+    Array.isArray(parsed.examinationFindings)
+        ? parsed.examinationFindings.map((item: any) => ({
+
+              finding:
+                  typeof item?.finding === "string"
+                      ? item.finding.trim()
+                      : typeof item === "string"
+                          ? item.trim()
+                          : "",
+
+          }))
+        : [],
+
+doctorInstructions:
+    toStringArray(
+        parsed.doctorInstructions
+    ),
+
+followUpPlan:
+    toStringArray(
+        parsed.followUpPlan
+    ),
+
+  medicines,
+
+  additionalNotes:
+    toNullableString(
+      parsed.additionalNotes
+    ),
+
+documentType:
+  toDocumentType(
+    parsed.documentType
+  ),
+
+  investigations:
+    toStringArray(
+      parsed.investigations
+    ),
+
+clinicalPlan:
+    toStringArray(
+        parsed.clinicalPlan
+    ),
+
+};
 
 }
-
-
-//------------------------------------------------------------
-// Extraction Instructions
-//------------------------------------------------------------
-
-const EXTRACTION_INSTRUCTIONS =
-
-  "Read all supplied pages as one related medical document set. " +
-
-  "The document may be a prescription, consultation note, hospital discharge summary, or emergency admission and discharge record. " +
-
-  "Extract only information that is clearly visible or reliably readable. " +
-
-  "Do not invent, infer, or medically complete missing information. " +
-
-  "If a scalar field is not visible or cannot be read reliably, return null. " +
-
-  "For array fields, return an empty array when no reliable value is found. " +
-
-  "Return JSON only. " +
-
-  "Use exactly these top-level keys: " +
-
-  "patientName, patientDateOfBirth, doctorName, consultationDate, consultationMode, hospitalOrClinic, diagnosisOrAssessment, medicines, additionalInstructions. " +
-
-  "consultationMode must be one of IN_PERSON, VIDEO, PHONE, HOME_VISIT, OTHER, or null. " +
-
-  "Only populate consultationMode when it is explicitly stated or clearly indicated in the document. " +
-
-  "Do not infer IN_PERSON merely because a physical document exists. " +
-
-  "Extract diagnosisOrAssessment only when a diagnosis, clinical impression, assessment, provisional diagnosis, working diagnosis, or equivalent clinical assessment is explicitly written and reliably readable in the supplied document. " +
-
-  "Preserve the source wording where practical. " +
-
-  "Do not infer diagnosisOrAssessment from medicines, symptoms, tests, investigations, procedures, or general medical knowledge. " +
-
-  "If diagnosisOrAssessment is not explicitly stated or cannot be read reliably, return null. " +
-
-  "For a discharge summary, consultationDate should represent the discharge date when clearly available. " +
-
-  "patientDateOfBirth and consultationDate should use YYYY-MM-DD format only when the date can be reliably interpreted. Otherwise return the visible text or null. " +
-
-  "medicines must contain only medicines that form part of the active outpatient, home-care, follow-up, or discharge medication plan. " +
-
-  "For a discharge summary, include medicines explicitly prescribed, advised, continued, or instructed for use after discharge. " +
-
-  "Do not include medicines merely administered during hospitalization, emergency treatment, surgery, infusion, or inpatient care unless the document also clearly says they must continue after discharge. " +
-
-  "Do not include medicines explicitly stopped or discontinued. " +
-
-  "Each medicine object must contain exactly these keys: name, strength, form, dose, frequency, timings, duration, instructions. " +
-
-  "Preserve medicine names and prescription wording where practical. " +
-
-  "timings must always be an array of strings. " +
-
-  "Do not translate medicine names. " +
-
-  "Do not merge separate medicines. " +
-
-  "If the same medicine continues across multiple pages, consolidate it into one medicine entry only when it is clearly the same medication and schedule. " +
-
-  "Do not treat diagnosis, symptoms, tests, investigations, procedures, or general advice as medicines. " +
-
-  "Place relevant follow-up medication advice that does not belong to a specific medicine in additionalInstructions.";
 
 
 //------------------------------------------------------------
@@ -864,9 +928,10 @@ export async function POST(
     catch (error) {
 
       console.error(
-        "Prescription Parse Error:",
-        error
-      );
+    "Prescription Parse Error:",
+    error,
+    outputText
+);
 
 
       return NextResponse.json(
@@ -886,31 +951,45 @@ export async function POST(
     // Minimum Validation
     //--------------------------------------------------------
 
-    const hasUsefulPrescriptionData =
+const hasUsefulPrescriptionData =
 
-      prescription.patientName !== null ||
+  prescription.patientName !== null ||
 
-      prescription.doctorName !== null ||
+  prescription.doctorName !== null ||
 
-      prescription.medicines.length > 0;
+  prescription.diagnosisOrAssessment !== null ||
+
+prescription.symptoms.length > 0 ||
+
+prescription.pastMedicalHistory.length > 0 ||
+
+prescription.doctorInstructions.length > 0 ||
+
+prescription.followUpPlan.length > 0 ||
+
+prescription.examinationFindings.length > 0 ||
+
+  prescription.medicines.length > 0 ||
+
+  prescription.additionalNotes !== null ||
+
+  prescription.investigations.length > 0;
 
 
-    if (
-      !hasUsefulPrescriptionData
-    ) {
 
-      return NextResponse.json(
-        {
-          error:
-            "No clear prescription or discharge medication information was found.",
-        },
-        {
-          status: 422,
-        }
-      );
+if (!hasUsefulPrescriptionData) {
 
+  return NextResponse.json(
+    {
+      error:
+        "The document could not be read reliably. Please upload a clearer prescription.",
+    },
+    {
+      status: 422,
     }
+  );
 
+}
 
     //--------------------------------------------------------
     // Success

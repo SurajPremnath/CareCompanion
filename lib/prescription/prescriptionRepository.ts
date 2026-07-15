@@ -125,7 +125,7 @@ function mapPrescriptionRow(
         diagnosisOrAssessment:
             row.diagnosis_or_assessment,
 
-        additionalInstructions:
+        additionalNotes:
             row.additional_instructions,
 
         reviewedAt:
@@ -246,7 +246,7 @@ export const prescriptionRepository = {
                         input.diagnosisOrAssessment,
 
                     additional_instructions:
-                        input.additionalInstructions,
+                        input.additionalNotes,
 
                 })
                 .select()

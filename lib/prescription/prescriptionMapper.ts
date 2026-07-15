@@ -176,10 +176,10 @@ export function mapReviewedPrescriptionToSaveInput(
                     .diagnosisOrAssessment
             ),
 
-        additionalInstructions:
+        additionalNotes:
             normaliseOptionalText(
                 reviewedPrescription
-                    .additionalInstructions
+                    .additionalNotes
             ),
 
         medicines,
