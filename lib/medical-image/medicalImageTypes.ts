@@ -14,6 +14,8 @@ export interface MedicalImageReadings {
 
   temperatureUnit: TemperatureUnit | null;
 
+weightKg: number | null;
+
   systolic: number | null;
 
   diastolic: number | null;

@@ -81,6 +81,8 @@ interface DailyCareFormState {
 
   temperatureUnit: TemperatureUnit;
 
+weightKg: string;
+
   systolic: string;
 
   diastolic: string;
@@ -149,6 +151,8 @@ function createInitialForm(): DailyCareFormState {
     temperature: "",
 
     temperatureUnit: "F",
+
+weightKg: "",
 
     systolic: "",
 
@@ -656,6 +660,11 @@ setFormData(previous => ({
     readings.temperatureUnit ??
     previous.temperatureUnit,
 
+weightKg:
+  readings.weightKg !== null
+    ? String(readings.weightKg)
+    : previous.weightKg,
+
   systolic:
     readings.systolic !== null
       ? String(readings.systolic)
@@ -961,6 +970,11 @@ void analyticsService
       temperatureUnit:
         draft.temperatureUnit ??
         previous.temperatureUnit,
+
+weightKg:
+    draft.weightKg !== null
+        ? String(draft.weightKg)
+        : previous.weightKg,
 
       systolic:
         draft.systolic !== null
@@ -1516,7 +1530,7 @@ onClick={() => {
   }}
 >
   Speak naturally in your preferred language.
-  You can mention temperature, blood pressure,
+  You can mention temperature, weight, blood pressure,
   pulse, oxygen level, symptoms, or pain details.
 </p>
 
@@ -1552,7 +1566,7 @@ onClick={() => {
       marginTop: "6px",
     }}
   >
-    “Temperature is 99.2 Fahrenheit, BP is 120 over 80,
+    “Temperature is 99.2 Fahrenheit, Weight is 72 kilograms, BP is 120 over 80,
     oxygen is 96, pulse is 92, and I have cough and
     body pain in my back.”
   </div>
@@ -1803,6 +1817,73 @@ onChange={(event) =>
 
     </section>
 
+{/*--------------------------------------------------------
+  Weight
+--------------------------------------------------------*/}
+
+<section style={cardStyle}>
+
+  <h3 style={sectionTitle}>
+    ⚖ Weight
+  </h3>
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "2fr 1fr",
+      gap: "16px",
+      alignItems: "end",
+    }}
+  >
+
+    <div>
+
+      <label style={labelStyle}>
+        Weight
+      </label>
+
+      <input
+        type="number"
+        step="0.1"
+        min="0"
+        placeholder="Enter weight"
+        value={formData.weightKg}
+        onChange={(e) =>
+          updateField(
+            "weightKg",
+            e.target.value
+          )
+        }
+        style={inputStyle}
+      />
+
+    </div>
+
+    <div>
+
+      <label style={labelStyle}>
+        Unit
+      </label>
+
+      <div
+        style={{
+          ...inputStyle,
+          background: "#f3f4f6",
+          display: "flex",
+          alignItems: "center",
+          fontWeight: 600,
+          minHeight: "52px",
+        }}
+      >
+        kg
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
     {/*--------------------------------------------------------
       Additional Vitals
     --------------------------------------------------------*/}
@@ -1963,6 +2044,9 @@ if (
 const hasTemperature =
   formData.temperature.trim() !== "";
 
+const hasWeight =
+  formData.weightKg.trim() !== "";
+
 const hasVitals =
   formData.systolic.trim() !== "" ||
   formData.diastolic.trim() !== "" ||
@@ -1981,16 +2065,18 @@ const hasMedications = false;
 
 if (
   !hasTemperature &&
+  !hasWeight &&
   !hasVitals &&
   !hasSymptoms &&
   !hasPainLocations &&
   !hasNotes &&
   !hasMedications
-) {
+){
 
 AppAlert.warning(
   "Please record at least one health observation.\n\n" +
   "• Temperature\n" +
+  "• Weight\n" +  
   "• Vitals\n" +
   "• Symptoms\n" +
   "• Pain Location"
@@ -2008,6 +2094,36 @@ if (hasTemperature) {
   if (Number.isNaN(temperature)) {
 
     AppAlert.warning("Temperature is invalid.");
+
+    return false;
+
+  }
+
+}
+
+if (hasWeight) {
+
+  const weight =
+    Number(formData.weightKg);
+
+  if (Number.isNaN(weight)) {
+
+    AppAlert.warning(
+      "Weight is invalid."
+    );
+
+    return false;
+
+  }
+
+  if (
+    weight <= 0 ||
+    weight > 500
+  ) {
+
+    AppAlert.warning(
+      "Weight must be between 0 and 500 kg."
+    );
 
     return false;
 
@@ -2127,6 +2243,11 @@ async function handleSave() {
       temperatureUnit:
         formData.temperatureUnit,
 
+weightKg:
+  formData.weightKg.trim()
+    ? Number(formData.weightKg)
+    : null,
+
       systolic:
         formData.systolic
           ? Number(formData.systolic)
@@ -2191,6 +2312,9 @@ else {
 
       temperatureUnit:
         reading.temperatureUnit,
+
+weightKg:
+  reading.weightKg,
 
       systolic:
         reading.systolic,

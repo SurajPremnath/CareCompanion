@@ -27,6 +27,8 @@ overallObservation:
     "C" |
     null;
 
+weightKg: number | null;
+
   systolic: number | null;
 
   diastolic: number | null;

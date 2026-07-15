@@ -312,6 +312,11 @@ function parseVoiceDraft(
         parsed.temperatureUnit
       ),
 
+weightKg:
+  toNullableNumber(
+    parsed.weightKg
+  ),
+
     systolic:
       toNullableNumber(
         parsed.systolic
@@ -745,8 +750,14 @@ const interpretationResponse =
 
               "Temperature unit must be F, C, or null. Do not infer the unit if it was not stated. " +
 
+
+"Weight must be returned in kilograms. " +
+"If the speaker explicitly says weight values such as 72 kilos, 72 kilograms, or 72 kg, return weightKg as 72. " +
+"Do not infer weight. " +
+"If weight is not explicitly mentioned, return null. " +
+
               "Return JSON only with exactly these keys: " +
-"overallObservation, temperature, temperatureUnit, systolic, diastolic, pulse, spo2, symptoms, otherSymptom, painLocations, otherPainLocation. " +
+"overallObservation, temperature, temperatureUnit, weightKg, systolic, diastolic, pulse, spo2, symptoms, otherSymptom, painLocations, otherPainLocation. " +
 
               "Use null for overallObservation and unknown scalar values when not explicitly supported by the transcript. Use empty arrays for unmentioned symptoms or pain locations. " +
 
@@ -825,6 +836,8 @@ catch (error) {
 const hasStructuredObservation =
 
   draft.temperature !== null ||
+
+draft.weightKg !== null ||
 
   draft.systolic !== null ||
 

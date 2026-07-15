@@ -563,6 +563,9 @@ const commonReading = {
 
             temperatureUnit,
 
+weightKg:
+    voiceDraft.weightKg,
+
             systolic:
                 voiceDraft.systolic,
 

@@ -54,6 +54,8 @@ interface ManualCareFormState {
     temperatureUnit:
         TemperatureUnit;
 
+weightKg:string;
+
     systolic:
         string;
 
@@ -180,6 +182,8 @@ function createInitialForm():
 
         temperatureUnit:
             "F",
+
+weightKg: "",
 
         systolic:
             "",
@@ -461,6 +465,9 @@ export default function ManualCareWorkspace({
             formData.temperature.trim() !== "";
 
 
+const hasWeight =
+    formData.weightKg.trim() !== "";
+
         const hasVitals =
 
             formData.systolic.trim() !== "" ||
@@ -484,6 +491,7 @@ export default function ManualCareWorkspace({
 
         if (
             !hasTemperature &&
+            !hasWeight &&
             !hasVitals &&
             !hasSymptoms &&
             !hasPainLocations
@@ -494,6 +502,8 @@ export default function ManualCareWorkspace({
                 "Please record at least one health observation.\n\n" +
 
                 "• Temperature\n" +
+
+                "• Weight\n" +
 
                 "• Vitals\n" +
 
@@ -723,6 +733,11 @@ export default function ManualCareWorkspace({
 
                 temperatureUnit:
                     formData.temperatureUnit,
+
+weightKg:
+    formData.weightKg.trim()
+        ? Number(formData.weightKg)
+        : null,
 
                 systolic:
 
@@ -1048,6 +1063,67 @@ export default function ManualCareWorkspace({
 
             </section>
 
+
+{/*------------------------------------------------
+  Weight
+------------------------------------------------*/}
+
+<section style={cardStyle}>
+
+    <h3 style={sectionTitle}>
+        ⚖ Weight
+    </h3>
+
+    <div style={temperatureGrid}>
+
+        <div>
+
+            <label style={labelStyle}>
+                Weight
+            </label>
+
+            <input
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="Enter weight"
+                value={formData.weightKg}
+                disabled={saving}
+                onChange={(event) =>
+                    updateField(
+                        "weightKg",
+                        event.target.value
+                    )
+                }
+                style={inputStyle}
+            />
+
+        </div>
+
+        <div>
+
+            <label style={labelStyle}>
+                Unit
+            </label>
+
+            <div
+                style={{
+                    ...inputStyle,
+                    background: "#f3f4f6",
+                    display: "flex",
+                    alignItems: "center",
+                    minHeight: "52px",
+                    fontWeight: 600,
+                }}
+            >
+                kg
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
 
             {/*------------------------------------------------
               Vitals

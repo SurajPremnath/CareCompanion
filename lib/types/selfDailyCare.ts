@@ -27,6 +27,11 @@ overallStatus:
 
   temperatureUnit: "F" | "C";
 
+/**
+ * Weight in kilograms.
+ */
+weightKg: number | null;
+
   /**
    * Blood Pressure
    */
@@ -122,6 +127,8 @@ overallStatus:
   temperature: number | null;
 
   temperatureUnit: "F" | "C";
+
+weightKg: number | null;
 
   systolic: number | null;
 

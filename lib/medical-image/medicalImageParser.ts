@@ -91,6 +91,30 @@ function extractTemperature(
 
 }
 
+function extractWeight(
+  text: string
+): number | null {
+
+  const match =
+    text.match(
+      /(\d{2,3}(?:\.\d+)?)\s*(?:kg|kgs|kilogram|kilograms)\b/i
+    );
+
+  if (!match?.[1]) {
+
+    return null;
+
+  }
+
+  const value =
+    Number(match[1]);
+
+  return Number.isFinite(value)
+    ? value
+    : null;
+
+}
+
 //------------------------------------------------------------
 // Parse Medical Image OCR Text
 //------------------------------------------------------------
@@ -107,6 +131,9 @@ export function parseMedicalImageText(
 
   const temperatureResult =
     extractTemperature(text);
+
+const weightKg =
+    extractWeight(text);
 
   const systolic =
     extractNumberAfterLabel(
@@ -153,6 +180,8 @@ export function parseMedicalImageText(
     temperatureUnit:
       temperatureResult.temperatureUnit,
 
+weightKg,
+
     systolic,
 
     diastolic,
@@ -175,6 +204,7 @@ export function hasMedicalReading(
 
   return (
     readings.temperature !== null ||
+    readings.weightKg !== null ||
     readings.systolic !== null ||
     readings.diastolic !== null ||
     readings.pulse !== null ||

@@ -52,6 +52,8 @@ interface UploadReadingState {
     temperatureUnit:
         TemperatureUnit;
 
+weightKg:string;
+
     systolic:
         string;
 
@@ -77,6 +79,8 @@ function createEmptyReading():
 
         temperatureUnit:
             "F",
+
+weightKg: "",
 
         systolic:
             "",
@@ -326,6 +330,8 @@ export default function UploadCareWorkspace({
 
                 readings.temperature !== null ||
 
+                readings.weightKg !== null ||
+
                 readings.systolic !== null ||
 
                 readings.diastolic !== null ||
@@ -366,8 +372,16 @@ export default function UploadCareWorkspace({
                     previous.temperatureUnit,
 
 
-                systolic:
+weightKg:
 
+    readings.weightKg !== null
+
+        ? String(readings.weightKg)
+
+        : previous.weightKg,
+
+                systolic:
+	
                     readings.systolic !== null
 
                         ? String(
@@ -485,6 +499,8 @@ export default function UploadCareWorkspace({
 
             reading.temperature.trim() !== "" ||
 
+            reading.weightKg.trim() !== "" ||
+
             reading.systolic.trim() !== "" ||
 
             reading.diastolic.trim() !== "" ||
@@ -540,6 +556,14 @@ export default function UploadCareWorkspace({
 
                 temperatureUnit:
                     reading.temperatureUnit,
+
+weightKg:
+
+    reading.weightKg.trim()
+
+        ? Number(reading.weightKg)
+
+        : null,
 
                 systolic:
 
@@ -960,6 +984,27 @@ export default function UploadCareWorkspace({
                             />
 
                         </div>
+
+<div>
+
+    <label style={fieldLabel}>
+        Weight
+    </label>
+
+    <input
+        type="number"
+        step="0.1"
+        value={reading.weightKg}
+        onChange={event =>
+            updateField(
+                "weightKg",
+                event.target.value
+            )
+        }
+        style={inputStyle}
+    />
+
+</div>
 
 
                         <div>

@@ -115,7 +115,8 @@ function toTemperatureUnit(
 type DetectedDeviceType =
   | "thermometer"
   | "blood_pressure_monitor"
-  | "pulse_oximeter";
+  | "pulse_oximeter"
+  | "weight_scale";
 
 interface ParsedMedicalImageResponse {
   isSupportedMedicalImage: boolean;
@@ -160,7 +161,8 @@ detectedDeviceTypes:
         ): deviceType is DetectedDeviceType =>
           deviceType === "thermometer" ||
           deviceType === "blood_pressure_monitor" ||
-          deviceType === "pulse_oximeter"
+          deviceType === "pulse_oximeter" ||
+          deviceType === "weight_scale"
       )
     : [],
 
@@ -175,6 +177,11 @@ detectedDeviceTypes:
         toTemperatureUnit(
           parsed.temperatureUnit
         ),
+
+weightKg:
+  toNullableNumber(
+    parsed.weightKg
+  ),
 
       systolic:
         toNullableNumber(
@@ -439,7 +446,7 @@ if (
 text:
 "Identify every supported medical device that is clearly visible and has a clearly readable measurement display. " +
 
-"detectedDeviceTypes must be an array containing zero or more of: thermometer, blood_pressure_monitor, pulse_oximeter. " +
+"detectedDeviceTypes must be an array containing zero or more of: thermometer, blood_pressure_monitor, pulse_oximeter, weight_scale. " +
 
 "If the image contains more than one supported device with clearly readable measurements, include every applicable device type in detectedDeviceTypes and extract readings from all of them. " +
 
@@ -455,14 +462,28 @@ text:
 
 "If detectedDeviceTypes includes pulse_oximeter, an SpO2 reading is required. " +
 
+"If detectedDeviceTypes includes weight_scale, a clearly readable weight in kilograms is required. " +
+
+"Return the numeric value only in weightKg. " +
+
+"Examples: 72 kg -> 72, 72.4 kg -> 72.4. " +
+
+"Do not include the unit in the value. " +
+
+"Do not infer weight. " +
+
+"If no readable weight is present, return null. " +
+
 "If no supported medical device with a clearly readable measurement is visible, set isSupportedMedicalImage to false and return an empty detectedDeviceTypes array. " +
 
 "Return JSON only with exactly these keys: " +
-"isSupportedMedicalImage, hasConflictingReadings, detectedDeviceTypes, temperature, temperatureUnit, systolic, diastolic, pulse, spo2. " +
 
-  "isSupportedMedicalImage and hasConflictingReadings must be true or false. " +
+"isSupportedMedicalImage, hasConflictingReadings, detectedDeviceTypes, temperature, temperatureUnit, weightKg, systolic, diastolic, pulse, spo2. " +
 
-  'temperatureUnit must be "F", "C", or null.',
+"isSupportedMedicalImage and hasConflictingReadings must be true or false. " +
+
+'temperatureUnit must be "F", "C", or null.',
+
 
               },
 
@@ -616,6 +637,10 @@ const hasValidPulseOximeterReading =
   deviceTypes.includes("pulse_oximeter") &&
   readings.spo2 !== null;
 
+const hasValidWeightScaleReading =
+  deviceTypes.includes("weight_scale") &&
+  readings.weightKg !== null;
+
 const everyDetectedDeviceIsValid =
   deviceTypes.length > 0 &&
   deviceTypes.every((deviceType) => {
@@ -636,6 +661,13 @@ const everyDetectedDeviceIsValid =
     ) {
       return hasValidPulseOximeterReading;
     }
+
+if (
+  deviceType ===
+  "weight_scale"
+) {
+  return hasValidWeightScaleReading;
+}
 
     return false;
 
@@ -661,6 +693,7 @@ if (!everyDetectedDeviceIsValid) {
 
     const hasReading =
       readings.temperature !== null ||
+      readings.weightKg !== null ||
       readings.systolic !== null ||
       readings.diastolic !== null ||
       readings.pulse !== null ||

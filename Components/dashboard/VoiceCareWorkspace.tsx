@@ -370,6 +370,9 @@ setClarificationError(null);
 
             temperatureUnit,
 
+    weightKg:
+        voiceDraft.weightKg,
+
             systolic:
                 voiceDraft.systolic,
 

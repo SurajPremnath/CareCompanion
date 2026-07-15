@@ -23,6 +23,8 @@ temperature: number | null;
 
   temperature_unit: "F" | "C";
 
+weight_kg: number | null;
+
   systolic: number | null;
 
   diastolic: number | null;
@@ -71,6 +73,8 @@ overallStatus:
 temperature: row.temperature,
 
       temperatureUnit: row.temperature_unit,
+
+weightKg: row.weight_kg,
 
       systolic: row.systolic,
 
@@ -125,6 +129,8 @@ overall_status:
 temperature: dailyCare.temperature,
 
       temperature_unit: dailyCare.temperatureUnit,
+
+weight_kg: dailyCare.weightKg,
 
       systolic: dailyCare.systolic,
 
