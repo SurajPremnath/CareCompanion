@@ -20,6 +20,8 @@ interface PatientCardProps {
 
     consultationMode: ConsultationMode;
 
+    readOnly: boolean;
+
     onConsultationModeChange: (
         value: ConsultationMode
     ) => void;
@@ -106,6 +108,8 @@ export default function PatientCard({
 
     consultationMode,
 
+    readOnly,
+
     onConsultationModeChange,
 
     onConsultationDateChange,
@@ -189,6 +193,7 @@ color:"#334155",
 
 </div>
 <input
+disabled={readOnly}
 type="date"
 value={
 prescription.consultationDate
@@ -249,7 +254,7 @@ fontWeight:500,
 <td style={cell}>
 
 <select
-
+disabled={readOnly}
 value={consultationMode}
 
 onChange={(e)=>

@@ -61,6 +61,9 @@ type ActionOption,
 import PrescriptionWorkspace
     from "@/Components/dashboard/PrescriptionWorkspace";
 
+import PrescriptionHistoryWorkspace
+    from "@/Components/dashboard/PrescriptionHistoryWorkspace";
+
 import ConsultationWorkspace
     from "@/Components/dashboard/ConsultationWorkspace";
 
@@ -157,6 +160,14 @@ const [
 const [
     recordHealthOption,
     setRecordHealthOption,
+] =
+    useState<ActionOption>(
+        ""
+    );
+
+const [
+    medicationOption,
+    setMedicationOption,
 ] =
     useState<ActionOption>(
         ""
@@ -1221,6 +1232,30 @@ onCancelReview={() => {
 }}
 
 />
+
+)}
+
+{selectedAction === "MEDICATION_MANAGEMENT" &&
+    medicationDetail === "VIEW_PRESCRIPTIONS" && (
+
+    <div style={workspaceContainer}>
+
+        <PrescriptionHistoryWorkspace
+            userId={user.id}
+            recordContext={
+                personSelection.mode === "FAMILY"
+                    ? "FAMILY"
+                    : "SELF"
+            }
+            patientId={personSelection.patientId}
+            patientName={
+                personSelection.mode === "SELF"
+                    ? user.fullName
+                    : personSelection.patientName ?? ""
+            }
+        />
+
+    </div>
 
 )}
 

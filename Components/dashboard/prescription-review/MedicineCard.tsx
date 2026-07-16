@@ -9,6 +9,7 @@ import {
 interface MedicineCardProps {
     prescription: ExtractedPrescription;
     medicineTimings: string[];
+readOnly: boolean;
     onMedicineTimingChange: (
         index: number,
         value: string
@@ -18,6 +19,7 @@ interface MedicineCardProps {
 export default function MedicineCard({
     prescription,
     medicineTimings,
+readOnly,
     onMedicineTimingChange,
 }: MedicineCardProps) {
 
@@ -165,6 +167,7 @@ const administrationTimingLabels: Record<string, string> = {
                                         <td style={cell}>
 
                                             <select
+                                                disabled={readOnly}
                                                 value={medicineTimings[index]}
                                                 onChange={(event) =>
                                                     onMedicineTimingChange(

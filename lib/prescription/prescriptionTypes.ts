@@ -301,4 +301,25 @@ export interface CompletePrescriptionRecord {
     medicines:
         PrescriptionMedicineRecord[];
 
+    vitals:
+        PrescriptionVitalInput | null;
+
+    symptoms:
+        PrescriptionSymptomInput[];
+
+    history:
+        PrescriptionHistoryInput[];
+
+    assessments:
+        PrescriptionAssessmentInput[];
+
+    investigations:
+        PrescriptionInvestigationInput[];
+
+    instructions:
+        PrescriptionInstructionInput[];
+
+    notes:
+        PrescriptionNoteInput[];
+
 }

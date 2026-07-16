@@ -71,13 +71,15 @@ interface PrescriptionReviewProps {
 
     recordContext: "SELF" | "FAMILY";
 
+    mode: "UPLOAD" | "VIEW";
+
     savingValidation?: boolean;
 
     onReupload: () => void;
 
-onConfirm: (
-    prescription: ExtractedPrescription
-) => void;
+    onConfirm: (
+        prescription: ExtractedPrescription
+    ) => void;
 
 }
 
@@ -91,6 +93,8 @@ export default function PrescriptionReview({
     patientName,
 
     recordContext,
+
+    mode,
 
     savingValidation,
 
@@ -182,6 +186,10 @@ Note: {t("medication.reviewNoteDescription")}
     patientName={patientName}
     consultationMode={consultationMode}
 
+readOnly={
+    mode === "VIEW"
+}
+
     onConsultationModeChange={(value) => {
 
         setConsultationMode(value);
@@ -259,6 +267,10 @@ Note: {t("medication.reviewNoteDescription")}
     <MedicineCard
         prescription={prescription}
         medicineTimings={medicineTimings}
+
+readOnly={
+        mode === "VIEW"
+    }
         onMedicineTimingChange={(index, value) => {
 
             const updated = [...medicineTimings];
@@ -298,17 +310,22 @@ Note: {t("medication.reviewNoteDescription")}
 
 )}
 
-<ReviewActions
-    saving={saving}
-    validation={validation}
-    onConfirm={() =>
-        onConfirm(
-            reviewPrescription
-        )
-    }
-    onReupload={onReupload}
-/>
+{
+    mode === "UPLOAD" && (
 
+        <ReviewActions
+            saving={saving}
+            validation={validation}
+            onConfirm={() =>
+                onConfirm(
+                    reviewPrescription
+                )
+            }
+            onReupload={onReupload}
+        />
+
+    )
+}
 </div>
 
 );

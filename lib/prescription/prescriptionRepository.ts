@@ -85,6 +85,32 @@ interface PrescriptionMedicineRow {
 
 }
 
+interface PrescriptionHistoryRow {
+
+    id: string;
+
+    patient_id: string | null;
+
+    doctor_name: string | null;
+
+    consultation_date: string | null;
+
+    consultation_mode: string | null;
+
+    hospital_or_clinic: string | null;
+
+    diagnosis_or_assessment: string | null;
+
+    created_at: string;
+
+    prescription_medicines: {
+
+        id: string;
+
+    }[];
+
+}
+
 interface PrescriptionVitalRow {
 
     id: string;
@@ -574,6 +600,107 @@ async function saveNotes(
 
 }
 
+async function getPrescriptionSummary(
+
+    userId: string,
+
+    recordContext: "SELF" | "FAMILY",
+
+    patientId: string | null
+
+): Promise<{
+
+    total: number;
+
+    earliestDate: string | null;
+
+}> {
+
+    let query =
+        supabase
+
+            .from("prescriptions")
+
+            .select(
+                "consultation_date"
+            )
+
+            .eq(
+                "user_id",
+                userId
+            )
+
+            .eq(
+                "record_context",
+                recordContext
+            );
+
+    if (
+
+        recordContext === "FAMILY"
+
+    ) {
+
+        if (!patientId) {
+
+            throw new Error(
+                "Patient is required."
+            );
+
+        }
+
+        query =
+            query.eq(
+                "patient_id",
+                patientId
+            );
+
+    }
+
+    const {
+
+        data,
+
+        error,
+
+    } =
+        await query.order(
+            "consultation_date",
+            {
+                ascending: true,
+            }
+        );
+
+    if (
+
+        error
+
+    ) {
+
+        throw new Error(
+            error.message
+        );
+
+    }
+
+    return {
+
+        total:
+            data?.length ?? 0,
+
+        earliestDate:
+
+            data &&
+            data.length > 0
+
+                ? data[0].consultation_date
+
+                : null,
+
+    };
+
+}
+
 //------------------------------------------------------------
 // Repository
 //------------------------------------------------------------
@@ -770,19 +897,30 @@ await saveNotes(
 
         ) {
 
-            return {
+return {
 
-                prescription:
+    prescription:
+        mapPrescriptionRow(
+            prescriptionRow
+        ),
 
-                    mapPrescriptionRow(
+    medicines: [],
 
-                        prescriptionRow
+    vitals: input.vitals,
 
-                    ),
+    symptoms: input.symptoms,
 
-                medicines: [],
+    history: input.history,
 
-            };
+    assessments: input.assessments,
+
+    investigations: input.investigations,
+
+    instructions: input.instructions,
+
+    notes: input.notes,
+
+};
 
         }
 
@@ -894,36 +1032,611 @@ await saveNotes(
 
         }
 
+
+
+
+
         //----------------------------------------------------
         // Return Complete Record
         //----------------------------------------------------
 
-        return {
+return {
 
-            prescription:
+    prescription:
+        mapPrescriptionRow(
+            prescriptionRow
+        ),
 
-                mapPrescriptionRow(
+    medicines:
+        (
+            medicinesData as
+            PrescriptionMedicineRow[]
+        ).map(
+            mapMedicineRow
+        ),
 
-                    prescriptionRow
+    vitals: input.vitals,
 
-                ),
+    symptoms: input.symptoms,
 
-            medicines:
+    history: input.history,
 
-                (
+    assessments: input.assessments,
 
-                    medicinesData as
+    investigations: input.investigations,
 
-                    PrescriptionMedicineRow[]
+    instructions: input.instructions,
 
-                ).map(
+    notes: input.notes,
 
-                    mapMedicineRow
-
-                ),
-
-        };
+};
 
     },
+
+async getPrescriptionHistory(
+
+    userId: string,
+
+    recordContext: "SELF" | "FAMILY",
+
+    patientId: string | null,
+
+    fromDate?: string,
+
+    toDate?: string
+
+) {
+
+    let query =
+        supabase
+
+            .from("prescriptions")
+
+            .select(`
+                id,
+                patient_id,
+                doctor_name,
+                consultation_date,
+                consultation_mode,
+                hospital_or_clinic,
+                diagnosis_or_assessment,
+                created_at,
+                prescription_medicines(id)
+            `)
+
+            .eq(
+                "user_id",
+                userId
+            )
+
+            .eq(
+                "record_context",
+                recordContext
+            );
+
+    if (
+        recordContext === "FAMILY"
+    ) {
+
+if (!patientId) {
+
+        throw new Error(
+            "Patient is required."
+        );
+
+    }
+
+        query =
+            query.eq(
+                "patient_id",
+                patientId
+            );
+
+    }
+
+    if (
+        fromDate
+    ) {
+
+        query =
+            query.gte(
+                "consultation_date",
+                fromDate
+            );
+
+    }
+
+    if (
+        toDate
+    ) {
+
+        query =
+            query.lte(
+                "consultation_date",
+                toDate
+            );
+
+    }
+
+    const {
+
+        data,
+
+        error,
+
+    } =
+        await query.order(
+            "consultation_date",
+            {
+                ascending: false,
+            }
+        )
+        .order(
+            "created_at",
+            {
+                ascending: false,
+            }
+        );
+
+    if (
+        error
+    ) {
+
+        throw new Error(
+            error.message
+        );
+
+    }
+
+const rows =
+    (data ?? []) as PrescriptionHistoryRow[];
+
+return rows.map(row => ({
+
+            id:
+                row.id,
+
+            consultationDate:
+                row.consultation_date,
+
+            doctorName:
+                row.doctor_name,
+
+            hospitalOrClinic:
+                row.hospital_or_clinic,
+
+            diagnosisOrAssessment:
+                row.diagnosis_or_assessment,
+
+            consultationMode:
+                row.consultation_mode,
+
+            createdAt:
+                row.created_at,
+
+            medicineCount:
+                row.prescription_medicines
+                    ?.length ?? 0,
+
+        })
+    );
+
+},
+
+async getPrescriptionDetails(
+
+    prescriptionId: string
+
+): Promise<CompletePrescriptionRecord> {
+
+    const {
+
+        data: prescriptionData,
+
+        error: prescriptionError,
+
+    } = await supabase
+
+        .from("prescriptions")
+
+.select(`
+    id,
+    user_id,
+    patient_id,
+    family_id,
+    record_context,
+    doctor_name,
+    consultation_date,
+    consultation_mode,
+    hospital_or_clinic,
+    diagnosis_or_assessment,
+    additional_instructions,
+    reviewed_at,
+    created_at,
+    updated_at
+`)
+
+        .eq("id", prescriptionId)
+
+        .single();
+
+    if (
+
+        prescriptionError ||
+
+        !prescriptionData
+
+    ) {
+
+        throw new Error(
+
+            prescriptionError?.message ??
+
+            "Unable to load prescription."
+
+        );
+
+    }
+
+    const {
+
+        data: medicinesData,
+
+        error: medicinesError,
+
+    } = await supabase
+
+        .from("prescription_medicines")
+
+        .select("*")
+
+        .eq(
+            "prescription_id",
+            prescriptionId
+        )
+
+        .order(
+            "display_order",
+            {
+                ascending: true,
+            }
+        );
+
+    if (
+
+        medicinesError
+
+    ) {
+
+        throw new Error(
+
+            medicinesError.message
+
+        );
+
+    }
+
+const {
+
+    data: vitalsData,
+
+} = await supabase
+
+    .from("prescription_vitals")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .maybeSingle();
+
+const {
+
+    data: symptomsData,
+
+} = await supabase
+
+    .from("prescription_symptoms")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+const {
+
+    data: historyData,
+
+} = await supabase
+
+    .from("prescription_history")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+const {
+
+    data: assessmentsData,
+
+} = await supabase
+
+    .from("prescription_assessments")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+const {
+
+    data: investigationsData,
+
+} = await supabase
+
+    .from("prescription_investigations")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+const {
+
+    data: instructionsData,
+
+} = await supabase
+
+    .from("prescription_instructions")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+const {
+
+    data: notesData,
+
+} = await supabase
+
+    .from("prescription_notes")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+return {
+
+    prescription:
+
+        mapPrescriptionRow(
+
+            prescriptionData as PrescriptionRow
+
+        ),
+
+    medicines:
+
+        (
+
+            medicinesData ??
+
+            []
+
+        ).map(
+
+            row =>
+
+                mapMedicineRow(
+
+                    row as PrescriptionMedicineRow
+
+                )
+
+        ),
+
+vitals:
+
+    vitalsData
+        ? {
+
+            weight:
+                vitalsData.weight,
+
+            height:
+                vitalsData.height,
+
+            bmi:
+                vitalsData.bmi,
+
+            bloodPressure:
+                vitalsData.blood_pressure,
+
+            pulse:
+                vitalsData.pulse,
+
+            respiratoryRate:
+                vitalsData.respiratory_rate,
+
+            spo2:
+                vitalsData.spo2,
+
+            temperature:
+                vitalsData.temperature,
+
+        }
+
+        : null,
+
+symptoms:
+
+    (symptomsData ?? []).map(
+
+        row => ({
+
+            symptom:
+                row.symptom,
+
+            duration:
+                row.duration,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+history:
+
+    (historyData ?? []).map(
+
+        row => ({
+
+            category:
+                row.category,
+
+            value:
+                row.value,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+assessments:
+
+    (assessmentsData ?? []).map(
+
+        row => ({
+
+            assessmentType:
+                row.assessment_type,
+
+            value:
+                row.value,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+investigations:
+
+    (investigationsData ?? []).map(
+
+        row => ({
+
+            investigation:
+                row.investigation,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+instructions:
+
+    (instructionsData ?? []).map(
+
+        row => ({
+
+            instruction:
+                row.instruction,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+notes:
+
+    (notesData ?? []).map(
+
+        row => ({
+
+            note:
+                row.note,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+};
+
+},
+
+getPrescriptionSummary,
 
 };

@@ -1167,17 +1167,21 @@ return (
                 extractedPrescription && (
 
                     <PrescriptionReview
+
     prescription={extractedPrescription}
 
     patientName={patientName}
 
-recordContext={recordContext}
+    recordContext={recordContext}
+
+    mode="UPLOAD"
 
     saving={saving}
 
     onReupload={cancelReview}
 
     onConfirm={savePrescription}
+
 />
 
                 )

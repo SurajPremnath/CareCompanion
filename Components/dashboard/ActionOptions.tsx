@@ -18,7 +18,7 @@ export type ActionOption =
     | "UPLOAD"
     | "MANUAL"
     | "ADD_PRESCRIPTION"
-    | "CONSULTATION_MODE"
+    | "VIEW_PRESCRIPTIONS"
     | "DAILY_CARE"
     | "ASSESSMENT_HISTORY"
     | "CLINICAL_TRENDS"
@@ -30,6 +30,7 @@ export type MedicationDetailOption =
     | "TAKE_PHOTO"
     | "CHOOSE_PHOTOS"
     | "UPLOAD_PDF"
+    | "VIEW_PRESCRIPTIONS"
     | "IN_PERSON"
     | "VIDEO"
     | "PHONE"
@@ -318,39 +319,39 @@ const [
 
             <button
                 type="button"
-                onClick={() => {
+onClick={() => {
 
-                    setSelectedOption(
-                        "CONSULTATION_MODE"
-                    );
+    setSelectedOption(
+        "VIEW_PRESCRIPTIONS"
+    );
 
-                    setMedicationDetailOption(
-                        ""
-                    );
+    setMedicationDetailOption(
+        "VIEW_PRESCRIPTIONS"
+    );
 
-                    onMedicationDetailChange?.(
-                        ""
-                    );
+    onMedicationDetailChange?.(
+        "VIEW_PRESCRIPTIONS"
+    );
 
-                }}
+}}
                 style={{
     ...optionButton,
 
-    ...(selectedOption === "CONSULTATION_MODE"
-        ? selectedOptionButton
-        : {}),
+    ...(selectedOption === "VIEW_PRESCRIPTIONS"
+    ? selectedOptionButton
+    : {}),
 }}
             >
 
-                <span style={optionIcon}>
-                    🩺
-                </span>
+    <span style={optionIcon}>
+        📖
+    </span>
 
-                <span style={optionLabel}>
-                    {t("medication.modeOfConsultation")}
-                </span>
+    <span style={optionLabel}>
+        View Prescriptions
+    </span>
 
-            </button>
+</button>
 
         </div>
 
@@ -539,198 +540,6 @@ const [
 
 )}
 
-{selectedAction === "MEDICATION_MANAGEMENT" &&
-    selectedOption === "CONSULTATION_MODE" && (
-
-    <div style={detailSection}>
-
-        <label style={label}>
-            {t("medication.howWasConsultationConducted")}
-        </label>
-
-
-<div style={optionGridThree}>
-
-    <button
-        type="button"
-        onClick={() => {
-
-            setMedicationDetailOption(
-                "IN_PERSON"
-            );
-
-            onMedicationDetailChange?.(
-                "IN_PERSON"
-            );
-
-        }}
-        style={{
-    ...optionButton,
-
-    ...(medicationDetailOption === "IN_PERSON"
-        ? selectedOptionButton
-        : {}),
-}}
-    >
-        <span style={optionIcon}>
-            🩺
-        </span>
-
-        <span style={optionLabel}>
-            {t("medication.inPerson")}
-        </span>
-    </button>
-
-
-    <button
-        type="button"
-        onClick={() => {
-
-            setMedicationDetailOption(
-                "VIDEO"
-            );
-
-            onMedicationDetailChange?.(
-                "VIDEO"
-            );
-
-        }}
-        style={{
-    ...optionButton,
-
-    ...(medicationDetailOption === "VIDEO"
-        ? selectedOptionButton
-        : {}),
-}}
-    >
-        <span style={optionIcon}>
-            📹
-        </span>
-
-        <span style={optionLabel}>
-            {t("medication.video")}
-        </span>
-    </button>
-
-
-    <button
-        type="button"
-        onClick={() => {
-
-            setMedicationDetailOption(
-                "PHONE"
-            );
-
-            onMedicationDetailChange?.(
-                "PHONE"
-            );
-
-        }}
-        style={{
-    ...optionButton,
-
-    ...(medicationDetailOption === "PHONE"
-        ? selectedOptionButton
-        : {}),
-}}
-    >
-        <span style={optionIcon}>
-            📞
-        </span>
-
-        <span style={optionLabel}>
-            {t("medication.phone")}
-        </span>
-    </button>
-
-
-    <button
-        type="button"
-        onClick={() => {
-
-            setMedicationDetailOption(
-                "HOME_VISIT"
-            );
-
-            onMedicationDetailChange?.(
-                "HOME_VISIT"
-            );
-
-        }}
-        style={{
-    ...optionButton,
-
-    ...(medicationDetailOption === "HOME_VISIT"
-        ? selectedOptionButton
-        : {}),
-}}
-    >
-        <span style={optionIcon}>
-            🏠
-        </span>
-
-        <span style={optionLabel}>
-            {t("medication.homeVisit")}
-        </span>
-    </button>
-
-
-    <button
-        type="button"
-        onClick={() => {
-
-            setMedicationDetailOption(
-                "OTHER"
-            );
-
-            onMedicationDetailChange?.(
-                "OTHER"
-            );
-
-        }}
-        style={{
-    ...optionButton,
-
-    ...(medicationDetailOption === "OTHER"
-        ? selectedOptionButton
-        : {}),
-}}
-    >
-        <span style={optionIcon}>
-            ✏️
-        </span>
-
-        <span style={optionLabel}>
-            {t("medication.other")}
-        </span>
-    </button>
-
-</div>
-
-
-        {medicationDetailOption === "OTHER" && (
-
-            <input
-                type="text"
-                value={
-                    otherConsultationMode
-                }
-                onChange={(event) => {
-
-                    setOtherConsultationMode(
-                        event.target.value
-                    );
-
-                }}
-                placeholder={t("medication.pleaseSpecifyConsultationMode")}
-                style={textInput}
-            />
-
-        )}
-
-    </div>
-
-)}
 
         </div>
 
