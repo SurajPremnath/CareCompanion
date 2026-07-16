@@ -307,6 +307,15 @@ helpAndFaqsDescription:
 
 backToHome:
     "মুখ্য পৃষ্ঠালৈ উভতি যাওক",
+
+healthCheckAssessment:
+    "স্বাস্থ্য পৰীক্ষা মূল্যায়ন",
+
+healthHistory:
+    "স্বাস্থ্য ইতিহাস",
+
+medicationManagement:
+    "ঔষধ ব্যৱস্থাপনা",
   },
 
   addPatient: {
@@ -765,5 +774,565 @@ backToHome:
     patientConfusedToday:
       "আজি ৰোগীক অস্বাভাৱিকভাৱে বিভ্ৰান্ত যেন লাগিছিল নেকি?",
   },
+
+medication: {
+
+    //--------------------------------------------------
+    // General
+    //--------------------------------------------------
+
+    title:
+        "ঔষধ ব্যৱস্থাপনা",
+
+    addPrescription:
+        "প্ৰেছক্ৰিপশ্যন যোগ কৰক",
+
+    viewPrescriptions:
+        "সংৰক্ষিত প্ৰেছক্ৰিপশ্যনসমূহ চাওক",
+
+    prescriptionDetails:
+        "প্ৰেছক্ৰিপশ্যনৰ বিৱৰণ",
+
+    reviewPrescription:
+        "প্ৰেছক্ৰিপশ্যন পৰ্যালোচনা",
+
+    //--------------------------------------------------
+    // Upload
+    //--------------------------------------------------
+
+    takePhoto:
+        "ফটো লওক",
+
+    choosePhotos:
+        "ফটো বাছক",
+
+    uploadPdf:
+        "PDF আপলোড কৰক",
+
+    readPrescription:
+        "প্ৰেছক্ৰিপশ্যন পঢ়ক",
+
+    readingPrescription:
+        "প্ৰেছক্ৰিপশ্যন পঢ়া হৈছে...",
+
+    preparingPrescription:
+        "প্ৰেছক্ৰিপশ্যন প্ৰস্তুত কৰা হৈছে...",
+
+    prescriptionReadSuccess:
+        "প্ৰেছক্ৰিপশ্যন সফলভাৱে পঢ়া হৈছে।",
+
+    //--------------------------------------------------
+    // Consultation
+    //--------------------------------------------------
+
+    consultationDate:
+        "পৰামৰ্শৰ তাৰিখ",
+
+    consultationMode:
+        "পৰামৰ্শৰ ধৰণ",
+
+    doctor:
+        "ডাক্তৰ",
+
+    hospital:
+        "হাস্পতাল / ক্লিনিক",
+
+    diagnosisAssessment:
+        "ৰোগ নিৰ্ণয় / মূল্যায়ন",
+
+    //--------------------------------------------------
+    // Medicines
+    //--------------------------------------------------
+
+    medicines:
+        "ঔষধসমূহ",
+
+    medicine:
+        "ঔষধ",
+
+    dosage:
+        "ড'জ",
+
+    frequency:
+        "বাৰম্বাৰতা",
+
+    duration:
+        "সময়সীমা",
+
+    instructions:
+        "নিৰ্দেশনা",
+
+    //--------------------------------------------------
+    // Actions
+    //--------------------------------------------------
+
+    savePrescription:
+        "নিশ্চিত কৰি সংৰক্ষণ কৰক",
+
+    savingPrescription:
+        "সংৰক্ষণ কৰা হৈছে...",
+
+    reupload:
+        "প্ৰেছক্ৰিপশ্যন পুনৰ আপলোড কৰক",
+
+    //--------------------------------------------------
+    // Validation
+    //--------------------------------------------------
+
+    consultationDateRequired:
+        "পৰামৰ্শৰ তাৰিখ প্ৰয়োজন।",
+
+    consultationDateFuture:
+        "পৰামৰ্শৰ তাৰিখ ভৱিষ্যতৰ হ'ব নোৱাৰে।",
+
+    consultationDateInvalid:
+        "অবৈধ পৰামৰ্শৰ তাৰিখ।",
+
+    consultationTypeRequired:
+        "অনুগ্ৰহ কৰি পৰামৰ্শৰ ধৰণ বাছক।",
+
+    patientRequired:
+        "অনুগ্ৰহ কৰি ৰোগী বাছক।",
+
+    patientMismatch:
+        "এই প্ৰেছক্ৰিপশ্যন আন এজন ৰোগীৰ যেন লাগে।",
+
+    //--------------------------------------------------
+    // Warnings
+    //--------------------------------------------------
+
+    warningTitle:
+        "সতৰ্কবাণীৰ সৈতে পৰ্যালোচনা সম্পূৰ্ণ হৈছে",
+
+    doctorNotDetected:
+        "ডাক্তৰৰ নাম চিনাক্ত কৰিব পৰা নগ'ল।",
+
+    hospitalNotDetected:
+        "হাস্পতাল বা ক্লিনিকৰ নাম চিনাক্ত কৰিব পৰা নগ'ল।",
+
+    diagnosisNotDetected:
+        "ৰোগ নিৰ্ণয় বা মূল্যায়ন চিনাক্ত কৰিব পৰা নগ'ল।",
+
+    medicinesNotDetected:
+        "কোনো ঔষধ চিনাক্ত কৰিব পৰা নগ'ল।",
+
+    warningContinue:
+        "তথ্য সঠিক হ'লে আপুনি এই প্ৰেছক্ৰিপশ্যন সংৰক্ষণ কৰিব পাৰে।",
+
+    //--------------------------------------------------
+    // Success
+    //--------------------------------------------------
+
+    saveSuccess:
+        "প্ৰেছক্ৰিপশ্যন সফলভাৱে সংৰক্ষণ কৰা হৈছে।",
+
+    saveFailed:
+        "প্ৰেছক্ৰিপশ্যন সংৰক্ষণ কৰিব পৰা নগ'ল।",
+
+    selectPrescription:
+        "অনুগ্ৰহ কৰি এটা প্ৰেছক্ৰিপশ্যন বাছক।",
+
+    readFailed:
+        "প্ৰেছক্ৰিপশ্যন পঢ়িব পৰা নগ'ল।",
+
+    processingFailed:
+        "প্ৰেছক্ৰিপশ্যন প্ৰক্ৰিয়াকৰণ কৰিব পৰা নগ'ল।",
+
+    patientMismatchTitle:
+        "প্ৰেছক্ৰিপশ্যন আন এজন ৰোগীৰ",
+
+    patient:
+        "ৰোগী",
+
+    patientDetails:
+        "ৰোগীৰ বিৱৰণ",
+
+    patientSymptoms:
+        "ৰোগীৰ লক্ষণসমূহ",
+
+    assessment:
+        "মূল্যায়ন",
+
+    additionalDiagnoses:
+        "অতিৰিক্ত ৰোগ নিৰ্ণয়",
+
+    examinationFindings:
+        "পৰীক্ষাৰ ফলাফল",
+
+    relevantMedicalHistory:
+        "সম্পৰ্কিত চিকিৎসা ইতিহাস",
+
+    lifestyle:
+        "জীৱনশৈলী",
+
+    consultationVitals:
+        "পৰামৰ্শৰ ভাইটেলসমূহ",
+
+    investigationsOrdered:
+        "নিৰ্দেশিত পৰীক্ষাসমূহ",
+
+    careInstructions:
+        "যত্নৰ নিৰ্দেশনা",
+
+    otherNotes:
+        "অন্যান্য টোকা",
+
+    medicationsPrescribed:
+        "নিৰ্ধাৰিত ঔষধসমূহ",
+
+    importantAdministrationTiming:
+        "গুৰুত্বপূৰ্ণ: ঔষধ সেৱনৰ সময়",
+
+    administrationTimingInfo1:
+        "CareVR এ ঔষধ খাবাৰৰ আগতে, পিছত, খাবাৰৰ সৈতে বা অন্য সময়ত ল'ব লাগে নে নাই সেইটো অনুমান নকৰে।",
+
+    administrationTimingInfo2:
+        "ঔষধ লোৱাৰ সঠিক সময় ডাক্তৰৰ সৈতে নিশ্চিত কৰি তাৰ পিছত বাছনি কৰক।",
+
+    administrationTimingInfo3:
+        "যদি সময় এতিয়াও নিশ্চিত হোৱা নাই, তেন্তে 'নিৰ্দিষ্ট কৰা হোৱা নাই' হিচাপে ৰাখক আৰু পিছত আপডেট কৰক।",
+
+    noMedicinesDetected:
+        "কোনো ঔষধ চিনাক্ত কৰিব পৰা নগ'ল।",
+
+    aiExtractedDate:
+        "AI দ্বাৰা চিনাক্ত কৰা তাৰিখ",
+
+    consultationDateHelp:
+        "তাৰিখ ভুল হ'লে সঠিক পৰামৰ্শৰ তাৰিখ বাছক।",
+
+    weight:
+        "ওজন",
+
+    bloodPressure:
+        "ৰক্তচাপ",
+
+    pulse:
+        "নাড়ী",
+
+    temperature:
+        "তাপমাত্ৰা",
+
+    spo2:
+        "SpO₂",
+
+    strength:
+        "শক্তি",
+
+    dose:
+        "ড'জ",
+
+    administrationTiming:
+        "ঔষধ সেৱনৰ সময়",
+
+    //--------------------------------------------------
+    // Administration Timing
+    //--------------------------------------------------
+
+    notSpecified:
+        "নিৰ্দিষ্ট কৰা হোৱা নাই",
+
+    beforeFood:
+        "খাবাৰৰ আগতে",
+
+    afterFood:
+        "খাবাৰৰ পিছত",
+
+    withFood:
+        "খাবাৰৰ সৈতে",
+
+    emptyStomach:
+        "খালী পেটত",
+
+    beforeBreakfast:
+        "জলপানৰ আগতে",
+
+    afterBreakfast:
+        "জলপানৰ পিছত",
+
+    beforeLunch:
+        "দুপৰীয়াৰ আহাৰৰ আগতে",
+
+    afterLunch:
+        "দুপৰীয়াৰ আহাৰৰ পিছত",
+
+    beforeDinner:
+        "ৰাতিৰ আহাৰৰ আগতে",
+
+    afterDinner:
+        "ৰাতিৰ আহাৰৰ পিছত",
+
+    atBedtime:
+        "শুবলৈ যোৱাৰ আগতে",
+
+    asDirected:
+        "ডাক্তৰৰ পৰামৰ্শ অনুসৰি",
+
+whatWouldYouLikeToDo:
+    "আপুনি কি কৰিব বিচাৰে?",
+
+modeOfConsultation:
+    "পৰামৰ্শৰ ধৰণ",
+
+howWouldYouLikeToAddPrescription:
+    "আপুনি কেনেকৈ প্ৰেছক্ৰিপশ্যন যোগ কৰিব বিচাৰে?",
+
+forBestResults:
+    "সৰ্বোত্তম ফলাফলৰ বাবে",
+
+supportedFormats:
+    "সমৰ্থিত ফৰ্মেট: JPG, JPEG আৰু PNG",
+
+useClearImages:
+    "স্পষ্ট আৰু ভাল পোহৰৰ ছবি ব্যৱহাৰ কৰক",
+
+cropBackground:
+    "অপ্ৰয়োজনীয় পটভূমি আঁতৰাওক",
+
+recommendedImageSize:
+    "পৰামৰ্শিত ছবিৰ আকাৰ: 300 KB – 1 MB",
+
+maximumImageSize:
+    "প্ৰতি ছবিৰ সৰ্বাধিক আকাৰ: 2 MB",
+
+howWasConsultationConducted:
+    "পৰামৰ্শ কেনেকৈ কৰা হৈছিল?",
+
+inPerson:
+    "সাক্ষাতে",
+
+video:
+    "ভিডিঅ’",
+
+phone:
+    "ফোন",
+
+homeVisit:
+    "ঘৰত সাক্ষাৎ",
+
+other:
+    "অন্যান্য",
+
+howWouldYouLikeToRecordHealth:
+    "আপুনি কেনেকৈ স্বাস্থ্য ৰেকৰ্ড কৰিব বিচাৰে?",
+
+recordWithVoice:
+    "কণ্ঠস্বৰে ৰেকৰ্ড কৰক",
+
+uploadReading:
+    "ৰিডিং আপলোড কৰক",
+
+enterManually:
+    "নিজে লিখক",
+
+dailyCare:
+    "দৈনিক যত্ন",
+
+assessmentsHistory:
+    "মূল্যায়নসমূহ",
+
+clinicalTrends:
+    "ক্লিনিকেল প্ৰৱণতা",
+
+detailedTimeline:
+    "বিস্তৃত সময়ৰেখা",
+
+pleaseSpecifyConsultationMode:
+    "অনুগ্ৰহ কৰি পৰামৰ্শৰ ধৰণ উল্লেখ কৰক",
+
+validationErrorsTitle:
+    "সংৰক্ষণ কৰাৰ আগতে তলৰ ভুলসমূহ সংশোধন কৰক",
+
+patientBelongsTo:
+    "এই প্ৰেছক্ৰিপশ্যন এই ৰোগীৰ যেন লাগে",
+
+currentlyAddingFor:
+    "আপুনি বৰ্তমান এই ৰোগীৰ বাবে প্ৰেছক্ৰিপশ্যন যোগ কৰি আছে",
+
+chooseCorrectPatient:
+    "অনুগ্ৰহ কৰি সঠিক প্ৰেছক্ৰিপশ্যন পুনৰ আপলোড কৰক অথবা উভতি গৈ সঠিক পৰিয়ালৰ সদস্য বাছনি কৰক।",
+
+reuploadPrescription:
+    "প্ৰেছক্ৰিপশ্যন পুনৰ আপলোড কৰক",
+
+whoIsThisFor:
+    "এইটো কাৰ বাবে?",
+
+//--------------------------------------------------
+// Consultation Workspace
+//--------------------------------------------------
+
+consultationDetails:
+    "পৰামৰ্শৰ বিৱৰণ",
+
+consultationDetailsDescription:
+    "আপুনি জনা তথ্যসমূহ যোগ কৰক। ঐচ্ছিক ক্ষেত্ৰসমূহ খালী ৰাখিব পাৰিব।",
+
+doctorName:
+    "ডাক্তৰৰ নাম",
+
+enterDoctorName:
+    "ডাক্তৰৰ নাম লিখক",
+
+hospitalOrClinic:
+    "হাস্পতাল / ক্লিনিক",
+
+enterHospitalOrClinic:
+    "হাস্পতাল বা ক্লিনিকৰ নাম লিখক",
+
+optional:
+    "ঐচ্ছিক",
+
+videoPlatform:
+    "ভিডিঅ' প্লেটফৰ্ম",
+
+exampleVideoPlatform:
+    "উদাহৰণ: WhatsApp, Zoom",
+
+consultationType:
+    "পৰামৰ্শৰ ধৰণ",
+
+phoneConsultation:
+    "ফোন পৰামৰ্শ",
+
+doctorServiceDetails:
+    "ডাক্তৰ / সেৱাৰ বিৱৰণ",
+
+enterDoctorServiceDetails:
+    "ডাক্তৰ বা সেৱাৰ বিৱৰণ লিখক",
+
+consultationMethod:
+    "পৰামৰ্শৰ পদ্ধতি",
+
+describeConsultationMethod:
+    "পৰামৰ্শৰ পদ্ধতি বৰ্ণনা কৰক",
+
+consultationNotes:
+    "টোকা",
+
+enterConsultationNotes:
+    "পৰামৰ্শ সম্পৰ্কীয় টোকা যোগ কৰক",
+
+//--------------------------------------------------
+// Prescription Review
+//--------------------------------------------------
+
+reviewNoteTitle:
+    "সংৰক্ষণ কৰাৰ আগতে পৰ্যালোচনা কৰক",
+
+reviewNoteDescription:
+    "তলৰ তথ্যসমূহ আপলোড কৰা প্ৰেছক্ৰিপশ্যনৰ পৰা AI-এ সংগ্ৰহ কৰিছে। সংৰক্ষণ কৰাৰ আগতে অনুগ্ৰহ কৰি ইয়াৰ শুদ্ধতা নিশ্চিত কৰক।",
+
+reviewInstruction:
+    "সংৰক্ষণ কৰাৰ আগতে প্ৰতিটো অংশ খুলি সংগৃহীত তথ্যসমূহ পৰীক্ষা কৰক।",
+
+//--------------------------------------------------
+// Prescription Upload
+//--------------------------------------------------
+
+uploadFailed:
+    "নিৰ্বাচিত প্ৰেছক্ৰিপশ্যনৰ ছবি আপলোড কৰিব পৰা নগ'ল।",
+
+filesTooLarge:
+    "তলৰ ফাইলসমূহ অনুমোদিত আকাৰতকৈ ডাঙৰ।",
+
+recommendedUploadSize:
+    "পৰামৰ্শিত আকাৰ: প্ৰতিটো ছবিৰ বাবে 300 KB – 1 MB।",
+
+maximumUploadSize:
+    "সৰ্বাধিক অনুমোদিত আকাৰ: প্ৰতিটো ছবিৰ বাবে 2 MB।",
+
+cropBackgroundBeforeUpload:
+    "আপলোড কৰাৰ আগতে অপ্ৰয়োজনীয় পটভূমি আঁতৰাওক।",
+
+reduceImageSize:
+    "অনুগ্ৰহ কৰি ছবিৰ আকাৰ কমাই পুনৰ চেষ্টা কৰক।",
+
+cameraUnavailable:
+    "কেমেৰা ব্যৱহাৰ কৰিব পৰা নগ'ল।",
+
+readingFailed:
+    "প্ৰেছক্ৰিপশ্যন পঢ়িব পৰা নগ'ল।",
+
+savingFailed:
+    "প্ৰেছক্ৰিপশ্যন সংৰক্ষণ কৰিব পৰা নগ'ল।",
+
+prescriptionSaved:
+    "প্ৰেছক্ৰিপশ্যন সফলভাৱে সংৰক্ষণ কৰা হৈছে।",
+
+//--------------------------------------------------
+// Additional UI Messages
+//--------------------------------------------------
+
+uploadFileTooLargeMessage:
+    "নিৰ্বাচিত প্ৰেছক্ৰিপশ্যনৰ ছবিসমূহ আপলোড কৰিব পৰা নগ'ল।\n\n" +
+    "তলৰ ফাইলসমূহ অনুমোদিত আকাৰতকৈ ডাঙৰ:\n\n" +
+    "{fileNames}\n\n" +
+    "সৰ্বোত্তম অভিজ্ঞতাৰ বাবে (বিশেষকৈ iPhone-ত):\n\n" +
+    "• প্ৰতিখন ছবিৰ বাবে পৰামৰ্শিত আকাৰ: 300 KB - 1 MB\n" +
+    "• প্ৰতিখন ছবিৰ বাবে সৰ্বাধিক অনুমোদিত আকাৰ: 2 MB\n" +
+    "• আপলোড কৰাৰ আগতে অপ্ৰয়োজনীয় পটভূমি আঁতৰাওক\n\n" +
+    "অনুগ্ৰহ কৰি ছবিৰ আকাৰ কমাই পুনৰ চেষ্টা কৰক।",
+
+pleaseRecordatleastOneObservation:
+    "অনুগ্ৰহ কৰি অন্ততঃ এটা স্বাস্থ্য পৰ্যবেক্ষণ লিপিবদ্ধ কৰক।\n\n" +
+    "• তাপমাত্ৰা\n" +
+    "• ওজন\n" +
+    "• গুৰুত্বপূৰ্ণ মাপ (Vitals)\n" +
+    "• লক্ষণসমূহ\n" +
+    "• বিষৰ স্থান",
+
+choosePhoto:
+    "ফটো বাছক",
+
+currentlyAddingPrescriptionFor:
+    "আপুনি বৰ্তমান এই ৰোগীৰ বাবে এটা প্ৰেছক্ৰিপশ্যন যোগ কৰি আছে",
+
+capturePhoto:
+    "ফটো তুলক",
+
+chooseCorrectPrescription:
+    "অনুগ্ৰহ কৰি সঠিক প্ৰেছক্ৰিপশ্যন পুনৰ আপলোড কৰক অথবা পিছলৈ গৈ সঠিক পৰিয়ালৰ সদস্য বাছনি কৰক।",
+
+prescriptionReadError:
+    "প্ৰেছক্ৰিপশ্যন পঢ়াৰ ত্ৰুটি:",
+
+pleaseSelectFamilyMember:
+    "অনুগ্ৰহ কৰি এজন পৰিয়ালৰ সদস্য বাছনি কৰক।",
+
+manualCareSaveError:
+    "ম্যানুৱেল কেয়াৰ সংৰক্ষণ ত্ৰুটি:",
+
+clear:
+    "পৰিষ্কাৰ কৰক",
+
+yourFamilyMember:
+    "আপোনাৰ পৰিয়ালৰ সদস্য",
+
+uploadCareImageProcessingError:
+    "আপলোড কৰা স্বাস্থ্য ছবিখন প্ৰক্ৰিয়াকৰণত ত্ৰুটি:",
+
+uploadCareSaveError:
+    "স্বাস্থ্য ৰেকৰ্ড সংৰক্ষণত ত্ৰুটি:",
+
+useAnotherPhoto:
+    "আন এখন ফটো ব্যৱহাৰ কৰক",
+
+saveHealthReading:
+    "স্বাস্থ্য ৰিডিং সংৰক্ষণ কৰক",
+
+selectTemperatureOrDontKnow:
+    "অনুগ্ৰহ কৰি তাপমাত্ৰা বাছনি কৰক অথবা 'মই নাজানো' বাছনি কৰক।",
+
+voiceCareSaveError:
+    "ভইচ কেয়াৰ সংৰক্ষণ ত্ৰুটি:",
+
+reviewRecording:
+    "ৰেকৰ্ডিং পৰ্যালোচনা কৰক",
+
+healthUpdateReady:
+    "আপোনাৰ স্বাস্থ্য আপডেট সাজু হৈছে। আপুনি ইয়াক পৰ্যালোচনা কৰিব পাৰে অথবা পোনপটীয়াকৈ সংৰক্ষণ কৰিব পাৰে।",
+
+},
 
 };

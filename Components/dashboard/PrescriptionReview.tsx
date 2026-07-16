@@ -52,6 +52,15 @@ from "./prescription-review/ReviewActions";
 import MedicineCard
 from "./prescription-review/MedicineCard";
 
+import {
+    validatePrescriptionBeforeSave,
+} from "@/lib/prescription/prescriptionValidator";
+
+
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 interface PrescriptionReviewProps {
 
     prescription: ExtractedPrescription;
@@ -73,132 +82,6 @@ onConfirm: (
 }
 
 
-function validatePrescription(
-
-    prescription: ExtractedPrescription,
-
-    selectedPatientName: string,
-
-    recordContext: "SELF" | "FAMILY"
-
-) {
-
-    const errors: string[] = [];
-
-    const warnings: string[] = [];
-
-    //--------------------------------------------------
-    // Patient
-    //--------------------------------------------------
-
-    if (!selectedPatientName?.trim()) {
-
-        errors.push(
-            "No patient selected."
-        );
-
-    }
-
-    //--------------------------------------------------
-    // Self validation
-    //--------------------------------------------------
-
-    if (
-
-        recordContext === "SELF" &&
-
-        prescription.patientName &&
-
-        selectedPatientName &&
-
-        prescription.patientName
-            .toLowerCase()
-            .trim() !==
-
-        selectedPatientName
-            .toLowerCase()
-            .trim()
-
-    ) {
-
-        errors.push(
-
-            "This prescription appears to belong to another patient."
-
-        );
-
-    }
-
-    //--------------------------------------------------
-    // Medicines
-    //--------------------------------------------------
-
-    if (
-
-        prescription.medicines.length === 0
-
-    ) {
-
-        errors.push(
-
-            "No medicines detected."
-
-        );
-
-    }
-
-    //--------------------------------------------------
-    // Doctor
-    //--------------------------------------------------
-
-    if (
-
-        !prescription.doctorName
-
-    ) {
-
-        warnings.push(
-
-            "Doctor name not detected."
-
-        );
-
-    }
-
-    //--------------------------------------------------
-    // Date
-    //--------------------------------------------------
-
-    if (
-
-        !prescription.consultationDate
-
-    ) {
-
-        warnings.push(
-
-            "Consultation date not detected."
-
-        );
-
-    }
-
-    //--------------------------------------------------
-
-    return {
-
-        valid:
-
-            errors.length === 0,
-
-        errors,
-
-        warnings,
-
-    };
-
-}
-
 export default function PrescriptionReview({
 
     prescription,
@@ -216,6 +99,10 @@ export default function PrescriptionReview({
     onConfirm,
 
 }: PrescriptionReviewProps) {
+
+const {
+    t,
+} = useLanguage();
 
 const [activeTab, setActiveTab] =
     useState<PrescriptionTab>(
@@ -256,8 +143,8 @@ const [
 });
 
 const validation =
-    validatePrescription(
-        prescription,
+    validatePrescriptionBeforeSave(
+        reviewPrescription,
         patientName,
         recordContext
     );
@@ -271,12 +158,12 @@ const validation =
 
 
             <h2 style={reviewTitle}>
-                Prescription Details
+                {t("medication.prescriptionDetails")}
             </h2>
 
           <p style={reviewDescription}>
-Note: The information below has been extracted from the uploaded prescription using AI. Please review and confirm its accuracy before saving.                
-<strong> Please Click on each Area and VERIFY the extracted prescription before saving.</strong>
+Note: {t("medication.reviewNoteDescription")}                
+<strong> {t("medication.reviewInstruction")} </strong>
 		
  
             </p>

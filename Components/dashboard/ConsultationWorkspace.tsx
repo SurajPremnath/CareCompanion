@@ -10,6 +10,11 @@ import type {
 } from "@/Components/dashboard/ActionOptions";
 
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
+
 //------------------------------------------------------------
 // Props
 //------------------------------------------------------------
@@ -32,6 +37,9 @@ export default function ConsultationWorkspace({
 
 }: ConsultationWorkspaceProps) {
 
+const {
+    t,
+} = useLanguage();
 
     //--------------------------------------------------------
     // State
@@ -123,13 +131,12 @@ export default function ConsultationWorkspace({
         <div style={workspaceContainer}>
 
             <h3 style={title}>
-                Consultation Details
+                t("medication.consultationDetails")
             </h3>
 
 
             <p style={helpText}>
-                Add the details you know.
-                Optional fields can be left blank.
+                t("medication.consultationDetailsDescription")
             </p>
 
 
@@ -144,7 +151,7 @@ export default function ConsultationWorkspace({
                         htmlFor="consultationDate"
                         style={fieldLabel}
                     >
-                        Consultation Date
+                        t("medication.consultationDate")
                     </label>
 
 
@@ -173,7 +180,7 @@ export default function ConsultationWorkspace({
                         htmlFor="doctorName"
                         style={fieldLabel}
                     >
-                        Doctor Name
+                        t("medication.doctorName")
                     </label>
 
 
@@ -188,7 +195,7 @@ export default function ConsultationWorkspace({
                                 event.target.value
                             )
                         }
-                        placeholder="Enter doctor's name"
+                        placeholder={t("medication.enterDoctorName")}
                         style={inputStyle}
                     />
 
@@ -205,7 +212,7 @@ export default function ConsultationWorkspace({
                             htmlFor="hospitalOrClinic"
                             style={fieldLabel}
                         >
-                            Hospital or Clinic
+                            t("medication.hospitalOrClinic")
                             <span style={optionalText}>
                                 {" "}Optional
                             </span>
@@ -223,7 +230,7 @@ export default function ConsultationWorkspace({
                                     event.target.value
                                 )
                             }
-                            placeholder="Enter hospital or clinic"
+                            placeholder={t("medication.enterHospitalOrClinic")}
                             style={inputStyle}
                         />
 
@@ -242,7 +249,7 @@ export default function ConsultationWorkspace({
                             htmlFor="consultationPlatform"
                             style={fieldLabel}
                         >
-                            Video Platform
+                            t("medication.videoPlatform")
                             <span style={optionalText}>
                                 {" "}Optional
                             </span>
@@ -260,7 +267,7 @@ export default function ConsultationWorkspace({
                                     event.target.value
                                 )
                             }
-                            placeholder="Example: WhatsApp, Zoom"
+                            placeholder={t("medication.exampleVideoPlatform")}
                             style={inputStyle}
                         />
 
@@ -278,12 +285,12 @@ export default function ConsultationWorkspace({
                         <label
                             style={fieldLabel}
                         >
-                            Consultation Type
+                            t("medication.consultationType")
                         </label>
 
 
                         <div style={modeConfirmation}>
-                            📞 Phone Consultation
+                            📞 t("medication.phoneConsultation")
                         </div>
 
                     </div>
@@ -301,7 +308,7 @@ export default function ConsultationWorkspace({
                             htmlFor="homeVisitDoctor"
                             style={fieldLabel}
                         >
-                            Doctor / Service Details
+                            t("medication.doctorServiceDetails")
                             <span style={optionalText}>
                                 {" "}Optional
                             </span>
@@ -319,7 +326,7 @@ export default function ConsultationWorkspace({
                                     event.target.value
                                 )
                             }
-                            placeholder="Enter doctor or service details"
+                            placeholder={t("medication.enterDoctorServiceDetails")}
                             style={inputStyle}
                         />
 
@@ -338,7 +345,7 @@ export default function ConsultationWorkspace({
                             htmlFor="otherModeDetails"
                             style={fieldLabel}
                         >
-                            Consultation Method
+                            t("medication.consultationMethod")
                         </label>
 
 
@@ -353,7 +360,7 @@ export default function ConsultationWorkspace({
                                     event.target.value
                                 )
                             }
-                            placeholder="Describe the consultation method"
+                            placeholder={t("medication.describeConsultationMethod")}
                             style={inputStyle}
                         />
 
@@ -387,7 +394,7 @@ export default function ConsultationWorkspace({
                                 event.target.value
                             )
                         }
-                        placeholder="Add any consultation notes"
+                        placeholder={t("medication.enterConsultationNotes")}
                         rows={4}
                         style={textAreaStyle}
                     />

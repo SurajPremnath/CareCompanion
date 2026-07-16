@@ -6,6 +6,10 @@ import type {
     ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 interface Props{
     prescription:ExtractedPrescription;
 }
@@ -24,6 +28,10 @@ export default function OtherNotesCard({
 
 }:Props){
 
+const {
+    t,
+} = useLanguage();
+
 if (
     prescription.additionalNotes.length === 0
 ) {
@@ -36,7 +44,7 @@ if (
 
 <h3>
 
-📝 Other Notes
+📝 {t("medication.otherNotes")}
 
 </h3>
 

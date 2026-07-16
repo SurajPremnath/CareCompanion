@@ -24,6 +24,10 @@ import {
     selfDailyCareStorage,
 } from "@/lib/storage/SelfDailyCareStorage";
 
+import {
+    useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 
 interface VoiceCareWorkspaceProps {
 
@@ -54,6 +58,11 @@ export default function VoiceCareWorkspace({
     currentUserName,
 
 }: VoiceCareWorkspaceProps) {
+
+const {
+    t,
+} = useLanguage();
+
 
 const [
     processingVoice,
@@ -232,7 +241,7 @@ setAudioPlaybackUrl(
 
         setVoiceError(
             result.error ??
-            "Unable to complete the request."
+            t("dailyCare.unableToComplete")
         );
 
         setProcessingVoice(false);
@@ -280,7 +289,7 @@ async function saveVoiceObservation() {
     ) {
 
         setVoiceError(
-            "Please select a family member."
+            t("medication.pleaseSelectFamilyMember")
         );
 
         return;
@@ -295,7 +304,7 @@ if (
 ) {
 
     setClarificationError(
-        "Please select the temperature or choose I DON'T KNOW."
+        t("medication.selectTemperatureOrDontKnow")
     );
 
     return;
@@ -422,7 +431,7 @@ setClarificationError(null);
 
             setVoiceError(
                 result.error ??
-                "Unable to complete the request."
+                t("dailyCare.unableToComplete")
             );
 
             return;
@@ -436,7 +445,7 @@ setClarificationError(null);
     catch (error) {
 
         console.error(
-            "Voice Care Save Error:",
+            t("medication.voiceCareSaveError"),
             error
         );
 
@@ -446,7 +455,7 @@ setClarificationError(null);
 
                 ? error.message
 
-                : "Unable to save the health update."
+                : t("dailyCare.unableToSaveHealthUpdate")
 
         );
 
@@ -469,8 +478,9 @@ setClarificationError(null);
     <h3>
         {
             mode === "self"
-                ? "Tell us how are you feeling today"
-                : `Tell us how ${recordingName} is today`
+    ? t("dailyCare.tellUsHowYouFeel")
+    : t("dailyCare.tellUsHowPatientFeels")
+        .replace("{name}", recordingName)
         }
     </h3>
 
@@ -497,7 +507,7 @@ setClarificationError(null);
     <div style={processingContainer}>
 
         <p style={processingText}>
-            Understanding your recording...
+            {t("dailyCare.understandingRecording")}
         </p>
 
 <div style={progressTrack}>
@@ -510,7 +520,7 @@ setClarificationError(null);
 </div>
 
         <p style={processingHint}>
-            Please wait while we prepare your health update.
+            {t("dailyCare.preparingHealthUpdate")}
         </p>
 
     </div>
@@ -532,7 +542,7 @@ setClarificationError(null);
                 resetVoiceSession
             }
         >
-            🎙️ Record Again
+            🎙️ {t("dailyCare.recordAgain")}
         </button>
 
     </div>
@@ -545,12 +555,11 @@ setClarificationError(null);
     <div style={reviewContainer}>
 
         <h3 style={reviewTitle}>
-            Review Recording
+            {t("medication.reviewRecording")}
         </h3>
 
         <p style={reviewDescription}>
-            Your health update is ready.
-            You can review it or save directly.
+            {t("medication.healthUpdateReady")}
         </p>
 
 
@@ -574,7 +583,7 @@ setClarificationError(null);
             <div style={transcriptContainer}>
 
                 <h4 style={transcriptTitle}>
-                    Transcript
+                    {t("dailyCare.transcript")}
                 </h4>
 
                 <p style={transcriptText}>
@@ -591,11 +600,11 @@ setClarificationError(null);
             <div style={clarificationContainer}>
 
                 <h3>
-                    You mentioned fever.
+                    {t("dailyCare.mentionedFever")}
                 </h3>
 
                 <p>
-                    Do you know the temperature?
+                    {t("dailyCare.knowTemperature")}
                 </p>
 
 
@@ -627,7 +636,7 @@ setClarificationError(null);
                     >
 
                         <option value="">
-                            Select temperature
+                            {t("dailyCare.selectTemperature")}
                         </option>
 
 

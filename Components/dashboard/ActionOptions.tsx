@@ -4,6 +4,10 @@ import {
     useState,
 } from "react";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 
 //------------------------------------------------------------
 // Types
@@ -80,6 +84,10 @@ export default function ActionOptions({
 
 }: ActionOptionsProps) {
 
+const {
+    t,
+} = useLanguage();
+
     const [
         selectedOption,
         setSelectedOption,
@@ -126,7 +134,7 @@ const [
         onStartAssessment
     }
 >
-    📋 Start Assessment
+    📋 {t("assessment.startAssessment")}
 </button>
 
             </div>
@@ -149,7 +157,7 @@ const [
     <>
 
         <label style={label}>
-            How would you like to record health?
+            {t("medication.howWouldYouLikeToRecordHealth")}
         </label>
 
         <div style={optionGridThree}>
@@ -181,7 +189,7 @@ const [
                 </span>
 
                 <span style={optionLabel}>
-                    Record with Voice
+                    {t("medication.recordWithVoice")}
                 </span>
 
             </button>
@@ -213,7 +221,7 @@ const [
     </span>
 
     <span style={optionLabel}>
-        Upload Reading
+        {t("medication.uploadReading")}
     </span>
 
 </button>
@@ -246,7 +254,7 @@ const [
                 </span>
 
                 <span style={optionLabel}>
-                    Enter Manually
+{t("medication.enterManually")}
                 </span>
 
             </button>
@@ -265,7 +273,7 @@ const [
     <>
 
         <label style={label}>
-            What would you like to do?
+            {t("medication.whatWouldYouLikeToDo")}
         </label>
 
 
@@ -302,7 +310,7 @@ const [
                 </span>
 
                 <span style={optionLabel}>
-                    Add Prescription
+                    {t("medication.addPrescription")}
                 </span>
 
             </button>
@@ -339,7 +347,7 @@ const [
                 </span>
 
                 <span style={optionLabel}>
-                    Mode of Consultation
+                    {t("medication.modeOfConsultation")}
                 </span>
 
             </button>
@@ -358,19 +366,19 @@ const [
                         <>
 
                             <option value="DAILY_CARE">
-                                📋 Daily Care
+                                📋 {t("medication.dailyCare")}
                             </option>
 
                             <option value="ASSESSMENT_HISTORY">
-                                🩺 Assessments
+                                🩺 {t("medication.assessmentsHistory")}
                             </option>
 
                             <option value="CLINICAL_TRENDS">
-                                📈 Clinical Trends
+                                📈 {t("medication.clinicalTrends")}
                             </option>
 
 <option value="DETAILED_TIMELINE">
-    🗓️ Detailed Timeline
+    🗓️ {t("medication.detailedTimeline")}
 </option>
 
                         </>
@@ -385,7 +393,7 @@ const [
     <div style={detailSection}>
 
         <label style={label}>
-            How would you like to add the prescription?
+            {t("medication.howWouldYouLikeToAddPrescription")}
         </label>
 
 {/* Upload Guidance */}
@@ -403,28 +411,28 @@ const [
 >
 
     <strong>
-        📷 For Best Results
+        📷 {t("medication.forBestResults")}
     </strong>
 
     <div>
 
-        • Supported formats: JPG, JPEG and PNG
+        • {t("medication.supportedFormats")}
 
         <br />
 
-        • Use clear, well-lit images
+        • {t("medication.useClearImages")}
 
         <br />
 
-        • Crop unnecessary background
+        • {t("medication.cropBackground")}
 
         <br />
 
-        • Recommended image size: 300 KB – 1 MB
+        • {t("medication.recommendedImageSize")}
 
         <br />
 
-        • Maximum supported size: 2 MB per image
+        • {t("medication.maximumImageSize")}
 
     </div>
 
@@ -459,7 +467,7 @@ const [
         </span>
 
         <span style={optionLabel}>
-            Take Photo
+            {t("medication.takePhoto")}
         </span>
     </button>
 
@@ -490,7 +498,7 @@ const [
         </span>
 
         <span style={optionLabel}>
-            Choose Photos
+            {t("medication.choosePhotos")}
         </span>
     </button>
 
@@ -521,7 +529,7 @@ const [
         </span>
 
         <span style={optionLabel}>
-            Upload PDF
+            {t("medication.uploadPdf")}
         </span>
     </button>
 
@@ -537,7 +545,7 @@ const [
     <div style={detailSection}>
 
         <label style={label}>
-            How was the consultation conducted?
+            {t("medication.howWasConsultationConducted")}
         </label>
 
 
@@ -569,7 +577,7 @@ const [
         </span>
 
         <span style={optionLabel}>
-            In Person
+            {t("medication.inPerson")}
         </span>
     </button>
 
@@ -600,7 +608,7 @@ const [
         </span>
 
         <span style={optionLabel}>
-            Video
+            {t("medication.video")}
         </span>
     </button>
 
@@ -631,7 +639,7 @@ const [
         </span>
 
         <span style={optionLabel}>
-            Phone
+            {t("medication.phone")}
         </span>
     </button>
 
@@ -662,7 +670,7 @@ const [
         </span>
 
         <span style={optionLabel}>
-            Home Visit
+            {t("medication.homeVisit")}
         </span>
     </button>
 
@@ -693,7 +701,7 @@ const [
         </span>
 
         <span style={optionLabel}>
-            Other
+            {t("medication.other")}
         </span>
     </button>
 
@@ -714,7 +722,7 @@ const [
                     );
 
                 }}
-                placeholder="Please specify consultation mode"
+                placeholder={t("medication.pleaseSpecifyConsultationMode")}
                 style={textInput}
             />
 

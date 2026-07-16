@@ -2,6 +2,11 @@
 
 import { expandMedicalText } from "@/lib/medicalFormatter";
 
+
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 interface Props{
 
 saving:boolean;
@@ -34,7 +39,13 @@ onReupload,
 
 }:Props){
 
+const {
+    t,
+} = useLanguage();
+
+
 return(
+
 
 <>
 
@@ -84,7 +95,7 @@ validation.warnings.length>0&&(
 
 <strong>
 
-Warnings
+{t("medication.warningTitle")}
 
 </strong>
 
@@ -107,6 +118,16 @@ validation.warnings.map(
 }
 
 </ul>
+
+<p
+    style={{
+        marginTop: 12,
+        marginBottom: 0,
+        lineHeight: 1.6,
+    }}
+>
+    {t("medication.warningContinue")}
+</p>
 
 </div>
 
@@ -137,7 +158,7 @@ onClick={onReupload}
 
 >
 
-Re-upload Prescription
+{t("medication.reupload")}
 
 </button>
 
@@ -163,11 +184,11 @@ saving
 
 ?
 
-"Saving..."
+t("medication.savingPrescription")
 
 :
 
-"Confirm & Save"
+t("medication.savePrescription")
 
 }
 

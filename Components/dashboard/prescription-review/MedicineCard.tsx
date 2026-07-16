@@ -2,6 +2,10 @@
 
 import type { ExtractedPrescription } from "@/lib/prescription-image/prescriptionImageTypes";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 interface MedicineCardProps {
     prescription: ExtractedPrescription;
     medicineTimings: string[];
@@ -17,6 +21,53 @@ export default function MedicineCard({
     onMedicineTimingChange,
 }: MedicineCardProps) {
 
+const {
+    t,
+} = useLanguage();
+
+const administrationTimingLabels: Record<string, string> = {
+
+    NOT_SPECIFIED:
+        t("medication.notSpecified"),
+
+    BEFORE_FOOD:
+        t("medication.beforeFood"),
+
+    AFTER_FOOD:
+        t("medication.afterFood"),
+
+    WITH_FOOD:
+        t("medication.withFood"),
+
+    EMPTY_STOMACH:
+        t("medication.emptyStomach"),
+
+    BEFORE_BREAKFAST:
+        t("medication.beforeBreakfast"),
+
+    AFTER_BREAKFAST:
+        t("medication.afterBreakfast"),
+
+    BEFORE_LUNCH:
+        t("medication.beforeLunch"),
+
+    AFTER_LUNCH:
+        t("medication.afterLunch"),
+
+    BEFORE_DINNER:
+        t("medication.beforeDinner"),
+
+    AFTER_DINNER:
+        t("medication.afterDinner"),
+
+    AT_BEDTIME:
+        t("medication.atBedtime"),
+
+    AS_DIRECTED:
+        t("medication.asDirected"),
+
+};
+
     return (
         <>
 
@@ -24,23 +75,22 @@ export default function MedicineCard({
     <div style={informationBox}>
 
         <div style={informationTitle}>
-            ℹ️ Important: Administration Timing
+            ℹ️ {t("medication.importantAdministrationTiming")}
         </div>
 
         <p style={informationText}>
-            CareVR does not infer whether a medicine should be taken
-            <strong> before food, after food, with food, or at another specific time.</strong>
-        </p>
-
-        <p style={informationText}>
-            <strong>
-                Please confirm the correct Administration Timing with the consulting doctor before selecting a value.
+            <strong> {t("medication.administrationTimingInfo1")}
             </strong>
         </p>
 
         <p style={informationText}>
-            If the administration timing has not yet been confirmed with the consulting doctor,
-            leave the value as <strong>"Not Specified"</strong> and update it later after verification.
+            <strong>
+                {t("medication.administrationTimingInfo2")}
+            </strong>
+        </p>
+
+        <p style={informationText}>
+            {t("medication.administrationTimingInfo3")}
         </p>
 
     </div>
@@ -50,14 +100,14 @@ export default function MedicineCard({
         <section style={section}>
 
             <h3 style={sectionTitle}>
-                Medications Prescribed
+                {t("medication.medicationsPrescribed")}
             </h3>
 
             {
                 prescription.medicines.length === 0 ? (
 
                     <p style={sectionValue}>
-                        No medicines could be identified.
+                        {t("medication.noMedicinesDetected")}
                     </p>
 
                 ) : (
@@ -68,17 +118,17 @@ export default function MedicineCard({
 
                             <tr>
 
-                                <th style={headerCell}>Medicine</th>
+                                <th style={headerCell}>{t("medication.medicine")}</th>
 
-                                <th style={headerCell}>Strength</th>
+                                <th style={headerCell}>{t("medication.strength")}</th>
 
-                                <th style={headerCell}>Dose</th>
+                                <th style={headerCell}>{t("medication.dose")}</th>
 
-                                <th style={headerCell}>Frequency / Schedule</th>
+                                <th style={headerCell}>{t("medication.frequency")}</th>
 
-                                <th style={headerCell}>Duration</th>
+                                <th style={headerCell}>{t("medication.duration")}</th>
 
-                                <th style={headerCell}>Administration Timing</th>
+                                <th style={headerCell}>{t("medication.administrationTiming")}</th>
 
                             </tr>
 
@@ -126,55 +176,55 @@ export default function MedicineCard({
                                             >
 
                                                 <option value="NOT_SPECIFIED">
-                                                    Not Specified
+                                                    {administrationTimingLabels.NOT_SPECIFIED}
                                                 </option>
 
                                                 <option value="BEFORE_FOOD">
-                                                    Before Food
+                                                    {administrationTimingLabels.BEFORE_FOOD}
                                                 </option>
 
                                                 <option value="AFTER_FOOD">
-                                                    After Food
+                                                    {administrationTimingLabels.AFTER_FOOD}
                                                 </option>
 
                                                 <option value="WITH_FOOD">
-                                                    With Food
+                                                    {administrationTimingLabels.WITH_FOOD}
                                                 </option>
 
                                                 <option value="EMPTY_STOMACH">
-                                                    Empty Stomach
+                                                    {administrationTimingLabels.EMPTY_STOMACH}
                                                 </option>
 
                                                 <option value="BEFORE_BREAKFAST">
-                                                    Before Breakfast
+                                                    {administrationTimingLabels.BEFORE_BREAKFAST}
                                                 </option>
 
                                                 <option value="AFTER_BREAKFAST">
-                                                    After Breakfast
+                                                    {administrationTimingLabels.AFTER_BREAKFAST}
                                                 </option>
 
                                                 <option value="BEFORE_LUNCH">
-                                                    Before Lunch
+                                                    {administrationTimingLabels.BEFORE_LUNCH}
                                                 </option>
 
                                                 <option value="AFTER_LUNCH">
-                                                    After Lunch
+                                                    {administrationTimingLabels.AFTER_LUNCH}
                                                 </option>
 
                                                 <option value="BEFORE_DINNER">
-                                                    Before Dinner
+                                                    {administrationTimingLabels.BEFORE_DINNER}
                                                 </option>
 
                                                 <option value="AFTER_DINNER">
-                                                    After Dinner
+                                                    {administrationTimingLabels.AFTER_DINNER}
                                                 </option>
 
                                                 <option value="AT_BEDTIME">
-                                                    At Bedtime
+                                                    {administrationTimingLabels.AT_BEDTIME}
                                                 </option>
 
                                                 <option value="AS_DIRECTED">
-                                                    As Directed
+                                                    {administrationTimingLabels.AS_DIRECTED}
                                                 </option>
 
                                             </select>

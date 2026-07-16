@@ -277,6 +277,15 @@ helpAndFaqsDescription:
 
 backToHome:
     "হোমে ফিরে যান",
+
+healthCheckAssessment:
+    "স্বাস্থ্য পরীক্ষা মূল্যায়ন",
+
+healthHistory:
+    "স্বাস্থ্য ইতিহাস",
+
+medicationManagement:
+    "ওষুধ ব্যবস্থাপনা",
 },
 
 addPatient: {
@@ -653,6 +662,566 @@ looseMotionTypeObserved:
 
 patientConfusedToday:
   "রোগীকে কি আজ অস্বাভাবিকভাবে বিভ্রান্ত মনে হয়েছে?",
+
+},
+
+medication: {
+
+    //--------------------------------------------------
+    // General
+    //--------------------------------------------------
+
+    title:
+        "ওষুধ ব্যবস্থাপনা",
+
+    addPrescription:
+        "প্রেসক্রিপশন যোগ করুন",
+
+    viewPrescriptions:
+        "সংরক্ষিত প্রেসক্রিপশন দেখুন",
+
+    prescriptionDetails:
+        "প্রেসক্রিপশনের বিবরণ",
+
+    reviewPrescription:
+        "প্রেসক্রিপশন পর্যালোচনা",
+
+    //--------------------------------------------------
+    // Upload
+    //--------------------------------------------------
+
+    takePhoto:
+        "ছবি তুলুন",
+
+    choosePhotos:
+        "ছবি নির্বাচন করুন",
+
+    uploadPdf:
+        "PDF আপলোড করুন",
+
+    readPrescription:
+        "প্রেসক্রিপশন পড়ুন",
+
+    readingPrescription:
+        "প্রেসক্রিপশন পড়া হচ্ছে...",
+
+    preparingPrescription:
+        "প্রেসক্রিপশন প্রস্তুত করা হচ্ছে...",
+
+    prescriptionReadSuccess:
+        "প্রেসক্রিপশন সফলভাবে পড়া হয়েছে।",
+
+    //--------------------------------------------------
+    // Consultation
+    //--------------------------------------------------
+
+    consultationDate:
+        "পরামর্শের তারিখ",
+
+    consultationMode:
+        "পরামর্শের ধরন",
+
+    doctor:
+        "ডাক্তার",
+
+    hospital:
+        "হাসপাতাল / ক্লিনিক",
+
+    diagnosisAssessment:
+        "রোগ নির্ণয় / মূল্যায়ন",
+
+    //--------------------------------------------------
+    // Medicines
+    //--------------------------------------------------
+
+    medicines:
+        "ওষুধসমূহ",
+
+    medicine:
+        "ওষুধ",
+
+    dosage:
+        "ডোজ",
+
+    frequency:
+        "ঘনত্ব",
+
+    duration:
+        "সময়কাল",
+
+    instructions:
+        "নির্দেশনা",
+
+    //--------------------------------------------------
+    // Actions
+    //--------------------------------------------------
+
+    savePrescription:
+        "নিশ্চিত করুন এবং সংরক্ষণ করুন",
+
+    savingPrescription:
+        "সংরক্ষণ করা হচ্ছে...",
+
+    reupload:
+        "প্রেসক্রিপশন পুনরায় আপলোড করুন",
+
+    //--------------------------------------------------
+    // Validation
+    //--------------------------------------------------
+
+    consultationDateRequired:
+        "পরামর্শের তারিখ আবশ্যক।",
+
+    consultationDateFuture:
+        "পরামর্শের তারিখ ভবিষ্যতের হতে পারে না।",
+
+    consultationDateInvalid:
+        "অবৈধ পরামর্শের তারিখ।",
+
+    consultationTypeRequired:
+        "অনুগ্রহ করে পরামর্শের ধরন নির্বাচন করুন।",
+
+    patientRequired:
+        "অনুগ্রহ করে রোগী নির্বাচন করুন।",
+
+    patientMismatch:
+        "এই প্রেসক্রিপশনটি অন্য রোগীর বলে মনে হচ্ছে।",
+
+    //--------------------------------------------------
+    // Warnings
+    //--------------------------------------------------
+
+    warningTitle:
+        "সতর্কবার্তাসহ পর্যালোচনা সম্পন্ন হয়েছে",
+
+    doctorNotDetected:
+        "ডাক্তারের নাম শনাক্ত করা যায়নি।",
+
+    hospitalNotDetected:
+        "হাসপাতাল বা ক্লিনিকের নাম শনাক্ত করা যায়নি।",
+
+    diagnosisNotDetected:
+        "রোগ নির্ণয় বা মূল্যায়ন শনাক্ত করা যায়নি।",
+
+    medicinesNotDetected:
+        "কোনও ওষুধ শনাক্ত করা যায়নি।",
+
+    warningContinue:
+        "তথ্য সঠিক হলে আপনি তবুও এই প্রেসক্রিপশন সংরক্ষণ করতে পারেন।",
+
+    //--------------------------------------------------
+    // Success
+    //--------------------------------------------------
+
+    saveSuccess:
+        "প্রেসক্রিপশন সফলভাবে সংরক্ষণ করা হয়েছে।",
+
+    saveFailed:
+        "প্রেসক্রিপশন সংরক্ষণ করা যায়নি।",
+
+    selectPrescription:
+        "অনুগ্রহ করে একটি প্রেসক্রিপশন নির্বাচন করুন।",
+
+    readFailed:
+        "প্রেসক্রিপশন পড়া যায়নি।",
+
+    processingFailed:
+        "প্রেসক্রিপশন প্রক্রিয়াকরণ করা যায়নি।",
+
+    patientMismatchTitle:
+        "প্রেসক্রিপশনটি অন্য রোগীর",
+
+    patient:
+        "রোগী",
+
+    patientDetails:
+        "রোগীর বিবরণ",
+
+    patientSymptoms:
+        "রোগীর উপসর্গ",
+
+    assessment:
+        "মূল্যায়ন",
+
+    additionalDiagnoses:
+        "অতিরিক্ত রোগ নির্ণয়",
+
+    examinationFindings:
+        "পরীক্ষার ফলাফল",
+
+    relevantMedicalHistory:
+        "প্রাসঙ্গিক চিকিৎসা ইতিহাস",
+
+    lifestyle:
+        "জীবনযাপন",
+
+    consultationVitals:
+        "পরামর্শের গুরুত্বপূর্ণ পরিমাপ",
+
+    investigationsOrdered:
+        "নির্দেশিত পরীক্ষা",
+
+    careInstructions:
+        "যত্নের নির্দেশনা",
+
+    otherNotes:
+        "অন্যান্য নোট",
+
+    medicationsPrescribed:
+        "নির্ধারিত ওষুধসমূহ",
+
+    importantAdministrationTiming:
+        "গুরুত্বপূর্ণ: ওষুধ গ্রহণের সময়",
+
+    administrationTimingInfo1:
+        "CareVR ওষুধ খাবারের আগে, পরে, খাবারের সাথে বা অন্য সময় গ্রহণ করতে হবে কিনা তা অনুমান করে না।",
+
+    administrationTimingInfo2:
+        "সঠিক ওষুধ গ্রহণের সময় ডাক্তারের সাথে নিশ্চিত করে তারপর নির্বাচন করুন।",
+
+    administrationTimingInfo3:
+        "যদি সময় নিশ্চিত না হয়ে থাকে, তাহলে 'উল্লেখ করা হয়নি' অবস্থায় রেখে পরে আপডেট করুন।",
+
+    noMedicinesDetected:
+        "কোনও ওষুধ শনাক্ত করা যায়নি।",
+
+    aiExtractedDate:
+        "AI শনাক্ত করা তারিখ",
+
+    consultationDateHelp:
+        "তারিখ ভুল হলে সঠিক পরামর্শের তারিখ নির্বাচন করুন।",
+
+    weight:
+        "ওজন",
+
+    bloodPressure:
+        "রক্তচাপ",
+
+    pulse:
+        "নাড়ির গতি",
+
+    temperature:
+        "তাপমাত্রা",
+
+    spo2:
+        "SpO₂",
+
+    strength:
+        "শক্তি",
+
+    dose:
+        "ডোজ",
+
+    administrationTiming:
+        "ওষুধ গ্রহণের সময়",
+
+    //--------------------------------------------------
+    // Administration Timing
+    //--------------------------------------------------
+
+    notSpecified:
+        "উল্লেখ করা হয়নি",
+
+    beforeFood:
+        "খাবারের আগে",
+
+    afterFood:
+        "খাবারের পরে",
+
+    withFood:
+        "খাবারের সাথে",
+
+    emptyStomach:
+        "খালি পেটে",
+
+    beforeBreakfast:
+        "সকালের নাশতার আগে",
+
+    afterBreakfast:
+        "সকালের নাশতার পরে",
+
+    beforeLunch:
+        "দুপুরের খাবারের আগে",
+
+    afterLunch:
+        "দুপুরের খাবারের পরে",
+
+    beforeDinner:
+        "রাতের খাবারের আগে",
+
+    afterDinner:
+        "রাতের খাবারের পরে",
+
+    atBedtime:
+        "ঘুমানোর আগে",
+
+    asDirected:
+        "ডাক্তারের নির্দেশ অনুযায়ী",
+
+whatWouldYouLikeToDo:
+    "আপনি কী করতে চান?",
+
+modeOfConsultation:
+    "পরামর্শের ধরন",
+
+howWouldYouLikeToAddPrescription:
+    "আপনি কীভাবে প্রেসক্রিপশন যোগ করতে চান?",
+
+forBestResults:
+    "সর্বোত্তম ফলাফলের জন্য",
+
+supportedFormats:
+    "সমর্থিত ফরম্যাট: JPG, JPEG এবং PNG",
+
+useClearImages:
+    "পরিষ্কার এবং ভালো আলোযুক্ত ছবি ব্যবহার করুন",
+
+cropBackground:
+    "অপ্রয়োজনীয় পটভূমি কেটে ফেলুন",
+
+recommendedImageSize:
+    "প্রস্তাবিত ছবির আকার: 300 KB – 1 MB",
+
+maximumImageSize:
+    "প্রতি ছবির সর্বোচ্চ আকার: 2 MB",
+
+howWasConsultationConducted:
+    "পরামর্শ কীভাবে করা হয়েছিল?",
+
+inPerson:
+    "সরাসরি",
+
+video:
+    "ভিডিও",
+
+phone:
+    "ফোন",
+
+homeVisit:
+    "বাড়িতে পরিদর্শন",
+
+other:
+    "অন্যান্য",
+
+howWouldYouLikeToRecordHealth:
+    "আপনি কীভাবে স্বাস্থ্য রেকর্ড করতে চান?",
+
+recordWithVoice:
+    "ভয়েস দিয়ে রেকর্ড করুন",
+
+uploadReading:
+    "রিডিং আপলোড করুন",
+
+enterManually:
+    "ম্যানুয়ালি লিখুন",
+
+dailyCare:
+    "দৈনিক পরিচর্যা",
+
+assessmentsHistory:
+    "মূল্যায়ন",
+
+clinicalTrends:
+    "ক্লিনিক্যাল প্রবণতা",
+
+detailedTimeline:
+    "বিস্তারিত টাইমলাইন",
+
+pleaseSpecifyConsultationMode:
+    "অনুগ্রহ করে পরামর্শের ধরন উল্লেখ করুন",
+
+validationErrorsTitle:
+    "সংরক্ষণ করার আগে নিচের ত্রুটিগুলি সংশোধন করুন",
+
+patientBelongsTo:
+    "এই প্রেসক্রিপশনটি সম্ভবত এই রোগীর",
+
+currentlyAddingFor:
+    "আপনি বর্তমানে এই রোগীর জন্য প্রেসক্রিপশন যোগ করছেন",
+
+chooseCorrectPatient:
+    "অনুগ্রহ করে সঠিক প্রেসক্রিপশন পুনরায় আপলোড করুন অথবা ফিরে গিয়ে সঠিক পরিবারের সদস্য নির্বাচন করুন।",
+
+reuploadPrescription:
+    "প্রেসক্রিপশন পুনরায় আপলোড করুন",
+
+whoIsThisFor:
+    "এটি কার জন্য?",
+
+//--------------------------------------------------
+// Consultation Workspace
+//--------------------------------------------------
+
+consultationDetails:
+    "পরামর্শের বিবরণ",
+
+consultationDetailsDescription:
+    "আপনি যে তথ্য জানেন তা যোগ করুন। ঐচ্ছিক ক্ষেত্রগুলি ফাঁকা রাখা যেতে পারে।",
+
+doctorName:
+    "ডাক্তারের নাম",
+
+enterDoctorName:
+    "ডাক্তারের নাম লিখুন",
+
+hospitalOrClinic:
+    "হাসপাতাল / ক্লিনিক",
+
+enterHospitalOrClinic:
+    "হাসপাতাল বা ক্লিনিকের নাম লিখুন",
+
+optional:
+    "ঐচ্ছিক",
+
+videoPlatform:
+    "ভিডিও প্ল্যাটফর্ম",
+
+exampleVideoPlatform:
+    "উদাহরণ: WhatsApp, Zoom",
+
+consultationType:
+    "পরামর্শের ধরন",
+
+phoneConsultation:
+    "ফোনে পরামর্শ",
+
+doctorServiceDetails:
+    "ডাক্তার / পরিষেবার বিবরণ",
+
+enterDoctorServiceDetails:
+    "ডাক্তার বা পরিষেবার বিবরণ লিখুন",
+
+consultationMethod:
+    "পরামর্শের পদ্ধতি",
+
+describeConsultationMethod:
+    "পরামর্শের পদ্ধতি বর্ণনা করুন",
+
+consultationNotes:
+    "নোট",
+
+enterConsultationNotes:
+    "পরামর্শ সম্পর্কিত নোট লিখুন",
+
+//--------------------------------------------------
+// Prescription Review
+//--------------------------------------------------
+
+reviewNoteTitle:
+    "সংরক্ষণের আগে পর্যালোচনা করুন",
+
+reviewNoteDescription:
+    "নিচের তথ্য আপলোড করা প্রেসক্রিপশন থেকে AI-এর মাধ্যমে সংগ্রহ করা হয়েছে। সংরক্ষণের আগে অনুগ্রহ করে এর যথার্থতা নিশ্চিত করুন।",
+
+reviewInstruction:
+    "সংরক্ষণের আগে প্রতিটি বিভাগে ক্লিক করে সংগৃহীত তথ্য যাচাই করুন।",
+
+//--------------------------------------------------
+// Prescription Upload
+//--------------------------------------------------
+
+uploadFailed:
+    "নির্বাচিত প্রেসক্রিপশনের ছবি আপলোড করা যায়নি।",
+
+filesTooLarge:
+    "নিচের ফাইলগুলি অনুমোদিত আকারের চেয়ে বড়।",
+
+recommendedUploadSize:
+    "প্রস্তাবিত আকার: প্রতি ছবির জন্য 300 KB – 1 MB।",
+
+maximumUploadSize:
+    "সর্বাধিক অনুমোদিত আকার: প্রতি ছবির জন্য 2 MB।",
+
+cropBackgroundBeforeUpload:
+    "আপলোড করার আগে অপ্রয়োজনীয় পটভূমি কেটে ফেলুন।",
+
+reduceImageSize:
+    "অনুগ্রহ করে ছবির আকার কমিয়ে আবার চেষ্টা করুন।",
+
+cameraUnavailable:
+    "ক্যামেরা ব্যবহার করা যাচ্ছে না।",
+
+readingFailed:
+    "প্রেসক্রিপশন পড়া যায়নি।",
+
+savingFailed:
+    "প্রেসক্রিপশন সংরক্ষণ করা যায়নি।",
+
+prescriptionSaved:
+    "প্রেসক্রিপশন সফলভাবে সংরক্ষণ করা হয়েছে।",
+
+//--------------------------------------------------
+// Additional UI Messages
+//--------------------------------------------------
+
+uploadFileTooLargeMessage:
+    "নির্বাচিত প্রেসক্রিপশনের ছবি আপলোড করা যায়নি।\n\n" +
+    "নিচের ফাইলগুলি অনুমোদিত আকারের চেয়ে বড়:\n\n" +
+    "{fileNames}\n\n" +
+    "সেরা অভিজ্ঞতার জন্য (বিশেষ করে iPhone-এ):\n\n" +
+    "• প্রস্তাবিত আকার: প্রতি ছবির জন্য 300 KB - 1 MB\n" +
+    "• সর্বাধিক অনুমোদিত আকার: প্রতি ছবির জন্য 2 MB\n" +
+    "• আপলোড করার আগে অপ্রয়োজনীয় পটভূমি কেটে ফেলুন\n\n" +
+    "অনুগ্রহ করে ছবির আকার কমিয়ে আবার চেষ্টা করুন।",
+
+pleaseRecordatleastOneObservation:
+    "অনুগ্রহ করে অন্তত একটি স্বাস্থ্য পর্যবেক্ষণ নথিভুক্ত করুন।\n\n" +
+    "• তাপমাত্রা\n" +
+    "• ওজন\n" +
+    "• গুরুত্বপূর্ণ রিডিং (Vitals)\n" +
+    "• উপসর্গ\n" +
+    "• ব্যথার স্থান",
+
+choosePhoto:
+    "ছবি নির্বাচন করুন",
+
+currentlyAddingPrescriptionFor:
+    "আপনি বর্তমানে এই রোগীর জন্য একটি প্রেসক্রিপশন যোগ করছেন",
+
+capturePhoto:
+    "ছবি তুলুন",
+
+chooseCorrectPrescription:
+    "অনুগ্রহ করে সঠিক প্রেসক্রিপশনটি পুনরায় আপলোড করুন অথবা ফিরে গিয়ে সঠিক পরিবারের সদস্য নির্বাচন করুন।",
+
+prescriptionReadError:
+    "প্রেসক্রিপশন পড়ার ত্রুটি:",
+
+pleaseSelectFamilyMember:
+    "অনুগ্রহ করে একজন পরিবারের সদস্য নির্বাচন করুন।",
+
+manualCareSaveError:
+    "ম্যানুয়াল কেয়ার সংরক্ষণ ত্রুটি:",
+
+clear:
+    "মুছুন",
+
+yourFamilyMember:
+    "আপনার পরিবারের সদস্য",
+
+uploadCareImageProcessingError:
+    "আপলোড করা স্বাস্থ্য ছবিটি প্রক্রিয়াকরণের ত্রুটি:",
+
+uploadCareSaveError:
+    "স্বাস্থ্য রেকর্ড সংরক্ষণের ত্রুটি:",
+
+useAnotherPhoto:
+    "অন্য ছবি ব্যবহার করুন",
+
+saveHealthReading:
+    "স্বাস্থ্য রিডিং সংরক্ষণ করুন",
+
+selectTemperatureOrDontKnow:
+    "অনুগ্রহ করে তাপমাত্রা নির্বাচন করুন অথবা 'আমি জানি না' নির্বাচন করুন।",
+
+voiceCareSaveError:
+    "ভয়েস কেয়ার সংরক্ষণ ত্রুটি:",
+
+reviewRecording:
+    "রেকর্ডিং পর্যালোচনা করুন",
+
+healthUpdateReady:
+    "আপনার স্বাস্থ্য আপডেট প্রস্তুত। আপনি এটি পর্যালোচনা করতে পারেন অথবা সরাসরি সংরক্ষণ করতে পারেন।",
 
 },
 

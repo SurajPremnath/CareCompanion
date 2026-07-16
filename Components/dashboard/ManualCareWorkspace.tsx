@@ -30,6 +30,9 @@ import {
     AppAlert,
 } from "@/lib/utils/appAlert";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
 
 //------------------------------------------------------------
 // Types
@@ -230,6 +233,9 @@ export default function ManualCareWorkspace({
 
 }: ManualCareWorkspaceProps) {
 
+const {
+    t,
+} = useLanguage();
 
     //--------------------------------------------------------
     // State
@@ -452,7 +458,7 @@ export default function ManualCareWorkspace({
         ) {
 
             AppAlert.warning(
-                "Please select a family member."
+                t("medication.pleaseSelectFamilyMember")
             );
 
             return false;
@@ -498,19 +504,7 @@ const hasWeight =
         ) {
 
             AppAlert.warning(
-
-                "Please record at least one health observation.\n\n" +
-
-                "• Temperature\n" +
-
-                "• Weight\n" +
-
-                "• Vitals\n" +
-
-                "• Symptoms\n" +
-
-                "• Pain Location"
-
+t("medication.pleaseRecordatleastOneObservation")
             );
 
             return false;
@@ -534,7 +528,7 @@ const hasWeight =
             ) {
 
                 AppAlert.warning(
-                    "Temperature is invalid."
+                    t("dailyCare.invalidTemperature")
                 );
 
                 return false;
@@ -554,7 +548,7 @@ const hasWeight =
         ) {
 
             AppAlert.warning(
-                "Blood Pressure is invalid."
+                t("dailyCare.invalidBloodPressure")
             );
 
             return false;
@@ -572,7 +566,7 @@ const hasWeight =
         ) {
 
             AppAlert.warning(
-                "Blood Pressure is invalid."
+                t("dailyCare.invalidBloodPressure")
             );
 
             return false;
@@ -590,7 +584,7 @@ const hasWeight =
         ) {
 
             AppAlert.warning(
-                "Pulse Rate is invalid."
+                t("dailyCare.invalidPulse")
             );
 
             return false;
@@ -608,7 +602,7 @@ const hasWeight =
         ) {
 
             AppAlert.warning(
-                "SpO₂ is invalid."
+                t("dailyCare.invalidSpo2")
             );
 
             return false;
@@ -624,7 +618,7 @@ const hasWeight =
         ) {
 
             AppAlert.warning(
-                "Please specify the other symptom."
+                t("dailyCare.specifyOtherSymptom")
             );
 
             return false;
@@ -640,7 +634,7 @@ const hasWeight =
         ) {
 
             AppAlert.warning(
-                "Please specify the pain location."
+                t("dailyCare.specifyPainLocation")
             );
 
             return false;
@@ -830,7 +824,7 @@ weightKg:
 
                     result.error ??
 
-                    "Unable to save health information."
+                    t("dailyCare.unableToSaveHealthInformation")
 
                 );
 
@@ -841,7 +835,7 @@ weightKg:
 
 
             AppAlert.success(
-                "Health information saved successfully."
+                t("dailyCare.healthInformationSaved")
             );
 
         }
@@ -849,7 +843,7 @@ weightKg:
 
             console.error(
 
-                "Manual Care Save Error:",
+                t("medication.manualCareSaveError"),
 
                 error
 
@@ -862,7 +856,7 @@ weightKg:
 
                     ? error.message
 
-                    : "Unable to save health information."
+                    : t("dailyCare.unableToSaveHealthInformation")
 
             );
 
@@ -891,18 +885,18 @@ weightKg:
 
                 <h3 style={title}>
 
-                    ✍️ Enter Health Information
+                    ✍️ {t("dailyCare.enterHealthInformation")}
 
                 </h3>
 
 
                 <p style={description}>
 
-                    Record health information for {recordingName}.
-                    You only need to enter what is relevant.
-
-                </p>
-
+                     {t("dailyCare.recordHealthInformationFor")
+        .replace("{name}", recordingName)}
+<br />
+    {t("dailyCare.enterRelevantInformation")}
+</p>
             </div>
 
 
@@ -913,7 +907,7 @@ weightKg:
             <section style={cardStyle}>
 
                 <h3 style={sectionTitle}>
-                    🕒 Date and Time
+                    🕒 {t("dailyCare.dateAndTime")}
                 </h3>
 
 
@@ -923,7 +917,7 @@ weightKg:
                     <div>
 
                         <label style={labelStyle}>
-                            Date
+                            {t("dailyCare.date")}
                         </label>
 
                         <input
@@ -950,7 +944,7 @@ weightKg:
                     <div>
 
                         <label style={labelStyle}>
-                            Time
+                            {t("dailyCare.time")}
                         </label>
 
                         <input
@@ -986,7 +980,7 @@ weightKg:
             <section style={cardStyle}>
 
                 <h3 style={sectionTitle}>
-                    🌡 Temperature
+                    🌡 {t("dailyCare.temperature")}
                 </h3>
 
 
@@ -996,14 +990,14 @@ weightKg:
                     <div>
 
                         <label style={labelStyle}>
-                            Temperature
+                            {t("dailyCare.temperature")}
                         </label>
 
                         <input
                             type="number"
                             step="0.1"
                             placeholder=
-                                "Enter temperature"
+                                {t("dailyCare.enterTemperature")}
                             value={
                                 formData.temperature
                             }
@@ -1026,7 +1020,7 @@ weightKg:
                     <div>
 
                         <label style={labelStyle}>
-                            Unit
+                            {t("dailyCare.unit")}
                         </label>
 
                         <select
@@ -1071,7 +1065,7 @@ weightKg:
 <section style={cardStyle}>
 
     <h3 style={sectionTitle}>
-        ⚖ Weight
+        ⚖ {t("medication.weight")}
     </h3>
 
     <div style={temperatureGrid}>
@@ -1079,7 +1073,7 @@ weightKg:
         <div>
 
             <label style={labelStyle}>
-                Weight
+                {t("medication.weight")}
             </label>
 
             <input
@@ -1103,7 +1097,7 @@ weightKg:
         <div>
 
             <label style={labelStyle}>
-                Unit
+                {t("dailyCare.unit")}
             </label>
 
             <div
@@ -1277,7 +1271,7 @@ weightKg:
                     }
                     style={secondaryButton}
                 >
-                    Clear
+                    {t("medication.clear")}
                 </button>
 
 
@@ -1302,9 +1296,9 @@ weightKg:
                     {
                         saving
 
-                            ? "Saving..."
+                            ? t("dailyCare.saving")
 
-                            : "💾 Save Health Information"
+                            : t("dailyCare.saveHealthInformation")
                     }
 
                 </button>

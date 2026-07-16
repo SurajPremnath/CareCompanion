@@ -6,6 +6,10 @@ import type {
 ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 interface Props{
 
 prescription:ExtractedPrescription;
@@ -41,6 +45,10 @@ prescription,
 
 }:Props){
 
+const {
+    t,
+} = useLanguage();
+
 const vitals=
 
 prescription.consultationVitals;
@@ -57,7 +65,7 @@ return(
 
 <h3>
 
-❤️ Consultation Vitals
+❤️ {t("medication.consultationVitals")}
 
 </h3>
 
@@ -67,7 +75,7 @@ return(
 
 <tr>
 
-<td style={label}>Weight</td>
+<td style={label}>{t("medication.weight")}</td>
 
 <td style={cell}>{vitals.weight ?? "-"}</td>
 
@@ -75,7 +83,7 @@ return(
 
 <tr>
 
-<td style={label}>Blood Pressure</td>
+<td style={label}>{t("medication.bloodPressure")}</td>
 
 <td style={cell}>{vitals.bloodPressure ?? "-"}</td>
 
@@ -83,7 +91,7 @@ return(
 
 <tr>
 
-<td style={label}>Pulse</td>
+<td style={label}>{t("medication.pulse")}</td>
 
 <td style={cell}>{vitals.pulse ?? "-"}</td>
 
@@ -91,7 +99,7 @@ return(
 
 <tr>
 
-<td style={label}>SpO₂</td>
+<td style={label}>{t("medication.spo2")}</td>
 
 <td style={cell}>{vitals.spo2 ?? "-"}</td>
 
@@ -99,7 +107,7 @@ return(
 
 <tr>
 
-<td style={label}>Temperature</td>
+<td style={label}>{t("medication.temperature")}</td>
 
 <td style={cell}>{vitals.temperature ?? "-"}</td>
 

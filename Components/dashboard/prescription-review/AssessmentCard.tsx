@@ -6,6 +6,10 @@ import type {
     ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 interface AssessmentCardProps {
 
     prescription: ExtractedPrescription;
@@ -56,6 +60,10 @@ export default function AssessmentCard({
 
 }: AssessmentCardProps) {
 
+const {
+    t,
+} = useLanguage();
+
 const diagnosis = expandMedicalText(
     prescription.diagnosisOrAssessment ?? ""
 ).toLowerCase();
@@ -94,7 +102,7 @@ const additionalDiagnoses =
 
             <h3 style={sectionTitle}>
 
-                🩺 Assessment
+                🩺 {t("medication.assessment")}
 
             </h3>
 
@@ -106,7 +114,7 @@ const additionalDiagnoses =
 
                         <h4>
 
-                            Diagnosis
+                            {t("medication.diagnosisAssessment")}
 
                         </h4>
 
@@ -135,7 +143,7 @@ const additionalDiagnoses =
 
                         <h4>
 
-                            Additional Diagnoses
+                            {t("medication.additionalDiagnoses")}
 
                         </h4>
 
@@ -178,7 +186,7 @@ const additionalDiagnoses =
 
                         <h4>
 
-                            Examination Findings
+                            {t("medication.examinationFindings")}
 
                         </h4>
 

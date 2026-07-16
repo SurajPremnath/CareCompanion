@@ -6,6 +6,10 @@ import type {
     ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 interface HistoryCardProps {
 
     prescription: ExtractedPrescription;
@@ -71,6 +75,10 @@ export default function HistoryCard({
 
 }: HistoryCardProps) {
 
+const {
+    t,
+} = useLanguage();
+
     const hasHistory =
 
         prescription.pastMedicalHistory.length > 0 ||
@@ -89,7 +97,7 @@ export default function HistoryCard({
 
             <h3 style={sectionTitle}>
 
-                📖 Relevant Medical History
+                📖 {t("medication.relevantMedicalHistory")}
 
             </h3>
 
@@ -134,7 +142,7 @@ prescription.pastMedicalHistory
                             }}
                         >
 
-                            Lifestyle
+                            {t("medication.lifestyle")}
 
                         </h4>
 

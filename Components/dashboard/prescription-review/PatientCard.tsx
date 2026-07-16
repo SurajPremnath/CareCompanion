@@ -7,6 +7,11 @@ import type {
     ConsultationMode,
 } from "@/lib/prescription-image/prescriptionImageTypes";
 
+
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 interface PatientCardProps {
 
     prescription: ExtractedPrescription;
@@ -107,11 +112,16 @@ export default function PatientCard({
 
 }:PatientCardProps){
 
+ const {
+    t,
+  } = useLanguage();
+
+
 return(
 
 <section style={section}>
 
-<h3>👤 Patient Details</h3>
+<h3>👤 {t("medication.patientDetails")}</h3>
 
 <table style={table}>
 
@@ -119,11 +129,11 @@ return(
 
 <tr>
 
-<td style={label}>Patient</td>
+<td style={label}>{t("medication.patient")}</td>
 
 <td style={cell}>{patientName}</td>
 
-<td style={label}>Doctor</td>
+<td style={label}>{t("medication.doctor")}</td>
 
 <td style={cell}>{prescription.doctorName ?? "-"}</td>
 
@@ -131,7 +141,7 @@ return(
 
 <tr>
 
-<td style={label}>Hospital</td>
+<td style={label}>{t("medication.hospital")}</td>
 
 <td style={cell}>
 
@@ -149,7 +159,7 @@ prescription.hospitalOrClinic
 
 <td style={label}>
 
-Consultation Date
+{t("medication.consultationDate")}
 
 </td>
 
@@ -175,7 +185,7 @@ color:"#334155",
 }}
 >
 
-<span>🤖 AI Extracted Date</span>
+<span>🤖 {t("medication.aiExtractedDate")}</span>
 
 </div>
 <input
@@ -216,7 +226,7 @@ fontWeight:500,
 
 <span>
 
-If the date is incorrect, select the correct consultation date.
+{t("medication.consultationDateHelp")}
 
 </span>
 
@@ -232,7 +242,7 @@ If the date is incorrect, select the correct consultation date.
 
 <td style={label}>
 
-Consultation Mode
+{t("medication.consultationMode")}
 
 </td>
 

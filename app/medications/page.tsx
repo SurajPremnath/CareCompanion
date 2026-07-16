@@ -16,7 +16,16 @@ import {
 } from "@/lib/auth/authService";
 
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
+
 export default function MedicationManagementPage() {
+
+const {
+    t,
+} = useLanguage();
 
     const router =
         useRouter();
@@ -130,7 +139,7 @@ export default function MedicationManagementPage() {
             <main style={loadingContainer}>
 
                 <h2>
-                    Loading...
+                    {t("addPatient.loading")}
                 </h2>
 
             </main>
@@ -151,7 +160,7 @@ export default function MedicationManagementPage() {
             <div style={pageCard}>
 
                 <AppHeader
-                    pageTitle="Medication Management"
+                    pageTitle={t("medication.title")}
                     pageIcon="💊"
                     currentUserName={
                         currentUserName
@@ -162,7 +171,7 @@ export default function MedicationManagementPage() {
                 <section style={contentSection}>
 
                     <h2 style={questionTitle}>
-                        What would you like to do?
+                        {t("medication.whatWouldYouLikeToDo")}
                     </h2>
 
 
@@ -181,7 +190,7 @@ export default function MedicationManagementPage() {
                             </span>
 
                             <span style={actionTitle}>
-                                Add Prescription
+                                {t("medication.addPrescription")}
                             </span>
 
                             <span style={actionDescription}>
@@ -204,11 +213,11 @@ export default function MedicationManagementPage() {
                             </span>
 
                             <span style={actionTitle}>
-                                Mode of Consultation
+                                {t("medication.modeOfConsultation")}
                             </span>
 
                             <span style={actionDescription}>
-                                Add how the consultation was conducted
+                                {t("medication.howWasConsultationConducted")}
                             </span>
 
                         </button>

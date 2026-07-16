@@ -787,7 +787,7 @@ if (!consentGranted) {
     );
 
 }}
-            question="Who is this for?"
+            question={t("medication.whoIsThisFor")}
         />
 
     </div>

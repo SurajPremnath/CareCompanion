@@ -20,6 +20,10 @@ import type {
     TemperatureUnit,
 } from "@/lib/medical-image/medicalImageTypes";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 
 type ImageSource =
     | "camera"
@@ -111,6 +115,9 @@ export default function UploadCareWorkspace({
 
 }: UploadCareWorkspaceProps) {
 
+const {
+    t,
+} = useLanguage();
 
     const [
         reading,
@@ -175,7 +182,7 @@ export default function UploadCareWorkspace({
 
             ? currentUserName
 
-            : patientName ?? "your family member";
+            : patientName ?? t("medication.yourFamilyMember");
 
 
     //--------------------------------------------------------
@@ -313,7 +320,7 @@ export default function UploadCareWorkspace({
 
                     result.error ??
 
-                    "Unable to read the medical image."
+                    t("dailyCare.unableToReadImage")
 
                 );
 
@@ -344,7 +351,7 @@ export default function UploadCareWorkspace({
             if (!hasReading) {
 
                 setError(
-                    "No supported health reading was found in this image. Please try another photo."
+                    t("dailyCare.noReadingDetected")
                 );
 
                 return;
@@ -435,7 +442,7 @@ weightKg:
 
             console.error(
 
-                "Upload Care Image Processing Error:",
+                t("medication.uploadCareImageProcessingError"),
 
                 processingError
 
@@ -448,7 +455,7 @@ weightKg:
 
                     ? processingError.message
 
-                    : "Unable to process the medical image."
+                    : t("dailyCare.unableToProcessImage")
 
             );
 
@@ -513,7 +520,7 @@ weightKg:
         if (!hasReading) {
 
             setError(
-                "Please keep at least one health reading before saving."
+                t("dailyCare.keepOneReading")
             );
 
             return;
@@ -646,7 +653,7 @@ weightKg:
 
                     result.error ??
 
-                    "Unable to save the health reading."
+                    t("dailyCare.unableToSaveReading")
 
                 );
 
@@ -656,7 +663,7 @@ weightKg:
 
 
             setSuccessMessage(
-                "Health reading saved successfully."
+                t("dailyCare.healthReadingSaved")
             );
 
 
@@ -673,7 +680,7 @@ weightKg:
 
             console.error(
 
-                "Upload Care Save Error:",
+                t("medication.uploadCareSaveError"),
 
                 saveError
 
@@ -686,7 +693,7 @@ weightKg:
 
                     ? saveError.message
 
-                    : "Unable to save the health reading."
+                    : t("dailyCare.unableToSaveReading")
 
             );
 
@@ -716,12 +723,11 @@ weightKg:
     <div style={headerBlock}>
 
         <h3 style={title}>
-            📷 Upload Health Reading
+            📷 {t("dailyCare.uploadHealthReading")}
         </h3>
 
         <p style={description}>
-            Take a photo or choose an existing photo
-            of a health reading for {recordingName}.
+            {t("dailyCare.uploadReadingDescription")}
         </p>
 
     </div>
@@ -759,12 +765,9 @@ weightKg:
 
                         {
 
-                            activeImageSource ===
-                            "camera"
-
-                                ? "Reading image..."
-
-                                : "📷 Take Photo"
+activeImageSource === "camera"
+    ? t("dailyCare.readingImage")
+    : `📷 ${t("dailyCare.takePhoto")}`
 
                         }
 
@@ -828,12 +831,10 @@ weightKg:
 
                         {
 
-                            activeImageSource ===
-                            "gallery"
+activeImageSource === "gallery"
+    ? t("dailyCare.readingImage")
+    : `📷 ${t("medication.choosePhoto")}`
 
-                                ? "Reading image..."
-
-                                : "🖼️ Choose Photo"
 
                         }
 
@@ -841,6 +842,7 @@ weightKg:
                         <input
 
                             type="file"
+
 
                             accept=
                                 "image/jpeg,image/png,image/webp"
@@ -878,8 +880,7 @@ weightKg:
 
                     <p style={processingText}>
 
-                        Reading the health information
-                        from the image...
+                        {t("dailyCare.readingHealthInformation")}
 
                     </p>
 
@@ -937,15 +938,14 @@ weightKg:
 
                         <h3 style={reviewTitle}>
 
-                            Review Health Reading
+                            {t("dailyCare.reviewHealthReading")}
 
                         </h3>
 
 
                         <p style={description}>
 
-                            Check the readings below and
-                            correct anything before saving.
+                            {t("dailyCare.reviewReadingDescription")}
 
                         </p>
 
@@ -958,7 +958,7 @@ weightKg:
                         <div>
 
                             <label style={fieldLabel}>
-                                Temperature
+                                {t("medication.temperature")}
                             </label>
 
                             <input
@@ -1010,7 +1010,7 @@ weightKg:
                         <div>
 
                             <label style={fieldLabel}>
-                                Unit
+                                {t("dailyCare.unit")}
                             </label>
 
                             <select
@@ -1076,7 +1076,7 @@ weightKg:
                         <div>
 
                             <label style={fieldLabel}>
-                                Diastolic
+                                {t("dailyCare.diastolic")}
                             </label>
 
                             <input
@@ -1105,7 +1105,7 @@ weightKg:
                         <div>
 
                             <label style={fieldLabel}>
-                                Pulse
+                                {t("medication.pulse")}
                             </label>
 
                             <input
@@ -1134,7 +1134,7 @@ weightKg:
                         <div>
 
                             <label style={fieldLabel}>
-                                SpO₂
+                                {t("medication.spo2")}
                             </label>
 
                             <input
@@ -1174,7 +1174,7 @@ weightKg:
         }
         style={cancelButton}
     >
-        Cancel
+        {t("common.cancel")}
     </button>
 
 
@@ -1188,7 +1188,7 @@ weightKg:
         }
         style={secondaryButton}
     >
-        📷 Use Another Photo
+        📷 {t("medication.useAnotherPhoto")}
     </button>
 
 
@@ -1211,11 +1211,9 @@ weightKg:
     >
 
         {
-            saving
-
-                ? "Saving..."
-
-                : "💾 Save Health Reading"
+saving
+    ? t("dailyCare.saving")
+    : `💾 ${t("medication.saveHealthReading")}`
         }
 
     </button>

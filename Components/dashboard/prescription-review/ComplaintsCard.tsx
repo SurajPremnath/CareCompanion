@@ -6,6 +6,10 @@ import type {
     ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 interface Props{
     prescription:ExtractedPrescription;
 }
@@ -24,6 +28,10 @@ export default function ComplaintsCard({
 
 }:Props){
 
+const {
+    t,
+} = useLanguage();
+
     if(
         prescription.presentingComplaints.length===0
     ){
@@ -36,7 +44,7 @@ export default function ComplaintsCard({
 
 <h3>
 
-🤒 Patient Symptoms
+🤒 {t("medication.patientSymptoms")}
 
 </h3>
 

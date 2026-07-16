@@ -304,6 +304,15 @@ helpAndFaqsDescription:
 
 backToHome:
     "હોમ પર પાછા જાઓ",
+
+healthCheckAssessment:
+    "આરોગ્ય તપાસ મૂલ્યાંકન",
+
+healthHistory:
+    "આરોગ્ય ઇતિહાસ",
+
+medicationManagement:
+    "દવા વ્યવસ્થાપન",
   },
 
   addPatient: {
@@ -762,5 +771,565 @@ backToHome:
     patientConfusedToday:
       "શું દર્દી આજે અસામાન્ય રીતે ગૂંચવાયેલા લાગ્યા?",
   },
+
+medication: {
+
+    //--------------------------------------------------
+    // General
+    //--------------------------------------------------
+
+    title:
+        "દવા વ્યવસ્થાપન",
+
+    addPrescription:
+        "પ્રિસ્ક્રિપ્શન ઉમેરો",
+
+    viewPrescriptions:
+        "સાચવેલ પ્રિસ્ક્રિપ્શન જુઓ",
+
+    prescriptionDetails:
+        "પ્રિસ્ક્રિપ્શન વિગતો",
+
+    reviewPrescription:
+        "પ્રિસ્ક્રિપ્શન સમીક્ષા",
+
+    //--------------------------------------------------
+    // Upload
+    //--------------------------------------------------
+
+    takePhoto:
+        "ફોટો લો",
+
+    choosePhotos:
+        "ફોટા પસંદ કરો",
+
+    uploadPdf:
+        "PDF અપલોડ કરો",
+
+    readPrescription:
+        "પ્રિસ્ક્રિપ્શન વાંચો",
+
+    readingPrescription:
+        "પ્રિસ્ક્રિપ્શન વાંચી રહ્યું છે...",
+
+    preparingPrescription:
+        "પ્રિસ્ક્રિપ્શન તૈયાર થઈ રહ્યું છે...",
+
+    prescriptionReadSuccess:
+        "પ્રિસ્ક્રિપ્શન સફળતાપૂર્વક વાંચવામાં આવ્યું.",
+
+    //--------------------------------------------------
+    // Consultation
+    //--------------------------------------------------
+
+    consultationDate:
+        "પરામર્શ તારીખ",
+
+    consultationMode:
+        "પરામર્શનો પ્રકાર",
+
+    doctor:
+        "ડૉક્ટર",
+
+    hospital:
+        "હોસ્પિટલ / ક્લિનિક",
+
+    diagnosisAssessment:
+        "નિદાન / મૂલ્યાંકન",
+
+    //--------------------------------------------------
+    // Medicines
+    //--------------------------------------------------
+
+    medicines:
+        "દવાઓ",
+
+    medicine:
+        "દવા",
+
+    dosage:
+        "માત્રા",
+
+    frequency:
+        "આવર્તન",
+
+    duration:
+        "સમયગાળો",
+
+    instructions:
+        "સૂચનાઓ",
+
+    //--------------------------------------------------
+    // Actions
+    //--------------------------------------------------
+
+    savePrescription:
+        "ખાતરી કરીને સાચવો",
+
+    savingPrescription:
+        "સાચવી રહ્યું છે...",
+
+    reupload:
+        "પ્રિસ્ક્રિપ્શન ફરી અપલોડ કરો",
+
+    //--------------------------------------------------
+    // Validation
+    //--------------------------------------------------
+
+    consultationDateRequired:
+        "પરામર્શ તારીખ જરૂરી છે.",
+
+    consultationDateFuture:
+        "પરામર્શ તારીખ ભવિષ્યની હોઈ શકે નહીં.",
+
+    consultationDateInvalid:
+        "અમાન્ય પરામર્શ તારીખ.",
+
+    consultationTypeRequired:
+        "કૃપા કરીને પરામર્શનો પ્રકાર પસંદ કરો.",
+
+    patientRequired:
+        "કૃપા કરીને દર્દી પસંદ કરો.",
+
+    patientMismatch:
+        "આ પ્રિસ્ક્રિપ્શન અન્ય દર્દીનું હોવાનું લાગે છે.",
+
+    //--------------------------------------------------
+    // Warnings
+    //--------------------------------------------------
+
+    warningTitle:
+        "ચેતવણીઓ સાથે સમીક્ષા પૂર્ણ થઈ",
+
+    doctorNotDetected:
+        "ડૉક્ટરનું નામ મળી આવ્યું નથી.",
+
+    hospitalNotDetected:
+        "હોસ્પિટલ અથવા ક્લિનિકનું નામ મળી આવ્યું નથી.",
+
+    diagnosisNotDetected:
+        "નિદાન અથવા મૂલ્યાંકન મળી આવ્યું નથી.",
+
+    medicinesNotDetected:
+        "કોઈ દવાઓ મળી આવી નથી.",
+
+    warningContinue:
+        "માહિતી સાચી હોય તો તમે આ પ્રિસ્ક્રિપ્શન હજુ પણ સાચવી શકો છો.",
+
+    //--------------------------------------------------
+    // Success
+    //--------------------------------------------------
+
+    saveSuccess:
+        "પ્રિસ્ક્રિપ્શન સફળતાપૂર્વક સાચવવામાં આવ્યું.",
+
+    saveFailed:
+        "પ્રિસ્ક્રિપ્શન સાચવી શકાયું નથી.",
+
+    selectPrescription:
+        "કૃપા કરીને એક પ્રિસ્ક્રિપ્શન પસંદ કરો.",
+
+    readFailed:
+        "પ્રિસ્ક્રિપ્શન વાંચી શકાયું નથી.",
+
+    processingFailed:
+        "પ્રિસ્ક્રિપ્શન પ્રક્રિયા કરી શકાયું નથી.",
+
+    patientMismatchTitle:
+        "પ્રિસ્ક્રિપ્શન અન્ય દર્દીનું છે",
+
+    patient:
+        "દર્દી",
+
+    patientDetails:
+        "દર્દીની વિગતો",
+
+    patientSymptoms:
+        "દર્દીના લક્ષણો",
+
+    assessment:
+        "મૂલ્યાંકન",
+
+    additionalDiagnoses:
+        "વધારાના નિદાન",
+
+    examinationFindings:
+        "તપાસના પરિણામો",
+
+    relevantMedicalHistory:
+        "સંબંધિત તબીબી ઇતિહાસ",
+
+    lifestyle:
+        "જીવનશૈલી",
+
+    consultationVitals:
+        "પરામર્શ જીવનચિહ્નો",
+
+    investigationsOrdered:
+        "સૂચવેલ તપાસો",
+
+    careInstructions:
+        "સંભાળની સૂચનાઓ",
+
+    otherNotes:
+        "અન્ય નોંધો",
+
+    medicationsPrescribed:
+        "નિર્ધારિત દવાઓ",
+
+    importantAdministrationTiming:
+        "મહત્વપૂર્ણ: દવા લેવાનો સમય",
+
+    administrationTimingInfo1:
+        "CareVR દવા ભોજન પહેલાં, પછી, ભોજન સાથે અથવા અન્ય સમયે લેવી જોઈએ કે નહીં તેનો અંદાજ લગાવતું નથી.",
+
+    administrationTimingInfo2:
+        "યોગ્ય દવા લેવાનો સમય ડૉક્ટર પાસેથી ખાતરી કર્યા પછી જ પસંદ કરો.",
+
+    administrationTimingInfo3:
+        "જો સમય હજુ ખાતરી ન થયો હોય, તો 'સ્પષ્ટ કરેલ નથી' તરીકે રાખો અને પછી સુધારો.",
+
+    noMedicinesDetected:
+        "કોઈ દવાઓ ઓળખી શકાયી નથી.",
+
+    aiExtractedDate:
+        "AI દ્વારા ઓળખાયેલી તારીખ",
+
+    consultationDateHelp:
+        "જો તારીખ ખોટી હોય તો યોગ્ય પરામર્શ તારીખ પસંદ કરો.",
+
+    weight:
+        "વજન",
+
+    bloodPressure:
+        "રક્તચાપ",
+
+    pulse:
+        "નાડી",
+
+    temperature:
+        "તાપમાન",
+
+    spo2:
+        "SpO₂",
+
+    strength:
+        "શક્તિ",
+
+    dose:
+        "માત્રા",
+
+    administrationTiming:
+        "દવા લેવાનો સમય",
+
+    //--------------------------------------------------
+    // Administration Timing
+    //--------------------------------------------------
+
+    notSpecified:
+        "સ્પષ્ટ કરેલ નથી",
+
+    beforeFood:
+        "ભોજન પહેલાં",
+
+    afterFood:
+        "ભોજન પછી",
+
+    withFood:
+        "ભોજન સાથે",
+
+    emptyStomach:
+        "ખાલી પેટે",
+
+    beforeBreakfast:
+        "નાસ્તા પહેલાં",
+
+    afterBreakfast:
+        "નાસ્તા પછી",
+
+    beforeLunch:
+        "બપોરના ભોજન પહેલાં",
+
+    afterLunch:
+        "બપોરના ભોજન પછી",
+
+    beforeDinner:
+        "રાત્રિના ભોજન પહેલાં",
+
+    afterDinner:
+        "રાત્રિના ભોજન પછી",
+
+    atBedtime:
+        "સૂતા પહેલાં",
+
+    asDirected:
+        "ડૉક્ટરના સૂચન મુજબ",
+
+whatWouldYouLikeToDo:
+    "તમે શું કરવા માંગો છો?",
+
+modeOfConsultation:
+    "પરામર્શનો પ્રકાર",
+
+howWouldYouLikeToAddPrescription:
+    "તમે પ્રિસ્ક્રિપ્શન કેવી રીતે ઉમેરવા માંગો છો?",
+
+forBestResults:
+    "શ્રેષ્ઠ પરિણામો માટે",
+
+supportedFormats:
+    "આધારભૂત ફોર્મેટ્સ: JPG, JPEG અને PNG",
+
+useClearImages:
+    "સ્પષ્ટ અને સારી લાઇટવાળા ફોટાનો ઉપયોગ કરો",
+
+cropBackground:
+    "બિનજરૂરી પૃષ્ઠભૂમિ દૂર કરો",
+
+recommendedImageSize:
+    "ભલામણ કરાયેલ ચિત્ર કદ: 300 KB – 1 MB",
+
+maximumImageSize:
+    "દરેક ચિત્રનું મહત્તમ કદ: 2 MB",
+
+howWasConsultationConducted:
+    "પરામર્શ કેવી રીતે કરવામાં આવ્યો?",
+
+inPerson:
+    "રૂબરૂ",
+
+video:
+    "વિડિયો",
+
+phone:
+    "ફોન",
+
+homeVisit:
+    "ઘરે મુલાકાત",
+
+other:
+    "અન્ય",
+
+howWouldYouLikeToRecordHealth:
+    "તમે આરોગ્ય કેવી રીતે નોંધવા માંગો છો?",
+
+recordWithVoice:
+    "અવાજ દ્વારા નોંધો",
+
+uploadReading:
+    "રીડિંગ અપલોડ કરો",
+
+enterManually:
+    "જાતે દાખલ કરો",
+
+dailyCare:
+    "દૈનિક સંભાળ",
+
+assessmentsHistory:
+    "મૂલ્યાંકન",
+
+clinicalTrends:
+    "ક્લિનિકલ ટ્રેન્ડ્સ",
+
+detailedTimeline:
+    "વિગતવાર સમયરેખા",
+
+pleaseSpecifyConsultationMode:
+    "કૃપા કરીને પરામર્શનો પ્રકાર જણાવો",
+
+validationErrorsTitle:
+    "સાચવતા પહેલાં નીચેની ભૂલો સુધારો",
+
+patientBelongsTo:
+    "આ પ્રિસ્ક્રિપ્શન આ દર્દીનું હોવાનું લાગે છે",
+
+currentlyAddingFor:
+    "તમે હાલમાં આ દર્દી માટે પ્રિસ્ક્રિપ્શન ઉમેરી રહ્યા છો",
+
+chooseCorrectPatient:
+    "કૃપા કરીને યોગ્ય પ્રિસ્ક્રિપ્શન ફરી અપલોડ કરો અથવા પાછા જઈ યોગ્ય પરિવારના સભ્યને પસંદ કરો.",
+
+reuploadPrescription:
+    "પ્રિસ્ક્રિપ્શન ફરી અપલોડ કરો",
+
+whoIsThisFor:
+    "આ કોના માટે છે?",
+
+//--------------------------------------------------
+// Consultation Workspace
+//--------------------------------------------------
+
+consultationDetails:
+    "પરામર્શની વિગતો",
+
+consultationDetailsDescription:
+    "તમને જાણીતું હોય તે વિગતો ઉમેરો. વૈકલ્પિક ક્ષેત્રો ખાલી રાખી શકાય છે.",
+
+doctorName:
+    "ડૉક્ટરનું નામ",
+
+enterDoctorName:
+    "ડૉક્ટરનું નામ દાખલ કરો",
+
+hospitalOrClinic:
+    "હોસ્પિટલ / ક્લિનિક",
+
+enterHospitalOrClinic:
+    "હોસ્પિટલ અથવા ક્લિનિકનું નામ દાખલ કરો",
+
+optional:
+    "વૈકલ્પિક",
+
+videoPlatform:
+    "વિડિયો પ્લેટફોર્મ",
+
+exampleVideoPlatform:
+    "ઉદાહરણ: WhatsApp, Zoom",
+
+consultationType:
+    "પરામર્શનો પ્રકાર",
+
+phoneConsultation:
+    "ફોન પરામર્શ",
+
+doctorServiceDetails:
+    "ડૉક્ટર / સેવા વિગતો",
+
+enterDoctorServiceDetails:
+    "ડૉક્ટર અથવા સેવાની વિગતો દાખલ કરો",
+
+consultationMethod:
+    "પરામર્શ પદ્ધતિ",
+
+describeConsultationMethod:
+    "પરામર્શની પદ્ધતિ વર્ણવો",
+
+consultationNotes:
+    "નોંધો",
+
+enterConsultationNotes:
+    "પરામર્શ સંબંધિત નોંધો ઉમેરો",
+
+//--------------------------------------------------
+// Prescription Review
+//--------------------------------------------------
+
+reviewNoteTitle:
+    "સાચવતા પહેલાં સમીક્ષા કરો",
+
+reviewNoteDescription:
+    "નીચેની માહિતી અપલોડ કરાયેલા પ્રિસ્ક્રિપ્શનમાંથી AI દ્વારા મેળવવામાં આવી છે. સાચવતા પહેલાં કૃપા કરીને તેની ચોકસાઈની ખાતરી કરો.",
+
+reviewInstruction:
+    "સાચવતા પહેલાં દરેક વિભાગ પર ક્લિક કરીને મેળવેલી માહિતીની ખાતરી કરો.",
+
+//--------------------------------------------------
+// Prescription Upload
+//--------------------------------------------------
+
+uploadFailed:
+    "પસંદ કરેલી પ્રિસ્ક્રિપ્શન છબી(ઓ) અપલોડ કરી શકાયી નથી.",
+
+filesTooLarge:
+    "નીચેની ફાઇલ(ઓ) મંજૂર કદ કરતાં મોટી છે.",
+
+recommendedUploadSize:
+    "ભલામણ કરેલું કદ: પ્રતિ છબી 300 KB – 1 MB.",
+
+maximumUploadSize:
+    "મહત્તમ મંજૂર કદ: પ્રતિ છબી 2 MB.",
+
+cropBackgroundBeforeUpload:
+    "અપલોડ કરતા પહેલાં અનાવશ્યક પૃષ્ઠભૂમિ દૂર કરો.",
+
+reduceImageSize:
+    "કૃપા કરીને છબીનું કદ ઘટાડીને ફરી પ્રયાસ કરો.",
+
+cameraUnavailable:
+    "કેમેરાનો ઉપયોગ કરી શકાયો નથી.",
+
+readingFailed:
+    "પ્રિસ્ક્રિપ્શન વાંચી શકાયું નથી.",
+
+savingFailed:
+    "પ્રિસ્ક્રિપ્શન સાચવી શકાયું નથી.",
+
+prescriptionSaved:
+    "પ્રિસ્ક્રિપ્શન સફળતાપૂર્વક સાચવવામાં આવ્યું.",
+
+//--------------------------------------------------
+// Additional UI Messages
+//--------------------------------------------------
+
+uploadFileTooLargeMessage:
+    "પસંદ કરેલી પ્રિસ્ક્રિપ્શન છબીઓ અપલોડ કરી શકાઈ નથી.\n\n" +
+    "નીચેની ફાઈલો મંજૂર કરેલી મર્યાદા કરતાં મોટી છે:\n\n" +
+    "{fileNames}\n\n" +
+    "શ્રેષ્ઠ અનુભવ માટે (ખાસ કરીને iPhone પર):\n\n" +
+    "• ભલામણ કરેલું કદ: પ્રતિ છબી 300 KB - 1 MB\n" +
+    "• મહત્તમ મંજૂર કદ: પ્રતિ છબી 2 MB\n" +
+    "• અપલોડ કરતા પહેલાં અનાવશ્યક પૃષ્ઠભૂમિ દૂર કરો\n\n" +
+    "કૃપા કરીને છબીનું કદ ઘટાડીને ફરી પ્રયાસ કરો.",
+
+pleaseRecordatleastOneObservation:
+    "કૃપા કરીને ઓછામાં ઓછું એક આરોગ્ય નિરીક્ષણ નોંધો.\n\n" +
+    "• તાપમાન\n" +
+    "• વજન\n" +
+    "• મહત્વપૂર્ણ માપદંડો (Vitals)\n" +
+    "• લક્ષણો\n" +
+    "• દુખાવાનું સ્થાન",
+
+choosePhoto:
+    "ફોટો પસંદ કરો",
+
+currentlyAddingPrescriptionFor:
+    "તમે હાલમાં આ દર્દી માટે પ્રિસ્ક્રિપ્શન ઉમેરી રહ્યા છો",
+
+capturePhoto:
+    "ફોટો લો",
+
+chooseCorrectPrescription:
+    "કૃપા કરીને યોગ્ય પ્રિસ્ક્રિપ્શન ફરી અપલોડ કરો અથવા પાછા જઈ યોગ્ય પરિવારના સભ્યને પસંદ કરો.",
+
+prescriptionReadError:
+    "પ્રિસ્ક્રિપ્શન વાંચવામાં ભૂલ:",
+
+pleaseSelectFamilyMember:
+    "કૃપા કરીને પરિવારના સભ્યને પસંદ કરો.",
+
+manualCareSaveError:
+    "મેન્યુઅલ કેર સાચવવામાં ભૂલ:",
+
+clear:
+    "સાફ કરો",
+
+yourFamilyMember:
+    "તમારા પરિવારના સભ્ય",
+
+uploadCareImageProcessingError:
+    "અપલોડ કરેલી આરોગ્ય છબી પ્રક્રિયા કરવામાં ભૂલ:",
+
+uploadCareSaveError:
+    "આરોગ્ય રેકોર્ડ સાચવવામાં ભૂલ:",
+
+useAnotherPhoto:
+    "બીજો ફોટો વાપરો",
+
+saveHealthReading:
+    "આરોગ્ય રીડિંગ સાચવો",
+
+selectTemperatureOrDontKnow:
+    "કૃપા કરીને તાપમાન પસંદ કરો અથવા 'મને ખબર નથી' પસંદ કરો.",
+
+voiceCareSaveError:
+    "વૉઇસ કેર સાચવવામાં ભૂલ:",
+
+reviewRecording:
+    "રેકોર્ડિંગની સમીક્ષા કરો",
+
+healthUpdateReady:
+    "તમારું આરોગ્ય અપડેટ તૈયાર છે. તમે તેની સમીક્ષા કરી શકો છો અથવા સીધું સાચવી શકો છો.",
+
+},
 
 };

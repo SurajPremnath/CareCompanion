@@ -44,6 +44,10 @@ import {
 } from "./PrescriptionWorkspace.styles";
 
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 //------------------------------------------------------------
 // Types
 //------------------------------------------------------------
@@ -83,6 +87,9 @@ export default function PrescriptionWorkspace({
 }: PrescriptionWorkspaceProps) {
 
 
+const {
+    t,
+} = useLanguage();
 
     //--------------------------------------------------------
     // Refs
@@ -286,21 +293,7 @@ if (
 
     setValidationError(
 
-        "Unable to upload the selected prescription image(s).\n\n" +
-
-        "The following file(s) exceed the supported size:\n\n" +
-
-        fileNames +
-
-        "\n\nFor the best experience (especially on iPhone):\n\n" +
-
-        "• Recommended size: 300 KB - 1 MB per image\n" +
-
-        "• Maximum supported: 2 MB per image\n" +
-
-        "• Crop unnecessary background before uploading\n\n" +
-
-        "Please reduce the image size and try again."
+        t("medication.uploadFileTooLargeMessage")
 
     );
 
@@ -396,7 +389,7 @@ setPatientValidationError(
         catch {
 
             setCameraError(
-                "Unable to access the camera."
+                t("medication.cameraUnavailable")
             );
 
         }
@@ -593,7 +586,7 @@ function cancelReview() {
             ) {
 
                 setValidationError(
-                    "Please select a prescription."
+                    t("medication.selectPrescription")
                 );
 
             }
@@ -623,7 +616,7 @@ function cancelReview() {
         );
 
         setReadingStatus(
-            "Preparing prescription..."
+            t("medication.preparingPrescription")
         );
 
         try {
@@ -673,7 +666,7 @@ function cancelReview() {
             );
 
             setReadingStatus(
-                "Reading prescription..."
+                t("medication.readingPrescription")
             );
 
             let result;
@@ -703,7 +696,7 @@ function cancelReview() {
                 setValidationError(
 
                     result.error ??
-                    "Unable to read the prescription."
+                    t("medication.readFailed")
 
                 );
 
@@ -716,7 +709,7 @@ setReadingProgress(
 );
 
 setReadingStatus(
-    "Prescription successfully read."
+    t("medication.prescriptionReadSuccess")
 );
 
 //------------------------------------------------------
@@ -767,7 +760,7 @@ setExtractedPrescription(
 catch (error) {
 
     console.error(
-        "Prescription Read Error:",
+        t("medication.prescriptionReadError"),
         error
     );
 
@@ -779,7 +772,7 @@ catch (error) {
     else {
 
         setValidationError(
-            "Unable to process the prescription."
+            t("medication.processingFailed")
         );
 
     }
@@ -835,7 +828,7 @@ async function savePrescription(
         removeAllSelectedFiles();
 
         setSaveSuccess(
-            "Prescription saved successfully."
+            t("medication.saveSuccess")
         );
 
     }
@@ -850,7 +843,7 @@ async function savePrescription(
 
             error instanceof Error
                 ? error.message
-                : "Unable to save prescription."
+                : t("medication.saveFailed")
 
         );
 
@@ -942,7 +935,7 @@ return (
                                     primaryButton
                                 }
                             >
-                                📷 Capture Photo
+                                📷 {t("medication.capturePhoto")}
                             </button>
 
                             <button
@@ -954,7 +947,7 @@ return (
                                     secondaryButton
                                 }
                             >
-                                Cancel
+                                {t("common.cancel")}
                             </button>
 
                         </div>
@@ -1110,13 +1103,13 @@ return (
 
             <h3>
 
-                ❌ Prescription belongs to another patient
+                {t("medication.patientMismatchTitle")}
 
             </h3>
 
             <p>
 
-                This prescription appears to belong to
+                {t("medication.patientMismatch")}
 
                 <strong>
 
@@ -1129,7 +1122,7 @@ return (
 
             <p>
 
-                You are currently adding a prescription for
+                {t("medication.currentlyAddingPrescriptionFor")}
 
                 <strong>
 
@@ -1142,8 +1135,7 @@ return (
 
             <p>
 
-                Please re-upload the correct prescription or
-                return and choose the appropriate family member.
+                {t("medication.chooseCorrectPrescription")}
 
             </p>
 
@@ -1157,7 +1149,7 @@ return (
 
             >
 
-                Re-upload Prescription
+                {t("medication.reupload")}
 
             </button>
 

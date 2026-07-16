@@ -6,6 +6,10 @@ import type {
     ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
 interface InvestigationCardProps {
     prescription: ExtractedPrescription;
 }
@@ -34,6 +38,10 @@ export default function InvestigationCard({
     prescription,
 }: InvestigationCardProps) {
 
+const {
+    t,
+} = useLanguage();
+
     const items = [
         ...prescription.investigations,
         ...prescription.clinicalPlan,
@@ -48,7 +56,7 @@ export default function InvestigationCard({
         <section style={section}>
 
             <h3 style={title}>
-                🧪 Investigations Ordered
+                🧪 {t("medication.investigationsOrdered")}
             </h3>
 
             <ul style={list}>
