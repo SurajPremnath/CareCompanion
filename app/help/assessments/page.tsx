@@ -3,7 +3,8 @@ import HelpBackButton from "@/Components/help/HelpBackButton";
 export default function AssessmentsPage() {
     return (
         <>
-<HelpBackButton />
+            <HelpBackButton />
+
             <h2
                 style={{
                     fontSize: "30px",
@@ -17,37 +18,33 @@ export default function AssessmentsPage() {
             {/* Overview */}
 
             <section style={sectionStyle}>
-
-                <h3 style={headingStyle}>
-                    Overview
-                </h3>
+                <h3 style={headingStyle}>What are Health Assessments?</h3>
 
                 <p style={paragraphStyle}>
-                    CareVR provides structured health assessments to help
-                    monitor a person's overall health and wellbeing. These
-                    assessments are intended to support daily monitoring and
-                    facilitate meaningful conversations with healthcare
-                    professionals.
+                    Health Assessments help you capture a person's overall
+                    wellbeing through a structured set of questions. Rather
+                    than recording only vital signs, assessments focus on how
+                    the individual is feeling and functioning on a day-to-day
+                    basis.
                 </p>
 
+                <p style={paragraphStyle}>
+                    When completed regularly, assessments provide valuable
+                    insights into changes in health and complement your Daily
+                    Care records.
+                </p>
             </section>
 
             {/* Assessment Types */}
 
             <section style={sectionStyle}>
+                <h3 style={headingStyle}>Assessment Types</h3>
 
-                <h3 style={headingStyle}>
-                    Assessment Types
-                </h3>
-
-                <h4 style={subHeadingStyle}>
-                    Self Assessment
-                </h4>
+                <h4 style={subHeadingStyle}>Self Assessment</h4>
 
                 <p style={paragraphStyle}>
-                    Used when individuals record their own health
-                    observations and answer assessment questions based on
-                    how they are feeling.
+                    Used when individuals answer questions about their own
+                    health, symptoms and wellbeing.
                 </p>
 
                 <h4
@@ -60,19 +57,16 @@ export default function AssessmentsPage() {
                 </h4>
 
                 <p style={paragraphStyle}>
-                    Used when a family member or caregiver completes the
-                    assessment on behalf of another person.
+                    Used when a family member or caregiver records observations
+                    on behalf of another person who may not be able to complete
+                    the assessment themselves.
                 </p>
-
             </section>
 
-            {/* Assessment Questions */}
+            {/* What is Evaluated */}
 
             <section style={sectionStyle}>
-
-                <h3 style={headingStyle}>
-                    What is assessed?
-                </h3>
+                <h3 style={headingStyle}>What is Evaluated?</h3>
 
                 <ul style={listStyle}>
                     <li>Breathing</li>
@@ -83,63 +77,96 @@ export default function AssessmentsPage() {
                     <li>Appetite</li>
                     <li>Water Intake</li>
                     <li>Pain</li>
-                    <li>Walking Ability</li>
+                    <li>Pain Location</li>
+                    <li>Walking Difficulty</li>
                     <li>Loose Motions</li>
                 </ul>
+            </section>
 
+            {/* Assessment Process */}
+
+            <section style={sectionStyle}>
+                <h3 style={headingStyle}>Completing an Assessment</h3>
+
+                <ol style={listStyle}>
+                    <li>Select Self Assessment or Family Assessment.</li>
+                    <li>Select the appropriate patient.</li>
+                    <li>Answer each question carefully.</li>
+                    <li>Provide additional information where requested.</li>
+                    <li>Review your responses.</li>
+                    <li>Submit the assessment.</li>
+                </ol>
             </section>
 
             {/* Results */}
 
             <section style={sectionStyle}>
-
-                <h3 style={headingStyle}>
-                    Understanding the Results
-                </h3>
+                <h3 style={headingStyle}>Understanding Your Results</h3>
 
                 <p style={paragraphStyle}>
-                    After completing an assessment, CareVR calculates an
-                    overall health score and classifies the result into an
-                    easy-to-understand category. The results help identify
-                    changes over time but should always be interpreted in
-                    conjunction with clinical advice.
+                    After submission, CareVR evaluates your responses and
+                    generates an overall assessment score along with an easy to
+                    understand health status.
                 </p>
 
+                <p style={paragraphStyle}>
+                    These results help identify changes over time and work
+                    alongside Daily Care records to provide a broader picture
+                    of overall health.
+                </p>
             </section>
 
-            {/* Tips */}
+            {/* Trends */}
 
             <section style={sectionStyle}>
+                <h3 style={headingStyle}>Assessment History</h3>
 
-                <h3 style={headingStyle}>
-                    Helpful Tips
-                </h3>
+                <p style={paragraphStyle}>
+                    Every completed assessment becomes part of your health
+                    history. Previous assessments can be reviewed through
+                    Reports and compared over time to identify meaningful
+                    changes in health and wellbeing.
+                </p>
+            </section>
+
+            {/* Best Practices */}
+
+            <section style={sectionStyle}>
+                <h3 style={headingStyle}>Best Practices</h3>
 
                 <ul style={listStyle}>
-                    <li>Answer each question honestly.</li>
                     <li>Complete assessments regularly.</li>
-                    <li>Compare results over time using Reports.</li>
-                    <li>Seek medical advice if symptoms worsen.</li>
+                    <li>Answer every question honestly.</li>
+                    <li>Use the same person to complete Family Assessments whenever possible.</li>
+                    <li>Review assessment history alongside Daily Care records.</li>
+                    <li>Consult your healthcare professional if symptoms worsen.</li>
                 </ul>
+            </section>
 
+            {/* Important */}
+
+            <section style={sectionStyle}>
+                <h3 style={headingStyle}>Important Information</h3>
+
+                <p style={paragraphStyle}>
+                    Health Assessments are intended to support ongoing health
+                    monitoring and continuity of care. They should not be used
+                    as a substitute for professional medical advice,
+                    diagnosis or treatment.
+                </p>
             </section>
 
             {/* Next */}
 
             <section style={sectionStyle}>
-
-                <h3 style={headingStyle}>
-                    Next Step
-                </h3>
+                <h3 style={headingStyle}>Where to Go Next</h3>
 
                 <p style={paragraphStyle}>
-                    Continue to <strong>Reports</strong> to learn how to
-                    review previous Daily Care records and Assessment
-                    history.
+                    Continue to <strong>Reports</strong> to learn how Daily
+                    Care records, Assessment history and Clinical Trends work
+                    together to provide a complete picture of health over time.
                 </p>
-
             </section>
-
         </>
     );
 }
@@ -169,7 +196,7 @@ const subHeadingStyle: React.CSSProperties = {
 const paragraphStyle: React.CSSProperties = {
     color: "#4b5563",
     lineHeight: 1.8,
-    marginBottom: 0,
+    marginBottom: "16px",
 };
 
 const listStyle: React.CSSProperties = {

@@ -3,7 +3,8 @@ import HelpBackButton from "@/Components/help/HelpBackButton";
 export default function DailyCarePage() {
     return (
         <>
-<HelpBackButton />
+            <HelpBackButton />
+
             <h2
                 style={{
                     fontSize: "30px",
@@ -17,143 +18,148 @@ export default function DailyCarePage() {
             {/* Overview */}
 
             <section style={sectionStyle}>
-
-                <h3 style={headingStyle}>
-                    Overview
-                </h3>
+                <h3 style={headingStyle}>What is Daily Care?</h3>
 
                 <p style={paragraphStyle}>
-                    Daily Care allows you to record important health
-                    observations for a patient. Recording information
-                    consistently helps identify trends and supports better
-                    clinical discussions with healthcare professionals.
+                    Daily Care is the heart of CareVR. It helps you maintain a
+                    structured record of a person's day-to-day health,
+                    enabling better monitoring, continuity of care and more
+                    informed discussions with healthcare professionals.
                 </p>
 
+                <p style={paragraphStyle}>
+                    You can record as much or as little information as is
+                    available. Every entry contributes to your patient's
+                    health history and clinical trends.
+                </p>
             </section>
 
-            {/* What Can Be Recorded */}
+            {/* Information */}
 
             <section style={sectionStyle}>
-
-                <h3 style={headingStyle}>
-                    What can be recorded?
-                </h3>
+                <h3 style={headingStyle}>What Can You Record?</h3>
 
                 <ul style={listStyle}>
                     <li>Body Temperature</li>
                     <li>Blood Pressure</li>
                     <li>Pulse Rate</li>
                     <li>Blood Oxygen Saturation (SpO₂)</li>
+                    <li>Weight</li>
                     <li>Symptoms</li>
-                    <li>Pain Locations</li>
-                    <li>Medications</li>
-                    <li>Clinical Notes</li>
+                    <li>Pain & Pain Location</li>
+                    <li>Energy Levels</li>
+                    <li>Appetite</li>
+                    <li>Water Intake</li>
+                    <li>Walking Difficulty</li>
+                    <li>Loose Motions</li>
+                    <li>Medications Taken</li>
+                    <li>Additional Notes</li>
                 </ul>
-
             </section>
 
-            {/* Recording Daily Care */}
+            {/* Recording */}
 
             <section style={sectionStyle}>
-
-                <h3 style={headingStyle}>
-                    How to record Daily Care
-                </h3>
+                <h3 style={headingStyle}>Recording Daily Health</h3>
 
                 <ol style={listStyle}>
-
-                    <li>Select the patient.</li>
-
-                    <li>
-                        Enter the available health observations.
-                    </li>
-
-                    <li>
-                        Record only values that are available. You are not
-                        required to complete every field.
-                    </li>
-
-                    <li>
-                        Add medications or important notes if applicable.
-                    </li>
-
-                    <li>
-                        Review the information before saving.
-                    </li>
-
-                    <li>
-                        Tap <strong>Save</strong> to store the observations.
-                    </li>
-
+                    <li>Select yourself or a family member.</li>
+                    <li>Choose the patient.</li>
+                    <li>Record the available health observations.</li>
+                    <li>Add medications taken, if applicable.</li>
+                    <li>Include important notes or observations.</li>
+                    <li>Review the information.</li>
+                    <li>Save the record.</li>
                 </ol>
+            </section>
 
+            {/* Flexible */}
+
+            <section style={sectionStyle}>
+                <h3 style={headingStyle}>Flexible Data Entry</h3>
+
+                <p style={paragraphStyle}>
+                    Daily Care is designed to work with whatever information
+                    you have available. You are not required to complete every
+                    field during each recording session.
+                </p>
+
+                <p style={paragraphStyle}>
+                    Over time, these individual observations build a valuable
+                    health history that can help identify changes and support
+                    clinical decision-making.
+                </p>
+            </section>
+
+            {/* AI */}
+
+            <section style={sectionStyle}>
+                <h3 style={headingStyle}>AI Assistance</h3>
+
+                <p style={paragraphStyle}>
+                    CareVR incorporates Artificial Intelligence to simplify
+                    health recording. Depending on the available features,
+                    AI can assist with interpreting prescriptions,
+                    organizing healthcare information, generating summaries
+                    and improving the overall recording experience.
+                </p>
+            </section>
+
+            {/* Reports */}
+
+            <section style={sectionStyle}>
+                <h3 style={headingStyle}>How Daily Care is Used</h3>
+
+                <ul style={listStyle}>
+                    <li>Creates your health history.</li>
+                    <li>Supports Clinical Trends.</li>
+                    <li>Generates professional reports.</li>
+                    <li>Builds your Health Timeline.</li>
+                    <li>Helps prepare for doctor consultations.</li>
+                </ul>
             </section>
 
             {/* Best Practices */}
 
             <section style={sectionStyle}>
-
-                <h3 style={headingStyle}>
-                    Best Practices
-                </h3>
+                <h3 style={headingStyle}>Best Practices</h3>
 
                 <ul style={listStyle}>
-
-                    <li>
-                        Record observations at approximately the same time
-                        every day whenever possible.
-                    </li>
-
-                    <li>
-                        Use the same thermometer and monitoring devices for
-                        consistent readings.
-                    </li>
-
-                    <li>
-                        Record symptoms even if vital signs are normal.
-                    </li>
-
-                    <li>
-                        Keep notes concise and clinically meaningful.
-                    </li>
-
+                    <li>Record observations consistently.</li>
+                    <li>Use the same monitoring devices whenever possible.</li>
+                    <li>Record symptoms even when vital signs appear normal.</li>
+                    <li>Update medication information regularly.</li>
+                    <li>Use notes to capture anything unusual.</li>
+                    <li>Review reports before healthcare appointments.</li>
                 </ul>
-
             </section>
 
             {/* Important */}
 
             <section style={sectionStyle}>
-
-                <h3 style={headingStyle}>
-                    Important
-                </h3>
+                <h3 style={headingStyle}>Important Information</h3>
 
                 <p style={paragraphStyle}>
-                    CareVR is designed to help organize health information.
-                    It does not replace professional medical advice,
-                    diagnosis or treatment. Always consult a qualified
-                    healthcare professional regarding medical concerns.
+                    CareVR is intended to support health record keeping and
+                    continuity of care. It is not intended to diagnose,
+                    treat or replace professional medical advice. Always
+                    consult a qualified healthcare professional regarding
+                    medical concerns.
                 </p>
-
             </section>
 
             {/* Next */}
 
             <section style={sectionStyle}>
-
-                <h3 style={headingStyle}>
-                    Next Step
-                </h3>
+                <h3 style={headingStyle}>Where to Go Next</h3>
 
                 <p style={paragraphStyle}>
                     Continue to <strong>Health Assessments</strong> to learn
-                    how Self Assessment and Family Assessment help monitor
+                    how Self Assessments and Family Assessments complement
+                    your Daily Care records and provide a broader view of
                     overall health.
                 </p>
-
             </section>
-
         </>
     );
 }
@@ -177,7 +183,7 @@ const headingStyle: React.CSSProperties = {
 const paragraphStyle: React.CSSProperties = {
     color: "#4b5563",
     lineHeight: 1.8,
-    marginBottom: 0,
+    marginBottom: "16px",
 };
 
 const listStyle: React.CSSProperties = {

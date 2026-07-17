@@ -7,6 +7,9 @@ interface AppHeaderProps {
   compact?: boolean;
   onHelpClick?: () => void;
   helpLabel?: string;
+
+  onCareVRJourneyClick?: () => void;
+  careVRJourneyLabel?: string;
 }
 
 export default function AppHeader({
@@ -16,13 +19,15 @@ export default function AppHeader({
   compact = false,
   onHelpClick,
   helpLabel,
+  onCareVRJourneyClick,
+  careVRJourneyLabel,
 }: AppHeaderProps)
 {
   return (
     <header
       style={{
         marginBottom: compact ? "20px" : "32px",
-        paddingBottom: compact ? "16px" : "24px",
+        paddingBottom: compact ? "12px" : "18px",
         borderBottom: "1px solid #e5e7eb",
       }}
     >
@@ -44,11 +49,11 @@ export default function AppHeader({
 
           <p
             style={{
-              marginTop: compact ? "6px" : "10px",
+              marginTop: "4px",
 marginBottom: 0,
 fontSize: compact ? "15px" : "16px",
 color: "#6b7280",
-lineHeight: compact ? 1.5 : 1.6,
+lineHeight: 1.35,
             }}
           >
             Simple daily care.
@@ -66,6 +71,7 @@ lineHeight: compact ? 1.5 : 1.6,
       color: "#374151",
       fontSize: "15px",
       fontWeight: 500,
+      marginBottom: "2px",
     }}
   >
     👤 {currentUserName}
@@ -73,22 +79,44 @@ lineHeight: compact ? 1.5 : 1.6,
 )}
 
 {onHelpClick && helpLabel && (
-  <button
-    type="button"
-    onClick={onHelpClick}
-    style={{
-      padding: 0,
-      background: "transparent",
-      border: "none",
-      color: "#2563eb",
-      fontSize: "14px",
-      fontWeight: 600,
-      cursor: "pointer",
-      fontFamily: "inherit",
-    }}
-  >
-    ❓ {helpLabel}
-  </button>
+  <>
+    <button
+      type="button"
+      onClick={onHelpClick}
+      style={{
+        padding: 0,
+        background: "transparent",
+        border: "none",
+        color: "#2563eb",
+        fontSize: "14px",
+        fontWeight: 600,
+        cursor: "pointer",
+        fontFamily: "inherit",
+      }}
+    >
+      ❓ {helpLabel}
+    </button>
+
+    {onCareVRJourneyClick && careVRJourneyLabel && (
+      <button
+        type="button"
+        onClick={onCareVRJourneyClick}
+        style={{
+          padding: 0,
+          background: "transparent",
+          border: "none",
+          color: "#2563eb",
+          fontSize: "14px",
+          fontWeight: 600,
+          cursor: "pointer",
+          fontFamily: "inherit",
+        }}
+      >
+        ❤️ {careVRJourneyLabel}
+      </button>
+    )}
+
+  </>
 )}
   </div>
 )}
@@ -98,13 +126,13 @@ lineHeight: compact ? 1.5 : 1.6,
       {pageTitle && (
         <div
           style={{
-            marginTop: compact ? "20px" : "28px",
+            marginTop: compact ? "2px" : "2px",
           }}
         >
           <h2
             style={{
               margin: 0,
-              fontSize: compact ? "26px" : "28px",
+              fontSize: compact ? "16px" : "18px",
               fontWeight: 700,
               color: "#1f2937",
             }}
@@ -123,14 +151,16 @@ lineHeight: compact ? 1.5 : 1.6,
         gap: 24px;
     }
 
-    .app-header-user-area {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 8px;
-        text-align: right;
-        white-space: nowrap;
-    }
+.app-header-user-area {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 2px;
+    text-align: right;
+    white-space: nowrap;
+    margin-top: -2px;
+}	
 
     @media (max-width: 640px) {
 

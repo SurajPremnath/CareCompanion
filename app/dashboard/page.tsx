@@ -681,6 +681,24 @@ const isPersonSelectionComplete =
     compact
     helpLabel={t("dashboard.helpAndFaqs")}
     onHelpClick={openHelp}
+
+    careVRJourneyLabel="CareVR Journey"
+
+    onCareVRJourneyClick={() => {
+
+        performanceTracker.start({
+
+            fromPath: "/dashboard",
+
+            toPath: "/carevr-journey",
+
+            feature: "DASHBOARD_TO_CAREVR_JOURNEY",
+
+        });
+
+        router.push("/carevr-journey");
+
+    }}
 />
 
 {!consentGranted && (
@@ -694,11 +712,11 @@ const isPersonSelectionComplete =
 
             borderRadius: "12px",
 
-            padding: "18px",
+            padding: "16px",
 
-            marginTop: "18px",
+            marginTop: "16px",
 
-            marginBottom: "18px",
+            marginBottom: "16px",
 
         }}
     >
@@ -1974,3 +1992,87 @@ const selectedActionLabel:
             800,
 
     };
+
+const careVrJourneyCard: React.CSSProperties = {
+
+    display: "flex",
+
+    justifyContent: "space-between",
+
+    alignItems: "center",
+
+    gap: "24px",
+
+    marginBottom: "24px",
+
+    padding: "24px",
+
+    background: "linear-gradient(135deg,#eff6ff,#ffffff)",
+
+    border: "1px solid #bfdbfe",
+
+    borderRadius: "16px",
+
+    boxShadow: "0 6px 18px rgba(37,99,235,0.08)",
+
+    flexWrap: "wrap",
+
+};
+
+const careVrJourneyTitle: React.CSSProperties = {
+
+    fontSize: "24px",
+
+    fontWeight: 700,
+
+    color: "#1e3a8a",
+
+    marginBottom: "8px",
+
+};
+
+const careVrJourneySubtitle: React.CSSProperties = {
+
+    fontSize: "18px",
+
+    fontWeight: 600,
+
+    color: "#2563eb",
+
+    marginBottom: "12px",
+
+};
+
+const careVrJourneyDescription: React.CSSProperties = {
+
+    maxWidth: "620px",
+
+    color: "#4b5563",
+
+    lineHeight: 1.7,
+
+    fontSize: "15px",
+
+};
+
+const careVrJourneyButton: React.CSSProperties = {
+
+    padding: "14px 24px",
+
+    background: "#2563eb",
+
+    color: "#ffffff",
+
+    border: "none",
+
+    borderRadius: "10px",
+
+    fontSize: "15px",
+
+    fontWeight: 700,
+
+    cursor: "pointer",
+
+    whiteSpace: "nowrap",
+
+};

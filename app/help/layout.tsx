@@ -48,6 +48,17 @@ export default function HelpLayout({
             User Guide & Documentation
           </p>
 
+<p
+  style={{
+    marginTop: "8px",
+    color: "#2563eb",
+    fontWeight: 600,
+    fontSize: "16px",
+  }}
+>
+  AI-powered healthcare companion for patients, families and caregivers.
+</p>
+
           <p
             style={{
               marginTop: "12px",
@@ -82,7 +93,7 @@ export default function HelpLayout({
               color: "#111827",
             }}
           >
-            Need more help?
+            Need Assistance?
           </h3>
 
           <p
@@ -92,9 +103,40 @@ export default function HelpLayout({
               marginBottom: "24px",
             }}
           >
-            If you still need assistance, please contact your CareVR
-            Administrator.
+            If you need additional assistance or would like to share feedback, please contact the CareVR team.
           </p>
+
+<div
+  style={{
+    marginBottom: "24px",
+    padding: "16px",
+    background: "#eff6ff",
+    border: "1px solid #bfdbfe",
+    borderRadius: "10px",
+  }}
+>
+  <h4
+    style={{
+      marginTop: 0,
+      marginBottom: "8px",
+      color: "#1e40af",
+    }}
+  >
+    💡 Feedback & Suggestions
+  </h4>
+
+  <p
+    style={{
+      margin: 0,
+      color: "#374151",
+      lineHeight: 1.7,
+    }}
+  >
+    We're continually improving CareVR to make healthcare simpler,
+    smarter and more accessible. Your feedback helps us build a better
+    experience for everyone.
+  </p>
+</div>
 
           <p
             style={{
@@ -103,7 +145,7 @@ export default function HelpLayout({
               margin: 0,
             }}
           >
-            CareVR Version 1.0
+            CareVR v1.0 • © 2026 CareVR
           </p>
         </footer>
       </main>
