@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-07-19T10:03:51.895Z",
+  "project": {
+    "nodes": 433,
+    "edges": 202,
+    "internalDependencies": 202,
+    "externalDependencies": 135,
+    "missingDependencies": 8
+  },
+  "symbols": {
+    "totalSymbols": 6570,
+    "exportedSymbols": 779,
+    "internalSymbols": 5791,
+    "rootSymbols": 4385,
+    "leafSymbols": 6212,
+    "orphanSymbols": 4027,
+    "duplicateNames": 1114,
+    "duplicateQualifiedNames": 670,
+    "services": 3,
+    "repositories": 18,
+    "storage": 18,
+    "medicationSymbols": 819,
+    "decorators": 0,
+    "files": 364,
+    "relationships": 2185,
+    "architecture": {
+      "score": 0,
+      "rating": "Critical"
+    }
+  },
+  "duplicates": {
+    "totalDuplicates": 128,
+    "critical": 30,
+    "high": 20,
+    "medium": 64,
+    "low": 14,
+    "medicationDuplicates": 14
+  },
+  "api": {
+    "totalModules": 433,
+    "publicModules": 182,
+    "internalModules": 251,
+    "deadModules": 9,
+    "medicationModules": 68,
+    "validationIssues": 68
+  },
+  "architecture": {
+    "critical": 197,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "totalViolations": 197
+  }
+}
