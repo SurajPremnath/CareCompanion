@@ -9,13 +9,13 @@ import {
   QuestionRule,
   QuestionSearchCriteria,
   QuestionStatus,
-} from "./questionTypes";
+} from "./QuestionTypes";
 
 import {
   QuestionAnswerRequest,
   QuestionCreateRequest,
   QuestionUpdateRequest,
-} from "./questionModels";
+} from "./QuestionModels";
 
 export interface ValidationResult {
   readonly valid: boolean;
@@ -24,6 +24,15 @@ export interface ValidationResult {
 
 export class QuestionValidator {
   private constructor() {}
+
+  private static result(
+    errors: string[]
+  ): ValidationResult {
+    return {
+      valid: errors.length === 0,
+      errors: Object.freeze(errors),
+    };
+  }
 
   public static validateCreate(
     request: QuestionCreateRequest
@@ -50,7 +59,10 @@ export class QuestionValidator {
       errors.push("Confidence must be between 0 and 1.");
     }
 
-    return this.result(errors);
+    return {
+  valid: errors.length === 0,
+  errors: Object.freeze(errors),
+};
   }
 
   public static validateUpdate(
@@ -62,7 +74,7 @@ export class QuestionValidator {
       errors.push("Question id is required.");
     }
 
-    return this.result(errors);
+    return QuestionValidator.result(errors);
   }
 
   public static validateAnswer(
@@ -85,7 +97,7 @@ export class QuestionValidator {
       errors.push("Answer is required.");
     }
 
-    return this.result(errors);
+    return QuestionValidator.result(errors);
   }
 
   public static validateQuestion(
@@ -113,7 +125,7 @@ export class QuestionValidator {
       errors.push("Invalid confidence.");
     }
 
-    return this.result(errors);
+    return QuestionValidator.result(errors);
   }
 
   public static validateContext(
@@ -129,7 +141,7 @@ export class QuestionValidator {
       errors.push("Trigger is required.");
     }
 
-    return this.result(errors);
+    return QuestionValidator.result(errors);
   }
 
   public static validateRule(
@@ -151,7 +163,7 @@ export class QuestionValidator {
       );
     }
 
-    return this.result(errors);
+    return QuestionValidator.result(errors);
   }
 
   public static validateSearchCriteria(
@@ -163,7 +175,7 @@ export class QuestionValidator {
       errors.push("Patient id is required.");
     }
 
-    return this.result(errors);
+    return QuestionValidator.result(errors);
   }
 }
 export class QuestionRuleValidator {
@@ -311,13 +323,3 @@ export class QuestionStateValidator {
     return transitions[from].includes(to);
   }
 }
-
-function result(errors: string[]): ValidationResult {
-  return {
-    valid: errors.length === 0,
-    errors: Object.freeze(errors),
-  };
-}
-
-// Bind helper used by QuestionValidator
-(QuestionValidator as any).result = result;

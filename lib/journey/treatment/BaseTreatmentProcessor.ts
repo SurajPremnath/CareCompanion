@@ -3,7 +3,7 @@ import {
     TreatmentCategory,
     TreatmentPriority,
     type TreatmentResolution
-} from "../treatmentTypes";
+} from "./treatmentTypes";
 
 export abstract class BaseTreatmentProcessor {
 

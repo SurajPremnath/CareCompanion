@@ -1,6 +1,6 @@
 import type {
     ClinicalQuestion
-} from "../question/questionTypes";
+} from "../question/QuestionTypes";
 
 export interface ClinicalSummaryValidationResult {
 

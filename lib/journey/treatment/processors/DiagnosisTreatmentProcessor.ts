@@ -9,8 +9,8 @@ import {
 
 import { TreatmentHelper } from "../utils/TreatmentHelper";
 
-import { BaseTreatmentProcessor } from "./BaseTreatmentProcessor";
-import type { TreatmentProcessor } from "./TreatmentProcessor";
+import { BaseTreatmentProcessor } from "../BaseTreatmentProcessor";
+import type { TreatmentProcessor } from "../TreatmentProcessor";
 
 export class DiagnosisTreatmentProcessor
     extends BaseTreatmentProcessor
@@ -23,7 +23,7 @@ export class DiagnosisTreatmentProcessor
         return differences
 
             .filter(d =>
-                d.category === "diagnosis"
+                d.category === "assessments"
             )
 
             .map(d => {

@@ -4,18 +4,18 @@ import {
   QuestionEvaluationResult,
   QuestionGenerationContext,
   QuestionRule,
-} from "./questionTypes";
+} from "./QuestionTypes";
 
 import {
   QuestionCreateRequest,
   QuestionEvaluationRequest,
-} from "./questionModels";
+} from "./QuestionModels";
 
 import { QuestionBuilder } from "./QuestionBuilder";
 import {
   QuestionConfigurationValidator,
   QuestionValidator,
-} from "./questionValidator";
+} from "./QuestionValidator";
 
 export class QuestionEngine {
   private readonly builder: QuestionBuilder;
@@ -116,7 +116,7 @@ export class QuestionEngine {
       return order[a.priority] - order[b.priority];
     });
   }
-}
+
 
   private applyConfiguration(
     result: QuestionEvaluationResult

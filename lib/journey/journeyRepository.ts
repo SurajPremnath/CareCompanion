@@ -1,6 +1,6 @@
 // lib/journey/journeyRepository.ts
 
-import { JourneyAnalysisResult } from "./journeyModels";
+import { JourneyAnalysisResult } from "./journeyAnalysisModels";
 import { JourneyMapper } from "./journeyMapper";
 import { JourneyStorage } from "./journeyStorage";
 
@@ -15,7 +15,10 @@ export class JourneyRepository {
   ): Promise<JourneyAnalysisResult> {
     const record = JourneyMapper.toPersistence(analysis);
 
-    await JourneyStorage.save(record);
+    await JourneyStorage.upsert(
+  analysis.context.consultationId!,
+  record,
+);
 
     return analysis;
   }
@@ -30,7 +33,10 @@ export class JourneyRepository {
   ): Promise<JourneyAnalysisResult> {
     const record = JourneyMapper.toPersistence(analysis);
 
-    await JourneyStorage.update(record);
+    await JourneyStorage.update(
+  analysis.context.consultationId!,
+  record,
+);
 
     return analysis;
   }

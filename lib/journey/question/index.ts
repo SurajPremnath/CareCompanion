@@ -1,5 +1,5 @@
-export * from "./questionTypes";
-export * from "./questionModels";
+export * from "./QuestionTypes";
+export * from "./QuestionModels";
 
 export * from "./QuestionHelper";
 export * from "./QuestionBuilder";
@@ -8,4 +8,4 @@ export * from "./QuestionRepository";
 export * from "./QuestionStorage";
 export * from "./QuestionMapper";
 
-export * from "./questionValidator";
+export * from "./QuestionValidator";

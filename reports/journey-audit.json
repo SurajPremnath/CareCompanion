@@ -1,0 +1,287 @@
+[
+  {
+    "symbol": "Engine",
+    "kind": "class",
+    "decision": "KEEP",
+    "confidence": 100,
+    "reason": "Generic infrastructure naming.",
+    "occurrences": [
+      "lib\\journey\\activeTreatment\\lifecycleEngine.ts",
+      "lib\\journey\\classification\\journeyClassificationEngine.ts",
+      "lib\\journey\\governance\\governanceEngine.ts",
+      "lib\\journey\\scenarios\\scenarioEngine.ts"
+    ]
+  },
+  {
+    "symbol": "Mapper",
+    "kind": "class",
+    "decision": "KEEP",
+    "confidence": 100,
+    "reason": "Generic infrastructure naming.",
+    "occurrences": [
+      "lib\\journey\\activeTreatment\\lifecycleMapper.ts",
+      "lib\\journey\\classification\\classificationMapper.ts"
+    ]
+  },
+  {
+    "symbol": "Repository",
+    "kind": "class",
+    "decision": "KEEP",
+    "confidence": 100,
+    "reason": "Generic infrastructure naming.",
+    "occurrences": [
+      "lib\\journey\\activeTreatment\\lifecycleRepository.ts",
+      "lib\\journey\\classification\\classificationRepository.ts",
+      "lib\\journey\\governance\\governanceRepository.ts"
+    ]
+  },
+  {
+    "symbol": "Storage",
+    "kind": "class",
+    "decision": "KEEP",
+    "confidence": 100,
+    "reason": "Generic infrastructure naming.",
+    "occurrences": [
+      "lib\\journey\\activeTreatment\\lifecycleStorage.ts",
+      "lib\\journey\\classification\\classificationStorage.ts",
+      "lib\\journey\\governance\\governanceStorage.ts"
+    ]
+  },
+  {
+    "symbol": "Validator",
+    "kind": "class",
+    "decision": "KEEP",
+    "confidence": 100,
+    "reason": "Generic infrastructure naming.",
+    "occurrences": [
+      "lib\\journey\\activeTreatment\\lifecycleValidator.ts",
+      "lib\\journey\\classification\\classificationValidator.ts",
+      "lib\\journey\\governance\\governanceValidator.ts",
+      "lib\\journey\\scenarios\\scenarioValidator.ts"
+    ]
+  },
+  {
+    "symbol": "Model",
+    "kind": "interface",
+    "decision": "KEEP",
+    "confidence": 100,
+    "reason": "Generic infrastructure naming.",
+    "occurrences": [
+      "lib\\journey\\activeTreatment\\models\\lifecycleModel.ts",
+      "lib\\journey\\classification\\models\\classificationModel.ts",
+      "lib\\journey\\governance\\models\\governanceModel.ts",
+      "lib\\journey\\scenarios\\models\\scenarioModel.ts"
+    ]
+  },
+  {
+    "symbol": "ComparisonResult",
+    "kind": "interface",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\comparison\\comparisonTypes.ts",
+      "lib\\journey\\journeyAnalysisModels.ts"
+    ]
+  },
+  {
+    "symbol": "ConsultationContext",
+    "kind": "interface",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\consultation\\consultationTypes.ts",
+      "lib\\journey\\journeyAnalysisModels.ts"
+    ]
+  },
+  {
+    "symbol": "JourneyEngineResult",
+    "kind": "interface",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\engine\\engineResult.ts",
+      "lib\\journey\\JourneyEngine.ts"
+    ]
+  },
+  {
+    "symbol": "JourneyEngine",
+    "kind": "class",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\engine\\journeyEngine.ts",
+      "lib\\journey\\JourneyEngine.ts"
+    ]
+  },
+  {
+    "symbol": "TimelineEvent",
+    "kind": "interface",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyAnalysisModels.ts",
+      "lib\\journey\\timeline\\timelineTypes.ts"
+    ]
+  },
+  {
+    "symbol": "TimelineResult",
+    "kind": "interface",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyAnalysisModels.ts",
+      "lib\\journey\\timeline\\timelineTypes.ts"
+    ]
+  },
+  {
+    "symbol": "JourneyQuestion",
+    "kind": "interface",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyAnalysisModels.ts",
+      "lib\\journey\\models\\journeyTypes.ts"
+    ]
+  },
+  {
+    "symbol": "JourneySummary",
+    "kind": "interface",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyAnalysisModels.ts",
+      "lib\\journey\\models\\journeyTypes.ts"
+    ]
+  },
+  {
+    "symbol": "JourneyStatus",
+    "kind": "enum",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\JourneyEngine.ts",
+      "lib\\journey\\journeyTypes.ts",
+      "lib\\journey\\models\\journeyEnums.ts"
+    ]
+  },
+  {
+    "symbol": "JourneyNode",
+    "kind": "interface",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyModels.ts",
+      "lib\\journey\\models\\journeyTypes.ts"
+    ]
+  },
+  {
+    "symbol": "JourneyMetadata",
+    "kind": "interface",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyModels.ts",
+      "lib\\journey\\models\\journeyModels.ts"
+    ]
+  },
+  {
+    "symbol": "JourneyContext",
+    "kind": "interface",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyModels.ts",
+      "lib\\journey\\models\\journeyContext.ts"
+    ]
+  },
+  {
+    "symbol": "TreatmentStatus",
+    "kind": "enum",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyTypes.ts",
+      "lib\\journey\\models\\journeyEnums.ts",
+      "lib\\journey\\treatment\\treatmentTypes.ts"
+    ]
+  },
+  {
+    "symbol": "TimelineEventType",
+    "kind": "enum",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyTypes.ts",
+      "lib\\journey\\timeline\\timelineTypes.ts"
+    ]
+  },
+  {
+    "symbol": "JourneyNodeType",
+    "kind": "enum",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyTypes.ts",
+      "lib\\journey\\models\\journeyEnums.ts"
+    ]
+  },
+  {
+    "symbol": "JourneyEventType",
+    "kind": "enum",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyTypes.ts",
+      "lib\\journey\\models\\journeyEnums.ts"
+    ]
+  },
+  {
+    "symbol": "ConsultationMode",
+    "kind": "enum",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyTypes.ts",
+      "lib\\journey\\models\\journeyEnums.ts"
+    ]
+  },
+  {
+    "symbol": "ConsultationType",
+    "kind": "enum",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\journeyTypes.ts",
+      "lib\\journey\\models\\journeyEnums.ts"
+    ]
+  },
+  {
+    "symbol": "mapTreatmentDecision",
+    "kind": "function",
+    "decision": "MANUAL_REVIEW",
+    "confidence": 75,
+    "reason": "Unable to classify automatically.",
+    "occurrences": [
+      "lib\\journey\\mappers\\treatmentDecisionMapper.ts",
+      "lib\\journey\\mappers\\treatmentMapper.ts"
+    ]
+  }
+]

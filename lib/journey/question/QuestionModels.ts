@@ -22,7 +22,7 @@ import type {
   TreatmentReference,
   TriggerReference,
   UUID,
-} from "./questionTypes";
+} from "./QuestionTypes";
 
 export interface QuestionEntity extends ClinicalQuestion {}
 

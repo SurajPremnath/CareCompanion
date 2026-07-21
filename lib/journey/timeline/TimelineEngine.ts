@@ -1,4 +1,5 @@
-import { EngineResult } from "../engine/engineResult";
+import { JourneyEngineResult } from "../engine/engineResult";
+import type { JourneyContext } from "../models/journeyContext";
 
 import { TimelineBuilder } from "./TimelineBuilder";
 import {
@@ -17,65 +18,90 @@ export class TimelineEngine {
         this.builder = builder;
     }
 
-    execute(events: TimelineEvent[]): EngineResult<TimelineResult> {
+    execute(events: TimelineEvent[]): JourneyEngineResult {
 
-        const startTime = Date.now();
+        const startedAt = new Date();
 
         try {
 
             const result = this.builder.build(events);
 
-            if (result.errors.length > 0) {
+if (result.errors.length > 0) {
 
-                return {
-                    success: false,
-                    data: undefined,
-                    warnings: result.warnings,
-                    errors: result.errors,
-                    metrics: {
-                        executionTimeMs: Date.now() - startTime
-                    }
-                };
-            }
-
-            return {
-                success: true,
-                data: result,
-                warnings: result.warnings,
-                errors: [],
-                metrics: {
-                    executionTimeMs: Date.now() - startTime
-                }
-            };
-
-        } catch (error) {
-
-            return {
-                success: false,
-                data: undefined,
-                warnings: [],
-                errors: [
-                    error instanceof Error
-                        ? error.message
-                        : "Timeline engine execution failed."
-                ],
-                metrics: {
-                    executionTimeMs: Date.now() - startTime
-                }
-            };
+    return {
+        success: false,
+        status: "FAILED" as any,
+        context: {} as JourneyContext,
+        warnings: result.warnings.map((warning) => ({
+            code: "TIMELINE_WARNING",
+            message: warning,
+        })),
+        errors: result.errors.map((error) => ({
+            code: "TIMELINE_ERROR",
+            message: error,
+            recoverable: true,
+        })),
+        metrics: {
+            startedAt: startedAt.toISOString(),
+            completedAt: new Date().toISOString(),
+            durationMs: Date.now() - startedAt.getTime(),
         }
+    };
+}
+
+return {
+    success: true,
+    status: "SUCCESS" as any,
+    context: {} as JourneyContext,
+    warnings: result.warnings.map((warning) => ({
+        code: "TIMELINE_WARNING",
+        message: warning,
+    })),
+    errors: [],
+    metrics: {
+        startedAt: startedAt.toISOString(),
+        completedAt: new Date().toISOString(),
+        durationMs: Date.now() - startedAt.getTime(),
+    }
+};
+
+} catch (error) {
+
+    return {
+        success: false,
+        status: "FAILED" as any,
+        context: {} as JourneyContext,
+        warnings: [],
+        errors: [{
+            code: "TIMELINE_ERROR",
+            message: error instanceof Error
+                ? error.message
+                : "Timeline engine execution failed.",
+            recoverable: false,
+        }],
+        metrics: {
+            startedAt: startedAt.toISOString(),
+            completedAt: new Date().toISOString(),
+            durationMs: Date.now() - startedAt.getTime(),
+        }
+    };
+}
+}
+
+ executeOrThrow(events: TimelineEvent[]): TimelineResult {
+
+    const result = this.execute(events);
+
+    if (!result.success) {
+        throw new Error(
+            result.errors
+                .map((e) => e.message)
+                .join(", ")
+        );
     }
 
-    executeOrThrow(events: TimelineEvent[]): TimelineResult {
-
-        const result = this.execute(events);
-
-        if (!result.success || !result.data) {
-            throw new Error(result.errors.join(", "));
-        }
-
-        return result.data;
-    }
+    return result.context.state.timeline as unknown as TimelineResult;
+}
 
     isHealthy(): boolean {
         return true;

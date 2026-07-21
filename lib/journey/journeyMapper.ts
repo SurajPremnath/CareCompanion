@@ -1,7 +1,8 @@
 // lib/journey/JourneyMapper.ts
 
-import {
+import type {
   JourneyAnalysisResult,
+  JourneyAction,
 } from "./journeyAnalysisModels";
 
 export class JourneyMapper {
@@ -11,8 +12,8 @@ export class JourneyMapper {
     return {
       patient_id: analysis.context.patientId,
 
-      consultation_id:
-        analysis.context.consultationContext?.consultationId,
+consultation_id:
+  analysis.context.consultationId,
 
       consultation_date:
         analysis.context.currentConsultationDate,
@@ -49,36 +50,64 @@ export class JourneyMapper {
   static fromPersistence(
     record: Record<string, unknown>,
   ): JourneyAnalysisResult {
-    return {
-      context:
-        record.context as JourneyAnalysisResult["context"],
+return {
+  context:
+    record.context as JourneyAnalysisResult["context"],
 
-      comparison:
-        record.comparison as JourneyAnalysisResult["comparison"],
+  comparison:
+    record.comparison as JourneyAnalysisResult["comparison"],
 
-      treatment:
-        record.treatment as JourneyAnalysisResult["treatment"],
+  treatment:
+    record.treatment as JourneyAnalysisResult["treatment"],
 
-      timeline:
-        record.timeline as JourneyAnalysisResult["timeline"],
+  timeline:
+    record.timeline as JourneyAnalysisResult["timeline"],
 
-      questions:
-        record.questions as JourneyAnalysisResult["questions"],
+  questionResult:
+    record.question_result as JourneyAnalysisResult["questionResult"],
 
-      clinicalSummary:
-        record.clinical_summary as JourneyAnalysisResult["clinicalSummary"],
+  clinicalSummary:
+    record.clinical_summary as JourneyAnalysisResult["clinicalSummary"],
 
-      confidence:
-        record.confidence as JourneyAnalysisResult["confidence"],
+  // ---------- Flattened Read Model ----------
 
-      readyToPersist:
-        Boolean(record.ready_to_persist),
+  summary:
+    record.summary as JourneyAnalysisResult["summary"],
 
-      requiresReview:
-        Boolean(record.requires_review),
+  detectedChanges:
+    (record.detected_changes as JourneyAnalysisResult["detectedChanges"]) ?? [],
 
-      actions:
-        (record.actions as string[]) ?? [],
-    };
+  questions:
+    (record.questions as JourneyAnalysisResult["questions"]) ?? [],
+
+  treatmentDecision:
+    record.treatment_decision as JourneyAnalysisResult["treatmentDecision"],
+
+  activeTreatment:
+    record.active_treatment as JourneyAnalysisResult["activeTreatment"],
+
+  timelineEvents:
+    (record.timeline_events as JourneyAnalysisResult["timelineEvents"]) ?? [],
+
+  // ---------- Review ----------
+
+  confidence:
+    Number(record.confidence ?? 0),
+
+  confidenceLevel:
+    record.confidence_level as JourneyAnalysisResult["confidenceLevel"],
+
+  status:
+    record.status as JourneyAnalysisResult["status"],
+
+  readyToPersist:
+    Boolean(record.ready_to_persist),
+
+  requiresReview:
+    Boolean(record.requires_review),
+
+  actions:
+    (record.actions as JourneyAnalysisResult["actions"]) ?? [],
+};
   }
 }

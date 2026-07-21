@@ -29,14 +29,27 @@ function mapJourneyContext(
   return {
     patientId: context.patientId,
 
-    currentConsultationDate:
-      context.currentConsultationDate,
+currentConsultationDate:
+  context.currentConsultationDate instanceof Date
+    ? context.currentConsultationDate.toISOString()
+    : context.currentConsultationDate,
 
-    previousConsultationDate:
-      context.previousConsultationDate,
+previousConsultationDate:
+  context.previousConsultationDate instanceof Date
+    ? context.previousConsultationDate.toISOString()
+    : context.previousConsultationDate,
 
-    consultationContext:
-      context.consultationContext,
+    consultationType:
+      context.consultationType,
+
+    consultationMode:
+      context.consultationMode,
+
+    doctorName:
+      context.doctorName,
+
+    hospitalName:
+      context.hospitalName,
 
     consultationSource:
       context.consultationSource,

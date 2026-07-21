@@ -21,9 +21,11 @@
  * ========================================================================== */
 
 import type {
+  FollowUpModel,
   MedicineModel,
   TreatmentClinicalContext,
   TreatmentComparisonModel,
+  TreatmentMedicineModel,
   TreatmentPlanModel
 } from './treatmentModels';
 
@@ -81,6 +83,8 @@ enum RuleActionType {
   COMPLETE_TREATMENT = 'COMPLETE_TREATMENT',
 
   DISCONTINUE_TREATMENT = 'DISCONTINUE_TREATMENT',
+
+  SUPERSEDE_TREATMENT = 'SUPERSEDE_TREATMENT',
 
   CREATE_TIMELINE_EVENT = 'CREATE_TIMELINE_EVENT',
 
@@ -611,7 +615,7 @@ action(
     action(
       RuleActionType.CREATE_TIMELINE_EVENT,
       Object.freeze({
-        changeType: TreatmentChangeType.MODIFIED,
+        changeType: TreatmentChangeType.UPDATED,
         previousTreatmentId: previousTreatment.id,
         currentTreatmentId: incomingTreatment.id
       })
@@ -758,7 +762,7 @@ function evaluateTreatmentCompletion(
       RuleActionType.CREATE_TIMELINE_EVENT,
       Object.freeze({
         treatmentId: treatment.id,
-        changeType: TreatmentChangeType.COMPLETED
+        changeType: TreatmentChangeType.UPDATED
       })
     )
   );
@@ -807,7 +811,7 @@ if (treatment.status !== TreatmentStatus.DISCONTINUED) {
       RuleActionType.CREATE_TIMELINE_EVENT,
       Object.freeze({
         treatmentId: treatment.id,
-        changeType: TreatmentChangeType.DISCONTINUED,
+        changeType: TreatmentChangeType.UPDATED,
         reason
       })
     )
@@ -984,7 +988,7 @@ case MedicineStatus.DISCONTINUED:
         RuleActionType.CREATE_TIMELINE_EVENT,
         Object.freeze({
           medicineId: medicine.id,
-          changeType: TreatmentChangeType.DISCONTINUED
+          changeType: TreatmentChangeType.UPDATED
         })
       )
     );
@@ -1057,13 +1061,17 @@ default:
       )
     );
 
-  }
+    break;
 
-  return ruleResult(
-    violations,
-    warnings,
-    actions
-  );
+} // switch
+
+} // for
+
+return ruleResult(
+  violations,
+  warnings,
+  actions
+);
 
 }
 
@@ -1333,7 +1341,7 @@ function evaluateFollowUpRules(
           RuleActionType.CREATE_TIMELINE_EVENT,
           Object.freeze({
             followUpId: followUp.id,
-            status: FollowUpStatus.OVERDUE
+            status: FollowUpStatus.MISSED
           })
         )
       );

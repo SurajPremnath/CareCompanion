@@ -1,10 +1,10 @@
 // lib/journey/journeyUtils.ts
 
-import {
+import type {
   DetectedChange,
   JourneyQuestion,
-  TimelineDraftEvent,
-} from "./journeyModels";
+  TimelineEvent,
+} from "./journeyAnalysisModels";
 
 import { JourneyRule } from "./journeyRules";
 import { JourneyChangeType } from "./journeyTypes";
@@ -64,9 +64,9 @@ export class JourneyUtils {
    * Remove duplicate timeline events.
    */
   static uniqueTimelineEvents(
-    events: TimelineDraftEvent[],
-  ): TimelineDraftEvent[] {
-    const map = new Map<string, TimelineDraftEvent>();
+    events: TimelineEvent[],
+  ): TimelineEvent[] {
+    const map = new Map<string, TimelineEvent>();
 
     for (const event of events) {
       map.set(event.id, event);
@@ -79,13 +79,13 @@ export class JourneyUtils {
    * Sort timeline chronologically.
    */
   static sortTimeline(
-    events: TimelineDraftEvent[],
-  ): TimelineDraftEvent[] {
+    events: TimelineEvent[],
+  ): TimelineEvent[] {
     return [...events].sort(
-      (a, b) =>
-        new Date(a.date).getTime() -
-        new Date(b.date).getTime(),
-    );
+  (a, b) =>
+    new Date(a.timestamp).getTime() -
+    new Date(b.timestamp).getTime(),
+);
   }
 
   /**

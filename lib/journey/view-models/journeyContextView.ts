@@ -1,6 +1,9 @@
-import {
+import type {
+  ConsultationContext,
+} from "../journeyAnalysisModels";
+
+import type {
   ConsultationSource,
-  ConsultationType,
 } from "../journeyTypes";
 
 export interface JourneyContextView {
@@ -10,11 +13,11 @@ export interface JourneyContextView {
 
   previousConsultationDate?: string;
 
-  consultationContext: ConsultationType;
+consultationContext?: ConsultationContext;
 
-  consultationSource: ConsultationSource;
+consultationSource?: ConsultationSource;
 
-  hasPreviousConsultation: boolean;
+hasPreviousConsultation?: boolean;
 
-  isEmergency: boolean;
+isEmergency?: boolean;
 }

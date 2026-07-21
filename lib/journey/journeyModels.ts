@@ -18,7 +18,8 @@ import {
     ProviderType,
 } from "./journeyTypes";
 
-import { ConsultationType } from "./journeyTypes";
+// Remove this import.
+// ConsultationContext is already imported below.
 
 import {
     ConsultationContext,
@@ -215,16 +216,29 @@ export interface JourneyContext {
 
     activeFacility?: JourneyFacility;
 
-consultationContext?: ConsultationType;
+    // Rich consultation object
+    consultationContext?: ConsultationContext;
 
-consultationSource?: ConsultationSource;
+    // Flattened fields for UI/mapper convenience
+    consultationId?: string;
+    consultationDate?: string;
+    consultationType?: string;
+    consultationMode?: string;
 
-currentConsultationDate?: Date | string;
+    doctorId?: string;
+    doctorName?: string;
+    doctorSpecialty?: string;
 
-hasPreviousConsultation?: boolean;
+    hospitalId?: string;
+    hospitalName?: string;
 
-previousConsultationDate?: Date | string;
+    consultationSource?: ConsultationSource;
 
-isEmergency?: boolean;
+    currentConsultationDate?: Date | string;
 
+    hasPreviousConsultation?: boolean;
+
+    previousConsultationDate?: Date | string;
+
+    isEmergency?: boolean;
 }

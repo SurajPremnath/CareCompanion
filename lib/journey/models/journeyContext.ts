@@ -1,5 +1,5 @@
-import type { Patient } from "@/lib/patient";
-import type { DailyCare } from "@/lib/dailyCare";
+import type { Patient } from "@/lib/types/patient";
+import type { DailyCare } from "@/lib/types/dailyCare";
 import type {
   CompletePrescriptionRecord,
 } from "@/lib/prescription/prescriptionTypes";
@@ -9,15 +9,18 @@ import type {
 } from "../consultation/consultationTypes";
 
 import type {
-  JourneyAnalysisResult,
   JourneyComparisonItem,
   JourneyEdge,
   JourneyGovernanceResult,
   JourneyNode,
+} from "./journeyTypes";
+
+import type {
+  JourneyAnalysisResult,
   JourneyQuestion,
   JourneySummary,
   JourneyTimelineEvent,
-} from "./journeyTypes";
+} from "../journeyAnalysisModels";
 
 /**
  * ============================================================

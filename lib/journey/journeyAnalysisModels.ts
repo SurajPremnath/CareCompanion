@@ -184,8 +184,8 @@ export interface JourneyInvestigation {
 
 
 export interface TreatmentDecision {
-  status: TreatmentDecisionStatus;
-    
+  status: TreatmentStatus;
+
   activeTreatment: ActiveTreatment;
 
   recommendations: JourneyRecommendation[];

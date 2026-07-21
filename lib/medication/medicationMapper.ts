@@ -16,6 +16,8 @@ import {
 import {
   Medicine,
   MedicationStatus,
+  MedicationTiming,
+  MedicationFrequency,
   PrescriptionMedicine,
 } from "./medicationTypes";
 
@@ -38,10 +40,10 @@ export class MedicationMapper {
 
       dose: data.dose,
 
-      instruction: data.instruction ?? {
-        timing: data.instruction?.timing!,
-        frequency: data.instruction?.frequency!,
-      },
+instruction: data.instruction ?? {
+  timing: MedicationTiming.OTHER,
+  frequency: MedicationFrequency.CUSTOM,
+},
 
       duration: data.duration,
 

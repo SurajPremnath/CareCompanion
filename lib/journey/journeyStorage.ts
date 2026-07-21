@@ -1,6 +1,6 @@
 // lib/journey/JourneyStorage.ts
 
-import { supabase } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 const TABLE = "journey_analysis";
 

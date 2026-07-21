@@ -1,6 +1,6 @@
 import type {
     QuestionPriority
-} from "../../question/questionTypes";
+} from "../../question/QuestionTypes";
 
 import {
     ClinicalRisk,

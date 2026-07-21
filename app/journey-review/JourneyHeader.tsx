@@ -67,8 +67,8 @@ export function JourneyHeader({
         <InfoCard
           icon={<Stethoscope className="h-5 w-5" />}
           label="Context"
-          value={formatEnum(
-  context.consultationContext ??
+value={formatEnum(
+  (context.consultationContext?.consultationType as ConsultationType) ??
     ConsultationType.OTHER,
 )}
         />

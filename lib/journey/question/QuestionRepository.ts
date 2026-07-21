@@ -3,7 +3,7 @@ import {
   QuestionAnswer,
   QuestionSearchCriteria,
   UUID,
-} from "./questionTypes";
+} from "./QuestionTypes";
 
 import {
   QuestionAnswerRequest,
@@ -12,7 +12,7 @@ import {
   QuestionRepositoryResult,
   QuestionSearchRequest,
   QuestionUpdateRequest,
-} from "./questionModels";
+} from "./QuestionModels";
 
 import { QuestionStorage } from "./QuestionStorage";
 import { QuestionBuilder } from "./QuestionBuilder";
@@ -153,7 +153,7 @@ export class QuestionRepository {
       question: updated,
     };
   }
-}
+
   public async search(
     request: QuestionSearchRequest
   ): Promise<QuestionListResult> {

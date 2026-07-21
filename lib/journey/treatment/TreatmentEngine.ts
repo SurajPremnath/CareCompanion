@@ -14,9 +14,8 @@ import {
 import { TreatmentValidator } from "./treatmentValidator";
 import { TreatmentHelper } from "./utils/TreatmentHelper";
 
-import type { TreatmentProcessor } from "./processors/TreatmentProcessor";
+import type { TreatmentProcessor } from "./TreatmentProcessor";
 
-import { MedicationTreatmentProcessor } from "./processors/MedicationTreatmentProcessor";
 import { DiagnosisTreatmentProcessor } from "./processors/DiagnosisTreatmentProcessor";
 import { ComplaintTreatmentProcessor } from "./processors/ComplaintTreatmentProcessor";
 import { VitalTreatmentProcessor } from "./processors/VitalTreatmentProcessor";
@@ -28,8 +27,6 @@ import { FollowUpTreatmentProcessor } from "./processors/FollowUpTreatmentProces
 export class TreatmentEngine {
 
     private readonly processors: TreatmentProcessor[] = [
-
-        new MedicationTreatmentProcessor(),
 
         new DiagnosisTreatmentProcessor(),
 

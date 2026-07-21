@@ -10,7 +10,12 @@ import {
 } from "./journeyAnalysisModels";
 
 import { JourneyContext } from "./journeyModels";
-import { JourneyConfidence } from "./journeyTypes";
+
+import {
+  JourneyActionType,
+  JourneyConfidence,
+  JourneyStatus,
+} from "./journeyTypes";
 
 export class JourneyAnalysisEngine {
   static build(params: {
@@ -27,36 +32,59 @@ export class JourneyAnalysisEngine {
       params.timeline,
     );
 
-    const requiresReview = this.requiresReview(
-      params.comparison,
-      confidence,
-    );
+const requiresReview = this.requiresReview(
+  params.comparison,
+  confidence,
+);
 
-    return {
-      context: params.context,
+return {
+  context: params.context,
 
-      comparison: params.comparison,
+  comparison: params.comparison,
 
-      treatment: params.treatment,
+  treatment: params.treatment,
 
-      timeline: params.timeline,
+  timeline: params.timeline,
 
-      questions: params.questions,
+  questionResult: params.questions,
 
-      clinicalSummary: params.clinicalSummary,
+  clinicalSummary: params.clinicalSummary,
 
-      confidence,
+  summary: params.clinicalSummary.summary,
 
-      readyToPersist: !requiresReview,
+  detectedChanges: params.comparison.changes,
 
-      requiresReview,
+  questions: params.questions.questions,
 
-      actions: this.buildActions(
-        params.comparison,
-        params.questions,
-        requiresReview,
-      ),
-    };
+  treatmentDecision: params.treatment,
+
+  activeTreatment: params.treatment.activeTreatment,
+
+  timelineEvents: params.timeline.events,
+
+  confidence: this.toConfidenceScore(confidence),
+
+  confidenceLevel: confidence,
+
+  status: requiresReview
+    ? JourneyStatus.REVIEW_REQUIRED
+    : JourneyStatus.COMPLETED,
+
+  readyToPersist: !requiresReview,
+
+  requiresReview,
+
+actions: this.buildActions(
+  params.comparison,
+  params.questions,
+  requiresReview,
+).map((action, index) => ({
+  id: `action-${index + 1}`,
+  type: action as JourneyActionType,
+  title: action.replace(/_/g, " "),
+  completed: false,
+})),
+};
   }
 
   private static calculateConfidence(
@@ -137,4 +165,25 @@ export class JourneyAnalysisEngine {
 
     return actions;
   }
+
+private static toConfidenceScore(
+  confidence: JourneyConfidence,
+): number {
+  switch (confidence) {
+    case JourneyConfidence.VERIFIED:
+      return 100;
+
+    case JourneyConfidence.HIGH:
+      return 80;
+
+    case JourneyConfidence.MEDIUM:
+      return 60;
+
+    case JourneyConfidence.LOW:
+    default:
+      return 40;
+  }
+}
+
+
 }

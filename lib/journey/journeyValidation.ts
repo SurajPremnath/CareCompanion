@@ -1,10 +1,13 @@
 // lib/journey/journeyValidation.ts
 
-import {
+import type {
   JourneyAnalysisResult,
   JourneyAnswer,
-  JourneyContext,
   JourneyQuestion,
+} from "./journeyAnalysisModels";
+
+import type {
+  JourneyContext,
 } from "./journeyModels";
 
 /**
@@ -21,13 +24,19 @@ export class JourneyValidation {
       errors.push("Patient ID is required.");
     }
 
-    if (!context.consultationId.trim()) {
-      errors.push("Consultation ID is required.");
-    }
+if (!context.consultationId?.trim()) {
+  errors.push("Consultation ID is required.");
+}
 
-    if (!context.currentConsultationDate.trim()) {
-      errors.push("Current consultation date is required.");
-    }
+  if (
+  !context.currentConsultationDate ||
+  (
+    typeof context.currentConsultationDate === "string" &&
+    !context.currentConsultationDate.trim()
+  )
+) {
+  errors.push("Current consultation date is required.");
+}
 
     return errors;
   }
@@ -50,16 +59,16 @@ export class JourneyValidation {
       const answer = answerMap.get(question.id);
 
       if (!answer) {
-        errors.push(`Missing answer for "${question.question}".`);
+        errors.push(`Missing answer for "${question.title}".`);
         continue;
       }
 
       if (Array.isArray(answer.value)) {
         if (answer.value.length === 0) {
-          errors.push(`Question "${question.question}" cannot be empty.`);
+          errors.push(`Question "${question.title}" cannot be empty.`);
         }
       } else if (!String(answer.value).trim()) {
-        errors.push(`Question "${question.question}" cannot be empty.`);
+        errors.push(`Question "${question.title}" cannot be empty.`);
       }
     }
 

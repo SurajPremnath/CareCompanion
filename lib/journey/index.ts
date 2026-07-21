@@ -30,15 +30,27 @@ export * from "./journeyStorage";
  * Engines
  * ============================================================ */
 
-export * from "./journeyAnalysisEngine";
-export * from "./JourneyEngine";
+export * from "./JourneyAnalysisEngine";
+export * from "./engine/journeyEngine";
+export * from "./engine/engineResult";
 
 /* ============================================================
  * Feature Engines
  * ============================================================ */
 
-export * from "./comparison";
-export * from "./treatment";
-export * from "./timeline";
-export * from "./question";
-export * from "./clinicalSummary";
+export {
+  ComparisonEngine,
+} from "./comparison/comparisonEngine";
+
+export {
+  PrescriptionComparator,
+} from "./comparison/prescriptionComparator";
+
+export { TreatmentEngine } from "./treatment/TreatmentEngine";
+export { TimelineEngine } from "./timeline/TimelineEngine";
+export { TimelineBuilder } from "./timeline/TimelineBuilder";
+export { QuestionEngine } from "./question/QuestionEngine";
+export { QuestionBuilder } from "./question/QuestionBuilder";
+export {
+  ClinicalSummaryEngine,
+} from "./clinicalSummary/ClinicalSummaryEngine";

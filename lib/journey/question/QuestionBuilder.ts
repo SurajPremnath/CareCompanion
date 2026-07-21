@@ -11,18 +11,18 @@ import {
   QuestionSeverity,
   QuestionSource,
   TargetAudience,
-} from "./questionTypes";
+} from "./QuestionTypes";
 
 import {
   QuestionCreateRequest,
   QuestionEvaluationRequest,
-} from "./questionModels";
+} from "./QuestionModels";
 
 import { QuestionHelper, QuestionContextHelper } from "./QuestionHelper";
 import {
   QuestionRuleValidator,
   QuestionValidator,
-} from "./questionValidator";
+} from "./QuestionValidator";
 
 export class QuestionBuilder {
   public build(
@@ -173,7 +173,7 @@ export class QuestionBuilder {
       tags: [rule.category],
     });
   }
-}
+
 
   private createRuleContext(
     context: QuestionGenerationContext

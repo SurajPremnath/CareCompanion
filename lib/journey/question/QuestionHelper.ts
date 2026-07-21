@@ -14,9 +14,9 @@ import {
   TreatmentReference,
   UUID,
   QuestionGenerationContext,
-} from "./questionTypes";
+} from "./QuestionTypes";
 
-import { QuestionCreateRequest } from "./questionModels";
+import { QuestionCreateRequest } from "./QuestionModels";
 
 export class QuestionHelper {
   private constructor() {}

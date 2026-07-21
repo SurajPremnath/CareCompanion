@@ -12,7 +12,7 @@
  * • Treatment comparison retrieval
  * ========================================================================== */
 
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 import type {
   TreatmentPlanModel,

@@ -5,7 +5,7 @@ import {
   QuestionAnswer,
   QuestionSearchCriteria,
   UUID,
-} from "./questionTypes";
+} from "./QuestionTypes";
 
 import { QuestionMapper } from "./QuestionMapper";
 
@@ -115,7 +115,7 @@ export class QuestionStorage {
       throw error;
     }
   }
-}
+
   public async search(
     criteria: QuestionSearchCriteria
   ): Promise<readonly ClinicalQuestion[]> {

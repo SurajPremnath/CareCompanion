@@ -126,9 +126,10 @@ function mapInvestigation(
 
     ...clone(investigation),
 
-    investigation: normalize(
-      investigation.investigation
-    )
+    name: normalize(
+  investigation.name
+)
+    
 
   });
 
@@ -216,12 +217,10 @@ function mapTreatment(
         treatment.clinicalContext
       ),
 
-    createdAt:
-      treatment.createdAt ??
-      nowIso(),
-
-    updatedAt:
-      nowIso()
+audit: {
+  ...treatment.audit,
+  updatedAt: nowIso(),
+}
 
   });
 

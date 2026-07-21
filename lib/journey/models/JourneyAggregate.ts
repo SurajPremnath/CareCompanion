@@ -1,5 +1,5 @@
-import type { Patient } from "@/lib/patient";
-import type { DailyCare } from "@/lib/dailyCare";
+import type { Patient } from "@/lib/types/patient";
+import type { DailyCare } from "@/lib/types/dailyCare";
 
 import type {
   CompletePrescriptionRecord,

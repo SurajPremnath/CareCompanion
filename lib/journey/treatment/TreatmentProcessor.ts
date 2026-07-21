@@ -1,10 +1,10 @@
 import type {
     ComparisonDifference
-} from "../../comparison/comparisonTypes";
+} from "../comparison/comparisonTypes";
 
 import type {
     TreatmentResolution
-} from "../treatmentTypes";
+} from "./treatmentTypes";
 
 export interface TreatmentProcessor {
 

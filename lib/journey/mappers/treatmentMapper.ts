@@ -11,11 +11,11 @@ export function mapTreatmentDecision(
   treatment: TreatmentDecision,
 ): TreatmentDecisionView {
   return {
-    status: treatment.status,
-    rationale: treatment.rationale,
+    decision: treatment.status,
+    activeDoctor: treatment.activeTreatment.doctorName,
+    activeHospital: treatment.activeTreatment.hospitalName,
     recommendations: treatment.recommendations,
-    nextReviewDate: treatment.nextReviewDate,
-    archived: treatment.archived,
+    archived: false,
   };
 }
 

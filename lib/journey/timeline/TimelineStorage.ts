@@ -1,6 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
-import { supabase } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 import { TimelineEvent } from "./timelineTypes";
 

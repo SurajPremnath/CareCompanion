@@ -1,7 +1,7 @@
 import {
   ClinicalQuestion,
   QuestionAnswer,
-} from "./questionTypes";
+} from "./QuestionTypes";
 
 export class QuestionMapper {
   public toPersistence(
@@ -105,7 +105,7 @@ export class QuestionMapper {
       answered_at: answer.answeredAt,
     };
   }
-}
+
   public answerFromPersistence(
     record: Record<string, unknown>
   ): QuestionAnswer {
