@@ -103,7 +103,9 @@ setTrendRequest(
 const historyResult =
   await trendStorage.getTrendHistory(
     loadedRequest.patientId,
-    loadedRequest.period
+    loadedRequest.period,
+    loadedRequest.startDate,
+    loadedRequest.endDate
   );
 
 if (!historyResult.success) {
@@ -331,6 +333,7 @@ return (
       trendRequest?.parameters.bloodPressure && "Blood Pressure",
       trendRequest?.parameters.pulse && "Pulse",
       trendRequest?.parameters.spo2 && "SpO₂",
+  trendRequest?.parameters.weight && "Weight",
     ]
       .filter(Boolean)
       .join(" • ")}

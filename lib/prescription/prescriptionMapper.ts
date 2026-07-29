@@ -245,22 +245,34 @@ return {
             })
         ),
 
-    history:
+history: [
 
-        reviewedPrescription.history.map(
-            (item, index) => ({
+    ...reviewedPrescription.pastMedicalHistory.map(
+        (item, index) => ({
 
-                category:
-                    item.category,
+            category: "MEDICAL_HISTORY",
 
-                value:
-                    item.value,
+            value: item,
 
-                displayOrder:
-                    index,
+            displayOrder: index,
 
-            })
-        ),
+        })
+    ),
+
+    ...reviewedPrescription.history.map(
+        (item, index) => ({
+
+            category: item.category,
+
+            value: item.value,
+
+            displayOrder:
+                reviewedPrescription.pastMedicalHistory.length + index,
+
+        })
+    ),
+
+],
 
     assessments: [
 

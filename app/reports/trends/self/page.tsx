@@ -85,6 +85,18 @@ const [period, setPeriod] =
   useState<TrendPeriod>(7);
 
 
+//------------------------------------------------------------
+// Custom Date Range
+// Used when doctor wants analysis from a specific date
+//------------------------------------------------------------
+
+const [startDate, setStartDate] =
+  useState("");
+
+const [endDate, setEndDate] =
+  useState("");
+
+
   const [showTemperature, setShowTemperature] =
     useState(true);
 
@@ -95,6 +107,9 @@ const [period, setPeriod] =
     useState(true);
 
   const [showSpo2, setShowSpo2] =
+    useState(true);
+
+const [showWeight, setShowWeight] =
     useState(true);
 
 useEffect(() => {
@@ -180,12 +195,29 @@ const trendRequest: TrendRequest = {
 
 patientId: userId,
 
+
 patientName: userName,
 
+
 period,
-  //----------------------------------------------------------
-  // Selected Parameters
-  //----------------------------------------------------------
+
+
+//----------------------------------------------------------
+// Custom Date Range
+// Doctor can analyse from a specific date
+//----------------------------------------------------------
+
+startDate:
+    startDate || undefined,
+
+
+endDate:
+    endDate || undefined,
+
+
+//----------------------------------------------------------
+// Selected Parameters
+//----------------------------------------------------------
 
   parameters: {
 
@@ -196,6 +228,8 @@ period,
     pulse: showPulse,
 
     spo2: showSpo2,
+
+    weight: showWeight,
 
   },
 
@@ -364,7 +398,9 @@ marginBottom: isMobile
 
     <button
       style={
-        period === 1
+!startDate &&
+!endDate &&
+period === 1
           ? selectedChip
           : chip
       }
@@ -376,21 +412,31 @@ marginBottom: isMobile
     </button>
 
     <button
-      style={
-        period === 7
-          ? selectedChip
-          : chip
-      }
-      onClick={() =>
-        setPeriod(7)
-      }
+style={
+    !startDate &&
+    !endDate &&
+    period === 7
+        ? selectedChip
+        : chip
+}
+onClick={() => {
+
+    setStartDate("");
+
+    setEndDate("");
+
+    setPeriod(7);
+
+}}
     >
       Last 7 Days
     </button>
 
     <button
       style={
-        period === 30
+!startDate &&
+!endDate &&
+period === 30
           ? selectedChip
           : chip
       }
@@ -403,7 +449,9 @@ marginBottom: isMobile
 
     <button
       style={
-        period === -1
+!startDate &&
+!endDate &&
+period === -1
           ? selectedChip
           : chip
       }
@@ -415,6 +463,103 @@ marginBottom: isMobile
     </button>
 
   </div>
+
+
+  {/*------------------------------------------------*/}
+  {/* Custom Date Range */}
+  {/*------------------------------------------------*/}
+
+  <div
+    style={{
+      marginTop: "24px",
+      display: "flex",
+      gap: "16px",
+      flexDirection: isMobile
+        ? "column"
+        : "row",
+    }}
+  >
+
+    <div>
+
+      <label
+        style={{
+          display: "block",
+          fontWeight: 600,
+          marginBottom: "8px",
+        }}
+      >
+        Since Date
+      </label>
+
+
+      <input
+        type="date"
+        value={startDate}
+onChange={(e) => {
+
+    setStartDate(
+        e.target.value
+    );
+
+    setPeriod(
+        -2
+    );
+
+}}
+
+        style={{
+          padding: "10px",
+          borderRadius: "8px",
+          border:
+            "1px solid #d1d5db",
+        }}
+      />
+
+    </div>
+
+
+
+    <div>
+
+      <label
+        style={{
+          display: "block",
+          fontWeight: 600,
+          marginBottom: "8px",
+        }}
+      >
+        Until Date
+      </label>
+
+
+      <input
+        type="date"
+        value={endDate}
+onChange={(e)=>{
+
+    setEndDate(
+        e.target.value
+    );
+
+    setPeriod(
+        -2
+    );
+
+}}
+        style={{
+          padding: "10px",
+          borderRadius: "8px",
+          border:
+            "1px solid #d1d5db",
+        }}
+      />
+
+    </div>
+
+
+  </div>
+
 
 </section>
 
@@ -687,7 +832,59 @@ marginBottom: isMobile
   </div>
 
 </div>
+
+{/*-----------------------------------------------*/}
+{/* Weight Parameter Card */}
+{/*-----------------------------------------------*/}
+
+<div
+  onClick={() =>
+    setShowWeight(!showWeight)
+  }
+  style={{
+    border: showWeight
+      ? "2px solid #2563eb"
+      : "1px solid #d1d5db",
+
+    background: showWeight
+      ? "#eff6ff"
+      : "#ffffff",
+
+    borderRadius: "16px",
+
+    padding: "18px",
+
+    cursor: "pointer",
+
+    display: "flex",
+
+    justifyContent: "space-between",
+
+    alignItems: "center",
+  }}
+>
+
+  <div
+    style={{
+      fontWeight: 600,
+    }}
+  >
+    ⚖️ Weight
+  </div>
+
+
+  <div
+    style={{
+      color: "#2563eb",
+      fontWeight: 600,
+    }}
+  >
+    ✓ Selected
+  </div>
+
 </div>
+</div>
+
         </section>
 
         {/*------------------------------------------------*/}
@@ -729,20 +926,20 @@ marginBottom: isMobile
 
   <button
     onClick={() =>
-      router.push("/reports")
+        router.push("/dashboard")
     }
-style={{
-  ...secondaryButton,
+    style={{
+        ...secondaryButton,
 
-  flex: 1,
+        flex: 1,
 
-  width: isMobile
-    ? "100%"
-    : undefined,
-}}
-  >
-    ← Back to Reports
-  </button>
+        width: isMobile
+            ? "100%"
+            : undefined,
+    }}
+>
+    ← 🏠 Back to Dashboard
+</button>
 
 </div>
 

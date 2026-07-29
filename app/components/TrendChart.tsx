@@ -43,7 +43,21 @@ export default function TrendChart({
 
 const chartConfig = TrendChartConfig[trend.parameter];
 
+const formatStatistic = (
+  primary: number | null,
+  secondary?: number | null
+) => {
 
+  if (
+    trend.parameter === "bloodPressure" &&
+    primary !== null &&
+    secondary !== null
+  ) {
+    return `${primary} / ${secondary}`;
+  }
+
+  return primary;
+};
 
   //----------------------------------------------------------
   // Render
@@ -69,24 +83,44 @@ return (
       <div style={statsGrid}>
 
         <StatCard
-          title="Current"
-          value={trend.statistics.current}
-        />
+  title="Current"
+  value={
+    formatStatistic(
+      trend.statistics.current,
+      trend.statistics.secondaryCurrent
+    )
+  }
+/>
 
-        <StatCard
-          title="Minimum"
-          value={trend.statistics.minimum}
-        />
+<StatCard
+  title="Minimum"
+  value={
+    formatStatistic(
+      trend.statistics.minimum,
+      trend.statistics.secondaryMinimum
+    )
+  }
+/>
 
-        <StatCard
-          title="Maximum"
-          value={trend.statistics.maximum}
-        />
+<StatCard
+  title="Maximum"
+  value={
+    formatStatistic(
+      trend.statistics.maximum,
+      trend.statistics.secondaryMaximum
+    )
+  }
+/>
 
-        <StatCard
-          title="Average"
-          value={trend.statistics.average}
-        />
+<StatCard
+  title="Average"
+  value={
+    formatStatistic(
+      trend.statistics.average,
+      trend.statistics.secondaryAverage
+    )
+  }
+/>
 
       </div>
 
@@ -97,6 +131,9 @@ return (
 <TrendLineChart
     unit={chartConfig.unit}
     color={chartConfig.color}
+showSecondaryLine={
+      trend.parameter === "bloodPressure"
+    }
     decimals={chartConfig.decimals}
     lineWidth={chartConfig.lineWidth}
     dotRadius={chartConfig.dotRadius}
@@ -118,6 +155,7 @@ data={trend.points.map((point) => ({
 
     value: point.value,
 
+secondaryValue: point.secondaryValue,
 }))}
 />
 
@@ -135,7 +173,7 @@ interface StatCardProps {
 
   title: string;
 
-  value: number | null;
+  value: string | number | null;
 
 }
 

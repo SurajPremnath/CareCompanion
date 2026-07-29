@@ -1376,6 +1376,15 @@ reviewRecording:
 healthUpdateReady:
     "Your health update is ready. You can review it or save directly.",
 
+morning: "Morning",
+afternoon: "Afternoon",
+evening: "Evening",
+night: "Night",
+weekly: "Weekly",
+monthly: "Monthly",
+alternateDay: "Alternate Day",
+sos: "SOS",
+
 },
 
 };

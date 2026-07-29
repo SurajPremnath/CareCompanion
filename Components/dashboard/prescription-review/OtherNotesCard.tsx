@@ -48,22 +48,27 @@ if (
 
 </h3>
 
-<div>
+<ul
+    style={{
+        margin: 0,
+        paddingLeft: "22px",
+        lineHeight: 1.8,
+    }}
+>
 
     {prescription.additionalNotes.map(
         (note, index) => (
 
-            <p key={index}>
+            <li key={index}>
 
                 {expandMedicalText(note)}
 
-            </p>
+            </li>
 
         )
     )}
 
-</div>
-
+</ul>
 </section>
 
 );

@@ -16,24 +16,28 @@ export class SelfTrendRepository {
   //------------------------------------------------------------
 
   async getTrendHistory(
-    patientId: string,
-    period: TrendPeriod
-  ): Promise<Result<SelfDailyCare[]>> {
+  patientId: string | null,
+  period: TrendPeriod,
+  startDate?: string,
+  endDate?: string
+): Promise<Result<SelfDailyCare[]>> {
 
     try {
 
       const history =
-        await selfDailyCareRepository.getByUserId(
-    patientId
-);
+        await selfDailyCareRepository.getByUserId();
+
 
       const filtered =
         this.filterByPeriod(
           history,
-          period
+          period,
+  startDate,
+  endDate
         );
 
-      const sorted =
+
+     const sorted =
         filtered.sort((a, b) =>
           new Date(a.recordedAt).getTime() -
           new Date(b.recordedAt).getTime()
@@ -74,22 +78,66 @@ export class SelfTrendRepository {
   // Filter Period
   //------------------------------------------------------------
 
-  private filterByPeriod(
-    history: SelfDailyCare[],
-    period: TrendPeriod
-  ): SelfDailyCare[] {
+private filterByPeriod(
+  history: SelfDailyCare[],
+  period: TrendPeriod,
+  startDateInput?: string,
+  endDateInput?: string
+): SelfDailyCare[] {
 
-    if (period === -1) {
+  if (
+    startDateInput &&
+    endDateInput
+  ) {
 
-      return history;
+    const startDate =
+      new Date(startDateInput);
 
-    }
+    startDate.setHours(
+      0,
+      0,
+      0,
+      0
+    );
 
-    const now = new Date();
 
-    let startDate = new Date(now);
+    const endDate =
+      new Date(endDateInput);
 
-    switch (period) {
+    endDate.setHours(
+      23,
+      59,
+      59,
+      999
+    );
+
+
+    return history.filter(record => {
+
+      const recordedDate =
+        new Date(record.recordedAt);
+
+      return (
+        recordedDate >= startDate &&
+        recordedDate <= endDate
+      );
+
+    });
+
+  }
+
+
+  if (period === -1) {
+
+    return history;
+
+  }
+
+  const now = new Date();
+
+  let startDate = new Date(now);
+
+  switch (period) {
 
       case 1:
 

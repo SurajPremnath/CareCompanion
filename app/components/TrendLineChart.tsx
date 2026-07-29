@@ -19,6 +19,8 @@ type ChartPoint = {
 
   value?: number | null;
 
+  secondaryValue?: number | null;
+
 };
 
 interface TrendLineChartProps {
@@ -26,6 +28,8 @@ interface TrendLineChartProps {
     unit: string;
 
     color: string;
+
+showSecondaryLine: boolean;
 
     decimals: number;
 
@@ -46,6 +50,8 @@ export default function TrendLineChart({
 unit,
 
 color,
+
+showSecondaryLine,
 
 decimals,
 
@@ -196,25 +202,59 @@ const isMobile =
   activeDot={{ r: activeDotRadius }}
   connectNulls={false}
 >
-<LabelList
-  dataKey="value"
-  content={(props: any) => {
-    const { x, y, value } = props;
+  <LabelList
+    dataKey="value"
+    content={(props: any) => {
+      const { x, y, value } = props;
 
-    return (
-      <text
-        x={x}
-        y={y - 16}
-        textAnchor="middle"
-        fontSize={11}
-        fill="#6b7280"
-      >
-        {Number(value).toFixed(decimals)}
-      </text>
-    );
-  }}
-/>
+      return (
+        <text
+          x={x}
+          y={y - 16}
+          textAnchor="middle"
+          fontSize={11}
+          fill="#6b7280"
+        >
+          {Number(value).toFixed(decimals)}
+        </text>
+      );
+    }}
+  />
 </Line>
+
+
+{showSecondaryLine && (
+  <Line
+    type="monotone"
+    dataKey="secondaryValue"
+    stroke="#6b7280"
+    strokeWidth={lineWidth}
+    dot={{ r: dotRadius }}
+    activeDot={{ r: activeDotRadius }}
+    connectNulls={false}
+  >
+    <LabelList
+      dataKey="secondaryValue"
+      content={(props: any) => {
+        const { x, y, value } = props;
+
+        return (
+          <text
+            x={x}
+            y={y + 18}
+            textAnchor="middle"
+            fontSize={11}
+            fill="#6b7280"
+          >
+            {value != null
+              ? Number(value).toFixed(decimals)
+              : ""}
+          </text>
+        );
+      }}
+    />
+  </Line>
+)}
       </LineChart>
     </ResponsiveContainer>
   );

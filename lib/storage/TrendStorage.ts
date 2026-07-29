@@ -17,7 +17,9 @@ export class TrendStorage {
 
   async getTrendHistory(
     patientId: string,
-    period: TrendPeriod
+    period: TrendPeriod,
+  startDate?: string,
+  endDate?: string
   ): Promise<Result<DailyCare[]>> {
 
     try {
@@ -36,7 +38,9 @@ export class TrendStorage {
 
       return await trendRepository.getTrendHistory(
         patientId,
-        period
+        period,
+  startDate,
+  endDate
       );
 
     }

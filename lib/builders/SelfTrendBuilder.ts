@@ -191,10 +191,13 @@ return {
   ): TrendPoint[] {
 
     return records
-      .map(record => {
+  .map<TrendPoint | null>(record => {
 
         let value:
           number | null = null;
+
+let secondaryValue:
+  number | null = null;
 
         switch (parameter) {
 
@@ -224,6 +227,9 @@ return {
             value =
               record.systolic;
 
+  secondaryValue =
+    record.diastolic;
+
             break;
 
         }
@@ -239,7 +245,9 @@ return {
           recordedAt:
             record.recordedAt,
 
-          value
+          value,
+
+  secondaryValue
 
         };
 
@@ -278,34 +286,74 @@ return {
 
     }
 
-    const values =
-      points.map(
-        point => point.value
-      );
+const values =
+  points.map(
+    point => point.value
+  );
 
-    return {
+const secondaryValues =
+  points
+    .map(
+      point => point.secondaryValue
+    )
+    .filter(
+      (value): value is number =>
+        value != null
+    );
 
-      current:
-        values[values.length - 1],
+return {
 
-      minimum:
-        Math.min(...values),
+  current:
+    values[values.length - 1],
 
-      maximum:
-        Math.max(...values),
+  minimum:
+    Math.min(...values),
 
-      average:
-        Number(
+  maximum:
+    Math.max(...values),
+
+  average:
+    Number(
+      (
+        values.reduce(
+          (a, b) => a + b,
+          0
+        ) /
+        values.length
+      ).toFixed(1)
+    ),
+
+  secondaryCurrent:
+    secondaryValues.length
+      ? secondaryValues[
+          secondaryValues.length - 1
+        ]
+      : null,
+
+  secondaryMinimum:
+    secondaryValues.length
+      ? Math.min(...secondaryValues)
+      : null,
+
+  secondaryMaximum:
+    secondaryValues.length
+      ? Math.max(...secondaryValues)
+      : null,
+
+  secondaryAverage:
+    secondaryValues.length
+      ? Number(
           (
-            values.reduce(
+            secondaryValues.reduce(
               (a, b) => a + b,
               0
             ) /
-            values.length
+            secondaryValues.length
           ).toFixed(1)
         )
+      : null
 
-    };
+};
 
   }
 

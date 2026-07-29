@@ -579,28 +579,27 @@ const handleActionOption = (
         });
 
 
-        void authSessionService
-            .end()
-            .catch((error) => {
+try {
 
-                console.error(
-                    "Unable to close analytics auth session.",
-                    error
-                );
+    await authSessionService.end();
 
-            });
+}
+catch (error) {
 
+    console.error(
+        "Unable to close analytics auth session.",
+        error
+    );
 
-        try {
+}
 
-            await authService.logout();
+try {
 
+    await authService.logout();
 
-            router.replace(
-                "/login"
-            );
+    router.replace("/login");
 
-        }
+}
         catch (error) {
 
             console.error(
@@ -1115,18 +1114,23 @@ disabled={!consentGranted}
     selectedAction={
         selectedAction
     }
+personMode={
+    personSelection.mode === "SELF"
+        ? "SELF"
+        : "FAMILY"
+}
     onStartAssessment={
         handleStartAssessment
     }
-onOptionChange={
-    handleActionOption
-}
+    onOptionChange={
+        handleActionOption
+    }
     onMedicationDetailChange={
         setMedicationDetail
     }
-selectedMedicationDetail={
-    medicationDetail
-}
+    selectedMedicationDetail={
+        medicationDetail
+    }
 />
     </div>
 

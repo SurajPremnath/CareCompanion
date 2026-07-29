@@ -15,7 +15,8 @@ export type TrendParameterType =
   | "temperature"
   | "bloodPressure"
   | "pulse"
-  | "spo2";
+  | "spo2"
+  | "weight";
 
 //------------------------------------------------------------
 // Trend Point
@@ -35,6 +36,8 @@ export interface TrendPoint {
 
   value: number;
 
+secondaryValue?: number | null;
+
 }
 
 //------------------------------------------------------------
@@ -50,6 +53,14 @@ export interface TrendStatistics {
   maximum: number | null;
 
   average: number | null;
+
+  secondaryCurrent?: number | null;
+
+  secondaryMinimum?: number | null;
+
+  secondaryMaximum?: number | null;
+
+  secondaryAverage?: number | null;
 
 }
 

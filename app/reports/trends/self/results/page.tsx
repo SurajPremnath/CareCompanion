@@ -100,10 +100,13 @@ setTrendRequest(
   loadedRequest
 );
 
+
 const historyResult =
   await selfTrendStorage.getTrendHistory(
-    loadedRequest.patientId,
-    loadedRequest.period
+    loadedRequest.patientId ?? null,
+    loadedRequest.period,
+    loadedRequest.startDate,
+    loadedRequest.endDate
   );
 
 if (!historyResult.success) {
@@ -121,6 +124,7 @@ if (!historyResult.success) {
   return;
 
 }
+
 
 const result =
   selfTrendBuilder.build(
@@ -295,17 +299,36 @@ return (
     Time Period
   </td>
 
-  <td>
+<td>
 
-    {trendRequest?.period === 1
-      ? "Today"
-      : trendRequest?.period === 7
-      ? "Last 7 Days"
-      : trendRequest?.period === 30
-      ? "Last 30 Days"
-      : "All Records"}
+{
+trendRequest?.startDate &&
+trendRequest?.endDate
 
-  </td>
+?
+
+`${formatTrendDate(
+  trendRequest.startDate
+)} - ${formatTrendDate(
+  trendRequest.endDate
+)}`
+
+:
+
+trendRequest?.period === 1
+? "Today"
+
+: trendRequest?.period === 7
+? "Last 7 Days"
+
+: trendRequest?.period === 30
+? "Last 30 Days"
+
+: "All Records"
+
+}
+
+</td>
 
 </tr>
 
@@ -323,14 +346,26 @@ return (
 
   <td>
 
-    {[
-      trendRequest?.parameters.temperature && "Temperature",
-      trendRequest?.parameters.bloodPressure && "Blood Pressure",
-      trendRequest?.parameters.pulse && "Pulse",
-      trendRequest?.parameters.spo2 && "SpO₂",
-    ]
-      .filter(Boolean)
-      .join(" • ")}
+    {
+[
+ trendRequest?.parameters.temperature && "Temperature",
+
+ trendRequest?.parameters.bloodPressure && 
+ "Blood Pressure",
+
+ trendRequest?.parameters.pulse && 
+ "Pulse",
+
+ trendRequest?.parameters.spo2 && 
+ "SpO₂",
+
+ trendRequest?.parameters.weight && 
+ "Weight",
+
+]
+.filter(Boolean)
+.join(" • ")
+}
 
   </td>
 
@@ -694,6 +729,28 @@ return (
 
   );
 
+}
+
+//------------------------------------------------------------
+// Date Display Helper
+//------------------------------------------------------------
+
+function formatTrendDate(
+  date?: string
+) {
+
+  if (!date) {
+    return "";
+  }
+
+  return new Date(date).toLocaleDateString(
+    "en-GB",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }
+  );
 }
 
 const cardStyle: React.CSSProperties = {

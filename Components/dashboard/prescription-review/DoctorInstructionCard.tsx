@@ -32,6 +32,27 @@ const {
     t,
 } = useLanguage();
 
+const instructions = [...prescription.doctorInstructions].sort(
+    (a, b) => {
+
+        const isPreparation = (value: string) => {
+
+            const text = value.toLowerCase();
+
+            return (
+                text.includes("mix") ||
+                text.includes("dissolve") ||
+                text.includes("dilute")
+            );
+
+        };
+
+        return Number(isPreparation(a)) - Number(isPreparation(b));
+
+    }
+);
+
+
     if(
         prescription.doctorInstructions.length===0
     ){
@@ -52,7 +73,7 @@ const {
 
 {
 
-prescription.doctorInstructions.map(
+instructions.map(
 
 (item,index)=>(
 

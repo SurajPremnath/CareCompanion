@@ -2,6 +2,10 @@ import {
     supabase,
 } from "@/lib/supabase";
 
+import {
+    savePrescriptionAudit,
+} from "@/lib/prescription/prescriptionAudit";
+
 import type {
     CompletePrescriptionRecord,
     PrescriptionMedicineRecord,
@@ -713,6 +717,39 @@ export const prescriptionRepository = {
 
     ): Promise<CompletePrescriptionRecord> {
 
+//----------------------------------------------------
+// Previous Prescription
+//----------------------------------------------------
+
+let previousPrescription: CompletePrescriptionRecord | null = null;
+
+try {
+
+    const previousPrescriptions =
+        await this.getPatientPrescriptions(
+
+            input.userId,
+
+            input.recordContext,
+
+            input.patientId
+
+        );
+
+    if (previousPrescriptions.length > 0) {
+
+        previousPrescription =
+            previousPrescriptions[0];
+
+    }
+
+}
+catch {
+
+    previousPrescription = null;
+
+}
+
         //----------------------------------------------------
         // Insert Parent Prescription
         //----------------------------------------------------
@@ -891,38 +928,59 @@ await saveNotes(
         // Save Medicines
         //----------------------------------------------------
 
-        if (
+if (input.medicines.length === 0) {
 
-            input.medicines.length === 0
+    const savedPrescription: CompletePrescriptionRecord = {
 
-        ) {
+        prescription:
+            mapPrescriptionRow(
+                prescriptionRow
+            ),
 
-return {
+        medicines: [],
 
-    prescription:
-        mapPrescriptionRow(
-            prescriptionRow
-        ),
+        vitals: input.vitals,
 
-    medicines: [],
+        symptoms: input.symptoms,
 
-    vitals: input.vitals,
+        history: input.history,
 
-    symptoms: input.symptoms,
+        assessments: input.assessments,
 
-    history: input.history,
+        investigations: input.investigations,
 
-    assessments: input.assessments,
+        instructions: input.instructions,
 
-    investigations: input.investigations,
+        notes: input.notes,
 
-    instructions: input.instructions,
+    };
 
-    notes: input.notes,
+    try {
 
-};
+        await savePrescriptionAudit(
 
-        }
+            previousPrescription,
+
+            savedPrescription
+
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+
+            "Prescription audit failed",
+
+            error
+
+        );
+
+    }
+
+    return savedPrescription;
+
+}
 
         const medicineRows =
 
@@ -1040,7 +1098,7 @@ return {
         // Return Complete Record
         //----------------------------------------------------
 
-return {
+const savedPrescription: CompletePrescriptionRecord = {
 
     prescription:
         mapPrescriptionRow(
@@ -1070,6 +1128,31 @@ return {
     notes: input.notes,
 
 };
+
+try {
+
+    await savePrescriptionAudit(
+
+        previousPrescription,
+
+        savedPrescription
+
+    );
+
+}
+catch (error) {
+
+    console.error(
+
+        "Prescription audit failed",
+
+        error
+
+    );
+
+}
+
+return savedPrescription;
 
     },
 
@@ -1637,6 +1720,29 @@ notes:
 
 },
 
-getPrescriptionSummary,
+    async getPatientPrescriptions(
+        userId: string,
+        recordContext: "SELF" | "FAMILY",
+        patientId: string | null
+    ): Promise<CompletePrescriptionRecord[]> {
+
+        const history =
+            await this.getPrescriptionHistory(
+                userId,
+                recordContext,
+                patientId
+            );
+
+        const prescriptions =
+            await Promise.all(
+                history.map(item =>
+                    this.getPrescriptionDetails(item.id)
+                )
+            );
+
+        return prescriptions;
+    },
+
+    getPrescriptionSummary,
 
 };

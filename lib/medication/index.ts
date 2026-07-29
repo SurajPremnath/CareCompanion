@@ -1,12 +1,15 @@
-/**
- * ============================================================
- * CAREVR Medication Domain
- * ============================================================
- * Single export point for the Medication bounded context.
- * ============================================================
- */
-
 export * from "./consultationTypes";
 export * from "./consultationModels";
+export * from "./medicationComparator";
+export * from "./medicationMapper";
+export * from "./medicationRepository";
+export * from "./medicationStorage";
+export * from "./medicationTimeline";
 export * from "./medicationTypes";
+export * from "./medicationValidator";
+export * from "./medicineMatcher";
+export * from "./medicineNormalizer";
+export * from "./medicineResolver";
+export * from "./medicineSplitter";
+export * from "./medicineUtils";
 export * from "./treatmentTypes";

@@ -10,9 +10,13 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
-interface Props{
+interface Props {
 
-prescription:ExtractedPrescription;
+    prescription: ExtractedPrescription;
+
+    readOnly: boolean;
+
+    onWeightChange: (weight: string) => void;
 
 }
 
@@ -41,9 +45,13 @@ padding:"12px",
 
 export default function VitalsCard({
 
-prescription,
+    prescription,
 
-}:Props){
+    readOnly,
+
+    onWeightChange,
+
+}: Props){
 
 const {
     t,
@@ -77,8 +85,38 @@ return(
 
 <td style={label}>{t("medication.weight")}</td>
 
-<td style={cell}>{vitals.weight ?? "-"}</td>
+<td style={cell}>
+    {readOnly ? (
+        vitals.weight ?? "-"
+    ) : (
+        <>
+            <div
+    style={{
+        fontSize: "12px",
+        fontWeight: 700,
+        color: "#64748b",
+        marginBottom: "6px",
+    }}
+>
+    🤖 AI extracted this value. Please verify and correct if needed.
+</div>
 
+            <input
+                type="text"
+                value={vitals.weight ?? ""}
+                onChange={(e) => onWeightChange(e.target.value)}
+                placeholder="Enter weight"
+                style={{
+                    width: "140px",
+                    padding: "6px 8px",
+                    border: "1px solid #CBD5E1",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                }}
+            />
+        </>
+    )}
+</td>
 </tr>
 
 <tr>

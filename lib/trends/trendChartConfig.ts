@@ -63,4 +63,16 @@ export const TrendChartConfig: Record<
     activeDotRadius: 7,
     minYAxis: 75,
   },
+
+weight: {
+  title: "Weight",
+  shortTitle: "Weight",
+  unit: "kg",
+  color: "#f59e0b",
+  decimals: 1,
+  lineWidth: 2,
+  dotRadius: 5,
+  activeDotRadius: 7,
+  minYAxis: 30,
+},
 };

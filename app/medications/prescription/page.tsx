@@ -24,6 +24,7 @@ import {
 } from "@/lib/prescription-image/prescriptionImageService";
 
 
+
 type PrescriptionSource =
     | "camera"
     | "gallery"
@@ -67,6 +68,28 @@ export default function AddPrescriptionPage() {
     ] =
         useState("");
 
+const [
+    currentUserId,
+    setCurrentUserId,
+] =
+    useState("");
+
+const [
+    recordContext,
+    setRecordContext,
+] =
+    useState<"SELF" | "FAMILY">(
+        "SELF"
+    );
+
+const [
+    patientId,
+    setPatientId,
+] =
+    useState<string | null>(
+        null
+    );
+
 
 const [
     selectedFiles,
@@ -105,10 +128,9 @@ const [
 const [
     extractedPrescription,
     setExtractedPrescription,
-] =
-    useState<ExtractedPrescription | null>(
-        null
-    );
+] = useState<ExtractedPrescription | null>(
+    null
+);
 
 
     //------------------------------------------------------------
@@ -135,6 +157,10 @@ const [
                     return;
 
                 }
+
+setCurrentUserId(
+    user.id
+);
 
 
                 setCurrentUserName(
@@ -388,6 +414,7 @@ function removeSelectedFile(
         null
     );
 
+
     setProcessing(
         true
     );
@@ -395,11 +422,11 @@ function removeSelectedFile(
 
     try {
 
-        const result =
-            await prescriptionImageService
-                .processFiles(
-                    selectedFiles
-                );
+const result =
+    await prescriptionImageService
+        .processFiles(
+            selectedFiles
+        );
 
 
         if (
@@ -417,9 +444,15 @@ function removeSelectedFile(
         }
 
 
-        setExtractedPrescription(
-            result.data
-        );
+//--------------------------------------------------
+// SHOW PRESCRIPTION REVIEW
+//--------------------------------------------------
+
+setExtractedPrescription(
+    result.data
+);
+
+
 
     }
     catch (error) {
@@ -773,8 +806,8 @@ function removeSelectedFile(
             <button
                 type="button"
                 onClick={
-                    readPrescription
-                }
+    readPrescription
+}
                 disabled={
                     processing
                 }

@@ -136,63 +136,61 @@ validation.warnings.map(
 }
 
 <div
-style={{
-
-display:"flex",
-
-justifyContent:"flex-end",
-
-gap:12,
-
-marginTop:24,
-
-}}
-
+    style={{
+        display: "flex",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        gap: "12px",
+        marginTop: "24px",
+        paddingTop: "20px",
+        borderTop: "1px solid #e2e8f0",
+    }}
 >
 
-<button
+    <button
+        type="button"
+        onClick={onReupload}
+        style={{
+            padding: "12px 20px",
+            border: "1px solid #cbd5e1",
+            borderRadius: "8px",
+            background: "#ffffff",
+            color: "#111827",
+            fontWeight: 600,
+            cursor: "pointer",
+        }}
+    >
+        {t("medication.reupload")}
+    </button>
 
-type="button"
-
-onClick={onReupload}
-
->
-
-{t("medication.reupload")}
-
-</button>
-
-<button
-
-type="button"
-
-disabled={
-
-saving||
-
-!validation.valid
-
-}
-
-onClick={onConfirm}
-
->
-
-{
-
-saving
-
-?
-
-t("medication.savingPrescription")
-
-:
-
-t("medication.savePrescription")
-
-}
-
-</button>
+    <button
+        type="button"
+        disabled={
+            saving ||
+            !validation.valid
+        }
+        onClick={onConfirm}
+        style={{
+            padding: "12px 20px",
+            border: "none",
+            borderRadius: "8px",
+            background: "#2563eb",
+            color: "#ffffff",
+            fontWeight: 700,
+            cursor:
+                saving || !validation.valid
+                    ? "not-allowed"
+                    : "pointer",
+            opacity:
+                saving || !validation.valid
+                    ? 0.6
+                    : 1,
+        }}
+    >
+        {saving
+            ? t("medication.savingPrescription")
+            : t("medication.savePrescription")}
+    </button>
 
 </div>
 

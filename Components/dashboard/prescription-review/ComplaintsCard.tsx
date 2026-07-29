@@ -32,8 +32,20 @@ const {
     t,
 } = useLanguage();
 
+const durationLookup = new Map(
+
+    prescription.presentingComplaints.map(item => [
+
+        item.complaint.toLowerCase(),
+
+        item.duration,
+
+    ])
+
+);
+
     if(
-        prescription.presentingComplaints.length===0
+        prescription.symptoms.length===0
     ){
         return null;
     }
@@ -52,34 +64,30 @@ const {
 
 {
 
-prescription.presentingComplaints.map(
+prescription.symptoms.map((symptom, index) => {
 
-(item,index)=>(
+    const duration =
+        durationLookup.get(symptom.toLowerCase());
 
-<li key={index}>
+    return (
 
-{expandMedicalText(item.complaint)}
+        <li key={index}>
 
-{
+            {expandMedicalText(symptom)}
 
-item.duration &&
+            {duration && ` (${duration})`}
 
-` (${item.duration})`
+        </li>
 
-}
+    );
 
-</li>
-
-)
-
-)
+})
 
 }
-
 </ul>
 
 </section>
 
-);
+    );
 
 }

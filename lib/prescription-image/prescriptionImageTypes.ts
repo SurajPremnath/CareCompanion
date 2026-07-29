@@ -13,6 +13,24 @@ export type ConsultationMode =
   | "HOSPITAL_DISCHARGE"
   | "OTHER";
 
+export type MedicineMatchStatus =
+    | "FOUND"
+    | "NOT_FOUND"
+    | "SUGGESTIONS";
+
+export interface SuggestedMedicine {
+
+  id: string;
+
+  brandName: string;
+
+  genericName: string | null;
+
+  strength: string | null;
+
+  formulation: string | null;
+
+}
 
 //------------------------------------------------------------
 // Prescription Medicine
@@ -20,24 +38,32 @@ export type ConsultationMode =
 
 export interface ExtractedPrescriptionMedicine {
 
-  name: string;
+    name: string;
 
-  strength: string | null;
+    strength: string | null;
 
-  form: string | null;
+    form: string | null;
 
-  dose: string | null;
+    dose: string | null;
 
-  frequency: string | null;
+    frequency: string | null;
 
-  timings: string[];
+    timings: string[];
 
-  duration: string | null;
+    duration: string | null;
 
-  instructions: string | null;
+    instructions: string | null;
 
+    reviewStatus?: "REVIEW" | "REVIEWED";
+
+    matchStatus?: MedicineMatchStatus;
+
+    resolvedMedicineId?: string;
+
+    resolvedMedicineName?: string;
+
+    suggestedMedicines?: SuggestedMedicine[];
 }
-
 //------------------------------------------------------------
 // Consultation Understanding
 //------------------------------------------------------------

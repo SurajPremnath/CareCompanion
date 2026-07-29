@@ -222,17 +222,18 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
     width: "12%",
     align: "center",
     render: (assessment) => (
-      <button
-        onClick={() =>
-          router.push(
-            `/reports/assessment/self/${assessment.id}`
-          )
-        }
-      >
-        View
-      </button>
+        <button
+            style={viewButtonStyle}
+            onClick={() =>
+                router.push(
+                    `/reports/assessment/self/${assessment.id}`
+                )
+            }
+        >
+            View
+        </button>
     ),
-  },
+},
 ];
 
   //------------------------------------------------------------
@@ -375,17 +376,15 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
             </div>
 
             <button
-              style={{
-                marginTop:"24px",
-              }}
-              onClick={() =>
-                router.push(
-                  `/reports/assessment/self/${latestAssessment.id}`
-                )
-              }
-            >
-              View Details
-            </button>
+    style={viewButtonStyle}
+    onClick={() =>
+        router.push(
+            `/reports/assessment/self/${latestAssessment.id}`
+        )
+    }
+>
+    View Details
+</button>
 
           </div>
 
@@ -435,15 +434,15 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
         )}
 
         <button
-          style={backButtonStyle}
-          onClick={() =>
-            router.push(
-              "/reports/assessment"
-            )
-          }
-        >
-          ← Back to Assessment Reports
-        </button>
+    style={backButtonStyle}
+    onClick={() =>
+        router.push(
+            "/dashboard"
+        )
+    }
+>
+    ← 🏠 Back to Dashboard
+</button>
 
       </div>
 
@@ -501,4 +500,15 @@ const backButtonStyle: React.CSSProperties = {
   border: "1px solid #d1d5db",
   background: "#ffffff",
   cursor: "pointer",
+};
+
+const viewButtonStyle: React.CSSProperties = {
+    background: "#2563eb",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "8px",
+    padding: "8px 18px",
+    cursor: "pointer",
+    fontWeight: 600,
+    marginTop: "24px",
 };

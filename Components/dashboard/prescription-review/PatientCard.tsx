@@ -56,14 +56,11 @@ function formatDate(value?: string | null) {
 
     }
 
-    return date.toLocaleDateString(
-        "en-GB",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-        }
-    );
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}-${month}-${year}`;
 
 }
 
@@ -169,6 +166,14 @@ prescription.hospitalOrClinic
 
 <td style={cell}>
 
+{readOnly ? (
+
+    formatDate(
+        prescription.consultationDate
+    )
+
+) : (
+
 <div
 style={{
 display:"flex",
@@ -192,6 +197,7 @@ color:"#334155",
 <span>🤖 {t("medication.aiExtractedDate")}</span>
 
 </div>
+
 <input
 disabled={readOnly}
 type="date"
@@ -239,6 +245,8 @@ fontWeight:500,
 
 </div>
 
+)}
+
 </td>
 
 </tr>
@@ -252,6 +260,12 @@ fontWeight:500,
 </td>
 
 <td style={cell}>
+
+{readOnly ? (
+
+    consultationMode.replaceAll("_", " ")
+
+) : (
 
 <select
 disabled={readOnly}
@@ -295,6 +309,8 @@ option.replaceAll("_"," ")
 }
 
 </select>
+
+)}
 
 </td>
 

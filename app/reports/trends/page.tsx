@@ -90,6 +90,12 @@ useEffect(() => {
 const [period, setPeriod] =
   useState<TrendPeriod>(7);
 
+const [startDate, setStartDate] =
+  useState("");
+
+const [endDate, setEndDate] =
+  useState("");
+
 
   const [showTemperature, setShowTemperature] =
     useState(true);
@@ -102,6 +108,9 @@ const [period, setPeriod] =
 
   const [showSpo2, setShowSpo2] =
     useState(true);
+
+const [showWeight, setShowWeight] =
+  useState(true);
 
 //------------------------------------------------------------
 // Load Patients
@@ -214,7 +223,8 @@ const handleGenerate = () => {
     !showTemperature &&
     !showBloodPressure &&
     !showPulse &&
-    !showSpo2
+    !showSpo2 &&
+  !showWeight
   ) {
 
     AppAlert.warning(
@@ -260,6 +270,13 @@ const trendRequest: TrendRequest = {
   patientName: selectedPatient.fullName,
 
 period,
+
+startDate:
+  startDate || undefined,
+
+endDate:
+  endDate || undefined,
+
   //----------------------------------------------------------
   // Selected Parameters
   //----------------------------------------------------------
@@ -274,6 +291,7 @@ period,
 
     spo2: showSpo2,
 
+  weight: showWeight,
   },
 
 };
@@ -329,6 +347,11 @@ period,
   //----------------------------------------------------------
   // Save Trend Request
   //----------------------------------------------------------
+
+console.log(
+  "FAMILY TREND REQUEST",
+  trendRequest
+);
 
   trendDraftStorage.save(
     trendRequest
@@ -390,38 +413,25 @@ period,
 
           <h2>👤 Patient</h2>
 
-<select
-  value={selectedPatientId}
-  onChange={(event) =>
-  handlePatientChange(
-    event.target.value
-  )
-}
-  style={selectStyle}
+<div
+    style={{
+        width: "100%",
+        padding: "12px",
+        borderRadius: "10px",
+        border: "1px solid #d1d5db",
+        background: "#f9fafb",
+        marginTop: "16px",
+        fontSize: "15px",
+        fontWeight: 500,
+    }}
 >
-
-  {patients.length === 0 ? (
-
-    <option value="">
-      No patients found
-    </option>
-
-  ) : (
-
-    patients.map((patient) => (
-
-      <option
-        key={patient.id}
-        value={patient.id}
-      >
-        {patient.fullName}
-      </option>
-
-    ))
-
-  )}
-
-</select>
+    👤 {
+        patients.find(
+            (patient) =>
+                patient.id === selectedPatientId
+        )?.fullName ?? ""
+    }
+</div>
 
         </section>
 
@@ -499,6 +509,58 @@ period,
     </button>
 
   </div>
+
+
+  {/*------------------------------------------------*/}
+  {/* Custom Date Range */}
+  {/*------------------------------------------------*/}
+
+  <div
+    style={{
+      marginTop: "20px",
+      display: "flex",
+      gap: "12px",
+      flexWrap: "wrap",
+    }}
+  >
+
+<input
+  type="date"
+  value={startDate}
+  onChange={(e) => {
+    setStartDate(e.target.value);
+
+    if (e.target.value) {
+      setPeriod(-2);
+    }
+  }}
+  style={{
+    padding: "10px",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
+  }}
+/>
+
+
+<input
+  type="date"
+  value={endDate}
+  onChange={(e) => {
+    setEndDate(e.target.value);
+
+    if (e.target.value) {
+      setPeriod(-2);
+    }
+  }}
+  style={{
+    padding: "10px",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
+  }}
+/>
+
+  </div>
+
 
 </section>
 
@@ -769,7 +831,75 @@ period,
   </div>
 
 </div>
+
+{/*-----------------------------------------------*/}
+{/* Weight Parameter Card */}
+{/*-----------------------------------------------*/}
+
+<div
+  onClick={() =>
+    setShowWeight(!showWeight)
+  }
+  style={{
+    border: showWeight
+      ? "2px solid #2563eb"
+      : "1px solid #d1d5db",
+
+    background: showWeight
+      ? "#eff6ff"
+      : "#ffffff",
+
+    borderRadius: "16px",
+
+    padding: "18px",
+
+    cursor: "pointer",
+
+    transition: "all 0.2s ease",
+
+    display: "flex",
+
+    justifyContent: "space-between",
+
+    alignItems: "center",
+
+    gap: "16px",
+  }}
+>
+
+  <div>
+
+    <div
+      style={{
+        fontSize: "14px",
+        fontWeight: 600,
+      }}
+    >
+      ⚖️ Weight
+    </div>
+
+  </div>
+
+
+  <div
+    style={{
+      fontSize: "14px",
+      fontWeight: 600,
+
+      color: showWeight
+        ? "#2563eb"
+        : "#9ca3af",
+    }}
+  >
+    {showWeight
+      ? "✓ Selected"
+      : "Select"}
+  </div>
+
 </div>
+
+</div>
+
         </section>
 
         {/*------------------------------------------------*/}
@@ -809,22 +939,22 @@ period,
     📈 Generate Trends
   </button>
 
-  <button
+<button
     onClick={() =>
-      router.push("/reports")
+        router.push("/dashboard")
     }
-style={{
-  ...secondaryButton,
+    style={{
+        ...secondaryButton,
 
-  flex: 1,
+        flex: 1,
 
-  width: isMobile
-    ? "100%"
-    : undefined,
-}}
-  >
-    ← Back to Reports
-  </button>
+        width: isMobile
+            ? "100%"
+            : undefined,
+    }}
+>
+    ← 🏠 Back to Dashboard
+</button>
 
 </div>
 

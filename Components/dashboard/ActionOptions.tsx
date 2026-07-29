@@ -5,6 +5,10 @@ import {
 } from "react";
 
 import {
+    useRouter,
+} from "next/navigation";
+
+import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
@@ -50,14 +54,17 @@ interface ActionOptionsProps {
     selectedAction:
         SupportedAction;
 
+    personMode:
+        "SELF" | "FAMILY";
+
     onStartAssessment?:
         () => void;
 
     onOptionChange?:
         (option: ActionOption) => void;
 
-selectedMedicationDetail?:
-    MedicationDetailOption;
+    selectedMedicationDetail?:
+        MedicationDetailOption;
 
     onMedicationDetailChange?:
         (
@@ -75,6 +82,8 @@ export default function ActionOptions({
 
     selectedAction,
 
+    personMode,
+
     onStartAssessment,
 
     onOptionChange,
@@ -89,6 +98,9 @@ const {
     t,
 } = useLanguage();
 
+
+const router = useRouter();
+
     const [
         selectedOption,
         setSelectedOption,
@@ -97,6 +109,124 @@ const {
             ""
         );
 
+
+const [
+    selectedTimelinePeriod,
+    setSelectedTimelinePeriod,
+] = useState<
+    "MONTHLY" |
+    "QUARTERLY" |
+    "HALF_YEARLY" |
+    "ANNUALLY" |
+    ""
+>("");
+
+const [
+    selectedTimelineValue,
+    setSelectedTimelineValue,
+] = useState("");
+
+const [
+    selectedTimelineIndex,
+    setSelectedTimelineIndex,
+] = useState(0);
+
+const timelinePeriods = [
+    {
+        value: "MONTHLY",
+        label: "Monthly",
+        icon: "💎",
+    },
+    {
+        value: "QUARTERLY",
+        label: "Quarterly",
+        icon: "💠",
+    },
+    {
+        value: "HALF_YEARLY",
+        label: "Half-Yearly",
+        icon: "🔷",
+    },
+    {
+        value: "ANNUALLY",
+        label: "Annually",
+        icon: "👑",
+    },
+] as const;
+
+const currentDate = new Date();
+
+const getTimelineOptions = () => {
+    switch (selectedTimelinePeriod) {
+        case "MONTHLY": {
+    return Array.from({ length: 12 }, (_, index) => {
+        const date = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth() - index,
+            1
+        );
+
+        return {
+            value: `${date.getFullYear()}-${date.getMonth() + 1}`,
+            label: date.toLocaleString("en-IN", {
+                month: "long",
+                year: "numeric",
+            }),
+        };
+    });
+}
+
+        case "QUARTERLY": {
+    return Array.from({ length: 8 }, (_, index) => {
+        const date = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth() - index * 3,
+            1
+        );
+
+        const quarter =
+            Math.floor(date.getMonth() / 3) + 1;
+
+        return {
+            value: `${date.getFullYear()}-Q${quarter}`,
+            label: `Q${quarter} ${date.getFullYear()}`,
+        };
+    });
+}
+
+        case "HALF_YEARLY": {
+    return Array.from({ length: 6 }, (_, index) => {
+        const date = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth() - index * 6,
+            1
+        );
+
+        const half =
+            date.getMonth() < 6 ? 1 : 2;
+
+        return {
+            value: `${date.getFullYear()}-H${half}`,
+            label: `H${half} ${date.getFullYear()}`,
+        };
+    });
+}
+
+        case "ANNUALLY": {
+    return Array.from({ length: 10 }, (_, index) => {
+        const year = currentDate.getFullYear() - index;
+
+        return {
+            value: `${year}`,
+            label: `${year}`,
+        };
+    });
+}
+
+        default:
+            return [];
+    }
+};
 
 const [
     medicationDetailOption,
@@ -360,33 +490,95 @@ onClick={() => {
 )}
 
 
-                {
-                    selectedAction ===
-                        "VIEW_HEALTH" && (
+{
+    selectedAction === "VIEW_HEALTH" && (
 
-                        <>
+        <>
 
-                            <option value="DAILY_CARE">
-                                📋 {t("medication.dailyCare")}
-                            </option>
+            <label style={label}>
+                Health Timeline
+            </label>
 
-                            <option value="ASSESSMENT_HISTORY">
-                                🩺 {t("medication.assessmentsHistory")}
-                            </option>
+            <div style={optionGridTwo}>
 
-                            <option value="CLINICAL_TRENDS">
-                                📈 {t("medication.clinicalTrends")}
-                            </option>
+<button
+    type="button"
+    style={optionButton}
+    onClick={() => {
 
-<option value="DETAILED_TIMELINE">
-    🗓️ {t("medication.detailedTimeline")}
-</option>
+        if (personMode === "SELF") {
 
-                        </>
+            router.push("/reports/daily-care/self");
 
-                    )
-                }
+            return;
 
+        }
+
+        router.push("/reports/daily-care");
+
+    }}
+>
+    <span style={optionIcon}>📋</span>
+    <span style={optionLabel}>Daily Care</span>
+</button>
+
+<button
+    type="button"
+    style={optionButton}
+    onClick={() => {
+        if (personMode === "SELF") {
+            router.push("/reports/assessment/self");
+            return;
+        }
+
+        router.push("/reports/assessment/family");
+    }}
+>
+    <span style={optionIcon}>🩺</span>
+    <span style={optionLabel}>Assessments</span>
+</button>
+
+<button
+    type="button"
+    style={optionButton}
+    onClick={() => {
+        if (personMode === "SELF") {
+            router.push("/reports/trends/self");
+            return;
+        }
+
+        router.push("/reports/trends");
+    }}
+>
+    <span style={optionIcon}>📈</span>
+    <span style={optionLabel}>Clinical Trends</span>
+</button>
+
+<button
+    type="button"
+    onClick={() => {
+
+        setSelectedOption("DETAILED_TIMELINE");
+
+        router.push("/journey-review");
+
+    }}
+    style={{
+        ...optionButton,
+        ...(selectedOption === "DETAILED_TIMELINE"
+            ? selectedOptionButton
+            : {}),
+    }}
+>
+    <span style={optionIcon}>🗓️</span>
+    <span style={optionLabel}>Detailed Timeline</span>
+</button>
+
+</div>
+
+    </>
+
+)}
 
 {selectedAction === "MEDICATION_MANAGEMENT" &&
     selectedOption === "ADD_PRESCRIPTION" && (
@@ -815,3 +1007,67 @@ const optionGridThree:
             "16px",
 
     };
+
+const optionGridFour: React.CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    columnGap: "40px",
+    rowGap: "16px",
+    width: "100%",
+    marginTop: "8px",
+};
+
+const timelineRadioLabel: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    width: "100%",
+    padding: "12px",
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#111827",
+    whiteSpace: "nowrap",
+};
+
+const selectedTimelineRadioLabel: React.CSSProperties = {
+    background: "#EFF6FF",
+    border: "2px solid #2563EB",
+    borderRadius: "10px",
+};
+
+const timelineNavigator: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "20px",
+    margin: "24px auto 0",
+    padding: "12px 20px",
+    width: "fit-content",
+    background: "#FFFFFF",
+    border: "1px solid #E5E7EB",
+    borderRadius: "999px",
+};
+
+const timelineArrowButton: React.CSSProperties = {
+    width: "42px",
+    height: "42px",
+    border: "1px solid #E5E7EB",
+    borderRadius: "50%",
+    background: "#FFFFFF",
+    cursor: "pointer",
+    fontSize: "20px",
+    fontWeight: 600,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+};
+
+const timelineTitle: React.CSSProperties = {
+    flex: 1,
+    textAlign: "center",
+    fontSize: "20px",
+    fontWeight: 700,
+    color: "#111827",
+};

@@ -8,6 +8,7 @@ interface ReportNavigationProps {
   backHref: string;
 
   showReportsButton?: boolean;
+  reportsLabel?: string;
   reportsHref?: string;
 
   showDashboardButton?: boolean;
@@ -18,9 +19,10 @@ export default function ReportNavigation({
   backLabel,
   backHref,
   showReportsButton = false,
-  reportsHref = "/reports/daily-care/select",
-  showDashboardButton = true,
-  dashboardHref = "/dashboard",
+reportsLabel = "📋 Health Timeline",
+reportsHref = "/reports",
+showDashboardButton = true,
+dashboardHref = "/dashboard",
 }: ReportNavigationProps) {
   return (
     <div style={containerStyle}>
@@ -36,9 +38,9 @@ export default function ReportNavigation({
   href={reportsHref}
   style={{ textDecoration: "none", flex: "1 1 240px" }}
 >
-  <div style={buttonStyle}>
-    📋 Daily Care Reports
-  </div>
+<div style={buttonStyle}>
+  {reportsLabel}
+</div>
 </Link>
       )}
 

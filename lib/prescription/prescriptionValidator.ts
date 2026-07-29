@@ -38,22 +38,17 @@ export function validatePrescriptionBeforeSave(
 
     }
 
-    if (
-
-        prescription.patientName &&
-        selectedPatientName &&
-        prescription.patientName.trim().toLowerCase() !==
-        selectedPatientName.trim().toLowerCase()
-
-    ) {
-
-        errors.push(
-
-            `This prescription appears to belong to ${prescription.patientName}.`
-
-        );
-
-    }
+if (
+    recordContext === "SELF" &&
+    prescription.patientName &&
+    selectedPatientName &&
+    prescription.patientName.trim().toLowerCase() !==
+    selectedPatientName.trim().toLowerCase()
+) {
+    errors.push(
+        `This prescription appears to belong to ${prescription.patientName}.`
+    );
+}
 
     //--------------------------------------------------
     // Consultation Date

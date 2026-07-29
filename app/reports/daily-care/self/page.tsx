@@ -313,18 +313,16 @@ void analyticsService.track({
 
     </div>
 
-    <button
-      style={{
-        marginTop: "24px",
-      }}
-      onClick={() =>
-        router.push(
-`/reports/daily-care/self/${latestRecord.id}`
-)
-      }
-    >
-      View Details
-    </button>
+<button
+  style={viewButtonStyle}
+  onClick={() =>
+    router.push(
+      `/reports/daily-care/self/${latestRecord.id}`
+    )
+  }
+>
+  View Details
+</button>
 
   </div>
 
@@ -454,10 +452,10 @@ void analyticsService.track({
 )}
 
 <ReportNavigation
-  backLabel="Back to Reports"
-  backHref="/reports"
-  showReportsButton={true}
-  showDashboardButton={true}
+  backLabel="🏠 Back to Dashboard"
+  backHref="/dashboard"
+  showReportsButton={false}
+  showDashboardButton={false}
 />
 
       </div>

@@ -8,15 +8,10 @@ import {
 } from "next/server";
 
 import type {
-
   ConsultationMode,
-
   MedicalDocumentType,
-
   ExtractedPrescription,
-
   ExtractedPrescriptionMedicine,
-
 } from "@/lib/prescription-image/prescriptionImageTypes";
 
 import {
@@ -26,6 +21,8 @@ import {
 import {
     EXTRACTION_INSTRUCTIONS,
 } from "@/lib/prescription-ai/extractionInstructions";
+
+import { resolveMedicine } from "@/lib/medication/medicineResolver";
 
 //------------------------------------------------------------
 // Route Configuration
@@ -572,14 +569,6 @@ export async function POST(
           item instanceof File
       );
 
-console.log(
-    "Documents:",
-    documents.map(file => ({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-    }))
-);
 
     if (
       documents.length === 0
@@ -871,6 +860,7 @@ console.log(
     // Extract Document
     //--------------------------------------------------------
 
+
     const response =
       await openai.responses.create({
 
@@ -895,8 +885,13 @@ console.log(
     // Validate Response
     //--------------------------------------------------------
 
-    const outputText =
-      response.output_text?.trim();
+const outputText = response.output_text?.trim();
+
+console.log("====================================");
+console.log("RAW AI RESPONSE");
+console.log("====================================");
+console.log(outputText);
+console.log("====================================");
 
     if (!outputText) {
 
@@ -913,6 +908,10 @@ console.log(
     }
 
 
+
+
+
+
     //--------------------------------------------------------
     // Parse Response
     //--------------------------------------------------------
@@ -923,10 +922,10 @@ console.log(
 
     try {
 
-      prescription =
-        parsePrescription(
-          outputText
-        );
+prescription =
+    parsePrescription(
+        outputText
+    );
 
     }
     catch (error) {
@@ -949,6 +948,135 @@ console.log(
       );
 
     }
+
+
+function mergeDuplicateMedicines(
+    medicines: ExtractedPrescriptionMedicine[]
+): ExtractedPrescriptionMedicine[] {
+
+    const map = new Map<string, ExtractedPrescriptionMedicine>();
+
+    for (const medicine of medicines) {
+
+        const key = [
+    medicine.name.trim().toLowerCase(),
+    medicine.strength ?? "",
+    medicine.form ?? "",
+].join("|");
+
+        const existing = map.get(key);
+
+        if (!existing) {
+
+            map.set(key, { ...medicine });
+
+            continue;
+        }
+
+        existing.strength ??= medicine.strength;
+        existing.form ??= medicine.form;
+        existing.frequency ??= medicine.frequency;
+        existing.duration ??= medicine.duration;
+
+        if (!existing.instructions && medicine.instructions) {
+            existing.instructions = medicine.instructions;
+        }
+
+        // Prefer the more descriptive administration text
+if (
+    medicine.dose &&
+    (
+        !existing.dose ||
+        medicine.dose.length > existing.dose.length
+    )
+) {
+    existing.dose = medicine.dose;
+}
+
+        existing.timings = Array.from(
+            new Set([
+                ...existing.timings,
+                ...medicine.timings,
+            ])
+        );
+    }
+
+    return [...map.values()];
+}
+
+prescription = parsePrescription(outputText);
+
+console.log("====================================");
+console.log("PARSED PRESCRIPTION");
+console.log("====================================");
+
+console.log(
+    "Symptoms:",
+    prescription.symptoms.length,
+    prescription.symptoms
+);
+
+console.log(
+    "Presenting Complaints:",
+    prescription.presentingComplaints.length,
+    prescription.presentingComplaints
+);
+
+prescription.medicines =
+    mergeDuplicateMedicines(
+        prescription.medicines
+    );
+
+//--------------------------------------------------------
+// Resolve Medicines
+//--------------------------------------------------------
+
+
+for (const medicine of prescription.medicines) {
+
+  const result = await resolveMedicine({
+    medicineName: medicine.name,
+  });
+
+
+  medicine.matchStatus = result.status;
+
+  if (
+    result.status === "FOUND" &&
+    result.medicine
+  ) {
+
+    medicine.resolvedMedicineId =
+      result.medicine.id;
+
+    medicine.resolvedMedicineName =
+      result.medicine.brand_name;
+
+  }
+
+  else if (
+    result.status === "SUGGESTIONS" &&
+    result.suggestions
+  ) {
+
+    medicine.suggestedMedicines =
+      result.suggestions.map(item => ({
+        id: item.id,
+        brandName: item.brand_name,
+        genericName: item.generic_name,
+        strength: item.strength,
+        formulation: item.formulation,
+      }));
+
+  }
+
+}
+
+
+for (const medicine of prescription.medicines) {
+
+    medicine.reviewStatus ??= "REVIEW";
+}
 
 
     //--------------------------------------------------------

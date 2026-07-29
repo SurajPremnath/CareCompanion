@@ -180,16 +180,14 @@ class AuthSessionService {
 
 async end(): Promise<void> {
 
-    const authSessionId =
-        this.getActiveSessionId();
+const authSessionId =
+    this.getActiveSessionId();
 
-    if (!authSessionId) {
+if (!authSessionId) {
 
-        throw new Error(
-            "Active authentication session ID is unavailable."
-        );
+    return;
 
-    }
+}
 
 
     const {

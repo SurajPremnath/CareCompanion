@@ -89,11 +89,19 @@ await authService.login(
     password
 );
 
-void authSessionService
-    .start()
-    .catch(() => {
-        // Analytics must not block login navigation
-    });
+try {
+
+    await authSessionService.start();
+
+}
+catch (error) {
+
+    console.error(
+        "Unable to start analytics auth session.",
+        error
+    );
+
+}
 
 router.replace("/dashboard");
 

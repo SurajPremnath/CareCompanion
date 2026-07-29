@@ -16,7 +16,9 @@ export class TrendRepository {
 
   async getTrendHistory(
     patientId: string,
-    period: TrendPeriod
+    period: TrendPeriod,
+  startDate?: string,
+  endDate?: string
   ): Promise<Result<DailyCare[]>> {
 
     try {
@@ -26,11 +28,13 @@ export class TrendRepository {
           patientId
         );
 
-      const filtered =
-        this.filterByPeriod(
-          history,
-          period
-        );
+const filtered =
+  this.filterByPeriod(
+    history,
+    period,
+    startDate,
+    endDate
+  );
 
       const sorted =
         filtered.sort((a, b) =>
@@ -75,8 +79,27 @@ export class TrendRepository {
 
   private filterByPeriod(
     history: DailyCare[],
-    period: TrendPeriod
+    period: TrendPeriod,
+  startDate?: string,
+  endDate?: string
   ): DailyCare[] {
+
+
+if (startDate && endDate) {
+
+  const start = new Date(startDate);
+  start.setHours(0,0,0,0);
+
+  const end = new Date(endDate);
+  end.setHours(23,59,59,999);
+
+  return history.filter(record => {
+    const date = new Date(record.recordedAt);
+
+    return date >= start && date <= end;
+  });
+
+}
 
     if (period === -1) {
 
@@ -84,46 +107,46 @@ export class TrendRepository {
 
     }
 
-    const now = new Date();
+const now = new Date();
 
-    let startDate = new Date(now);
+let calculatedStartDate = new Date(now);
 
-    switch (period) {
+switch (period) {
 
       case 1:
 
-        startDate.setHours(
-          0,
-          0,
-          0,
-          0
-        );
+calculatedStartDate.setHours(
+  0,
+  0,
+  0,
+  0
+);
 
         break;
 
       case 7:
 
-        startDate.setDate(
-          now.getDate() - 7
-        );
+calculatedStartDate.setDate(
+  now.getDate() - 7
+);
 
         break;
 
       case 30:
 
-        startDate.setDate(
-          now.getDate() - 30
-        );
+calculatedStartDate.setDate(
+  now.getDate() - 30
+);
 
         break;
 
     }
 
-    return history.filter(record =>
+return history.filter(record =>
 
-      new Date(record.recordedAt) >= startDate
+  new Date(record.recordedAt) >= calculatedStartDate
 
-    );
+);
 
   }
 

@@ -19,27 +19,37 @@ export class SelfTrendStorage {
   //------------------------------------------------------------
 
   async getTrendHistory(
-    patientId: string,
-    period: TrendPeriod
+    patientId: string | null,
+    period: TrendPeriod,
+  startDate?: string,
+  endDate?: string
   ): Promise<Result<SelfDailyCare[]>> {
+
 
     try {
 
-      if (!patientId.trim()) {
+if (
+  patientId &&
+  !patientId.trim()
+) {
 
-        return {
+  return {
 
-          success: false,
+    success: false,
 
-          error: "Patient is required."
+    error: "Invalid patient."
 
-        };
+  };
+
+
 
       }
 
-      return await selfTrendRepository.getTrendHistory(
+return await selfTrendRepository.getTrendHistory(
   patientId,
-  period
+  period,
+  startDate,
+  endDate
 );
 
     }

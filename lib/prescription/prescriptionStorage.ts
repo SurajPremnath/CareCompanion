@@ -285,4 +285,24 @@ export const prescriptionStorage = {
 
     },
 
+    async getPatientPrescriptions(
+
+        context: PrescriptionSaveContext
+
+    ): Promise<CompletePrescriptionRecord[]> {
+
+        validateContext(context);
+
+        return prescriptionRepository.getPatientPrescriptions(
+
+            context.userId,
+
+            context.recordContext,
+
+            context.patientId
+
+        );
+
+    },
+
 };

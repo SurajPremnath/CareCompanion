@@ -61,3 +61,26 @@ export interface ClinicalEventRow {
 
   created_at: string;
 }
+
+export interface MedicineMasterRow {
+    id: string;
+    medicine_code: string;
+    brand_name: string;
+    generic_name: string | null;
+    strength: string | null;
+    formulation: string | null;
+    manufacturer: string | null;
+    search_key: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface MedicineAliasRow {
+    id: string;
+    medicine_id: string;
+    alias: string;
+    verified_count: number;
+    source: "USER" | "IMPORT" | "SYSTEM";
+    created_at: string;
+}

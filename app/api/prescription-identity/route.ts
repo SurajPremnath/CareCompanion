@@ -893,6 +893,10 @@ export async function POST(
     const outputText =
       response.output_text?.trim();
 
+console.log("===== RAW OPENAI RESPONSE =====");
+console.log(outputText);
+console.log("===============================");
+
     if (!outputText) {
 
       return NextResponse.json(

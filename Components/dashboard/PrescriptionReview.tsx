@@ -118,12 +118,111 @@ const [
     setMedicineTimings,
 ] = useState<string[]>(
 
-    prescription.medicines.map(
+    prescription.medicines.map(medicine => {
 
-        () => "NOT_SPECIFIED"
+const text = [
 
-    )
+    ...(medicine.timings ?? []),
 
+    medicine.instructions ?? "",
+
+    medicine.frequency ?? "",
+
+].join(" ").toLowerCase();
+
+const frequency =
+    (medicine.frequency ?? "")
+        .trim()
+        .toUpperCase();
+
+const has = (...values: string[]) =>
+    values.some(value => text.includes(value));
+
+if (has("before breakfast", "before_breakfast"))
+    return "BEFORE_BREAKFAST";
+
+if (has("after breakfast", "after_breakfast"))
+    return "AFTER_BREAKFAST";
+
+if (has("before lunch", "before_lunch"))
+    return "BEFORE_LUNCH";
+
+if (has("after lunch", "after_lunch"))
+    return "AFTER_LUNCH";
+
+if (has("before dinner", "before_dinner"))
+    return "BEFORE_DINNER";
+
+if (has("after dinner", "after_dinner"))
+    return "AFTER_DINNER";
+
+if (has("before food", "before_food"))
+    return "BEFORE_FOOD";
+
+if (has("after food", "after_food"))
+    return "AFTER_FOOD";
+
+if (has("empty stomach", "empty_stomach"))
+    return "EMPTY_STOMACH";
+
+if (has("bedtime", "at_bedtime"))
+    return "AT_BEDTIME";
+
+if (has("morning"))
+    return "MORNING";
+
+if (has("afternoon"))
+    return "AFTERNOON";
+
+if (has("evening"))
+    return "EVENING";
+
+if (has("night"))
+    return "NIGHT";
+
+if (has("weekly"))
+    return "WEEKLY";
+
+if (has("monthly"))
+    return "MONTHLY";
+
+if (has("alternate day", "alternate_day"))
+    return "ALTERNATE_DAY";
+
+if (has("sos"))
+    return "SOS";
+
+
+/*--------------------------------------------------
+ Frequency Intelligence
+---------------------------------------------------*/
+
+if (frequency === "OD")
+    return "MORNING";
+
+if (
+    frequency === "BD" ||
+    frequency === "BID"
+)
+    return "MORNING";
+
+if (
+    frequency === "TDS" ||
+    frequency === "TID"
+)
+    return "MORNING";
+
+if (
+    frequency === "QID" ||
+    frequency === "QDS"
+)
+    return "MORNING";
+
+if (frequency === "HS")
+    return "AT_BEDTIME";
+
+return "NOT_SPECIFIED";
+    })
 );
 
 const [
@@ -144,7 +243,40 @@ const [
 
     ...prescription,
 
+consultationMode:
+        prescription.consultationMode ?? "IN_PERSON",
+
 });
+
+const handleMedicineReviewStatusChange = (
+    index: number,
+    status: "REVIEW" | "REVIEWED"
+) => {
+
+    setReviewPrescription(previous => {
+
+        const medicines = [...previous.medicines];
+
+        medicines[index] = {
+
+            ...medicines[index],
+
+            reviewStatus: status,
+
+        };
+
+        return {
+
+            ...previous,
+
+            medicines,
+
+        };
+
+    });
+
+};
+
 
 const validation =
     validatePrescriptionBeforeSave(
@@ -226,7 +358,19 @@ readOnly={
 <>
 
 <VitalsCard
-    prescription={prescription}
+    prescription={reviewPrescription}
+    readOnly={mode === "VIEW"}
+    onWeightChange={(weight) =>
+        setReviewPrescription(previous => ({
+            ...previous,
+            consultationVitals: previous.consultationVitals
+                ? {
+                      ...previous.consultationVitals,
+                      weight,
+                  }
+                : null,
+        }))
+    }
 />
 
 </>
@@ -238,7 +382,7 @@ readOnly={
 
 <ComplaintsCard
 
-    prescription={prescription}
+    prescription={reviewPrescription}
 
 />
 
@@ -251,11 +395,11 @@ readOnly={
 <>
 
 <HistoryCard
-    prescription={prescription}
+    prescription={reviewPrescription}
 />
 
 <AssessmentCard
-    prescription={prescription}
+    prescription={reviewPrescription}
 />
 
 </>
@@ -264,29 +408,43 @@ readOnly={
 
 {activeTab === "medication" && (
 
-    <MedicineCard
-        prescription={prescription}
-        medicineTimings={medicineTimings}
+<MedicineCard
+    prescription={reviewPrescription}
+    medicineTimings={medicineTimings}
+    readOnly={mode === "VIEW"}
+    onMedicineTimingChange={(index, value) => {
 
-readOnly={
-        mode === "VIEW"
+        const updated = [...medicineTimings];
+        updated[index] = value;
+        setMedicineTimings(updated);
+
+    }}
+    onReviewStatusChange={
+        handleMedicineReviewStatusChange
     }
-        onMedicineTimingChange={(index, value) => {
+    onMedicineUpdated={(index, medicine) => {
 
-            const updated = [...medicineTimings];
-            updated[index] = value;
-            setMedicineTimings(updated);
+        setReviewPrescription(previous => {
 
-        }}
-    />
+            const medicines = [...previous.medicines];
 
+            medicines[index] = medicine;
+
+            return {
+                ...previous,
+                medicines,
+            };
+        });
+
+    }}
+/>
 )}
 
 {activeTab==="investigations" && (
 
 <InvestigationCard
 
-    prescription={prescription}
+    prescription={reviewPrescription}
 
 />
 
@@ -296,7 +454,7 @@ readOnly={
 
 <DoctorInstructionCard
 
-    prescription={prescription}
+    prescription={reviewPrescription}
 
 />
 
@@ -305,7 +463,7 @@ readOnly={
 {activeTab==="notes" && (
 
     <OtherNotesCard
-        prescription={prescription}
+        prescription={reviewPrescription}
     />
 
 )}

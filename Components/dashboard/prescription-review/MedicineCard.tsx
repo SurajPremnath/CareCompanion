@@ -1,26 +1,51 @@
 "use client";
 
-import type { ExtractedPrescription } from "@/lib/prescription-image/prescriptionImageTypes";
+import type {
+    ExtractedPrescription,
+    ExtractedPrescriptionMedicine,
+} from "@/lib/prescription-image/prescriptionImageTypes";
 
 import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import MedicineRow from "./MedicineRow";
+
 interface MedicineCardProps {
+
     prescription: ExtractedPrescription;
+
     medicineTimings: string[];
-readOnly: boolean;
+
+    readOnly: boolean;
+
     onMedicineTimingChange: (
         index: number,
         value: string
     ) => void;
+
+    onReviewStatusChange: (
+    index: number,
+    status: "REVIEW" | "REVIEWED"
+) => void;
+
+onMedicineUpdated: (
+    index: number,
+    medicine: ExtractedPrescriptionMedicine
+) => void;
+
 }
 
+
 export default function MedicineCard({
+
     prescription,
     medicineTimings,
-readOnly,
+    readOnly,
     onMedicineTimingChange,
+    onReviewStatusChange,
+    onMedicineUpdated,
+
 }: MedicineCardProps) {
 
 const {
@@ -62,8 +87,32 @@ const administrationTimingLabels: Record<string, string> = {
     AFTER_DINNER:
         t("medication.afterDinner"),
 
+    MORNING:
+        t("medication.morning"),
+
+    AFTERNOON:
+        t("medication.afternoon"),
+
+    EVENING:
+        t("medication.evening"),
+
+    NIGHT:
+        t("medication.night"),
+
     AT_BEDTIME:
         t("medication.atBedtime"),
+
+    WEEKLY:
+        t("medication.weekly"),
+
+    MONTHLY:
+        t("medication.monthly"),
+
+    ALTERNATE_DAY:
+        t("medication.alternateDay"),
+
+    SOS:
+        t("medication.sos"),
 
     AS_DIRECTED:
         t("medication.asDirected"),
@@ -73,7 +122,6 @@ const administrationTimingLabels: Record<string, string> = {
     return (
         <>
 
-<>
     <div style={informationBox}>
 
         <div style={informationTitle}>
@@ -120,17 +168,53 @@ const administrationTimingLabels: Record<string, string> = {
 
                             <tr>
 
-                                <th style={headerCell}>{t("medication.medicine")}</th>
+<th
+    style={{
+        ...headerCell,
+        width: "42%",
+    }}
+>
+    {t("medication.medicine")}
+</th>
 
-                                <th style={headerCell}>{t("medication.strength")}</th>
+{!readOnly && (
+<th
+    style={{
+        ...headerCell,
+        width: "12%",
+        textAlign: "center",
+    }}
+>
+    Review
+</th>
+)}
 
-                                <th style={headerCell}>{t("medication.dose")}</th>
+<th
+    style={{
+        ...headerCell,
+        width: "12%",
+    }}
+>
+    {t("medication.dose")}
+</th>
 
-                                <th style={headerCell}>{t("medication.frequency")}</th>
+<th
+    style={{
+        ...headerCell,
+        width: "14%",
+    }}
+>
+    {t("medication.duration")}
+</th>
 
-                                <th style={headerCell}>{t("medication.duration")}</th>
-
-                                <th style={headerCell}>{t("medication.administrationTiming")}</th>
+<th
+    style={{
+        ...headerCell,
+        width: "20%",
+    }}
+>
+    {t("medication.administrationTiming")}
+</th>
 
                             </tr>
 
@@ -140,103 +224,27 @@ const administrationTimingLabels: Record<string, string> = {
 
                             {
 
-                                prescription.medicines.map((medicine, index) => (
+prescription.medicines.map((medicine, index) => (
 
-                                    <tr key={`${medicine.name}-${index}`}>
-
-                                        <td style={cell}>
-                                            {medicine.name}
-                                        </td>
-
-                                        <td style={cell}>
-                                            {medicine.strength ?? "-"}
-                                        </td>
-
-                                        <td style={cell}>
-                                            {medicine.dose ?? "-"}
-                                        </td>
-
-                                        <td style={cell}>
-                                            {medicine.frequency ?? "-"}
-                                        </td>
-
-                                        <td style={cell}>
-                                            {medicine.duration ?? "-"}
-                                        </td>
-
-                                        <td style={cell}>
-
-                                            <select
-                                                disabled={readOnly}
-                                                value={medicineTimings[index]}
-                                                onChange={(event) =>
-                                                    onMedicineTimingChange(
-                                                        index,
-                                                        event.target.value
-                                                    )
-                                                }
-                                                style={selectStyle}
-                                            >
-
-                                                <option value="NOT_SPECIFIED">
-                                                    {administrationTimingLabels.NOT_SPECIFIED}
-                                                </option>
-
-                                                <option value="BEFORE_FOOD">
-                                                    {administrationTimingLabels.BEFORE_FOOD}
-                                                </option>
-
-                                                <option value="AFTER_FOOD">
-                                                    {administrationTimingLabels.AFTER_FOOD}
-                                                </option>
-
-                                                <option value="WITH_FOOD">
-                                                    {administrationTimingLabels.WITH_FOOD}
-                                                </option>
-
-                                                <option value="EMPTY_STOMACH">
-                                                    {administrationTimingLabels.EMPTY_STOMACH}
-                                                </option>
-
-                                                <option value="BEFORE_BREAKFAST">
-                                                    {administrationTimingLabels.BEFORE_BREAKFAST}
-                                                </option>
-
-                                                <option value="AFTER_BREAKFAST">
-                                                    {administrationTimingLabels.AFTER_BREAKFAST}
-                                                </option>
-
-                                                <option value="BEFORE_LUNCH">
-                                                    {administrationTimingLabels.BEFORE_LUNCH}
-                                                </option>
-
-                                                <option value="AFTER_LUNCH">
-                                                    {administrationTimingLabels.AFTER_LUNCH}
-                                                </option>
-
-                                                <option value="BEFORE_DINNER">
-                                                    {administrationTimingLabels.BEFORE_DINNER}
-                                                </option>
-
-                                                <option value="AFTER_DINNER">
-                                                    {administrationTimingLabels.AFTER_DINNER}
-                                                </option>
-
-                                                <option value="AT_BEDTIME">
-                                                    {administrationTimingLabels.AT_BEDTIME}
-                                                </option>
-
-                                                <option value="AS_DIRECTED">
-                                                    {administrationTimingLabels.AS_DIRECTED}
-                                                </option>
-
-                                            </select>
-
-                                        </td>
-
-                                    </tr>
-
-                                ))
+<MedicineRow
+    key={`${medicine.name}-${index}`}
+    medicine={medicine}
+    index={index}
+    reviewStatus={
+        medicine.reviewStatus ?? "REVIEW"
+    }
+    administrationTiming={medicineTimings[index]}
+    administrationTimingLabels={administrationTimingLabels}
+    readOnly={readOnly}
+    onAdministrationTimingChange={onMedicineTimingChange}
+    onReviewStatusChange={
+        onReviewStatusChange
+    }
+onMedicineUpdated={
+        onMedicineUpdated
+    }
+/>
+))
 
                             }
 
@@ -253,8 +261,6 @@ const administrationTimingLabels: Record<string, string> = {
     )}
 
 </>
-
-        </>
     );
 }
 
@@ -293,21 +299,7 @@ const headerCell: React.CSSProperties = {
     color: "#334155",
 };
 
-const cell: React.CSSProperties = {
-    padding: "12px",
-    borderBottom: "1px solid #e2e8f0",
-    color: "#111827",
-    verticalAlign: "top",
-};
 
-const selectStyle: React.CSSProperties = {
-    width: "100%",
-    padding: "8px",
-    borderRadius: "6px",
-    border: "1px solid #cbd5e1",
-    background: "#ffffff",
-    fontSize: "14px",
-};
 
 const informationBox: React.CSSProperties = {
     marginTop: "18px",

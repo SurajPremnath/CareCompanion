@@ -27,6 +27,22 @@ import {
 } from "@/lib/prescription/prescriptionStorage";
 
 import {
+    DuplicatePrescriptionEngine,
+} from "@/lib/prescription/duplicate/DuplicatePrescriptionEngine";
+
+import {
+    DuplicatePrescriptionMapper,
+} from "@/lib/prescription/duplicate/mapper/DuplicatePrescriptionMapper";
+
+import {
+    generateValidationCards,
+} from "@/lib/prescription-ai/validation/gatekeeperGenerator";
+
+import {
+    validateCards,
+} from "@/lib/prescription-ai/validation/gatekeeper";
+
+import {
     workspaceContainer,
     errorBox,
     errorText,
@@ -713,6 +729,29 @@ setReadingStatus(
 );
 
 //------------------------------------------------------
+// CAREVR GATEKEEPER
+//------------------------------------------------------
+
+const validationCards =
+    generateValidationCards(
+        result.data
+    );
+
+const response = await fetch(
+    "/api/gatekeeper",
+    {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            originalPrescription: JSON.stringify(result.data),
+            validationCards,
+        }),
+    }
+);
+
+//------------------------------------------------------
 // SELF Patient Validation
 //------------------------------------------------------
 
@@ -721,36 +760,97 @@ const extractedName =
         ?.replace(/^MR\.?/i, "")
         ?.replace(/^MRS\.?/i, "")
         ?.replace(/^MS\.?/i, "")
-        ?.trim();
+        ?.trim()
+        ?.toLowerCase();
 
 const selectedName =
     patientName
-        ?.trim();
+        ?.trim()
+        ?.toLowerCase();
+
+setPatientValidationError(null);
 
 if (
-
     recordContext === "SELF" &&
-
     extractedName &&
-
     selectedName &&
-
-    extractedName.toLowerCase() !==
-    selectedName.toLowerCase()
-
+    extractedName !== selectedName
 ) {
-
     setPatientValidationError({
-
         extractedName,
-
     });
 
     return;
-
 }
 
-setPatientValidationError(null);
+//------------------------------------------------------
+// DUPLICATE CHECK
+//------------------------------------------------------
+
+const previousPrescriptions =
+    await prescriptionStorage
+        .getPatientPrescriptions({
+
+            userId,
+
+            patientId,
+
+            familyId,
+
+            recordContext,
+
+        });
+
+for (const previousPrescription of previousPrescriptions) {
+
+    const duplicate =
+        DuplicatePrescriptionEngine.check(
+            result.data,
+            previousPrescription
+        );
+
+
+console.log(
+    "CURRENT OCR",
+    DuplicatePrescriptionMapper.fromOCR(result.data)
+);
+
+console.log(
+    "DB PRESCRIPTION",
+    DuplicatePrescriptionMapper.fromDatabase(
+        previousPrescription
+    )
+);
+
+const comparison =
+    DuplicatePrescriptionEngine.compare(
+        DuplicatePrescriptionMapper.fromOCR(
+            result.data
+        ),
+        DuplicatePrescriptionMapper.fromDatabase(
+            previousPrescription
+        )
+    );
+
+alert(
+    JSON.stringify(
+        comparison,
+        null,
+        2
+    )
+);
+
+
+
+    if (duplicate.isDuplicate) {
+
+        alert("Duplicate Prescription Found");
+
+        return;
+
+    }
+
+}
 
 setExtractedPrescription(
     result.data

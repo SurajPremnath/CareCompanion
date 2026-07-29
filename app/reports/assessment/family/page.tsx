@@ -323,17 +323,18 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
     width: "12%",
     align: "center",
     render: (assessment) => (
-      <button
-        onClick={() =>
-          router.push(
-            `/reports/assessment/family/${assessment.id}`
-          )
-        }
-      >
-        View
-      </button>
+        <button
+            style={viewButtonStyle}
+            onClick={() =>
+                router.push(
+                    `/reports/assessment/family/${assessment.id}`
+                )
+            }
+        >
+            View
+        </button>
     ),
-  },
+},
 ];
 
   //------------------------------------------------------------
@@ -385,46 +386,28 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
           }}
         >
 
-          <label
-            style={{
-              display: "block",
-              marginBottom: "10px",
-              fontWeight: 600,
-            }}
-          >
-            Patient
-          </label>
+<label
+    style={{
+        display: "block",
+        marginBottom: "10px",
+        fontWeight: 600,
+    }}
+>
+    Patient
+</label>
 
-          <select
-            value={selectedPatientId}
-            onChange={(e) =>
-  handlePatientChange(
-    e.target.value
-  )
-}
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #d1d5db",
-              fontSize: "15px",
-            }}
-          >
-
-            {patients.map((patient) => (
-
-              <option
-                key={patient.id}
-                value={patient.id}
-              >
-
-                {patient.fullName}
-
-              </option>
-
-            ))}
-
-          </select>
+<div
+    style={{
+        width: "100%",
+        padding: "12px",
+        borderRadius: "8px",
+        border: "1px solid #d1d5db",
+        background: "#f9fafb",
+        fontSize: "15px",
+    }}
+>
+    👤 {selectedPatient?.fullName ?? ""}
+</div>
 
         </div>
 
@@ -531,17 +514,15 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
             </div>
 
             <button
-              style={{
-                marginTop: "24px",
-              }}
-              onClick={() =>
-                router.push(
-                  `/reports/assessment/family/${latestAssessment.id}`
-                )
-              }
-            >
-              View Details
-            </button>
+    style={viewButtonStyle}
+    onClick={() =>
+        router.push(
+            `/reports/assessment/family/${latestAssessment.id}`
+        )
+    }
+>
+    View Details
+</button>
 
           </div>
 
@@ -592,15 +573,15 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
         )}
 
         <button
-          style={backButtonStyle}
-          onClick={() =>
-            router.push(
-              "/reports/assessment"
-            )
-          }
-        >
-          ← Back to Assessment Reports
-        </button>
+    style={backButtonStyle}
+    onClick={() =>
+        router.push(
+            "/dashboard"
+        )
+    }
+>
+    ← 🏠 Back to Dashboard
+</button>
 
       </div>
 
@@ -658,4 +639,15 @@ const backButtonStyle: React.CSSProperties = {
   border: "1px solid #d1d5db",
   background: "#ffffff",
   cursor: "pointer",
+};
+
+const viewButtonStyle: React.CSSProperties = {
+    marginTop: "24px",
+    padding: "8px 18px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#2563eb",
+    color: "#ffffff",
+    cursor: "pointer",
+    fontWeight: 600,
 };

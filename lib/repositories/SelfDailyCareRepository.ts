@@ -84,9 +84,27 @@ export class SelfDailyCareRepository {
   // User History
   //------------------------------------------------------------
 
-  async getByUserId(
-    userId: string
-  ): Promise<SelfDailyCare[]> {
+async getByUserId(
+  userId?: string
+): Promise<SelfDailyCare[]> {
+
+    if (!userId) {
+
+      const {
+        data: authData
+      } = await supabase.auth.getUser();
+
+      userId = authData.user?.id;
+
+    }
+
+
+    if (!userId) {
+
+      return [];
+
+    }
+
 
     const {
       data,
@@ -101,6 +119,8 @@ export class SelfDailyCareRepository {
           ascending: false
         }
       );
+
+
 
     if (error || !data) {
 

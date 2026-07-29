@@ -42,10 +42,28 @@ const {
     t,
 } = useLanguage();
 
-    const items = [
-        ...prescription.investigations,
-        ...prescription.clinicalPlan,
-    ];
+const uniqueItems = new Map<string, string>();
+
+prescription.investigations
+    .filter(Boolean)
+    .forEach(item => {
+
+        const value =
+            expandMedicalText(item).trim();
+
+        const key =
+            value
+                .toLowerCase()
+                .replace(/\s+/g, " ");
+
+        if (!uniqueItems.has(key)) {
+            uniqueItems.set(key, value);
+        }
+
+    });
+
+const items =
+    [...uniqueItems.values()];
 
     if (items.length === 0) {
         return null;

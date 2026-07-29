@@ -343,42 +343,23 @@ const handlePatientChange = (
     background: "#fafafa",
   }}
 >
-
-  <label
+  <div
     style={{
-      display: "block",
       fontWeight: 600,
       marginBottom: "10px",
     }}
   >
     Patient
-  </label>
+  </div>
 
-  <select
-    value={selectedPatientId}
-    onChange={(e) =>
-  handlePatientChange(
-    e.target.value
-  )
-}
+  <div
     style={{
-      width: "100%",
-      padding: "12px",
-      borderRadius: "8px",
-      border: "1px solid #d1d5db",
-      fontSize: "15px",
+      fontSize: "16px",
+      color: "#111827",
     }}
   >
-    {patients.map((patient) => (
-      <option
-        key={patient.id}
-        value={patient.id}
-      >
-        {patient.fullName}
-      </option>
-    ))}
-  </select>
-
+    👤 {patients.find(patient => patient.id === selectedPatientId)?.fullName ?? ""}
+  </div>
 </div>
 
         <p
@@ -499,18 +480,19 @@ const handlePatientChange = (
 
     </div>
 
-    <button
-      style={{
-        marginTop: "24px",
-      }}
-      onClick={() =>
-        router.push(
-          `/reports/daily-care/${latestRecord.id}`
-        )
-      }
-    >
-      View Details
-    </button>
+<button
+  style={{
+    ...viewButtonStyle,
+    marginTop: "24px",
+  }}
+  onClick={() =>
+    router.push(
+      `/reports/daily-care/${latestRecord.id}`
+    )
+  }
+>
+  View Details
+</button>
 
   </div>
 
@@ -641,10 +623,10 @@ const handlePatientChange = (
 )}
 
 <ReportNavigation
-  backLabel="Back to Reports"
-  backHref="/reports"
-  showReportsButton={true}
-  showDashboardButton={true}
+  backLabel="🏠 Back to Dashboard"
+  backHref="/dashboard"
+  showReportsButton={false}
+  showDashboardButton={false}
 />
 
       </div>

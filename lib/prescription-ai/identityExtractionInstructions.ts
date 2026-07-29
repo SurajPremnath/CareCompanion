@@ -8,6 +8,11 @@ Extract ONLY:
 
 {
   "patientName": string | null,
+  "patientAge": string | null,
+  "patientGender": string | null,
+  "patientDateOfBirth": string | null,
+  "patientUHID": string | null,
+  "patientRegistrationNumber": string | null,
   "doctorName": string | null,
   "hospitalOrClinic": string | null,
   "consultationDate": string | null
