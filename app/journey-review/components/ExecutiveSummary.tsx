@@ -25,9 +25,6 @@ from "../clinical-story/storyBuilder";
 import PdfDownloadButton
     from "../../components/pdf/PdfDownloadButton";
 
-import { executiveSummaryPdf } from "@/lib/pdf/executiveSummaryPdf";
-
-
 const JOURNEY_WEEKS = [
     {
         start: "2026-07-10",
@@ -58,97 +55,6 @@ export function ExecutiveSummary({
     summary
 }: Props) {
 
-const [downloadingPdf, setDownloadingPdf] =
-    useState(false);
-
-async function handleGeneratePdf() {
-
-    try {
-
-        setDownloadingPdf(true);
-
-        const pdfBytes =
-            await executiveSummaryPdf.generate({
-
-                overallHealth:
-                    "Monitoring in Progress",
-
-                healthScore:
-                    `${summary.totalDailyCareRecords}`,
-
-                summary:
-                    `Monitoring Period: ${summary.monitoringStart} to ${summary.monitoringEnd}
-
-Daily Care Records: ${summary.totalDailyCareRecords}
-
-Assessments: ${summary.totalAssessments}
-
-Symptom Records: ${summary.recordedEvents.symptomRecords}
-
-Blood Cough Events: ${summary.recordedEvents.bloodCoughCount}`,
-
-                findings: [
-
-                    `Monitoring Period: ${summary.monitoringStart} - ${summary.monitoringEnd}`,
-
-                    `Daily Care Records: ${summary.totalDailyCareRecords}`,
-
-                    `Assessments Completed: ${summary.totalAssessments}`,
-
-                    `Symptom Records: ${summary.recordedEvents.symptomRecords}`,
-
-                    `Blood Cough Events: ${summary.recordedEvents.bloodCoughCount}`
-
-                ],
-
-                recommendations: [
-
-                    "Continue regular daily health monitoring.",
-
-                    "Maintain medication adherence.",
-
-                    "Consult the treating physician if symptoms worsen."
-
-                ]
-
-            });
-
-        const blob =
-            new Blob(
-                [new Uint8Array(pdfBytes)],
-                {
-                    type: "application/pdf"
-                }
-            );
-
-        const url =
-            URL.createObjectURL(blob);
-
-        const link =
-            document.createElement("a");
-
-        link.href = url;
-
-        link.download =
-            "Executive Health Summary.pdf";
-
-        document.body.appendChild(link);
-
-        link.click();
-
-        document.body.removeChild(link);
-
-        URL.revokeObjectURL(url);
-
-    }
-
-    finally {
-
-        setDownloadingPdf(false);
-
-    }
-
-}
 
 // ======================================================
 // WEEKLY CLINICAL DATA AGGREGATION - START
@@ -525,7 +431,7 @@ return (
 >
 
 <PdfDownloadButton
-    loading={downloadingPdf}
+    loading={false}
     onClick={() => {
 
         const content =
