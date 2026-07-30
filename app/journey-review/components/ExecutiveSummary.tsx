@@ -25,6 +25,8 @@ from "../clinical-story/storyBuilder";
 import PdfDownloadButton
     from "../../components/pdf/PdfDownloadButton";
 
+import { executiveSummaryPdf } from "@/lib/pdf/executiveSummaryPdf";
+
 
 const JOURNEY_WEEKS = [
     {
@@ -61,7 +63,90 @@ const [downloadingPdf, setDownloadingPdf] =
 
 async function handleGeneratePdf() {
 
-    console.log("Generate Executive Summary PDF");
+    try {
+
+        setDownloadingPdf(true);
+
+        const pdfBytes =
+            await executiveSummaryPdf.generate({
+
+                overallHealth:
+                    "Monitoring in Progress",
+
+                healthScore:
+                    `${summary.totalDailyCareRecords}`,
+
+                summary:
+                    `Monitoring Period: ${summary.monitoringStart} to ${summary.monitoringEnd}
+
+Daily Care Records: ${summary.totalDailyCareRecords}
+
+Assessments: ${summary.totalAssessments}
+
+Symptom Records: ${summary.recordedEvents.symptomRecords}
+
+Blood Cough Events: ${summary.recordedEvents.bloodCoughCount}`,
+
+                findings: [
+
+                    `Monitoring Period: ${summary.monitoringStart} - ${summary.monitoringEnd}`,
+
+                    `Daily Care Records: ${summary.totalDailyCareRecords}`,
+
+                    `Assessments Completed: ${summary.totalAssessments}`,
+
+                    `Symptom Records: ${summary.recordedEvents.symptomRecords}`,
+
+                    `Blood Cough Events: ${summary.recordedEvents.bloodCoughCount}`
+
+                ],
+
+                recommendations: [
+
+                    "Continue regular daily health monitoring.",
+
+                    "Maintain medication adherence.",
+
+                    "Consult the treating physician if symptoms worsen."
+
+                ]
+
+            });
+
+        const blob =
+            new Blob(
+                [new Uint8Array(pdfBytes)],
+                {
+                    type: "application/pdf"
+                }
+            );
+
+        const url =
+            URL.createObjectURL(blob);
+
+        const link =
+            document.createElement("a");
+
+        link.href = url;
+
+        link.download =
+            "Executive Health Summary.pdf";
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
+
+    }
+
+    finally {
+
+        setDownloadingPdf(false);
+
+    }
 
 }
 
@@ -295,9 +380,12 @@ console.log(
 
 
 
-    return (
+return (
 
-        <div className="space-y-8">
+    <div
+        id="executive-summary"
+        className="space-y-8"
+    >
 
 
 
@@ -436,10 +524,67 @@ console.log(
     "
 >
 
-    <PdfDownloadButton
-        loading={downloadingPdf}
-        onClick={handleGeneratePdf}
-    />
+<PdfDownloadButton
+    loading={downloadingPdf}
+    onClick={() => {
+
+        const content =
+            document.getElementById(
+                "executive-summary"
+            );
+
+        if (!content) {
+            return;
+        }
+
+        const printWindow =
+            window.open(
+                "",
+                "_blank",
+                "width=1400,height=900"
+            );
+
+        if (!printWindow) {
+            return;
+        }
+
+        const styles =
+            Array.from(
+                document.querySelectorAll(
+                    "style, link[rel='stylesheet']"
+                )
+            )
+            .map(node => node.outerHTML)
+            .join("");
+
+        printWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+${styles}
+<title>Executive Summary</title>
+</head>
+
+<body>
+
+${content.outerHTML}
+
+<script>
+window.onload = function () {
+    window.focus();
+    window.print();
+    window.close();
+};
+</script>
+
+</body>
+</html>
+        `);
+
+        printWindow.document.close();
+
+    }}
+/>
 
 </div>
 
@@ -669,7 +814,7 @@ whitespace-pre-line
 
     <p>
         Rahika 200 mg is prescribed twice daily
-        as part of the current treatment regimen.
+        as part of the current treatment regimen. The Tablets started from 17th of July.
     </p>
 </div>
 
