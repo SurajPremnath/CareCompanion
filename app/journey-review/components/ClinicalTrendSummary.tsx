@@ -29,6 +29,13 @@ import {
 } from "recharts";
 
 
+import PdfDownloadButton
+    from "../../components/pdf/PdfDownloadButton";
+
+import {
+    trendReportPdf
+} from "@/lib/pdf/trendReportPdf";
+
 /*
 --------------------------------------------------
 ICON SYSTEM
@@ -514,8 +521,81 @@ export default function ClinicalTrends(){
     const [trends,setTrends] =
         useState<ClinicalTrendSummary[]>([]);
 
-const [selectedInsight, setSelectedInsight] = useState<string | null>(null);
+const [selectedInsight, setSelectedInsight] =
+    useState<string | null>(null);
 
+const [downloadingPdf, setDownloadingPdf] =
+    useState(false);
+
+async function handleGeneratePdf() {
+
+    try {
+
+        setDownloadingPdf(true);
+
+        const pdfBytes =
+            await trendReportPdf.generate(
+
+                trends.map(
+                    trend => ({
+
+                        parameter: trend.parameter,
+
+                        status:
+                            trendMeta[
+                                trend.parameter
+                            ]?.status ?? "Unknown",
+
+                        current: trend.current,
+
+                        minimum: trend.minimum,
+
+                        maximum: trend.maximum,
+
+                        average: trend.average
+
+                    })
+                )
+
+            );
+
+                        const pdfData =
+            new Uint8Array(pdfBytes);
+
+        const blob =
+            new Blob(
+                [pdfData],
+                {
+                    type: "application/pdf",
+                }
+            );
+
+        const url =
+            URL.createObjectURL(blob);
+
+        const link =
+            document.createElement("a");
+
+        link.href = url;
+
+        link.download =
+            "Clinical Trends Report.pdf";
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
+
+    } finally {
+
+        setDownloadingPdf(false);
+
+    }
+
+}
 
 
     useEffect(()=>{
@@ -541,13 +621,27 @@ const [selectedInsight, setSelectedInsight] = useState<string | null>(null);
 
 
 
-    return (
+return (
+
+    <div
+        className="
+            space-y-8
+        "
+    >
 
         <div
             className="
-                space-y-8
+                flex
+                justify-end
             "
         >
+
+            <PdfDownloadButton
+                loading={downloadingPdf}
+                onClick={handleGeneratePdf}
+            />
+
+        </div>
 
 
             {trends.map((item)=>{

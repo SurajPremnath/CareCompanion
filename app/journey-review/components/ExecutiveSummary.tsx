@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
     CalendarDays,
     Activity,
@@ -19,6 +21,9 @@ import {
     buildClinicalStory
 }
 from "../clinical-story/storyBuilder";
+
+import PdfDownloadButton
+    from "../../components/pdf/PdfDownloadButton";
 
 
 const JOURNEY_WEEKS = [
@@ -51,10 +56,14 @@ export function ExecutiveSummary({
     summary
 }: Props) {
 
-console.log(
-    "SOURCE CLINICAL TIMELINE",
-    summary.clinicalTimeline
-);
+const [downloadingPdf, setDownloadingPdf] =
+    useState(false);
+
+async function handleGeneratePdf() {
+
+    console.log("Generate Executive Summary PDF");
+
+}
 
 // ======================================================
 // WEEKLY CLINICAL DATA AGGREGATION - START
@@ -307,7 +316,6 @@ console.log(
 
 <div className="flex items-center justify-between gap-6">
 
-
     <div className="flex items-center gap-4">
 
 
@@ -420,9 +428,22 @@ console.log(
 
                 </div>
 
+<div
+    className="
+        mt-6
+        flex
+        justify-end
+    "
+>
+
+    <PdfDownloadButton
+        loading={downloadingPdf}
+        onClick={handleGeneratePdf}
+    />
 
 </div>
 
+</div>
 
 
 
