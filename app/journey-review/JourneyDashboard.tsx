@@ -78,6 +78,11 @@ console.log(
                             alt="CareVR"
                             width={240}
                             height={70}
+loading="eager"
+    style={{
+        width: "240px",
+        height: "70px"
+}}
                         />
 
 
@@ -96,6 +101,11 @@ console.log(
                             alt="CareVR"
                             width={220}
                             height={70}
+loading="eager"
+    style={{
+        width: "220px",
+        height: "70px"
+}}
                         />
 
 
@@ -134,9 +144,12 @@ console.log(
 
     {
     selectedMenu === "executive-summary" && (
+
 <ExecutiveSummary
+    patient={journey.patient}
     summary={executiveSummary}
-        />
+/>
+
     )
 }
 

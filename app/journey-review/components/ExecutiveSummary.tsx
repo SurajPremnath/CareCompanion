@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 
 import {
-    ExecutiveSummaryViewModel
+    ExecutiveSummaryViewModel,
+    PatientViewModel
 } from "./types";
 
 import {
@@ -24,6 +25,8 @@ from "../clinical-story/storyBuilder";
 
 import PdfDownloadButton
     from "../../components/pdf/PdfDownloadButton";
+
+import { executiveSummaryPdf } from "@/lib/pdf/executiveSummaryPdf";
 
 const JOURNEY_WEEKS = [
     {
@@ -45,14 +48,19 @@ const JOURNEY_WEEKS = [
 
 interface Props {
 
+    patient: PatientViewModel;
+
     summary: ExecutiveSummaryViewModel;
 
 }
 
 
-
 export function ExecutiveSummary({
+
+    patient,
+
     summary
+
 }: Props) {
 
 
@@ -279,12 +287,6 @@ const clinicalStory =
         groupedTimeline
     );
 
-console.log(
-    "CLINICAL STORY TABLE DATA",
-    clinicalStory
-);
-
-
 
 return (
 
@@ -432,64 +434,66 @@ return (
 
 <PdfDownloadButton
     loading={false}
-    onClick={() => {
+onClick={async () => {
 
-        const content =
-            document.getElementById(
-                "executive-summary"
-            );
+const element =
+    document.getElementById(
+        "executive-summary"
+    );
 
-        if (!content) {
-            return;
+if (!element) {
+    return;
+}
+
+const bytes =
+    await executiveSummaryPdf.generate({
+        patient,
+        summary,
+        clinicalStory
+    });
+
+const pdfBytes =
+    new Uint8Array(bytes);
+
+const blob =
+    new Blob(
+        [pdfBytes],
+        {
+            type: "application/pdf"
         }
+    );
 
-        const printWindow =
-            window.open(
-                "",
-                "_blank",
-                "width=1400,height=900"
-            );
+    const url =
+        URL.createObjectURL(blob);
 
-        if (!printWindow) {
-            return;
-        }
+    const link =
+        document.createElement("a");
 
-        const styles =
-            Array.from(
-                document.querySelectorAll(
-                    "style, link[rel='stylesheet']"
-                )
-            )
-            .map(node => node.outerHTML)
-            .join("");
+    link.href = url;
 
-        printWindow.document.write(`
-<!DOCTYPE html>
-<html>
-<head>
-${styles}
-<title>Executive Summary</title>
-</head>
+const now = new Date();
 
-<body>
+const pad = (value: number) =>
+    value.toString().padStart(2, "0");
 
-${content.outerHTML}
+const timestamp =
+    `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_` +
+    `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
 
-<script>
-window.onload = function () {
-    window.focus();
-    window.print();
-    window.close();
-};
-</script>
+const safePatientName =
+    (patient.name ?? "Patient")
+        .replace(/[^\w\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "_");
 
-</body>
-</html>
-        `);
+link.download =
+    `CareVR_ExecutiveSummary_${safePatientName}_${timestamp}.pdf`;
 
-        printWindow.document.close();
+    link.click();
 
-    }}
+    URL.revokeObjectURL(url);
+
+}}
 />
 
 </div>

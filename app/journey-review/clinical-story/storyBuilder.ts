@@ -86,10 +86,12 @@ return {
                                 week.weekLabel,
 
 
-                            answer:
-    week.answers[
-        question.id as keyof ClinicalAnswers
-    ]
+answer:
+    removeDuplicateWords(
+        week.answers[
+            question.id as keyof ClinicalAnswers
+        ] ?? ""
+    )
 
                         })
                     )
@@ -98,5 +100,41 @@ return {
 
         }
     );
+
+}
+
+function removeDuplicateWords(
+    text: string
+): string {
+
+    if (!text) {
+        return text;
+    }
+
+    const words = text.split(/(\s+|,)/);
+
+    const seen = new Set<string>();
+
+    return words.filter(word => {
+
+        const key =
+            word.trim().toLowerCase();
+
+        if (
+            key === "" ||
+            key === ","
+        ) {
+            return true;
+        }
+
+        if (seen.has(key)) {
+            return false;
+        }
+
+        seen.add(key);
+
+        return true;
+
+    }).join("");
 
 }

@@ -25,6 +25,10 @@ logoImage?: PDFImage;
 
     sex?: string;
 
+doctorName?: string;
+
+hospitalName?: string;
+
     reportPeriod?: string;
 
     generatedOn: Date;
@@ -45,6 +49,8 @@ logoImage,
             patientName,
             age,
             sex,
+    doctorName,
+    hospitalName,
             reportPeriod,
             generatedOn
         } = options;
@@ -170,43 +176,49 @@ y -= logoSize.height + 8;
 
         y -= 18;
 
-        page.drawText(
+page.drawText(
+    `Age / Gender : ${age ?? "-"} / ${sex ?? "-"}`,
+    {
+        x: left,
+        y,
+        size: 10,
+        font: regularFont
+    }
+);
 
-            `Age / Gender : ${age ?? "-"} / ${sex ?? "-"}`,
+page.drawText(
+    `Generated Time : ${generatedOn.toLocaleTimeString("en-GB")}`,
+    {
+        x: 340,
+        y,
+        size: 10,
+        font: regularFont
+    }
+);
 
-            {
+y -= 18;
 
-                x:left,
+page.drawText(
+    `Doctor : ${doctorName ?? "-"}`,
+    {
+        x: left,
+        y,
+        size: 10,
+        font: regularFont
+    }
+);
 
-                y,
+page.drawText(
+    `Hospital : ${hospitalName ?? "-"}`,
+    {
+        x: 340,
+        y,
+        size: 10,
+        font: regularFont
+    }
+);
 
-                size:10,
-
-                font:regularFont
-
-            }
-
-        );
-
-        page.drawText(
-
-            `Generated Time : ${generatedOn.toLocaleTimeString("en-GB")}`,
-
-            {
-
-                x:340,
-
-                y,
-
-                size:10,
-
-                font:regularFont
-
-            }
-
-        );
-
-y -= 8;
+y -= 18;
         //
         // END DIVIDER
         //

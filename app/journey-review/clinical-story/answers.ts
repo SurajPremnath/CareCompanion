@@ -26,10 +26,6 @@ function generateVitalObservation(
     week:any
 ): string {
 
-console.log(
-    "VITAL WEEK OBJECT",
-    week
-);
 
 
 const vitals =
@@ -71,8 +67,8 @@ let result = "";
         ) {
 
             observations.push(
-                `Lowest SpO₂ recorded: ${lowest}%`
-            );
+    `Lowest SpO₂\n${lowest}%`
+);
 
         }
 
@@ -95,8 +91,8 @@ let result = "";
         ) {
 
             observations.push(
-                `Highest pulse recorded: ${highest} bpm`
-            );
+    `Highest Pulse\n${highest} bpm`
+);
 
         }
 
@@ -270,9 +266,7 @@ function generateObjectiveMeasurements(
     }
 
 
-return `Vitals tracked:
-
-• ${measurements.join("\n• ")}`;
+return measurements.join("\n");
 
 }
 
@@ -296,7 +290,7 @@ function generateClinicalEvents(
     ) {
 
         events.push(
-            "Blood in cough was recorded."
+            "Blood in cough."
         );
 
     }
@@ -309,7 +303,7 @@ function generateClinicalEvents(
     ) {
 
         events.push(
-            "Fever was recorded."
+            "Fever."
         );
 
     }
@@ -322,7 +316,7 @@ function generateClinicalEvents(
     ) {
 
         events.push(
-            "Breathing difficulty was recorded."
+            "Breathing difficulty."
         );
 
     }
@@ -372,18 +366,31 @@ function generateFeelingSummary(
     }
 
 
-    const displaySymptoms =
+const displaySymptoms = [
+    ...new Set(
         symptoms
-        .filter(
-            symptom =>
-                symptom !== "OTHER"
-        )
-        .map(
-            symptom =>
-                symptomLabels[symptom] ||
-                symptom
-        );
+            .filter(
+                symptom =>
+                    symptom !== "OTHER"
+            )
+            .map(
+                symptom => {
 
+                    const label =
+                        symptomLabels[symptom] ||
+                        symptom;
+
+                    return label
+                        .toLowerCase()
+                        .replace(
+                            /\b\w/g,
+                            char => char.toUpperCase()
+                        );
+
+                }
+            )
+    )
+];
 
     if (
         displaySymptoms.length === 0
@@ -397,10 +404,8 @@ function generateFeelingSummary(
 
 
     return (
-        `Patient reported ${
-            displaySymptoms.join(", ")
-        } during this period.`
-    );
+    `${displaySymptoms.join(", ")}`
+);
 
 }
 
