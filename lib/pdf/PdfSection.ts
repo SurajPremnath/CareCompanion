@@ -83,15 +83,17 @@ static drawSection(
             trend.status
         );
 
-    PdfDrawing.roundedRect(page, {
+const topY = y - sectionHeight;
 
-        x,
+PdfDrawing.roundedRect(page, {
 
-        y,
+    x,
 
-        width,
+    y: topY,
 
-        height: sectionHeight,
+    width,
+
+    height: sectionHeight,
 
         radius:
             PdfTheme.card.radius,
@@ -107,51 +109,43 @@ static drawSection(
 
     });
 
-    this.drawHeader({
+this.drawHeader({
 
-        page,
+    page,
 
-        boldFont,
+    boldFont,
 
-        regularFont,
+    regularFont,
 
-        trend,
+    trend,
 
-        x,
+    x,
 
-        y,
+    y: topY,
 
-        width,
+    width,
 
-        theme
+    theme
 
-    });
+});
 
-    this.drawMetrics({
+this.drawMetrics({
 
-        page,
+    page,
 
-        boldFont,
+    boldFont,
 
-        trend,
+    trend,
 
-        x,
+    x,
 
-        y,
+    y: topY,
 
-        theme
+    theme
 
-    });
+});
 
-    return (
-
-        y -
-
-        sectionHeight -
-
-        PdfTheme.card.gap
-
-    );
+return topY - PdfTheme.card.gap;
 
 }
 

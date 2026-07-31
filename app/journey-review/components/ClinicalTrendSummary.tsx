@@ -515,7 +515,19 @@ function OxygenMedicalIcon(){
 
 }
 
-export default function ClinicalTrends(){
+import { PatientViewModel } from "./types";
+
+interface Props {
+
+    patient: PatientViewModel;
+
+}
+
+export default function ClinicalTrends({
+
+    patient
+
+}: Props){
 
 
     const [trends,setTrends] =
@@ -533,31 +545,45 @@ async function handleGeneratePdf() {
 
         setDownloadingPdf(true);
 
-        const pdfBytes =
-            await trendReportPdf.generate(
+const pdfBytes =
+    await trendReportPdf.generate(
 
-                trends.map(
-                    trend => ({
+        trends.map(
+            trend => ({
 
-                        parameter: trend.parameter,
+                parameter: trend.parameter,
 
-                        status:
-                            trendMeta[
-                                trend.parameter
-                            ]?.status ?? "Unknown",
+                status:
+                    trendMeta[
+                        trend.parameter
+                    ]?.status ?? "Unknown",
 
-                        current: trend.current,
+                current: trend.current,
 
-                        minimum: trend.minimum,
+                minimum: trend.minimum,
 
-                        maximum: trend.maximum,
+                maximum: trend.maximum,
 
-                        average: trend.average
+                average: trend.average
 
-                    })
-                )
+            })
+        ),
 
-            );
+        {
+
+            patientName: patient.name,
+
+            age: patient.age?.toString(),
+
+            sex: patient.gender,
+
+            hospitalName: patient.hospital,
+
+            doctorName: patient.doctor
+
+        }
+
+    );
 
                         const pdfData =
             new Uint8Array(pdfBytes);
@@ -578,8 +604,25 @@ async function handleGeneratePdf() {
 
         link.href = url;
 
-        link.download =
-            "Clinical Trends Report.pdf";
+const now = new Date();
+
+const date =
+    now.toISOString().split("T")[0];
+
+const time =
+    now
+        .toTimeString()
+        .split(" ")[0]
+        .replace(/:/g, "-");
+
+const patientName =
+    (patient.name ?? "Patient")
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[<>:"/\\|?*]/g, "");
+
+link.download =
+    `CareVR_${patientName}_${date}_${time}.pdf`;
 
         document.body.appendChild(link);
 

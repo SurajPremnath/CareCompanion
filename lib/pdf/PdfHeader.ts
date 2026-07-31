@@ -5,7 +5,6 @@ import {
 } from "pdf-lib";
 
 import { PdfTheme } from "./PdfTheme";
-import { PdfDrawing } from "./PdfDrawing";
 
 export interface PdfHeaderOptions {
 
@@ -15,7 +14,9 @@ export interface PdfHeaderOptions {
 
     regularFont: PDFFont;
 
-    generatedOn: Date;
+logoImage?: Uint8Array;
+
+    reportTitle: string;
 
     patientName?: string;
 
@@ -23,184 +24,212 @@ export interface PdfHeaderOptions {
 
     sex?: string;
 
-    doctorName?: string;
-
-    hospitalName?: string;
-
     reportPeriod?: string;
 
+    generatedOn: Date;
 }
 
 export class PdfHeader {
 
-static draw(
-    options: PdfHeaderOptions
-) {
+    static draw(
+        options: PdfHeaderOptions
+    ): number {
 
-    const {
+        const {
+            page,
+            boldFont,
+            regularFont,
+logoImage,
+            reportTitle,
+            patientName,
+            age,
+            sex,
+            reportPeriod,
+            generatedOn
+        } = options;
 
-        page,
+        const left = PdfTheme.page.margin;
+        const right = PdfTheme.page.width - PdfTheme.page.margin;
 
-        boldFont,
+        let y = 805;
 
-        regularFont,
+//
+// CAREVR BRAND
+//
 
-        generatedOn,
+if (logoImage) {
 
-        patientName,
+const logoScale = 0.12;
 
-        age,
+const logoSize =
+    (logoImage as any).scale(logoScale);
 
-        sex,
+page.drawImage(logoImage as any, {
 
-        doctorName,
+    x: left,
 
-        hospitalName,
+    y: y - logoSize.height,
 
-        reportPeriod
+    width: logoSize.width,
 
-    } = options;
+    height: logoSize.height
 
-    const margin =
-        PdfTheme.page.margin;
+});
 
-    let y =
-        PdfTheme.page.height -
-        margin;
-
-    PdfDrawing.text(page,{
-
-        text:"CareVR",
-
-        x:margin,
-
-        y,
-
-        size:PdfTheme.typography.reportTitle,
-
-        font:boldFont,
-
-        color:rgb(
-            0.15,
-            0.39,
-            0.92
-        )
-
-    });
-
-    y -= PdfTheme.header.titleGap;
-
-    PdfDrawing.text(page,{
-
-        text:"Clinical Trends Report",
-
-        x:margin,
-
-        y,
-
-        size:16,
-
-        font:boldFont,
-
-        color:rgb(
-            0.10,
-            0.13,
-            0.18
-        )
-
-    });
-
-    y -= 24;
-
-    if (patientName) {
-
-        PdfDrawing.text(page,{
-            text:`Patient : ${patientName}`,
-            x:margin,
-            y,
-            size:11,
-            font:regularFont
-        });
-
-        y -= 15;
-
-        PdfDrawing.text(page,{
-            text:`Age : ${age ?? "-"}    Sex : ${sex ?? "-"}`,
-            x:margin,
-            y,
-            size:11,
-            font:regularFont
-        });
-
-        y -= 15;
-
-        PdfDrawing.text(page,{
-            text:`Consultant : ${doctorName ?? "-"}`,
-            x:margin,
-            y,
-            size:11,
-            font:regularFont
-        });
-
-        y -= 15;
-
-        PdfDrawing.text(page,{
-            text:`Hospital : ${hospitalName ?? "-"}`,
-            x:margin,
-            y,
-            size:11,
-            font:regularFont
-        });
-
-        if (reportPeriod) {
-
-            y -= 15;
-
-            PdfDrawing.text(page,{
-                text:`Report Period : ${reportPeriod}`,
-                x:margin,
-                y,
-                size:11,
-                font:regularFont
-            });
-
-        }
-
-        y -= 20;
-    }
-
-    PdfDrawing.text(page,{
-
-        text:`Generated On : ${generatedOn.toLocaleString()}`,
-
-        x:margin,
-
-        y,
-
-        size:PdfTheme.typography.body,
-
-        font:regularFont,
-
-        color:rgb(
-            0.45,
-            0.50,
-            0.58
-        )
-
-    });
-
-    y -= PdfTheme.header.dividerGap;
-
-    PdfDrawing.divider(page,{
-
-        x:margin,
-
-        y,
-
-        width:PdfTheme.page.contentWidth
-
-    });
+y -= logoSize.height + 8;
 
 }
+
+
+        //
+        // REPORT TITLE
+        //
+
+        y -= 30;
+
+        page.drawText(
+
+            reportTitle,
+
+            {
+
+                x:left,
+
+                y,
+
+                size:20,
+
+                font:boldFont,
+
+                color:rgb(0.15,0.15,0.15)
+
+            }
+
+        );
+
+        //
+        // DIVIDER
+        //
+
+        y -= 16;
+
+        page.drawLine({
+
+            start:{x:left,y},
+
+            end:{x:right,y},
+
+            thickness:1,
+
+            color:rgb(0.88,0.88,0.88)
+
+        });
+
+        //
+        // PATIENT DETAILS
+        //
+
+        y -= 22;
+
+        page.drawText(
+
+            `Patient Name : ${patientName ?? "-"}`,
+
+            {
+
+                x:left,
+
+                y,
+
+                size:10,
+
+                font:regularFont
+
+            }
+
+        );
+
+        page.drawText(
+
+            `Generated On : ${generatedOn.toLocaleDateString("en-GB")}`,
+
+            {
+
+                x:340,
+
+                y,
+
+                size:10,
+
+                font:regularFont
+
+            }
+
+        );
+
+        y -= 18;
+
+        page.drawText(
+
+            `Age / Gender : ${age ?? "-"} / ${sex ?? "-"}`,
+
+            {
+
+                x:left,
+
+                y,
+
+                size:10,
+
+                font:regularFont
+
+            }
+
+        );
+
+        page.drawText(
+
+            `Generated Time : ${generatedOn.toLocaleTimeString("en-GB")}`,
+
+            {
+
+                x:340,
+
+                y,
+
+                size:10,
+
+                font:regularFont
+
+            }
+
+        );
+
+y -= 8;
+        //
+        // END DIVIDER
+        //
+
+        y -= 18;
+
+        page.drawLine({
+
+            start:{x:left,y},
+
+            end:{x:right,y},
+
+            thickness:0.8,
+
+            color:rgb(0.88,0.88,0.88)
+
+        });
+
+        //
+        // BODY STARTS HERE
+        //
+
+        return y - 20;
+
+    }
 
 }

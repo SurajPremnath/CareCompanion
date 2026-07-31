@@ -143,7 +143,9 @@ console.log(
 
 {
     selectedMenu === "clinical-trends" && (
-        <ClinicalTrendSummary />
+        <ClinicalTrendSummary
+            patient={journey.patient}
+        />
     )
 }
 
