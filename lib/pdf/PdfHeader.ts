@@ -1,6 +1,7 @@
 import {
     PDFPage,
     PDFFont,
+    PDFImage,
     rgb
 } from "pdf-lib";
 
@@ -14,7 +15,7 @@ export interface PdfHeaderOptions {
 
     regularFont: PDFFont;
 
-logoImage?: Uint8Array;
+logoImage?: PDFImage;
 
     reportTitle: string;
 
@@ -62,9 +63,9 @@ if (logoImage) {
 const logoScale = 0.12;
 
 const logoSize =
-    (logoImage as any).scale(logoScale);
+    logoImage.scale(logoScale);
 
-page.drawImage(logoImage as any, {
+page.drawImage(logoImage, {
 
     x: left,
 
