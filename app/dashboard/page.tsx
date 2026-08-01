@@ -1112,11 +1112,22 @@ disabled={!consentGranted}
     selectedAction={
         selectedAction
     }
-personMode={
-    personSelection.mode === "SELF"
-        ? "SELF"
-        : "FAMILY"
-}
+    personMode={
+        personSelection.mode === "SELF"
+            ? "SELF"
+            : "FAMILY"
+    }
+
+    patientId={
+        personSelection.patientId
+    }
+
+    patientName={
+        personSelection.mode === "SELF"
+            ? user.fullName
+            : personSelection.patientName ?? ""
+    }
+
     onStartAssessment={
         handleStartAssessment
     }

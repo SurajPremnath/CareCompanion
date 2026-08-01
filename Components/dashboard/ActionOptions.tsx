@@ -12,6 +12,12 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import ClinicalTrendPdfGenerator
+    from "@/app/journey-review/mobile/ClinicalTrendPdfGenerator";
+
+import ExecutiveSummaryPdfGenerator
+    from "@/app/journey-review/mobile/ExecutiveSummaryPdfGenerator";
+
 
 //------------------------------------------------------------
 // Types
@@ -27,6 +33,7 @@ export type ActionOption =
     | "ASSESSMENT_HISTORY"
     | "CLINICAL_TRENDS"
     | "DETAILED_TIMELINE"
+    | "MOBILE_CLINICAL_TRENDS"
     | "";
 
 
@@ -57,6 +64,12 @@ interface ActionOptionsProps {
     personMode:
         "SELF" | "FAMILY";
 
+    patientId:
+        string | null;
+
+    patientName:
+        string;
+
     onStartAssessment?:
         () => void;
 
@@ -84,6 +97,10 @@ export default function ActionOptions({
 
     personMode,
 
+    patientId,
+
+    patientName,
+
     onStartAssessment,
 
     onOptionChange,
@@ -101,13 +118,22 @@ const {
 
 const router = useRouter();
 
-    const [
-        selectedOption,
-        setSelectedOption,
-    ] =
-        useState<ActionOption>(
-            ""
-        );
+const [
+    selectedOption,
+    setSelectedOption,
+] =
+    useState<ActionOption>(
+        ""
+    );
+
+const [
+    selectedMobileTimelineAction,
+    setSelectedMobileTimelineAction,
+] = useState<
+    "" |
+    "EXECUTIVE_SUMMARY" |
+    "CLINICAL_TRENDS"
+>("");
 
 
 const [
@@ -558,6 +584,17 @@ onClick={() => {
     type="button"
     onClick={() => {
 
+        if (window.innerWidth < 768) {
+
+            setSelectedOption(
+                selectedOption === "DETAILED_TIMELINE"
+                    ? ""
+                    : "DETAILED_TIMELINE"
+            );
+
+            return;
+        }
+
         setSelectedOption("DETAILED_TIMELINE");
 
         router.push("/journey-review");
@@ -575,6 +612,106 @@ onClick={() => {
 </button>
 
 </div>
+
+{selectedOption === "DETAILED_TIMELINE" &&
+    window.innerWidth < 768 && (
+
+    <div
+        style={{
+            marginTop: "20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px",
+        }}
+    >
+
+<button
+    type="button"
+    style={optionButton}
+    onClick={() => {
+
+        setSelectedMobileTimelineAction(
+            "EXECUTIVE_SUMMARY"
+        );
+
+    }}
+>
+    <span style={optionIcon}>
+        📄
+    </span>
+
+    <span style={optionLabel}>
+        Executive Summary
+    </span>
+
+</button>
+
+<button
+    type="button"
+    style={optionButton}
+    onClick={() => {
+
+        setSelectedMobileTimelineAction(
+            "CLINICAL_TRENDS"
+        );
+
+    }}
+>
+    <span style={optionIcon}>📈</span>
+
+    <span style={optionLabel}>
+        Clinical Trends
+    </span>
+
+</button>
+
+{selectedMobileTimelineAction === "EXECUTIVE_SUMMARY" && (
+
+    <div
+        style={{
+            marginTop: "20px"
+        }}
+    >
+
+        <ExecutiveSummaryPdfGenerator
+            patientId={patientId}
+            patientName={patientName}
+            onComplete={() => {
+
+                setSelectedMobileTimelineAction("");
+
+            }}
+        />
+
+    </div>
+
+)}
+
+{selectedMobileTimelineAction === "CLINICAL_TRENDS" && (
+
+    <div
+        style={{
+            marginTop: "20px"
+        }}
+    >
+
+        <ClinicalTrendPdfGenerator
+            patientId={patientId}
+            patientName={patientName}
+            onComplete={() => {
+
+                setSelectedMobileTimelineAction("");
+
+            }}
+        />
+
+    </div>
+
+)}
+
+</div>
+
+)}
 
     </>
 
