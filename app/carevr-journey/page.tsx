@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 
 const journey = [
@@ -56,7 +57,9 @@ const journey = [
 export default function CareVRJourneyPage() {
 
 
-  const [active,setActive] = useState(0);
+const router = useRouter();
+
+const [active,setActive] = useState(0);
 
 
   const current = journey[active];
@@ -77,6 +80,22 @@ export default function CareVRJourneyPage() {
   "
 >
 
+<div className="mx-auto max-w-6xl mb-3">
+
+    <button
+        type="button"
+        onClick={() => router.push("/dashboard")}
+        className="
+            text-blue-700
+            hover:text-blue-900
+            font-medium
+            transition-colors
+        "
+    >
+        ← Dashboard
+    </button>
+
+</div>
 
 {/* HERO BANNER */}
 

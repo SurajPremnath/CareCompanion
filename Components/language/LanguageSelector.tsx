@@ -33,7 +33,7 @@ export default function LanguageSelector() {
         htmlFor="carevr-language"
         style={labelStyle}
       >
-        🌐 Language
+        🌐 
       </label>
 
       <select

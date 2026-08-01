@@ -179,7 +179,7 @@ const [
 ] =
     useState<PersonSelection>({
 
-        mode: "SELF",
+        mode: "",
 
         patientId: null,
 
@@ -683,6 +683,8 @@ const isPersonSelectionComplete =
 
     careVRJourneyLabel="CareVR Journey"
 
+headerAccessory={<LanguageSelector />}
+
     onCareVRJourneyClick={() => {
 
         performanceTracker.start({
@@ -780,11 +782,7 @@ const isPersonSelectionComplete =
 
 )}
 
-                <div style={languageBox}>
-
-                    <LanguageSelector />
-
-                </div>
+                {/* Language selector moved to AppHeader */}
 
 
 <section style={homeSection}>
