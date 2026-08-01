@@ -39,6 +39,15 @@ const [latestRecord, setLatestRecord] =
 const [historyRecords, setHistoryRecords] =
   useState<SelfDailyCare[]>([]);
 
+const [selectedHistoryId, setSelectedHistoryId] =
+    useState("");
+
+
+const [currentPage, setCurrentPage] =
+    useState(1);
+
+const PAGE_SIZE = 5;
+
 const [profileName, setProfileName] =
   useState("");
 
@@ -124,9 +133,13 @@ void analyticsService.track({
           records[0]
         );
 
-        setHistoryRecords(
-          records.slice(1)
-        );
+const previousRecords = records.slice(1);
+
+setHistoryRecords(previousRecords);
+
+setSelectedHistoryId(
+    previousRecords[0]?.id ?? ""
+);
 
       } else {
 
@@ -148,6 +161,8 @@ void analyticsService.track({
   loadHistory();
 
 }, []);
+
+
 
   //------------------------------------------------------------
   // Loading
@@ -189,41 +204,17 @@ void analyticsService.track({
 
 <div
   style={{
-    marginBottom: "24px",
-    padding: "20px",
-    border: "1px solid #e5e7eb",
-    borderRadius: "12px",
-    background: "#fafafa",
+    marginTop: "20px",
+    marginBottom: "12px",
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#374151",
   }}
 >
-  <div
-    style={{
-      fontWeight: 600,
-      marginBottom: "10px",
-    }}
-  >
-    Patient
-  </div>
-
-  <div
-    style={{
-      fontSize: "16px",
-      color: "#111827",
-    }}
-  >
-    👤 {profileName || "Loading..."}
-  </div>
-
+    👤 Patient: {profileName || "Loading..."}
 </div>
 
-        <p
-          style={{
-            color:"#6b7280",
-            marginBottom:"24px"
-          }}
-        >
-          Latest entries are shown first.
-        </p>
+        
 
         {error && (
 
@@ -328,126 +319,82 @@ void analyticsService.track({
 
 )}
 
-        {historyRecords.length > 0 && (
+{true && (
 
-  <>
+<>
 
     <h2
-      style={{
-        marginBottom: "20px",
-      }}
+        style={{
+            marginBottom: "20px",
+        }}
     >
-      📚 History
+        📚 History
     </h2>
 
-<div style={tableContainerStyle}>
+<div className="desktop-history">
 
-  <table style={tableStyle}>
+    <div style={tableContainerStyle}>
 
-            <thead>
+        {/* Desktop table will go here */}
 
- <tr style={tableHeaderRowStyle}>
-
-  <th style={headerCellStyle}>
-    Date
-  </th>
-
-  <th style={headerCellStyle}>
-    Temp
-  </th>
-
-  <th style={headerCellStyle}>
-    BP
-  </th>
-
-  <th style={headerCellStyle}>
-    Pulse
-  </th>
-
-  <th style={headerCellStyle}>
-    SpO₂
-  </th>
-
-  <th style={headerCellStyle}>
-    Action
-  </th>
-
-</tr>
-
-            </thead>
-
-            <tbody>
-
-              {historyRecords.map(record => (
-
-<tr
-  key={record.id}
-  style={tableRowStyle}
->
-
-<td style={tableCellStyle}>
-
-{formatRecordedDate(record.recordedAt)}
-
-                  </td>
-
-<td style={tableCellStyle}>
-
-{record.temperature != null
-  ? `${record.temperature}°${record.temperatureUnit}`
-  : "-"}
-
-                  </td>
-
-<td style={tableCellStyle}>
-
-                    {record.systolic &&
-                     record.diastolic
-                      ? `${record.systolic}/${record.diastolic}`
-                      : "-"}
-
-                  </td>
-
-<td style={tableCellStyle}>
-
-                    {record.pulse ?? "-"}
-
-                  </td>
-
-<td style={tableCellStyle}>
-
-                    {record.spo2
-                      ? `${record.spo2}%`
-                      : "-"}
-
-                  </td>
-
-<td style={tableCellStyle}>
-
-                    <button
-                      style={viewButtonStyle}
-                      onClick={() =>
-                        router.push(
-`/reports/daily-care/self/${record.id}`
-)
-                      }
-                    >
-                      View
-                    </button>
-
-                  </td>
-
-                </tr>
-
-              ))}
-
-            </tbody>
-
-</table>
+    </div>
 
 </div>
 
-  </>
+<div className="mobile-history">
+
+    <div style={historySelectorStyle}>
+
+<label style={historyLabelStyle}>
+    Select Historical Record
+</label>
+
+<div style={historyActionRowStyle}>
+
+    <select
+        value={selectedHistoryId}
+        onChange={(e) =>
+            setSelectedHistoryId(e.target.value)
+        }
+        style={historyDropdownCompactStyle}
+    >
+
+        {historyRecords.map(record => (
+
+            <option
+                key={record.id}
+                value={record.id}
+            >
+                {formatRecordedDate(record.recordedAt)}
+            </option>
+
+        ))}
+
+    </select>
+
+<button
+    type="button"
+    style={viewButtonStyle}
+    onClick={() => {
+
+        if (!selectedHistoryId) return;
+
+        router.push(
+            `/reports/daily-care/self/${selectedHistoryId}`
+        );
+
+    }}
+>
+    View Details
+</button>
+
+</div>
+
+    </div>
+
+</div>
+
+</>
 
 )}
 
@@ -558,4 +505,68 @@ const viewButtonStyle: React.CSSProperties = {
   padding: "8px 18px",
   cursor: "pointer",
   fontWeight: 600,
+};
+
+const historySelectorStyle: React.CSSProperties = {
+
+    display: "flex",
+
+    flexDirection: "column",
+
+    gap: "16px",
+
+    padding: "20px",
+
+    border: "1px solid #e5e7eb",
+
+    borderRadius: "12px",
+
+    background: "#ffffff",
+
+};
+
+const historyLabelStyle: React.CSSProperties = {
+
+    fontWeight: 600,
+
+    color: "#374151",
+
+};
+
+const historyDropdownStyle: React.CSSProperties = {
+
+    width: "100%",
+
+    padding: "14px",
+
+    border: "1px solid #d1d5db",
+
+    borderRadius: "10px",
+
+    fontSize: "16px",
+
+    background: "#ffffff",
+
+};
+
+const historyActionRowStyle: React.CSSProperties = {
+    display: "flex",
+    gap: "12px",
+    alignItems: "center",
+    flexWrap: "wrap",
+};
+
+const historyDropdownCompactStyle: React.CSSProperties = {
+    flex: 1,
+    minWidth: "260px",
+    padding: "12px 14px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    fontSize: "15px",
+    background: "#ffffff",
+};
+
+const historyViewButtonStyle: React.CSSProperties = {
+    whiteSpace: "nowrap",
+    padding: "12px 18px",
 };

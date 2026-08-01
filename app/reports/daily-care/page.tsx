@@ -40,11 +40,14 @@ const [history, setHistory] =
   const [latestRecord, setLatestRecord] =
     useState<DailyCare | null>(null);
 
-  const [historyRecords, setHistoryRecords] =
-    useState<DailyCare[]>([]);
+const [historyRecords, setHistoryRecords] =
+  useState<DailyCare[]>([]);
 
-  const [error, setError] =
-    useState("");
+const [selectedHistoryId, setSelectedHistoryId] =
+  useState("");
+
+const [error, setError] =
+  useState("");
 
   const [patients, setPatients] =
     useState<Patient[]>([]);
@@ -133,9 +136,13 @@ const loadHistory = async (
         records[0]
       );
 
-      setHistoryRecords(
-        records.slice(1)
-      );
+const previousRecords = records.slice(1);
+
+setHistoryRecords(previousRecords);
+
+setSelectedHistoryId(
+    previousRecords[0]?.id ?? ""
+);
 
     }
     else {
@@ -336,40 +343,16 @@ const handlePatientChange = (
 
 <div
   style={{
-    marginBottom: "24px",
-    padding: "20px",
-    border: "1px solid #e5e7eb",
-    borderRadius: "12px",
-    background: "#fafafa",
+    marginTop: "20px",
+    marginBottom: "12px",
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#374151",
   }}
 >
-  <div
-    style={{
-      fontWeight: 600,
-      marginBottom: "10px",
-    }}
-  >
-    Patient
-  </div>
-
-  <div
-    style={{
-      fontSize: "16px",
-      color: "#111827",
-    }}
-  >
-    👤 {patients.find(patient => patient.id === selectedPatientId)?.fullName ?? ""}
-  </div>
+    👤 Patient: {patients.find(patient => patient.id === selectedPatientId)?.fullName ?? ""}
 </div>
 
-        <p
-          style={{
-            color:"#6b7280",
-            marginBottom:"24px"
-          }}
-        >
-          Latest entries are shown first.
-        </p>
 
 {loadingHistory && (
 
@@ -390,27 +373,27 @@ const handlePatientChange = (
 
 )}
 
-        {error && (
+{error && (
 
-          <div style={errorStyle}>
+  <div style={errorStyle}>
 
-            {error}
+    {error}
 
-          </div>
+  </div>
 
-        )}
+)}
 
-        {!loadingHistory &&
+{!loadingHistory &&
  !error &&
  history.length === 0 && (
 
-          <div style={emptyStyle}>
+  <div style={emptyStyle}>
 
-            No Daily Care records found.
+    No Daily Care records found.
 
-          </div>
+  </div>
 
-        )}
+)}
 
 {!loadingHistory &&
  latestRecord && (
@@ -445,23 +428,19 @@ const handlePatientChange = (
 
       <div>
         <strong>Date</strong><br />
-{latestRecord
-  ? formatRecordedDate(latestRecord.recordedAt)
-  : ""}
-
+        {formatRecordedDate(latestRecord.recordedAt)}
       </div>
 
       <div>
-<strong>Temperature</strong><br />
-{latestRecord.temperature != null
-  ? `${latestRecord.temperature}°${latestRecord.temperatureUnit}`
-  : "Not Recorded"}
+        <strong>Temperature</strong><br />
+        {latestRecord.temperature != null
+          ? `${latestRecord.temperature}°${latestRecord.temperatureUnit}`
+          : "Not Recorded"}
       </div>
 
       <div>
         <strong>Blood Pressure</strong><br />
-        {latestRecord.systolic &&
-        latestRecord.diastolic
+        {latestRecord.systolic && latestRecord.diastolic
           ? `${latestRecord.systolic}/${latestRecord.diastolic}`
           : "Not Recorded"}
       </div>
@@ -480,145 +459,87 @@ const handlePatientChange = (
 
     </div>
 
-<button
-  style={{
-    ...viewButtonStyle,
-    marginTop: "24px",
-  }}
-  onClick={() =>
-    router.push(
-      `/reports/daily-care/${latestRecord.id}`
-    )
-  }
->
-  View Details
-</button>
+    <button
+      style={{
+        ...viewButtonStyle,
+        marginTop: "24px",
+      }}
+      onClick={() =>
+        router.push(
+          `/reports/daily-care/${latestRecord.id}`
+        )
+      }
+    >
+      View Details
+    </button>
 
   </div>
 
 )}
 
-        {!loadingHistory &&
+{!loadingHistory &&
  historyRecords.length > 0 && (
 
   <>
 
     <h2
-      style={{
-        marginBottom: "20px",
-      }}
+        style={{
+            marginBottom: "20px",
+        }}
     >
-      📚 History
+        📚 History
     </h2>
 
-<div style={tableContainerStyle}>
+    <div style={historySelectorStyle}>
 
-  <table style={tableStyle}>
+        <label style={historyLabelStyle}>
+            Select Historical Record
+        </label>
 
-            <thead>
+        <div style={historyActionRowStyle}>
 
- <tr style={tableHeaderRowStyle}>
+            <select
+                value={selectedHistoryId}
+                onChange={(e) =>
+                    setSelectedHistoryId(e.target.value)
+                }
+                style={historyDropdownCompactStyle}
+            >
 
-  <th style={headerCellStyle}>
-    Date
-  </th>
+                {historyRecords.map(record => (
 
-  <th style={headerCellStyle}>
-    Temp
-  </th>
-
-  <th style={headerCellStyle}>
-    BP
-  </th>
-
-  <th style={headerCellStyle}>
-    Pulse
-  </th>
-
-  <th style={headerCellStyle}>
-    SpO₂
-  </th>
-
-  <th style={headerCellStyle}>
-    Action
-  </th>
-
-</tr>
-
-            </thead>
-
-            <tbody>
-
-              {historyRecords.map(record => (
-
-<tr
-  key={record.id}
-  style={tableRowStyle}
->
-
-<td style={tableCellStyle}>
-
-{formatRecordedDate(record.recordedAt)}
-
-                  </td>
-
-<td style={tableCellStyle}>
-
-{record.temperature != null
-  ? `${record.temperature}°${record.temperatureUnit}`
-  : "-"}
-
-                  </td>
-
-<td style={tableCellStyle}>
-
-                    {record.systolic &&
-                     record.diastolic
-                      ? `${record.systolic}/${record.diastolic}`
-                      : "-"}
-
-                  </td>
-
-<td style={tableCellStyle}>
-
-                    {record.pulse ?? "-"}
-
-                  </td>
-
-<td style={tableCellStyle}>
-
-                    {record.spo2
-                      ? `${record.spo2}%`
-                      : "-"}
-
-                  </td>
-
-<td style={tableCellStyle}>
-
-                    <button
-                      style={viewButtonStyle}
-                      onClick={() =>
-                        router.push(
-                          `/reports/daily-care/${record.id}`
-                        )
-                      }
+                    <option
+                        key={record.id}
+                        value={record.id}
                     >
-                      View
-                    </button>
+                        {formatRecordedDate(record.recordedAt)}
+                    </option>
 
-                  </td>
+                ))}
 
-                </tr>
+            </select>
 
-              ))}
+            <button
+                type="button"
+                style={viewButtonStyle}
+                onClick={() => {
 
-            </tbody>
+                    if (!selectedHistoryId) return;
 
-</table>
+                    router.push(
+                        `/reports/daily-care/${selectedHistoryId}`
+                    );
 
-</div>
+                }}
+            >
+                View Details
+            </button>
 
-  </>
+        </div>
+
+    </div>
+
+</>
 
 )}
 
@@ -731,3 +652,34 @@ const viewButtonStyle: React.CSSProperties = {
   fontWeight: 600,
 };
 
+const historySelectorStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+    padding: "20px",
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    background: "#ffffff",
+};
+
+const historyLabelStyle: React.CSSProperties = {
+    fontWeight: 600,
+    color: "#374151",
+};
+
+const historyActionRowStyle: React.CSSProperties = {
+    display: "flex",
+    gap: "12px",
+    alignItems: "center",
+    flexWrap: "wrap",
+};
+
+const historyDropdownCompactStyle: React.CSSProperties = {
+    width: "320px",
+    maxWidth: "100%",
+    padding: "12px 14px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    fontSize: "15px",
+    background: "#ffffff",
+};

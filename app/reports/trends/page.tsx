@@ -90,11 +90,13 @@ useEffect(() => {
 const [period, setPeriod] =
   useState<TrendPeriod>(7);
 
+const today = new Date().toISOString().split("T")[0];
+
 const [startDate, setStartDate] =
-  useState("");
+  useState(today);
 
 const [endDate, setEndDate] =
-  useState("");
+  useState(today);
 
 
   const [showTemperature, setShowTemperature] =
@@ -394,47 +396,28 @@ console.log(
           pageIcon="📈"
         />
 
-        <p
-          style={{
-            color: "#6b7280",
-            marginTop: "16px",
-            marginBottom: "24px",
-          }}
-        >
-          Choose how you would like to analyse your
-          patient's health trends.
-        </p>
+
 
         {/*------------------------------------------------*/}
         {/* Patient Selection */}
         {/*------------------------------------------------*/}
 
-        <section style={cardStyle}>
-
-          <h2>👤 Patient</h2>
-
 <div
     style={{
-        width: "100%",
-        padding: "12px",
-        borderRadius: "10px",
-        border: "1px solid #d1d5db",
-        background: "#f9fafb",
-        marginTop: "16px",
-        fontSize: "15px",
-        fontWeight: 500,
+        marginTop: "20px",
+        marginBottom: "24px",
+        fontSize: "16px",
+        fontWeight: 600,
+        color: "#374151",
     }}
 >
-    👤 {
+    👤 Clinical Trends for: {
         patients.find(
             (patient) =>
                 patient.id === selectedPatientId
         )?.fullName ?? ""
     }
 </div>
-
-        </section>
-
 
 {/*------------------------------------------------*/}
 {/* Time Period */}
@@ -511,52 +494,120 @@ console.log(
   </div>
 
 
-  {/*------------------------------------------------*/}
-  {/* Custom Date Range */}
-  {/*------------------------------------------------*/}
+{/*------------------------------------------------*/}
+{/* Custom Date Range */}
+{/*------------------------------------------------*/}
 
-  <div
+<div
     style={{
-      marginTop: "20px",
-      display: "flex",
-      gap: "12px",
-      flexWrap: "wrap",
+        marginTop: "28px",
+        marginBottom: "24px",
+        display: "flex",
+        alignItems: "center",
+        color: "#6b7280",
+        fontWeight: 600,
     }}
-  >
+>
+
+    <div
+        style={{
+            flex: 1,
+            height: "1px",
+            background: "#d1d5db",
+        }}
+    />
+
+    <span
+        style={{
+            padding: "0 16px",
+        }}
+    >
+        OR
+    </span>
+
+    <div
+        style={{
+            flex: 1,
+            height: "1px",
+            background: "#d1d5db",
+        }}
+    />
+
+</div>
+
+<div
+    style={{
+        marginTop: "24px",
+        display: "flex",
+        gap: "16px",
+        flexDirection: "row",
+        flexWrap: "wrap",
+    }}
+>
+
+<label
+    style={{
+        display: "block",
+        fontWeight: 600,
+        marginBottom: "8px",
+    }}
+>
+    📅 Since Date
+</label>
 
 <input
-  type="date"
-  value={startDate}
-  onChange={(e) => {
-    setStartDate(e.target.value);
+    type="date"
+    value={startDate}
+    onChange={(e) => {
 
-    if (e.target.value) {
-      setPeriod(-2);
-    }
-  }}
-  style={{
-    padding: "10px",
-    borderRadius: "8px",
-    border: "1px solid #d1d5db",
-  }}
+        setStartDate(e.target.value);
+
+        if (e.target.value) {
+            setPeriod(-2);
+        }
+
+    }}
+    style={{
+        width: "100%",
+        padding: "12px",
+        borderRadius: "10px",
+        border: "1px solid #d1d5db",
+        background: "#ffffff",
+        fontSize: "15px",
+    }}
 />
 
 
-<input
-  type="date"
-  value={endDate}
-  onChange={(e) => {
-    setEndDate(e.target.value);
+<label
+    style={{
+        display: "block",
+        fontWeight: 600,
+        marginBottom: "8px",
+    }}
+>
+    📅 Until Date
+</label>
 
-    if (e.target.value) {
-      setPeriod(-2);
-    }
-  }}
-  style={{
-    padding: "10px",
-    borderRadius: "8px",
-    border: "1px solid #d1d5db",
-  }}
+<input
+    type="date"
+    value={endDate}
+    onChange={(e) => {
+
+        setEndDate(e.target.value);
+
+        if (e.target.value) {
+            setPeriod(-2);
+        }
+
+    }}
+    style={{
+        width: "100%",
+        padding: "12px",
+        borderRadius: "10px",
+        border: "1px solid #d1d5db",
+        background: "#ffffff",
+        fontSize: "15px",
+    }}
 />
 
   </div>

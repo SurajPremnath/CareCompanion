@@ -47,8 +47,11 @@ export default function SelfAssessmentHistoryPage() {
   const [latestAssessment, setLatestAssessment] =
     useState<AssessmentRecord | null>(null);
 
-  const [history, setHistory] =
-    useState<AssessmentRecord[]>([]);
+const [history, setHistory] =
+  useState<AssessmentRecord[]>([]);
+
+const [selectedHistoryId, setSelectedHistoryId] =
+  useState("");
 
 const [profile, setProfile] =
   useState<Profile | null>(null);
@@ -131,9 +134,13 @@ setProfile(currentProfile);
           records[0]
         );
 
-        setHistory(
-          records.slice(1)
-        );
+const previousRecords = records.slice(1);
+
+setHistory(previousRecords);
+
+setSelectedHistoryId(
+    previousRecords[0]?.id ?? ""
+);
 
       }
       finally {
@@ -411,28 +418,73 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
 
         )}
 
-        {!error &&
-          history.length > 0 && (
+{!error &&
+  history.length > 0 && (
 
-          <>
+<>
 
-            <h2
-              style={{
-                marginBottom: "20px",
-              }}
+    <h2
+        style={{
+            marginBottom: "20px",
+        }}
+    >
+        📚 Assessment History
+    </h2>
+
+    <div style={historySelectorStyle}>
+
+        <label style={historyLabelStyle}>
+            Select Historical Assessment
+        </label>
+
+        <div style={historyActionRowStyle}>
+
+            <select
+                value={selectedHistoryId}
+                onChange={(e) =>
+                    setSelectedHistoryId(e.target.value)
+                }
+                style={historyDropdownCompactStyle}
             >
-              📚 Assessment History
-            </h2>
 
-<ReportTable
-  columns={columns}
-  data={history}
-/>
+                {history.map(assessment => (
 
-          </>
+                    <option
+                        key={assessment.id}
+                        value={assessment.id}
+                    >
+                        {new Date(
+                            assessment.assessmentDate
+                        ).toLocaleString()}
+                    </option>
 
-        )}
+                ))}
 
+            </select>
+
+            <button
+                type="button"
+                style={viewButtonStyle}
+                onClick={() => {
+
+                    if (!selectedHistoryId) return;
+
+                    router.push(
+                        `/reports/assessment/self/${selectedHistoryId}`
+                    );
+
+                }}
+            >
+                View Details
+            </button>
+
+        </div>
+
+    </div>
+
+</>
+
+)}
         <button
     style={backButtonStyle}
     onClick={() =>
@@ -511,4 +563,36 @@ const viewButtonStyle: React.CSSProperties = {
     cursor: "pointer",
     fontWeight: 600,
     marginTop: "24px",
+};
+
+const historySelectorStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+    padding: "20px",
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    background: "#ffffff",
+};
+
+const historyLabelStyle: React.CSSProperties = {
+    fontWeight: 600,
+    color: "#374151",
+};
+
+const historyActionRowStyle: React.CSSProperties = {
+    display: "flex",
+    gap: "12px",
+    alignItems: "center",
+    flexWrap: "wrap",
+};
+
+const historyDropdownCompactStyle: React.CSSProperties = {
+    width: "320px",
+    maxWidth: "100%",
+    padding: "12px 14px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    fontSize: "15px",
+    background: "#ffffff",
 };

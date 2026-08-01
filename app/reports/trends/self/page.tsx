@@ -90,11 +90,13 @@ const [period, setPeriod] =
 // Used when doctor wants analysis from a specific date
 //------------------------------------------------------------
 
+const today = new Date().toISOString().split("T")[0];
+
 const [startDate, setStartDate] =
-  useState("");
+  useState(today);
 
 const [endDate, setEndDate] =
-  useState("");
+  useState(today);
 
 
   const [showTemperature, setShowTemperature] =
@@ -327,53 +329,23 @@ endDate:
           pageIcon="📈"
         />
 
-        <p
-          style={{
-            color: "#6b7280",
-            marginTop: "12px",
-marginBottom: isMobile
-  ? "18px"
-  : "24px",
-          }}
-        >
-          Choose how you would like to analyse your
-          patient's health trends.
-        </p>
+
 
 {/*------------------------------------------------*/}
 {/* Logged-in User */}
 {/*------------------------------------------------*/}
 
-<section style={cardStyle}>
-
-  <h2>👤 User</h2>
-
-  <p
+<div
     style={{
-      color: "#6b7280",
-      marginTop: "12px",
-      marginBottom: "8px",
+        marginTop: "20px",
+        marginBottom: "24px",
+        fontSize: "16px",
+        fontWeight: 600,
+        color: "#374151",
     }}
-  >
-    Clinical trends will be generated for:
-  </p>
-
-  <div
-    style={{
-      marginTop: "12px",
-      padding: isMobile
-  ? "16px"
-  : "14px",
-      border: "1px solid #d1d5db",
-      borderRadius: "10px",
-      background: "#f9fafb",
-      fontWeight: 600,
-    }}
-  >
-    {userName || "Loading..."}
-  </div>
-
-</section>
+>
+    👤 Clinical Trends for: {userName || "Loading..."}
+</div>
 
 
 {/*------------------------------------------------*/}
@@ -469,93 +441,139 @@ period === -1
   {/* Custom Date Range */}
   {/*------------------------------------------------*/}
 
-  <div
+<div
     style={{
-      marginTop: "24px",
-      display: "flex",
-      gap: "16px",
-      flexDirection: isMobile
-        ? "column"
-        : "row",
+        marginTop: "28px",
+        marginBottom: "24px",
+        display: "flex",
+        alignItems: "center",
+        color: "#6b7280",
+        fontWeight: 600,
     }}
-  >
+>
 
-    <div>
-
-      <label
+    <div
         style={{
-          display: "block",
-          fontWeight: 600,
-          marginBottom: "8px",
+            flex: 1,
+            height: "1px",
+            background: "#d1d5db",
         }}
-      >
-        Since Date
-      </label>
+    />
 
+    <span
+        style={{
+            padding: "0 16px",
+        }}
+    >
+        OR
+    </span>
 
-      <input
+    <div
+        style={{
+            flex: 1,
+            height: "1px",
+            background: "#d1d5db",
+        }}
+    />
+
+</div>
+
+<div
+    style={{
+        marginTop: "24px",
+        display: "flex",
+        gap: "16px",
+        flexDirection: "row",
+        flexWrap: "wrap",
+    }}
+>
+
+<div
+    style={{
+        flex: 1,
+        minWidth: "180px",
+    }}
+>
+
+    <label
+        style={{
+            display: "block",
+            fontWeight: 600,
+            marginBottom: "8px",
+        }}
+    >
+        📅 Since Date
+    </label>
+
+    <input
         type="date"
+        placeholder="Select start date"
         value={startDate}
-onChange={(e) => {
+        onChange={(e) => {
 
-    setStartDate(
-        e.target.value
-    );
+            setStartDate(
+                e.target.value
+            );
 
-    setPeriod(
-        -2
-    );
+            setPeriod(-2);
 
-}}
+        }}
 
         style={{
-          padding: "10px",
-          borderRadius: "8px",
-          border:
-            "1px solid #d1d5db",
+            width: "100%",
+            padding: "12px",
+            borderRadius: "10px",
+            border: "1px solid #d1d5db",
+            background: "#ffffff",
+            fontSize: "15px",
         }}
-      />
+    />
 
-    </div>
+</div>
 
 
+<div
+    style={{
+        flex: 1,
+        minWidth: "180px",
+    }}
+>
 
-    <div>
-
-      <label
+    <label
         style={{
-          display: "block",
-          fontWeight: 600,
-          marginBottom: "8px",
+            display: "block",
+            fontWeight: 600,
+            marginBottom: "8px",
         }}
-      >
-        Until Date
-      </label>
+    >
+        📅 Until Date
+    </label>
 
-
-      <input
+    <input
         type="date"
+        placeholder="Select end date"
         value={endDate}
-onChange={(e)=>{
+        onChange={(e) => {
 
-    setEndDate(
-        e.target.value
-    );
+            setEndDate(
+                e.target.value
+            );
 
-    setPeriod(
-        -2
-    );
+            setPeriod(-2);
 
-}}
-        style={{
-          padding: "10px",
-          borderRadius: "8px",
-          border:
-            "1px solid #d1d5db",
         }}
-      />
 
-    </div>
+        style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "10px",
+            border: "1px solid #d1d5db",
+            background: "#ffffff",
+            fontSize: "15px",
+        }}
+    />
+
+</div>
 
 
   </div>
