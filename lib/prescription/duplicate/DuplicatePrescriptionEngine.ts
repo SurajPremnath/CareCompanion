@@ -19,11 +19,18 @@ import { DoctorNormalizer } from "./normalizers/DoctorNormalizer";
 
 import { MedicineNormalizer } from "./normalizers/MedicineNormalizer";
 
+export type DuplicateStatus =
+    | "UNIQUE"
+    | "EXACT_DUPLICATE";
+
 export interface DuplicateMatchResult {
-    isDuplicate: boolean;
-    confidence: number;
+
+    status: DuplicateStatus;
+
     matchedPrescriptionId: string | null;
+
     reason: string;
+
 }
 
 export class DuplicatePrescriptionEngine {
@@ -48,11 +55,10 @@ const comparison =
 
 return {
 
-    isDuplicate:
-        comparison.isDuplicate,
-
-    confidence:
-        comparison.overallConfidence,
+    status:
+        comparison.isDuplicate
+            ? "EXACT_DUPLICATE"
+            : "UNIQUE",
 
     matchedPrescriptionId:
         comparison.isDuplicate
@@ -172,34 +178,14 @@ previousValue:
 
 });
 
-const totalConfidence =
-    parameters.reduce(
-
-        (sum, parameter) =>
-
-            sum + parameter.confidence,
-
-        0,
-
-    );
-
-const overallConfidence =
-    Math.round(
-
-        totalConfidence / parameters.length,
-
-    );
-
 const isDuplicate =
-    overallConfidence >= 80;
 
-alert(JSON.stringify(parameters, null, 2));
+    sameDoctor
+    && sameHospital;
 
 return {
 
     isDuplicate,
-
-    overallConfidence,
 
     parameters,
 
@@ -248,9 +234,6 @@ const previousMedicines = previous
     )
     .sort();
 
-
-console.log(currentMedicines);
-console.log(previousMedicines);
 
 
     return currentMedicines.every(

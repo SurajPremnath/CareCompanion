@@ -6,4 +6,8 @@ export interface MedicineResolver {
         searchText: string
     ): Promise<MedicineMaster[]>;
 
+    getStrengthsByBrandName(
+        brandName: string
+    ): Promise<string[]>;
+
 }

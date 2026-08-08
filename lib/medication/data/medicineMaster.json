@@ -24,7 +24,7 @@
   },
   {
     "id": "MED000026",
-    "brandName": "Amlodac 5",
+    "brandName": "Amlodac",
     "genericName": "Amlodipine",
     "strength": "5 mg",
     "formulation": "Tablet",
@@ -47,7 +47,7 @@
   },
   {
     "id": "MED000025",
-    "brandName": "Amlong 5",
+    "brandName": "Amlong",
     "genericName": "Amlodipine",
     "strength": "5 mg",
     "formulation": "Tablet",
@@ -70,7 +70,7 @@
   },
   {
     "id": "MED000018",
-    "brandName": "Amoxyclav 625",
+    "brandName": "Amoxyclav",
     "genericName": "Amoxicillin + Clavulanic Acid",
     "strength": "625 mg",
     "formulation": "Tablet",
@@ -137,7 +137,7 @@
   },
   {
     "id": "MED000065",
-    "brandName": "Atorva 20",
+    "brandName": "Atorva",
     "genericName": "Atorvastatin",
     "strength": "20 mg",
     "formulation": "Tablet",
@@ -159,7 +159,7 @@
   },
   {
     "id": "MED000011",
-    "brandName": "Augmentin 625",
+    "brandName": "Augmentin",
     "genericName": "Amoxicillin + Clavulanic Acid",
     "strength": "625 mg",
     "formulation": "Tablet",
@@ -206,7 +206,7 @@
   },
   {
     "id": "MED000014",
-    "brandName": "Azee 500",
+    "brandName": "Azee",
     "genericName": "Azithromycin",
     "strength": "500 mg",
     "formulation": "Tablet",
@@ -229,7 +229,7 @@
   },
   {
     "id": "MED000013",
-    "brandName": "Azithral 500",
+    "brandName": "Azithral",
     "genericName": "Azithromycin",
     "strength": "500 mg",
     "formulation": "Tablet",
@@ -274,7 +274,7 @@
   },
   {
     "id": "MED000096",
-    "brandName": "Bisoprol 5",
+    "brandName": "Bisoprol",
     "genericName": "Bisoprolol",
     "strength": "5 mg",
     "formulation": "Tablet",
@@ -296,7 +296,7 @@
   },
   {
     "id": "MED000099",
-    "brandName": "Brilinta 90",
+    "brandName": "Brilinta",
     "genericName": "Ticagrelor",
     "strength": "90 mg",
     "formulation": "Tablet",
@@ -318,7 +318,7 @@
   },
   {
     "id": "MED000007",
-    "brandName": "Brufen 400",
+    "brandName": "Brufen",
     "genericName": "Ibuprofen",
     "strength": "400 mg",
     "formulation": "Tablet",
@@ -365,7 +365,7 @@
   },
   {
     "id": "MED000004",
-    "brandName": "Calpol 650",
+    "brandName": "Calpol",
     "genericName": "Paracetamol",
     "strength": "650 mg",
     "formulation": "Tablet",
@@ -412,7 +412,7 @@
   },
   {
     "id": "MED000028",
-    "brandName": "Cardace 5",
+    "brandName": "Cardace",
     "genericName": "Ramipril",
     "strength": "5 mg",
     "formulation": "Tablet",
@@ -435,7 +435,7 @@
   },
   {
     "id": "MED000067",
-    "brandName": "Cardivas 6.25",
+    "brandName": "Cardivas",
     "genericName": "Carvedilol",
     "strength": "6.25 mg",
     "formulation": "Tablet",
@@ -457,7 +457,7 @@
   },
   {
     "id": "MED000016",
-    "brandName": "Cefix 200",
+    "brandName": "Cefix",
     "genericName": "Cefixime",
     "strength": "200 mg",
     "formulation": "Tablet",
@@ -480,7 +480,7 @@
   },
   {
     "id": "MED000117",
-    "brandName": "Ceftum 500",
+    "brandName": "Ceftum",
     "genericName": "Cefuroxime",
     "strength": "500 mg",
     "formulation": "Tablet",
@@ -502,7 +502,7 @@
   },
   {
     "id": "MED000091",
-    "brandName": "Cilacar 10",
+    "brandName": "Cilacar",
     "genericName": "Cilnidipine",
     "strength": "10 mg",
     "formulation": "Tablet",
@@ -546,7 +546,7 @@
   },
   {
     "id": "MED000019",
-    "brandName": "Ciplox 500",
+    "brandName": "Ciplox",
     "genericName": "Ciprofloxacin",
     "strength": "500 mg",
     "formulation": "Tablet",
@@ -569,7 +569,7 @@
   },
   {
     "id": "MED000093",
-    "brandName": "Clinidip 10",
+    "brandName": "Clinidip",
     "genericName": "Cilnidipine",
     "strength": "10 mg",
     "formulation": "Tablet",
@@ -661,7 +661,7 @@
   },
   {
     "id": "MED000097",
-    "brandName": "Concor 5",
+    "brandName": "Concor",
     "genericName": "Bisoprolol",
     "strength": "5 mg",
     "formulation": "Tablet",
@@ -682,29 +682,77 @@
     "isActive": true
   },
   {
-    "id": "MED000003",
-    "brandName": "Crocin 650",
-    "genericName": "Paracetamol",
-    "strength": "650 mg",
-    "formulation": "Tablet",
-    "manufacturer": "Haleon",
-    "route": "Oral",
-    "schedule": "",
-    "therapeuticClass": "",
-    "atcCode": "",
-    "searchKeys": [
-      "crocin650",
-      "crocin",
-      "paracetamol"
-    ],
-    "aliases": [],
-    "commonAdministration": [],
-    "commonFrequency": [],
-    "lasa": false,
-    "highRisk": false,
-    "controlledDrug": false,
-    "isActive": true
-  },
+  "id": "MED000003",
+  "brandName": "Crocin",
+  "genericName": "Paracetamol",
+  "strength": "500 mg",
+  "formulation": "Tablet",
+  "manufacturer": "Haleon",
+  "route": "Oral",
+  "schedule": "",
+  "therapeuticClass": "",
+  "atcCode": "",
+  "searchKeys": [
+    "crocin500",
+    "crocin",
+    "paracetamol"
+  ],
+  "aliases": [],
+  "commonAdministration": [],
+  "commonFrequency": [],
+  "lasa": false,
+  "highRisk": false,
+  "controlledDrug": false,
+  "isActive": true
+},
+{
+  "id": "MED000003A",
+  "brandName": "Crocin",
+  "genericName": "Paracetamol",
+  "strength": "650 mg",
+  "formulation": "Tablet",
+  "manufacturer": "Haleon",
+  "route": "Oral",
+  "schedule": "",
+  "therapeuticClass": "",
+  "atcCode": "",
+  "searchKeys": [
+    "crocin650",
+    "crocin",
+    "paracetamol"
+  ],
+  "aliases": [],
+  "commonAdministration": [],
+  "commonFrequency": [],
+  "lasa": false,
+  "highRisk": false,
+  "controlledDrug": false,
+  "isActive": true
+},
+{
+  "id": "MED000003B",
+  "brandName": "Crocin",
+  "genericName": "Paracetamol",
+  "strength": "1000 mg",
+  "formulation": "Tablet",
+  "manufacturer": "Haleon",
+  "route": "Oral",
+  "schedule": "",
+  "therapeuticClass": "",
+  "atcCode": "",
+  "searchKeys": [
+    "crocin1000",
+    "crocin",
+    "paracetamol"
+  ],
+  "aliases": [],
+  "commonAdministration": [],
+  "commonFrequency": [],
+  "lasa": false,
+  "highRisk": false,
+  "controlledDrug": false,
+  "isActive": true
+},
   {
     "id": "MED000056",
     "brandName": "Deriphyllin",
@@ -751,30 +799,80 @@
     "isActive": true
   },
   {
-    "id": "MED000002",
-    "brandName": "Dolo 650",
-    "genericName": "Paracetamol",
-    "strength": "650 mg",
-    "formulation": "Tablet",
-    "manufacturer": "Micro Labs",
-    "route": "Oral",
-    "schedule": "",
-    "therapeuticClass": "",
-    "atcCode": "",
-    "searchKeys": [
-      "dolo650",
-      "dolo",
-      "paracetamol",
-      "pcm650"
-    ],
-    "aliases": [],
-    "commonAdministration": [],
-    "commonFrequency": [],
-    "lasa": false,
-    "highRisk": false,
-    "controlledDrug": false,
-    "isActive": true
-  },
+  "id": "MED000002",
+  "brandName": "Dolo",
+  "genericName": "Paracetamol",
+  "strength": "500 mg",
+  "formulation": "Tablet",
+  "manufacturer": "Micro Labs",
+  "route": "Oral",
+  "schedule": "",
+  "therapeuticClass": "",
+  "atcCode": "",
+  "searchKeys": [
+    "dolo500",
+    "dolo",
+    "paracetamol",
+    "pcm500"
+  ],
+  "aliases": [],
+  "commonAdministration": [],
+  "commonFrequency": [],
+  "lasa": false,
+  "highRisk": false,
+  "controlledDrug": false,
+  "isActive": true
+},
+{
+  "id": "MED000002A",
+  "brandName": "Dolo",
+  "genericName": "Paracetamol",
+  "strength": "650 mg",
+  "formulation": "Tablet",
+  "manufacturer": "Micro Labs",
+  "route": "Oral",
+  "schedule": "",
+  "therapeuticClass": "",
+  "atcCode": "",
+  "searchKeys": [
+    "dolo650",
+    "dolo",
+    "paracetamol",
+    "pcm650"
+  ],
+  "aliases": [],
+  "commonAdministration": [],
+  "commonFrequency": [],
+  "lasa": false,
+  "highRisk": false,
+  "controlledDrug": false,
+  "isActive": true
+},
+{
+  "id": "MED000002B",
+  "brandName": "Dolo",
+  "genericName": "Paracetamol",
+  "strength": "1000 mg",
+  "formulation": "Tablet",
+  "manufacturer": "Micro Labs",
+  "route": "Oral",
+  "schedule": "",
+  "therapeuticClass": "",
+  "atcCode": "",
+  "searchKeys": [
+    "dolo1000",
+    "dolo",
+    "paracetamol",
+    "pcm1000"
+  ],
+  "aliases": [],
+  "commonAdministration": [],
+  "commonFrequency": [],
+  "lasa": false,
+  "highRisk": false,
+  "controlledDrug": false,
+  "isActive": true
+},
   {
     "id": "MED000054",
     "brandName": "Duolin",
@@ -799,7 +897,7 @@
   },
   {
     "id": "MED000061",
-    "brandName": "Ecosprin 75",
+    "brandName": "Ecosprin",
     "genericName": "Aspirin",
     "strength": "75 mg",
     "formulation": "Tablet",
@@ -822,7 +920,7 @@
   },
   {
     "id": "MED000051",
-    "brandName": "Foracort 200",
+    "brandName": "Foracort",
     "genericName": "Budesonide + Formoterol",
     "strength": "200/6",
     "formulation": "Inhaler",
@@ -844,7 +942,7 @@
   },
   {
     "id": "MED000038",
-    "brandName": "Forxiga 10",
+    "brandName": "Forxiga",
     "genericName": "Dapagliflozin",
     "strength": "10 mg",
     "formulation": "Tablet",
@@ -867,7 +965,7 @@
   },
   {
     "id": "MED000076",
-    "brandName": "Gabapin 300",
+    "brandName": "Gabapin",
     "genericName": "Gabapentin",
     "strength": "300 mg",
     "formulation": "Capsule",
@@ -957,7 +1055,7 @@
   },
   {
     "id": "MED000031",
-    "brandName": "Glycomet 500",
+    "brandName": "Glycomet",
     "genericName": "Metformin",
     "strength": "500 mg",
     "formulation": "Tablet",
@@ -1048,7 +1146,7 @@
   },
   {
     "id": "MED000098",
-    "brandName": "Ivabrad 5",
+    "brandName": "Ivabrad",
     "genericName": "Ivabradine",
     "strength": "5 mg",
     "formulation": "Tablet",
@@ -1093,7 +1191,7 @@
   },
   {
     "id": "MED000037",
-    "brandName": "Jardiance 10",
+    "brandName": "Jardiance",
     "genericName": "Empagliflozin",
     "strength": "10 mg",
     "formulation": "Tablet",
@@ -1161,7 +1259,7 @@
   },
   {
     "id": "MED000020",
-    "brandName": "Levoflox 500",
+    "brandName": "Levoflox",
     "genericName": "Levofloxacin",
     "strength": "500 mg",
     "formulation": "Tablet",
@@ -1230,7 +1328,7 @@
   },
   {
     "id": "MED000027",
-    "brandName": "Losar 50",
+    "brandName": "Losar",
     "genericName": "Losartan",
     "strength": "50 mg",
     "formulation": "Tablet",
@@ -1302,7 +1400,7 @@
   },
   {
     "id": "MED000029",
-    "brandName": "Met XL 50",
+    "brandName": "Met XL",
     "genericName": "Metoprolol",
     "strength": "50 mg",
     "formulation": "Tablet",
@@ -1440,7 +1538,7 @@
   },
   {
     "id": "MED000078",
-    "brandName": "Nexito 10",
+    "brandName": "Nexito",
     "genericName": "Escitalopram",
     "strength": "10 mg",
     "formulation": "Tablet",
@@ -1462,7 +1560,7 @@
   },
   {
     "id": "MED000086",
-    "brandName": "Nexpro 40",
+    "brandName": "Nexpro",
     "genericName": "Esomeprazole",
     "strength": "40 mg",
     "formulation": "Tablet",
@@ -1552,7 +1650,7 @@
   },
   {
     "id": "MED000023",
-    "brandName": "Olmesart 20",
+    "brandName": "Olmesart",
     "genericName": "Olmesartan",
     "strength": "20 mg",
     "formulation": "Tablet",
@@ -1575,7 +1673,7 @@
   },
   {
     "id": "MED000024",
-    "brandName": "Olmezest 20",
+    "brandName": "Olmezest",
     "genericName": "Olmesartan",
     "strength": "20 mg",
     "formulation": "Tablet",
@@ -1644,7 +1742,7 @@
   },
   {
     "id": "MED000041",
-    "brandName": "Pan 40",
+    "brandName": "Pan",
     "genericName": "Pantoprazole",
     "strength": "40 mg",
     "formulation": "Tablet",
@@ -1689,7 +1787,7 @@
   },
   {
     "id": "MED000042",
-    "brandName": "Pantocid 40",
+    "brandName": "Pantocid",
     "genericName": "Pantoprazole",
     "strength": "40 mg",
     "formulation": "Tablet",
@@ -1712,7 +1810,7 @@
   },
   {
     "id": "MED000090",
-    "brandName": "Pantosec 40",
+    "brandName": "Pantosec",
     "genericName": "Pantoprazole",
     "strength": "40 mg",
     "formulation": "Tablet",
@@ -1758,7 +1856,7 @@
   },
   {
     "id": "MED000079",
-    "brandName": "Petril 0.5",
+    "brandName": "Petril",
     "genericName": "Clonazepam",
     "strength": "0.5 mg",
     "formulation": "Tablet",
@@ -1780,7 +1878,7 @@
   },
   {
     "id": "MED000077",
-    "brandName": "Pregabalin 75",
+    "brandName": "Pregabalin",
     "genericName": "Pregabalin",
     "strength": "75 mg",
     "formulation": "Capsule",
@@ -1802,7 +1900,7 @@
   },
   {
     "id": "MED000030",
-    "brandName": "Prolomet XL 50",
+    "brandName": "Prolomet XL",
     "genericName": "Metoprolol",
     "strength": "50 mg",
     "formulation": "Tablet",
@@ -1871,7 +1969,7 @@
   },
   {
     "id": "MED000064",
-    "brandName": "Rosuvas 10",
+    "brandName": "Rosuvas",
     "genericName": "Rosuvastatin",
     "strength": "10 mg",
     "formulation": "Tablet",
@@ -1916,7 +2014,7 @@
   },
   {
     "id": "MED000060",
-    "brandName": "Seroflo 250",
+    "brandName": "Seroflo",
     "genericName": "Salmeterol + Fluticasone",
     "strength": "250",
     "formulation": "Inhaler",
@@ -1938,7 +2036,7 @@
   },
   {
     "id": "MED000071",
-    "brandName": "Shelcal 500",
+    "brandName": "Shelcal",
     "genericName": "Calcium + Vitamin D3",
     "strength": "null",
     "formulation": "Tablet",
@@ -1960,7 +2058,7 @@
   },
   {
     "id": "MED000087",
-    "brandName": "Sompraz 40",
+    "brandName": "Sompraz",
     "genericName": "Esomeprazole",
     "strength": "40 mg",
     "formulation": "Tablet",
@@ -2004,7 +2102,7 @@
   },
   {
     "id": "MED000066",
-    "brandName": "Storvas 10",
+    "brandName": "Storvas",
     "genericName": "Atorvastatin",
     "strength": "10 mg",
     "formulation": "Tablet",
@@ -2117,7 +2215,7 @@
   },
   {
     "id": "MED000015",
-    "brandName": "Taxim O 200",
+    "brandName": "Taxim O",
     "genericName": "Cefixime",
     "strength": "200 mg",
     "formulation": "Tablet",
@@ -2140,7 +2238,7 @@
   },
   {
     "id": "MED000021",
-    "brandName": "Telma 40",
+    "brandName": "Telma",
     "genericName": "Telmisartan",
     "strength": "40 mg",
     "formulation": "Tablet",
@@ -2163,7 +2261,7 @@
   },
   {
     "id": "MED000022",
-    "brandName": "Telma 80",
+    "brandName": "Telma",
     "genericName": "Telmisartan",
     "strength": "80 mg",
     "formulation": "Tablet",
@@ -2232,7 +2330,7 @@
   },
   {
     "id": "MED000080",
-    "brandName": "Zapiz 0.5",
+    "brandName": "Zapiz",
     "genericName": "Clonazepam",
     "strength": "0.5 mg",
     "formulation": "Tablet",
@@ -2278,7 +2376,7 @@
   },
 {
   "id": "MED000118",
-  "brandName": "Olmetec 20",
+  "brandName": "Olmetec",
   "genericName": "Olmesartan",
   "strength": "20 mg",
   "formulation": "Tablet",

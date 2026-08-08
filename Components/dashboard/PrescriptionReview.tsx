@@ -113,6 +113,8 @@ const [activeTab, setActiveTab] =
         "patient"
     );
 
+
+
 const [
     medicineTimings,
     setMedicineTimings,
@@ -236,6 +238,7 @@ const [
 
 );
 
+
 const [
     reviewPrescription,
     setReviewPrescription,
@@ -243,14 +246,39 @@ const [
 
     ...prescription,
 
-consultationMode:
-        prescription.consultationMode ?? "IN_PERSON",
+    consultationMode:
+        prescription.consultationMode ??
+        "IN_PERSON",
 
 });
 
+const [
+    reviewMode,
+    setReviewMode,
+] = useState(false);
+
+const [
+    prescriptionSaved,
+    setPrescriptionSaved,
+] = useState(false);
+
+const [
+    reviewCompleted,
+    setReviewCompleted,
+] = useState(false);
+
+const [
+    reviewSummary,
+    setReviewSummary,
+] = useState<{
+    validated: number;
+    excluded: number;
+    pending: string[];
+} | null>(null);
+
 const handleMedicineReviewStatusChange = (
     index: number,
-    status: "REVIEW" | "REVIEWED"
+    status: "REVIEW" | "VERIFIED"
 ) => {
 
     setReviewPrescription(previous => {
@@ -277,6 +305,50 @@ const handleMedicineReviewStatusChange = (
 
 };
 
+const handleReviewMedicines = () => {
+
+    setReviewMode(true);
+
+
+};
+
+const handleReviewCompleted = () => {
+
+const pendingMedicines =
+    reviewPrescription.medicines.filter(
+        medicine =>
+            medicine.reviewStatus === "REVIEW"
+    );
+
+const validatedCount =
+    reviewPrescription.medicines.filter(
+        medicine =>
+            medicine.reviewStatus === "VERIFIED"
+    ).length;
+
+const excludedCount =
+    reviewPrescription.medicines.filter(
+        medicine =>
+            medicine.reviewStatus === "EXCLUDED"
+    ).length;
+
+setReviewSummary({
+
+    validated: validatedCount,
+
+    excluded: excludedCount,
+
+    pending: pendingMedicines.map(
+        medicine => medicine.name
+    ),
+
+});
+
+    setReviewMode(false);
+
+    setReviewCompleted(true);
+
+};
 
 const validation =
     validatePrescriptionBeforeSave(
@@ -285,6 +357,16 @@ const validation =
         recordContext
     );
 
+
+const handleSave = async () => {
+
+    await onConfirm(
+        reviewPrescription
+    );
+
+    setPrescriptionSaved(true);
+
+};
 
     return (
 
@@ -411,6 +493,8 @@ readOnly={
 <MedicineCard
     prescription={reviewPrescription}
     medicineTimings={medicineTimings}
+    reviewMode={reviewMode}
+    reviewCompleted={reviewCompleted}
     readOnly={mode === "VIEW"}
     onMedicineTimingChange={(index, value) => {
 
@@ -431,9 +515,13 @@ readOnly={
             medicines[index] = medicine;
 
             return {
+
                 ...previous,
+
                 medicines,
+
             };
+
         });
 
     }}
@@ -471,16 +559,152 @@ readOnly={
 {
     mode === "UPLOAD" && (
 
-        <ReviewActions
-            saving={saving}
-            validation={validation}
-            onConfirm={() =>
-                onConfirm(
-                    reviewPrescription
-                )
-            }
-            onReupload={onReupload}
-        />
+<>
+
+{
+reviewCompleted &&
+reviewSummary && (
+
+<div
+    style={{
+        marginTop:"20px",
+        marginBottom:"20px",
+        padding:"16px",
+        borderRadius:"10px",
+        background:"#eff6ff",
+        border:"1px solid #bfdbfe",
+    }}
+>
+
+<h3
+style={{
+margin:"0 0 12px 0",
+color:"#1e40af",
+}}
+>
+✅ Prescription Review Completed
+</h3>
+
+<p>
+
+<strong>
+
+{reviewSummary.validated}
+
+</strong>
+
+{" medicine(s) validated"}
+
+<br />
+
+<strong>
+
+{reviewSummary.excluded}
+
+</strong>
+
+{" medicine(s) excluded"}
+
+<br />
+
+<strong>
+
+{reviewSummary.pending.length}
+
+</strong>
+
+{" medicine(s) pending validation"}
+
+</p>
+
+{
+
+reviewSummary.pending.length>0&&(
+
+<>
+
+<p>
+
+The following medicines still require validation:
+
+</p>
+
+<ul>
+
+{
+
+reviewSummary.pending.map(
+
+medicine=>
+
+<li key={medicine}>
+
+{medicine}
+
+</li>
+
+)
+
+}
+
+</ul>
+
+<p
+style={{
+marginTop:"12px",
+fontWeight:600,
+color:"#92400e",
+}}
+>
+
+Please ensure these medicines are validated before uploading the next prescription.
+
+</p>
+
+</>
+
+)
+
+}
+
+{
+
+reviewSummary.pending.length===0&&(
+
+<p
+style={{
+fontWeight:600,
+color:"#166534",
+}}
+>
+
+All medicines have been reviewed.
+
+</p>
+
+)
+
+}
+
+</div>
+
+)
+
+}
+
+<ReviewActions
+    saving={saving}
+    saved={prescriptionSaved}
+    validation={validation}
+    reviewMode={reviewMode}
+    reviewCompleted={reviewCompleted}
+    onConfirm={handleSave}
+    onReupload={onReupload}
+    onReviewMedicines={handleReviewMedicines}
+    onReviewCompleted={handleReviewCompleted}
+/>
+
+</>
 
     )
 }

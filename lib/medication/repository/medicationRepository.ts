@@ -8,6 +8,12 @@ export interface MedicationRepository {
 
     getById(
         id: string
-    ): Promise<MedicineMaster | null>;
+    ): Promise<
+        MedicineMaster | null
+    >;
+
+    getStrengthsByBrandName(
+        brandName: string
+    ): Promise<string[]>;
 
 }

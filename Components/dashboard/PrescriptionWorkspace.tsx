@@ -26,6 +26,7 @@ import {
     prescriptionStorage,
 } from "@/lib/prescription/prescriptionStorage";
 
+
 import {
     DuplicatePrescriptionEngine,
 } from "@/lib/prescription/duplicate/DuplicatePrescriptionEngine";
@@ -99,7 +100,6 @@ export default function PrescriptionWorkspace({
     patientName,
     familyId,
     onCancelReview,
-
 }: PrescriptionWorkspaceProps) {
 
 
@@ -803,53 +803,46 @@ const previousPrescriptions =
 
 for (const previousPrescription of previousPrescriptions) {
 
-    const duplicate =
-        DuplicatePrescriptionEngine.check(
-            result.data,
-            previousPrescription
-        );
+const current =
+    DuplicatePrescriptionMapper.fromOCR(
+        result.data
+    );
 
-
-console.log(
-    "CURRENT OCR",
-    DuplicatePrescriptionMapper.fromOCR(result.data)
-);
-
-console.log(
-    "DB PRESCRIPTION",
+const previous =
     DuplicatePrescriptionMapper.fromDatabase(
         previousPrescription
-    )
-);
+    );
 
 const comparison =
     DuplicatePrescriptionEngine.compare(
-        DuplicatePrescriptionMapper.fromOCR(
-            result.data
-        ),
-        DuplicatePrescriptionMapper.fromDatabase(
-            previousPrescription
-        )
+        current,
+        previous
     );
 
 alert(
     JSON.stringify(
-        comparison,
+        {
+            current: DuplicatePrescriptionMapper.fromOCR(result.data),
+            previous: DuplicatePrescriptionMapper.fromDatabase(previousPrescription)
+        },
         null,
         2
     )
 );
 
+const duplicate =
+    DuplicatePrescriptionEngine.check(
+        result.data,
+        previousPrescription
+    );
 
+if (duplicate.status === "EXACT_DUPLICATE") {
 
-    if (duplicate.isDuplicate) {
+    alert("Duplicate Prescription Found");
 
-        alert("Duplicate Prescription Found");
+    return;
 
-        return;
-
-    }
-
+}
 }
 
 setExtractedPrescription(
@@ -889,6 +882,7 @@ catch (error) {
     }
 
 
+
     //--------------------------------------------------------
     // Save Prescription
     //--------------------------------------------------------
@@ -911,25 +905,73 @@ async function savePrescription(
 
     try {
 
-        await prescriptionStorage
-            .savePrescription(
+//------------------------------------------------------------
+// TEMPORARY DEVELOPER VALIDATION
+//------------------------------------------------------------
 
-                reviewedPrescription,
+console.log("");
+console.log("======================================================");
+console.log("CAREVR MEDICINE VALIDATION");
+console.log("======================================================");
 
-                {
-                    userId,
-                    patientId,
-                    familyId,
-                    recordContext,
-                }
+reviewedPrescription.medicines.forEach(
+    (medicine, index) => {
 
-            );
+        console.log(`Medicine ${index + 1}`);
 
-        removeAllSelectedFiles();
-
-        setSaveSuccess(
-            t("medication.saveSuccess")
+        console.log(
+            "OCR      :",
+            medicine.ocrMedicineName ?? medicine.name
         );
+
+        console.log(
+            "USER     :",
+            medicine.name
+        );
+
+        console.log(
+            "MASTER   :",
+            medicine.resolvedMedicineName ?? "NOT FOUND"
+        );
+
+        console.log(
+            "MASTER ID:",
+            medicine.resolvedMedicineId ?? "NULL"
+        );
+
+        console.log("--------------------------------------");
+    }
+);
+
+console.log("======================================================");
+console.log("END OF VALIDATION");
+console.log("======================================================");
+
+//------------------------------------------------------------
+// SAVE PRESCRIPTION
+//------------------------------------------------------------
+
+const savedPrescription =
+    await prescriptionStorage.savePrescription(
+        reviewedPrescription,
+        {
+            userId,
+            patientId,
+            familyId,
+            recordContext,
+        }
+    );
+
+console.log(
+    "Prescription Saved:",
+    savedPrescription
+);
+
+removeAllSelectedFiles();
+
+setSaveSuccess(
+    t("medication.saveSuccess")
+);
 
     }
     catch (error) {

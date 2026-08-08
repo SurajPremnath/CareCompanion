@@ -2,13 +2,13 @@
 CAREVR GATEKEEPER VALIDATION REPORT
 ============================================================
 
-Generated : 26/7/2026, 5:32:18 pm
+Generated : 8/8/2026, 1:18:10 pm
 
 ============================================================
 ORIGINAL PRESCRIPTION
 ============================================================
 
-{"patientName":"MR. K.V Premnath","patientDateOfBirth":null,"patientAge":null,"patientGender":null,"patientUHID":null,"doctorName":"Dr. Swathi Rachabattula","consultationDate":"2026-06-05","consultationMode":null,"consultationVitals":{"weight":"72.2 kg","height":null,"bmi":null,"bloodPressure":"114/78 mmHg","pulse":"115 bpm","respiratoryRate":null,"spo2":"95%","temperature":"35.4 C"},"hospitalOrClinic":"Motherhood","diagnosisOrAssessment":"Likely viral URTI","clinicalAssessments":["Nutritional Deficiency","? BPH"],"symptoms":["Tiredness","Leg pain","Wheezing","Chest congestion","RT ear blocked","Giddiness","Headache","Dry cough","Mild chest tightness","Feverishness"],"presentingComplaints":[{"complaint":"Tiredness","duration":"1 wk"},{"complaint":"Leg pain","duration":null},{"complaint":"Wheezing","duration":null},{"complaint":"Chest congestion","duration":"1 wk"},{"complaint":"RT ear blocked","duration":null},{"complaint":"Giddiness","duration":null},{"complaint":"Headache","duration":null},{"complaint":"Dry cough","duration":null},{"complaint":"Mild chest tightness","duration":null},{"complaint":"Feverishness","duration":"evening"}],"pastMedicalHistory":["HTN x 20 yrs","Add. Lungs Hernia"],"history":[],"examinationFindings":[],"doctorInstructions":["Mix in 1/2 litre warm water","Steam Inhalation (easibreathe capsules)","Betadine gargle"],"followUpPlan":[],"medicines":[{"name":"Olmeset","strength":"20 mg","form":"Tablet","dose":"1","frequency":"OD","timings":["MORNING"],"duration":null,"instructions":null,"matchStatus":"NOT_FOUND","reviewStatus":"REVIEW"},{"name":"Foracort","strength":null,"form":"Inhaler","dose":"2 puffs","frequency":"BD","timings":["MORNING","NIGHT"],"duration":null,"instructions":null,"matchStatus":"FOUND","resolvedMedicineId":"750d4a98-406a-4512-84b7-c5d29982d40b","resolvedMedicineName":"Foracort 200","reviewStatus":"REVIEW"},{"name":"Mucinac","strength":"600 mg","form":"Effervescent","dose":"1","frequency":null,"timings":[],"duration":"5 days","instructions":"Mix in 1/2 litre warm water","matchStatus":"FOUND","resolvedMedicineId":"d32843e1-43ee-444d-901c-4916833a0d2e","resolvedMedicineName":"Mucinac","reviewStatus":"REVIEW"},{"name":"Sompraz-D / Nexpro-RP","strength":null,"form":"Capsule","dose":"1","frequency":null,"timings":["BEFORE_BREAKFAST"],"duration":"5 days","instructions":null,"matchStatus":"NOT_FOUND","reviewStatus":"REVIEW"},{"name":"Paracetamol","strength":"650 mg","form":"Tablet","dose":"1","frequency":null,"timings":[],"duration":null,"instructions":null,"matchStatus":"FOUND","resolvedMedicineId":"d663e3fb-f1d6-4ff0-bf99-3b7f6c04bff7","resolvedMedicineName":"Paracetamol","reviewStatus":"REVIEW"}],"additionalNotes":["Mostly vegetarian (mild diet)","Liver enlarged"],"documentType":"PRESCRIPTION","investigations":["Blood CRP","PSA","Ultrasound Abdomen & Pelvis"],"clinicalPlan":["Iron B12 supplementation","Review PSA","BP / HTN review"]}
+{"patientName":"MR. K.V Premnath","patientDateOfBirth":null,"patientAge":null,"patientGender":null,"patientUHID":null,"doctorName":"Dr. Swathi Rachabattula","consultationDate":"2026-06-05","consultationMode":null,"consultationVitals":{"weight":"72.2 kg","height":null,"bmi":null,"bloodPressure":"114/78 mmHg","pulse":"115 bpm","respiratoryRate":null,"spo2":"95%","temperature":"35.4 C"},"hospitalOrClinic":"Motherhood","diagnosisOrAssessment":"Likely viral URTI","clinicalAssessments":["Nutritional Deficiency","? BPH"],"symptoms":["Tiredness","Leg pain","Wheezing","Chest congestion","RT ear blocked","Giddiness","Headache","Dry cough","Mild chest tightness"],"presentingComplaints":[{"complaint":"Tiredness","duration":"1 wk"},{"complaint":"Leg pain","duration":null},{"complaint":"Wheezing","duration":null},{"complaint":"Chest congestion","duration":"1 wk"},{"complaint":"RT ear blocked","duration":null},{"complaint":"Giddiness","duration":null},{"complaint":"Headache","duration":null},{"complaint":"Dry cough","duration":null},{"complaint":"Mild chest tightness","duration":null}],"pastMedicalHistory":["HTN x 20 yrs","ADL imp hyenia"],"history":[],"examinationFindings":[],"doctorInstructions":["Mix in 1/2 litre warm water","Steam Inhalation (easibreathe capsules)","Betadine gargle"],"followUpPlan":[],"medicines":[{"name":"Olmeset","strength":"20 mg","form":"Tablet","dose":"1","frequency":null,"timings":[],"duration":null,"instructions":null,"matchStatus":"SUGGESTIONS","suggestedMedicines":[{"id":"556c4b78-30be-4162-90e5-640636f0b1d9","brandName":"Olmeset","genericName":"Olmesartan","strength":"20 mg","formulation":"Tablet"},{"id":"d738bf2b-1db9-4333-ae4f-f771f9fddd51","brandName":"Olmeset","genericName":"Olmesartan","strength":"40 mg","formulation":"Tablet"}],"reviewStatus":"REVIEW"},{"name":"Foracort","strength":null,"form":null,"dose":"1 puff","frequency":"BD","timings":[],"duration":null,"instructions":null,"matchStatus":"FOUND","resolvedMedicineId":"750d4a98-406a-4512-84b7-c5d29982d40b","resolvedMedicineName":"Foracort 200","reviewStatus":"REVIEW"},{"name":"Mucinac","strength":"600 mg","form":"effervescent","dose":"1","frequency":null,"timings":[],"duration":"5 days","instructions":"mix in 1/2 litre warm water","matchStatus":"FOUND","resolvedMedicineId":"d32843e1-43ee-444d-901c-4916833a0d2e","resolvedMedicineName":"Mucinac","reviewStatus":"REVIEW"},{"name":"Sompraz-D","strength":null,"form":null,"dose":"1","frequency":null,"timings":["BEFORE_BREAKFAST"],"duration":"5 days","instructions":null,"matchStatus":"FOUND","resolvedMedicineId":"60ba1665-7509-40a7-839e-b9624e3c465d","resolvedMedicineName":"Sompraz D","reviewStatus":"REVIEW"},{"name":"Nexpro-RP","strength":null,"form":null,"dose":"1","frequency":null,"timings":["BEFORE_BREAKFAST"],"duration":"5 days","instructions":null,"matchStatus":"FOUND","resolvedMedicineId":"6a172b12-ae87-40f0-a609-94d9b11d7cf7","resolvedMedicineName":"Nexpro-RP","reviewStatus":"REVIEW"},{"name":"Paracetamol","strength":"650 mg","form":null,"dose":"1","frequency":null,"timings":[],"duration":null,"instructions":null,"matchStatus":"FOUND","resolvedMedicineId":"d663e3fb-f1d6-4ff0-bf99-3b7f6c04bff7","resolvedMedicineName":"Paracetamol","reviewStatus":"REVIEW"}],"additionalNotes":["Mostly veg (mixed diet) live in apt"],"documentType":"PRESCRIPTION","investigations":["Blood CRP","PSA","Ultrasound Abdomen & Pelvis"],"clinicalPlan":["Iron B12 supplementation","Check PSA"]}
 
 ============================================================
 VALIDATION CARDS
@@ -98,10 +98,6 @@ FIELD : Presenting Complaints
   {
     "complaint": "Mild chest tightness",
     "duration": null
-  },
-  {
-    "complaint": "Feverishness",
-    "duration": "evening"
   }
 ]
 
@@ -121,8 +117,7 @@ FIELD : Symptoms
   "Giddiness",
   "Headache",
   "Dry cough",
-  "Mild chest tightness",
-  "Feverishness"
+  "Mild chest tightness"
 ]
 
 
@@ -195,25 +190,36 @@ FIELD : Medicines
     "strength": "20 mg",
     "form": "Tablet",
     "dose": "1",
-    "frequency": "OD",
-    "timings": [
-      "MORNING"
-    ],
+    "frequency": null,
+    "timings": [],
     "duration": null,
     "instructions": null,
-    "matchStatus": "NOT_FOUND",
+    "matchStatus": "SUGGESTIONS",
+    "suggestedMedicines": [
+      {
+        "id": "556c4b78-30be-4162-90e5-640636f0b1d9",
+        "brandName": "Olmeset",
+        "genericName": "Olmesartan",
+        "strength": "20 mg",
+        "formulation": "Tablet"
+      },
+      {
+        "id": "d738bf2b-1db9-4333-ae4f-f771f9fddd51",
+        "brandName": "Olmeset",
+        "genericName": "Olmesartan",
+        "strength": "40 mg",
+        "formulation": "Tablet"
+      }
+    ],
     "reviewStatus": "REVIEW"
   },
   {
     "name": "Foracort",
     "strength": null,
-    "form": "Inhaler",
-    "dose": "2 puffs",
+    "form": null,
+    "dose": "1 puff",
     "frequency": "BD",
-    "timings": [
-      "MORNING",
-      "NIGHT"
-    ],
+    "timings": [],
     "duration": null,
     "instructions": null,
     "matchStatus": "FOUND",
@@ -224,21 +230,21 @@ FIELD : Medicines
   {
     "name": "Mucinac",
     "strength": "600 mg",
-    "form": "Effervescent",
+    "form": "effervescent",
     "dose": "1",
     "frequency": null,
     "timings": [],
     "duration": "5 days",
-    "instructions": "Mix in 1/2 litre warm water",
+    "instructions": "mix in 1/2 litre warm water",
     "matchStatus": "FOUND",
     "resolvedMedicineId": "d32843e1-43ee-444d-901c-4916833a0d2e",
     "resolvedMedicineName": "Mucinac",
     "reviewStatus": "REVIEW"
   },
   {
-    "name": "Sompraz-D / Nexpro-RP",
+    "name": "Sompraz-D",
     "strength": null,
-    "form": "Capsule",
+    "form": null,
     "dose": "1",
     "frequency": null,
     "timings": [
@@ -246,13 +252,31 @@ FIELD : Medicines
     ],
     "duration": "5 days",
     "instructions": null,
-    "matchStatus": "NOT_FOUND",
+    "matchStatus": "FOUND",
+    "resolvedMedicineId": "60ba1665-7509-40a7-839e-b9624e3c465d",
+    "resolvedMedicineName": "Sompraz D",
+    "reviewStatus": "REVIEW"
+  },
+  {
+    "name": "Nexpro-RP",
+    "strength": null,
+    "form": null,
+    "dose": "1",
+    "frequency": null,
+    "timings": [
+      "BEFORE_BREAKFAST"
+    ],
+    "duration": "5 days",
+    "instructions": null,
+    "matchStatus": "FOUND",
+    "resolvedMedicineId": "6a172b12-ae87-40f0-a609-94d9b11d7cf7",
+    "resolvedMedicineName": "Nexpro-RP",
     "reviewStatus": "REVIEW"
   },
   {
     "name": "Paracetamol",
     "strength": "650 mg",
-    "form": "Tablet",
+    "form": null,
     "dose": "1",
     "frequency": null,
     "timings": [],
@@ -309,8 +333,7 @@ FIELD : Clinical Plan
 
 [
   "Iron B12 supplementation",
-  "Review PSA",
-  "BP / HTN review"
+  "Check PSA"
 ]
 
 
@@ -321,6 +344,5 @@ CARD : Additional Notes
 FIELD : Additional Notes
 
 [
-  "Mostly vegetarian (mild diet)",
-  "Liver enlarged"
+  "Mostly veg (mixed diet) live in apt"
 ]

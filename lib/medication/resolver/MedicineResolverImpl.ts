@@ -12,14 +12,29 @@ export class MedicineResolverImpl
     private repository =
         new MedicationJsonRepository();
 
-    async search(
-        searchText: string
-    ): Promise<MedicineMaster[]> {
+async search(
+    searchText: string
+): Promise<
+    MedicineMaster[]
+> {
 
-        return this.repository.search(
-            searchText
+    return this.repository.search(
+        searchText
+    );
+
+}
+
+async getStrengthsByBrandName(
+    brandName: string
+): Promise<
+    string[]
+> {
+
+    return this.repository
+        .getStrengthsByBrandName(
+            brandName
         );
 
-    }
+}
 
 }

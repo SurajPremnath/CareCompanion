@@ -22,6 +22,10 @@ export type PrescriptionConsultationMode =
     | "HOSPITAL_DISCHARGE"
     | "OTHER";
 
+export type PrescriptionValidationStatus = 
+    | "PENDING"
+    | "VALIDATED"
+    | "EXCLUDE";
 
 //------------------------------------------------------------
 // Prescription Medicine Input
@@ -29,7 +33,11 @@ export type PrescriptionConsultationMode =
 
 export interface PrescriptionMedicineInput {
 
+    ocrMedicineName: string | null;
+
     medicineName: string;
+
+    medicineMasterId: string | null;
 
     strength: string | null;
 
@@ -44,6 +52,16 @@ export interface PrescriptionMedicineInput {
     duration: string | null;
 
     instructions: string | null;
+
+    validationStatus:
+
+PrescriptionValidationStatus
+
+    validatedBy: string | null;
+
+    validatedAt: string | null;
+
+    validationNotes: string | null;
 
     displayOrder: number;
 
@@ -264,7 +282,11 @@ export interface PrescriptionMedicineRecord {
 
     prescriptionId: string;
 
+    ocrMedicineName: string | null;
+
     medicineName: string;
+
+    medicineMasterId: string | null;
 
     strength: string | null;
 
@@ -279,6 +301,14 @@ export interface PrescriptionMedicineRecord {
     duration: string | null;
 
     instructions: string | null;
+
+    validationStatus: PrescriptionValidationStatus;
+
+    validatedBy: string | null;
+
+    validatedAt: string | null;
+
+    validationNotes: string | null;
 
     displayOrder: number;
 

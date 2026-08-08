@@ -18,6 +18,11 @@ export type MedicineMatchStatus =
     | "NOT_FOUND"
     | "SUGGESTIONS";
 
+export type ReviewStatus = 
+    | "REVIEW" 
+    | "VERIFIED"
+    | "EXCLUDED";
+
 export interface SuggestedMedicine {
 
   id: string;
@@ -40,6 +45,8 @@ export interface ExtractedPrescriptionMedicine {
 
     name: string;
 
+    ocrMedicineName?: string;
+
     strength: string | null;
 
     form: string | null;
@@ -54,15 +61,22 @@ export interface ExtractedPrescriptionMedicine {
 
     instructions: string | null;
 
-    reviewStatus?: "REVIEW" | "REVIEWED";
+    reviewStatus?: ReviewStatus;
 
     matchStatus?: MedicineMatchStatus;
 
-    resolvedMedicineId?: string;
+resolvedMedicineId?: string;
 
-    resolvedMedicineName?: string;
+resolvedMedicineName?: string;
 
-    suggestedMedicines?: SuggestedMedicine[];
+/*
+What caregiver typed while correcting OCR.
+Used for audit.
+*/
+
+userUpdatedMedicineName?: string;
+
+suggestedMedicines?: SuggestedMedicine[];
 }
 //------------------------------------------------------------
 // Consultation Understanding

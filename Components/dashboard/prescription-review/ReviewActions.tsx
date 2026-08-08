@@ -11,6 +11,8 @@ interface Props{
 
 saving:boolean;
 
+saved:boolean;
+
 validation:{
 
 valid:boolean;
@@ -21,9 +23,17 @@ warnings:string[];
 
 };
 
+reviewMode:boolean;
+
+reviewCompleted:boolean;
+
 onConfirm:()=>void;
 
 onReupload:()=>void;
+
+onReviewMedicines:()=>void;
+
+onReviewCompleted:()=>void;
 
 }
 
@@ -31,11 +41,21 @@ export default function ReviewActions({
 
 saving,
 
+saved,
+
 validation,
+
+reviewMode,
+
+reviewCompleted,
 
 onConfirm,
 
 onReupload,
+
+onReviewMedicines,
+
+onReviewCompleted,
 
 }:Props){
 
@@ -88,7 +108,6 @@ validation.errors.map(
 }
 
 {
-
 validation.warnings.length>0&&(
 
 <div className="warningBox">
@@ -135,6 +154,45 @@ validation.warnings.map(
 
 }
 
+{
+
+reviewMode && (
+
+<div
+    style={{
+        marginTop:"20px",
+        marginBottom:"20px",
+        padding:"14px 16px",
+        borderRadius:"8px",
+        border:"1px solid #bfdbfe",
+        background:"#eff6ff",
+        color:"#1e40af",
+        fontWeight:600,
+    }}
+>
+
+🔍 Review in Progress
+
+<br/>
+
+<span
+    style={{
+        fontWeight:400,
+        fontSize:"14px",
+    }}
+>
+
+Review the medicines carefully before clicking
+<b> Review Complete</b>.
+
+</span>
+
+</div>
+
+)
+
+}
+
 <div
     style={{
         display: "flex",
@@ -163,34 +221,64 @@ validation.warnings.map(
         {t("medication.reupload")}
     </button>
 
-    <button
-        type="button"
-        disabled={
-            saving ||
-            !validation.valid
-        }
-        onClick={onConfirm}
-        style={{
-            padding: "12px 20px",
-            border: "none",
-            borderRadius: "8px",
-            background: "#2563eb",
-            color: "#ffffff",
-            fontWeight: 700,
-            cursor:
-                saving || !validation.valid
-                    ? "not-allowed"
-                    : "pointer",
-            opacity:
-                saving || !validation.valid
-                    ? 0.6
-                    : 1,
-        }}
-    >
-        {saving
-            ? t("medication.savingPrescription")
-            : t("medication.savePrescription")}
-    </button>
+<button
+    type="button"
+    onClick={
+        reviewMode
+            ? onReviewCompleted
+            : onReviewMedicines
+    }
+    style={{
+        padding: "12px 20px",
+        border: "1px solid #2563eb",
+        borderRadius: "8px",
+        background: "#ffffff",
+        color: "#2563eb",
+        fontWeight: 700,
+        cursor: "pointer",
+    }}
+>
+    {
+    reviewMode
+        ? "Review Complete"
+        : reviewCompleted
+            ? "Review Again"
+            : "Review Medicines"
+}
+</button>
+
+<button
+    type="button"
+    onClick={onConfirm}
+    disabled={!reviewCompleted || saving || saved}
+    style={{
+        padding: "12px 20px",
+        border: "none",
+        borderRadius: "8px",
+        background:
+            !reviewCompleted || saving || saved
+                ? "#94a3b8"
+                : "#2563eb",
+        color: "#ffffff",
+        fontWeight: 700,
+        cursor:
+            !reviewCompleted || saving || saved
+                ? "not-allowed"
+                : "pointer",
+        opacity:
+            !reviewCompleted || saving || saved
+                ? 0.7
+                : 1,
+    }}
+>
+    {
+    saving
+        ? "Saving..."
+        : saved
+            ? "Prescription Saved"
+            : t("medication.savePrescription")
+}
+</button>
 
 </div>
 

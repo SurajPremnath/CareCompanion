@@ -212,7 +212,11 @@ useEffect(() => {
 
 async function handleRetrieve() {
 
-setValidationMessage("");
+    setValidationMessage("");
+
+    // Hide previously viewed prescription
+    setReviewMode(null);
+    setReviewPrescription(null);
 
 if (
 
@@ -451,6 +455,10 @@ onClick={async () => {
 
     setValidationMessage("");
 
+    // Hide previously viewed prescription
+    setReviewMode(null);
+    setReviewPrescription(null);
+
     setFilterMode("LATEST");
 
     setShowRetrieve(false);
@@ -546,6 +554,10 @@ setHasRetrieved(false);
 setPrescriptions([]);
 
 setSelectedPrescription(null);
+
+// Hide previously viewed prescription
+setReviewMode(null);
+setReviewPrescription(null);
 
 }}
         style={{
@@ -822,15 +834,16 @@ onClick={async () => {
 
     }
 
-    const record =
-        await prescriptionRepository.getPrescriptionDetails(
-            latestPrescription.id
-        );
+const record =
+    await prescriptionRepository.getPrescriptionDetails(
+        latestPrescription.id
+    );
 
-    const review =
-        mapPrescriptionToReview(
-            record
-        );
+
+const review =
+    mapPrescriptionToReview(record);
+
+setReviewPrescription(review);
 
     setReviewPrescription(
         review

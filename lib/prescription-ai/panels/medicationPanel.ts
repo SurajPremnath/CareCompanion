@@ -60,17 +60,65 @@ EXTRACTION RULES
 
 - Extract EVERY medicine exactly once.
 
-- Preserve the medicine name exactly as written.
+Return the medicine name exactly as written, except when two distinct medicine names are written together on the same line. In that case, create one medicine object per medicine.
 
-- Preserve combination medicines exactly as written.
+PRESERVING MEDICINE NAMES
 
-Example:
+1. Preserve genuine medicine brand names exactly as written.
 
-"Sompraz-D / Nexpro-RP"
+Examples:
 
-should remain a single medicine entry.
+Montek-LC
+Telma-H
+Foracort 200
+Mucinac
 
-Do NOT split unless the prescription clearly lists them separately.
+These are single medicines and must NEVER be split.
+
+------------------------------------------------------------
+
+MULTIPLE MEDICINES
+
+If a prescription line contains two or more medicines separated by:
+
+/
++
+&
+,
+or the word "and"
+
+determine whether they represent:
+
+A) Alternative brands
+OR
+B) Separate prescribed medicines.
+
+If they are two medicine names written together, return one medicine object for EACH medicine.
+
+Example
+
+Written:
+
+Sompraz-D / Nexpro-RP
+
+Return
+
+[
+  {
+    "name": "Sompraz-D"
+  },
+  {
+    "name": "Nexpro-RP"
+  }
+]
+
+Do NOT return:
+
+{
+    "name": "Sompraz-D / Nexpro-RP"
+}
+
+Only keep the entire text as one medicine if the slash is genuinely part of the official medicine name.
 
 ------------------------------------------------------------
 FORM

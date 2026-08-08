@@ -95,13 +95,13 @@ const searchTerms = searchText
 
 for (const term of searchTerms) {
 
-    const exactMatches =
-        medicines.filter(medicine =>
-            medicine.searchKeys.some(key =>
-                this.normalize(key)
-                    .includes(term)
-            )
-        );
+const exactMatches =
+    medicines.filter(
+        medicine =>
+            this.normalize(
+                medicine.brandName
+            ).startsWith(term)
+    );
 
     if (exactMatches.length > 0) {
         return exactMatches.slice(0, 10);
@@ -149,6 +149,36 @@ if (
 }
 
 return [];
+}
+
+async getStrengthsByBrandName(
+    brandName: string
+): Promise<string[]> {
+
+     const matchingMedicines =
+        medicines.filter(
+            medicine =>
+                medicine.brandName === brandName
+        );
+
+     const strengths =
+        matchingMedicines
+            .map(
+                medicine =>
+                    medicine.strength
+            )
+            .filter(
+                (
+                    strength
+                ): strength is string =>
+                    !!strength &&
+                    strength !== "null"
+            );
+
+     return [
+        ...new Set(strengths),
+    ];
+
 }
 
     async getById(

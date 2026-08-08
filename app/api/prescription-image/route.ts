@@ -65,7 +65,6 @@ function getOpenAIClient(): OpenAI {
   const apiKey =
     process.env.OPENAI_API_KEY;
 
-
   if (!apiKey) {
 
     throw new Error(
@@ -74,12 +73,15 @@ function getOpenAIClient(): OpenAI {
 
   }
 
-
   return new OpenAI({
     apiKey,
   });
 
 }
+
+const OPENAI_PRESCRIPTION_MODEL =
+  process.env.OPENAI_PRESCRIPTION_MODEL ??
+  "gpt-4.1-mini";
 
 //------------------------------------------------------------
 // Nullable String
@@ -479,10 +481,11 @@ export async function POST(
   request: Request
 ) {
 
+  const totalStart = performance.now();
+
   let uploadedPdfFileId:
     string | null =
       null;
-
 
   try {
 
@@ -520,6 +523,8 @@ export async function POST(
       );
 
 
+const authStart = performance.now();
+
     const {
       data: {
         user,
@@ -529,7 +534,6 @@ export async function POST(
       await supabaseAdmin.auth.getUser(
         accessToken
       );
-
 
     if (
       authError ||
@@ -860,25 +864,26 @@ export async function POST(
     // Extract Document
     //--------------------------------------------------------
 
+const openAIStart = performance.now();
 
-    const response =
-      await openai.responses.create({
+const response =
+  await openai.responses.create({
 
-        model:
-          "gpt-4.1-mini",
+    model:
+      OPENAI_PRESCRIPTION_MODEL,
 
-        input: [
-          {
+    input: [
+      {
 
-            role:
-              "user",
+        role:
+          "user",
 
-            content,
+        content,
 
-          },
-        ],
+      },
+    ],
 
-      });
+  });
 
 
     //--------------------------------------------------------
@@ -886,12 +891,6 @@ export async function POST(
     //--------------------------------------------------------
 
 const outputText = response.output_text?.trim();
-
-console.log("====================================");
-console.log("RAW AI RESPONSE");
-console.log("====================================");
-console.log(outputText);
-console.log("====================================");
 
     if (!outputText) {
 
@@ -1006,22 +1005,6 @@ if (
 
 prescription = parsePrescription(outputText);
 
-console.log("====================================");
-console.log("PARSED PRESCRIPTION");
-console.log("====================================");
-
-console.log(
-    "Symptoms:",
-    prescription.symptoms.length,
-    prescription.symptoms
-);
-
-console.log(
-    "Presenting Complaints:",
-    prescription.presentingComplaints.length,
-    prescription.presentingComplaints
-);
-
 prescription.medicines =
     mergeDuplicateMedicines(
         prescription.medicines
@@ -1031,6 +1014,8 @@ prescription.medicines =
 // Resolve Medicines
 //--------------------------------------------------------
 
+const medicineResolveStart =
+    performance.now();
 
 for (const medicine of prescription.medicines) {
 
@@ -1072,10 +1057,10 @@ for (const medicine of prescription.medicines) {
 
 }
 
-
 for (const medicine of prescription.medicines) {
 
     medicine.reviewStatus ??= "REVIEW";
+
 }
 
 
@@ -1122,6 +1107,13 @@ if (!hasUsefulPrescriptionData) {
   );
 
 }
+
+console.log(
+    `TOTAL : ${(
+        performance.now() -
+        totalStart
+    ).toFixed(0)} ms`
+);
 
     //--------------------------------------------------------
     // Success

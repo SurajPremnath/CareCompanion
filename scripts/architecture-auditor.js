@@ -94,22 +94,13 @@ class ArchitectureAuditor {
 
         this.ensureOutputDirectory();
 
-        console.log("Scanning project...");
-
+        
         this.discover(this.root);
 
-        console.log(
-            `Found ${this.project.summary.sourceFiles} source files`
-        );
-
-        console.log("");
-
-        console.log("Parsing source...");
-
+        
         this.parseFiles();
 
-        console.log("Building Symbol Index...");
-
+        
         this.analysis.symbolIndex =
 
             buildSymbolIndex(
@@ -117,8 +108,7 @@ class ArchitectureAuditor {
                 this.project.files
 
             );
-
-        console.log("Building Dependency Graph...");
+       
 
 this.analysis.dependencyGraph =
 
@@ -129,7 +119,7 @@ this.analysis.dependencyGraph =
 
     );
 
-        console.log("Running Duplicate Analysis...");
+        
 
         this.analysis.duplicateDetector =
 
@@ -139,7 +129,7 @@ this.analysis.dependencyGraph =
 
             );
 
-        console.log("Running Public API Analysis...");
+        
 
         this.analysis.publicApi =
 
@@ -151,7 +141,7 @@ this.analysis.dependencyGraph =
 
             );
 
-console.log("Running Layer Validation...");
+
 
 this.analysis.layerValidation =
     buildLayerValidation(
@@ -159,7 +149,7 @@ this.analysis.layerValidation =
         this.analysis.dependencyGraph
     );
 
-        console.log("Generating Reports...");
+        
 
         buildReports(
 

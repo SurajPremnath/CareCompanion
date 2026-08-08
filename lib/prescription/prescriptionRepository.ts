@@ -65,7 +65,11 @@ interface PrescriptionMedicineRow {
 
     prescription_id: string;
 
+    ocr_medicine_name: string | null;
+
     medicine_name: string;
+
+    medicine_master_id: string | null;
 
     strength: string | null;
 
@@ -80,6 +84,14 @@ interface PrescriptionMedicineRow {
     duration: string | null;
 
     instructions: string | null;
+
+    validation_status: string | null;
+
+    validated_by: string | null;
+
+    validated_at: string | null;
+
+    validation_notes: string | null;
 
     display_order: number;
 
@@ -213,7 +225,13 @@ function mapMedicineRow(
 
         prescriptionId: row.prescription_id,
 
+    ocrMedicineName:
+        row.ocr_medicine_name,
+
         medicineName: row.medicine_name,
+
+    medicineMasterId:
+        row.medicine_master_id,
 
         strength: row.strength,
 
@@ -227,13 +245,27 @@ function mapMedicineRow(
 
         duration: row.duration,
 
-        instructions: row.instructions,
+instructions: row.instructions,
 
-        displayOrder: row.display_order,
+validationStatus:
+    (
+        row.validation_status ?? "PENDING"
+    ) as "PENDING" | "VALIDATED",
 
-        createdAt: row.created_at,
+validatedBy:
+    row.validated_by,
 
-        updatedAt: row.updated_at,
+validatedAt:
+    row.validated_at,
+
+validationNotes:
+    row.validation_notes,
+
+displayOrder: row.display_order,
+
+createdAt: row.created_at,
+
+updatedAt: row.updated_at,
 
     };
 
@@ -982,55 +1014,73 @@ if (input.medicines.length === 0) {
 
 }
 
-        const medicineRows =
+const medicineRows =
 
-            input.medicines.map(
+    input.medicines
 
-                medicine => ({
+        .filter(
 
-                    prescription_id:
+            medicine =>
 
-                        prescriptionRow.id,
+                medicine.validationStatus !== "EXCLUDE"
 
-                    medicine_name:
+        )
 
-                        medicine.medicineName,
+        .map(
 
-                    strength:
+            medicine => ({
 
-                        medicine.strength,
+                prescription_id:
+                    prescriptionRow.id,
 
-                    form:
+                ocr_medicine_name:
+                    medicine.ocrMedicineName,
 
-                        medicine.form,
+                medicine_name:
+                    medicine.medicineName,
 
-                    dose:
+                medicine_master_id:
+                    medicine.medicineMasterId,
 
-                        medicine.dose,
+                strength:
+                    medicine.strength,
 
-                    frequency:
+                form:
+                    medicine.form,
 
-                        medicine.frequency,
+                dose:
+                    medicine.dose,
 
-                    timings:
+                frequency:
+                    medicine.frequency,
 
-                        medicine.timings,
+                timings:
+                    medicine.timings,
 
-                    duration:
+                duration:
+                    medicine.duration,
 
-                        medicine.duration,
+                instructions:
+                    medicine.instructions,
 
-                    instructions:
+                validation_status:
+                    medicine.validationStatus,
 
-                        medicine.instructions,
+                validated_by:
+                    medicine.validatedBy,
 
-                    display_order:
+                validated_at:
+                    medicine.validatedAt,
 
-                        medicine.displayOrder,
+                validation_notes:
+                    medicine.validationNotes,
 
-                })
+                display_order:
+                    medicine.displayOrder,
 
-            );
+            })
+
+        );
 
         const {
 
@@ -1743,6 +1793,88 @@ notes:
         return prescriptions;
     },
 
-    getPrescriptionSummary,
+async getPendingMedicationValidation(
+    userId: string,
+    recordContext: "SELF" | "FAMILY",
+    patientId: string | null
+): Promise<CompletePrescriptionRecord | null> {
+
+    const prescriptions =
+        await this.getPatientPrescriptions(
+            userId,
+            recordContext,
+            patientId
+        );
+
+    const pendingPrescription =
+        prescriptions.find(
+            prescription =>
+                prescription.medicines.some(
+                    medicine =>
+                        medicine.validationStatus === "PENDING"
+                )
+        );
+
+    return pendingPrescription ?? null;
+
+},
+
+//------------------------------------------------------------
+// Update Pending Medicines
+//------------------------------------------------------------
+
+async updatePendingMedicines(
+    prescriptionId: string,
+    medicines: PrescriptionMedicineRecord[]
+): Promise<void> {
+
+    for (const medicine of medicines) {
+
+        const { error } = await supabase
+            .from("prescription_medicines")
+            .update({
+
+                medicine_name: medicine.medicineName,
+
+                strength: medicine.strength,
+
+                dose: medicine.dose,
+
+                frequency: medicine.frequency,
+
+                timings: medicine.timings,
+
+                duration: medicine.duration,
+
+                instructions: medicine.instructions,
+
+                validation_status: medicine.validationStatus,
+
+                validated_by: medicine.validatedBy,
+
+                validated_at: medicine.validatedAt,
+
+                validation_notes: medicine.validationNotes,
+
+                updated_at: new Date().toISOString(),
+
+            })
+            .eq("id", medicine.id)
+            .eq("prescription_id", prescriptionId);
+
+        if (error) {
+
+            throw new Error(
+                error.message ??
+                "Unable to update pending medicine."
+            );
+
+        }
+
+    }
+
+},
+
+getPrescriptionSummary,
 
 };

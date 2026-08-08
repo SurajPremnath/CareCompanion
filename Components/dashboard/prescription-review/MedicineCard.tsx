@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import type {
     ExtractedPrescription,
     ExtractedPrescriptionMedicine,
@@ -10,12 +12,17 @@ import {
 } from "@/Components/language/LanguageProvider";
 
 import MedicineRow from "./MedicineRow";
+import MedicationReviewRow from "./MedicationReviewRow";
 
 interface MedicineCardProps {
 
     prescription: ExtractedPrescription;
 
     medicineTimings: string[];
+
+    reviewMode: boolean;
+
+    reviewCompleted: boolean;
 
     readOnly: boolean;
 
@@ -25,25 +32,33 @@ interface MedicineCardProps {
     ) => void;
 
     onReviewStatusChange: (
-    index: number,
-    status: "REVIEW" | "REVIEWED"
-) => void;
+        index: number,
+        status: "REVIEW" | "VERIFIED"
+    ) => void;
 
-onMedicineUpdated: (
-    index: number,
-    medicine: ExtractedPrescriptionMedicine
-) => void;
+    onMedicineUpdated: (
+        index: number,
+        medicine: ExtractedPrescriptionMedicine
+    ) => void;
 
 }
-
 
 export default function MedicineCard({
 
     prescription,
+
     medicineTimings,
+
+    reviewMode,
+
+    reviewCompleted,
+
     readOnly,
+
     onMedicineTimingChange,
+
     onReviewStatusChange,
+
     onMedicineUpdated,
 
 }: MedicineCardProps) {
@@ -51,6 +66,11 @@ export default function MedicineCard({
 const {
     t,
 } = useLanguage();
+
+const [
+    editingMedicineIndex,
+    setEditingMedicineIndex,
+] = useState<number | null>(null);
 
 const administrationTimingLabels: Record<string, string> = {
 
@@ -119,6 +139,7 @@ const administrationTimingLabels: Record<string, string> = {
 
 };
 
+
     return (
         <>
 
@@ -177,17 +198,8 @@ const administrationTimingLabels: Record<string, string> = {
     {t("medication.medicine")}
 </th>
 
-{!readOnly && (
-<th
-    style={{
-        ...headerCell,
-        width: "12%",
-        textAlign: "center",
-    }}
->
-    Review
-</th>
-)}
+{/* Review column removed.
+    Review now happens in MedicationReviewCard. */}
 
 <th
     style={{
@@ -196,6 +208,15 @@ const administrationTimingLabels: Record<string, string> = {
     }}
 >
     {t("medication.dose")}
+</th>
+
+<th
+    style={{
+        ...headerCell,
+        width: "12%",
+    }}
+>
+    {t("medication.frequency")}
 </th>
 
 <th
@@ -210,11 +231,46 @@ const administrationTimingLabels: Record<string, string> = {
 <th
     style={{
         ...headerCell,
-        width: "20%",
+        width:
+    reviewMode
+        ? "16%"
+        : reviewCompleted
+            ? "16%"
+            : "20%",
     }}
 >
     {t("medication.administrationTiming")}
 </th>
+
+{
+    reviewMode && (
+
+        <th
+            style={{
+                ...headerCell,
+                width: "18%",
+            }}
+        >
+            User Acceptance
+        </th>
+
+    )
+}
+
+{
+    (reviewCompleted || readOnly) && (
+
+        <th
+            style={{
+                ...headerCell,
+                width: "18%",
+            }}
+        >
+            Validation Status
+        </th>
+
+    )
+}
 
                             </tr>
 
@@ -226,24 +282,57 @@ const administrationTimingLabels: Record<string, string> = {
 
 prescription.medicines.map((medicine, index) => (
 
+reviewMode
+
+? (
+
+<MedicationReviewRow
+    key={`${medicine.name}-${index}`}
+    medicine={medicine}
+    index={index}
+    administrationTiming={
+        medicineTimings[index]
+    }
+    administrationTimingLabels={
+        administrationTimingLabels
+    }
+    readOnly={readOnly}
+    onAdministrationTimingChange={
+        onMedicineTimingChange
+    }
+    onMedicineUpdated={
+        onMedicineUpdated
+    }
+/>
+
+)
+
+: (
+
 <MedicineRow
     key={`${medicine.name}-${index}`}
     medicine={medicine}
     index={index}
-    reviewStatus={
-        medicine.reviewStatus ?? "REVIEW"
+    administrationTiming={
+        medicineTimings[index]
     }
-    administrationTiming={medicineTimings[index]}
-    administrationTimingLabels={administrationTimingLabels}
+    administrationTimingLabels={
+        administrationTimingLabels
+    }
+    reviewCompleted={
+        reviewCompleted
+    }
     readOnly={readOnly}
-    onAdministrationTimingChange={onMedicineTimingChange}
-    onReviewStatusChange={
-        onReviewStatusChange
+    onAdministrationTimingChange={
+        onMedicineTimingChange
     }
-onMedicineUpdated={
+    onMedicineUpdated={
         onMedicineUpdated
     }
 />
+
+)
+
 ))
 
                             }

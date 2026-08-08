@@ -350,11 +350,6 @@ endDate:
   // Save Trend Request
   //----------------------------------------------------------
 
-console.log(
-  "FAMILY TREND REQUEST",
-  trendRequest
-);
-
   trendDraftStorage.save(
     trendRequest
   );

@@ -12,6 +12,7 @@ export function mapPrescriptionToReview(
 
 ): ExtractedPrescription {
 
+
 return {
 
     patientName: null,
@@ -159,39 +160,43 @@ doctorInstructions:
 
     followUpPlan: [],
 
-    medicines:
+medicines:
 
-        record.medicines.map(
+    record.medicines.map(
 
-            medicine => ({
+        medicine => ({
 
-                name:
-                    medicine.medicineName,
+            name:
+                medicine.medicineName,
 
-                strength:
-                    medicine.strength,
+            strength:
+                medicine.strength,
 
-                form:
-                    medicine.form,
+            form:
+                medicine.form,
 
-                dose:
-                    medicine.dose,
+            dose:
+                medicine.dose,
 
-                frequency:
-                    medicine.frequency,
+            frequency:
+                medicine.frequency,
 
-                timings:
-                    medicine.timings,
+            timings:
+                medicine.timings,
 
-                duration:
-                    medicine.duration,
+            duration:
+                medicine.duration,
 
-                instructions:
-                    medicine.instructions,
+            instructions:
+                medicine.instructions,
 
-            })
+            reviewStatus:
+                medicine.validationStatus === "VALIDATED"
+                    ? "VERIFIED"
+                    : "REVIEW",
 
-        ),
+        })
+    ),
 
 additionalNotes:
 
@@ -230,7 +235,27 @@ investigations:
 
     ),
 
-    clinicalPlan: [],
+    clinicalPlan:
+
+    record.assessments
+
+        .filter(
+
+            item =>
+
+                item.assessmentType ===
+
+                "PLAN"
+
+        )
+
+        .map(
+
+            item =>
+
+                item.value
+
+        ),
 
 };
 

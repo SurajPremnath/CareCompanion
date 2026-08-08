@@ -190,7 +190,6 @@ const symptoms = report.clinicalStory[0];
 
 if (symptoms) {
 
-console.log("Before table:", currentY);
 
     const tableBottomY =
         ExecutiveSummarySectionRenderer.drawTable(
@@ -205,7 +204,6 @@ console.log("Before table:", currentY);
             report.clinicalStory
         );
 
-console.log("Table returned:", tableBottomY);
 
     currentY = tableBottomY - 20;
 
@@ -335,7 +333,6 @@ if (
     drawOptions.page = page;
 }
 
-console.log("Before treatment:", currentY);
 
 currentY =
     ExecutiveSummaryContent.drawTreatmentInformation(

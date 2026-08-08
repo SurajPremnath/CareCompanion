@@ -3,8 +3,11 @@ import type {
 } from "@/lib/prescription-image/prescriptionImageTypes";
 
 import type {
+
     PrescriptionRecordContext,
+
     PrescriptionSaveInput,
+
 } from "@/lib/prescription/prescriptionTypes";
 
 
@@ -78,53 +81,85 @@ export function mapReviewedPrescriptionToSaveInput(
                 (
                     medicine,
                     index
-                ) => ({
+                ) => (
+                
+{
+    ocrMedicineName:
+        medicine.name.trim(),
 
-                    medicineName:
-                        medicine.name.trim(),
+    medicineName:
+        medicine.name.trim(),
 
-                    strength:
-                        normaliseOptionalText(
-                            medicine.strength
-                        ),
+    medicineMasterId:
+        null,
 
-                    form:
-                        normaliseOptionalText(
-                            medicine.form
-                        ),
+    strength:
+        normaliseOptionalText(
+            medicine.strength
+        ),
 
-                    dose:
-                        normaliseOptionalText(
-                            medicine.dose
-                        ),
+    form:
+        normaliseOptionalText(
+            medicine.form
+        ),
 
-                    frequency:
-                        normaliseOptionalText(
-                            medicine.frequency
-                        ),
+    dose:
+        normaliseOptionalText(
+            medicine.dose
+        ),
 
-                    timings:
-                        medicine.timings
-                            .map(
-                                timing =>
-                                    timing.trim()
-                            )
-                            .filter(Boolean),
+    frequency:
+        normaliseOptionalText(
+            medicine.frequency
+        ),
 
-                    duration:
-                        normaliseOptionalText(
-                            medicine.duration
-                        ),
+    timings:
+        medicine.timings
+            .map(
+                timing =>
+                    timing.trim()
+            )
+            .filter(Boolean),
 
-                    instructions:
-                        normaliseOptionalText(
-                            medicine.instructions
-                        ),
+    duration:
+        normaliseOptionalText(
+            medicine.duration
+        ),
 
-                    displayOrder:
-                        index,
+    instructions:
+        normaliseOptionalText(
+            medicine.instructions
+        ),
 
-                })
+validationStatus:
+    (
+        medicine.reviewStatus === "VERIFIED"
+            ? "VALIDATED"
+            : medicine.reviewStatus === "EXCLUDED"
+                ? "EXCLUDE"
+                : "PENDING"
+    ) as
+        | "PENDING"
+        | "VALIDATED"
+        | "EXCLUDE",
+
+validatedBy:
+    medicine.reviewStatus === "VERIFIED"
+        ? context.userId
+        : null,
+
+validatedAt:
+    medicine.reviewStatus === "VERIFIED"
+        ? new Date().toISOString()
+        : null,
+
+validationNotes:
+    null,
+
+    displayOrder:
+        index,
+}
+)
             )
             .filter(
                 medicine =>
@@ -381,3 +416,4 @@ additionalNotes: null,
 };
 
 }
+

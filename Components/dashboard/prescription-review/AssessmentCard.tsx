@@ -82,13 +82,15 @@ const additionalDiagnoses =
 
     });
 
-    const hasAssessment =
+const hasAssessment =
 
-        prescription.diagnosisOrAssessment ||
+    prescription.diagnosisOrAssessment ||
 
-        additionalDiagnoses.length ||
+    additionalDiagnoses.length ||
 
-        prescription.examinationFindings.length;
+    prescription.clinicalPlan.length ||
+
+    prescription.examinationFindings.length;
 
     if (!hasAssessment) {
 
@@ -177,6 +179,45 @@ const additionalDiagnoses =
                 )
 
             }
+
+{
+    prescription.clinicalPlan.length > 0 && (
+
+        <>
+
+            <h4>
+                Clinical Plan
+            </h4>
+
+            <ul style={bulletList}>
+
+                {
+
+                    prescription.clinicalPlan.map(
+
+                        (item, index) => (
+
+                            <li
+                                key={index}
+                                style={bulletItem}
+                            >
+
+                                {expandMedicalText(item)}
+
+                            </li>
+
+                        )
+
+                    )
+
+                }
+
+            </ul>
+
+        </>
+
+    )
+}
 
             {
 

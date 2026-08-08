@@ -79,6 +79,8 @@ const {
     t,
 } = useLanguage();
 
+console.table(prescription.history);
+
     const hasHistory =
 
         prescription.pastMedicalHistory.length > 0 ||
@@ -101,27 +103,61 @@ const {
 
             </h3>
 
-            <ul style={bulletList}>
+<ul style={bulletList}>
 
-                {
+    {
+        prescription.history.length > 0
+            ? (
+                prescription.history
 
-prescription.pastMedicalHistory
+                    .filter(
 
-    .map((item, index) => (
-        <li
-            key={index}
-            style={bulletItem}
-        >
+                        item =>
 
-            {formatMedicalHistory(item)}
+                            item.category.includes("MEDICAL") ||
 
-        </li>
+                            item.category.includes("SURGICAL")
 
-    ))
+                    )
 
-                }
+                    .map(
 
-            </ul>
+                        (item, index) => (
+
+                            <li
+                                key={index}
+                                style={bulletItem}
+                            >
+
+                                {formatMedicalHistory(item.value)}
+
+                            </li>
+
+                        )
+
+                    )
+            )
+            : (
+                prescription.pastMedicalHistory.map(
+
+                    (item, index) => (
+
+                        <li
+                            key={index}
+                            style={bulletItem}
+                        >
+
+                            {formatMedicalHistory(item)}
+
+                        </li>
+
+                    )
+
+                )
+            )
+    }
+
+</ul>
 
             {
 

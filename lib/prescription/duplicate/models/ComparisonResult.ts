@@ -16,8 +16,6 @@ export interface ComparisonResult {
 
     isDuplicate: boolean;
 
-    overallConfidence: number;
-
     parameters: ComparisonParameter[];
 
 }

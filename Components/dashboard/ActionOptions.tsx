@@ -41,6 +41,7 @@ export type MedicationDetailOption =
     | "TAKE_PHOTO"
     | "CHOOSE_PHOTOS"
     | "UPLOAD_PDF"
+    | "CONTINUE_VALIDATION"
     | "VIEW_PRESCRIPTIONS"
     | "IN_PERSON"
     | "VIDEO"
@@ -69,6 +70,11 @@ interface ActionOptionsProps {
 
     patientName:
         string;
+
+hasPendingMedicationValidation:
+    boolean;
+
+checkingPendingMedicationValidation: boolean;
 
     onStartAssessment?:
         () => void;
@@ -100,6 +106,10 @@ export default function ActionOptions({
     patientId,
 
     patientName,
+
+hasPendingMedicationValidation,
+
+checkingPendingMedicationValidation,
 
     onStartAssessment,
 
@@ -429,30 +439,62 @@ const [
 
     <>
 
+        {checkingPendingMedicationValidation ? (
+
+            <div
+                style={{
+                    padding: "24px",
+                    textAlign: "center",
+                    color: "#6B7280",
+                    fontWeight: 600,
+                }}
+            >
+
+                Checking pending validations...
+
+            </div>
+
+        ) : (
+
+        <>
+
         <label style={label}>
             {t("medication.whatWouldYouLikeToDo")}
         </label>
-
 
         <div style={optionGridTwo}>
 
             <button
                 type="button"
-                onClick={() => {
+onClick={() => {
 
-                    setSelectedOption(
-                        "ADD_PRESCRIPTION"
-                    );
+    if (hasPendingMedicationValidation) {
 
-                    setMedicationDetailOption(
-                        ""
-                    );
+        setMedicationDetailOption(
+            "CONTINUE_VALIDATION"
+        );
 
-                    onMedicationDetailChange?.(
-                        ""
-                    );
+        onMedicationDetailChange?.(
+            "CONTINUE_VALIDATION"
+        );
 
-                }}
+        return;
+
+    }
+
+    setSelectedOption(
+        "ADD_PRESCRIPTION"
+    );
+
+    setMedicationDetailOption(
+        ""
+    );
+
+    onMedicationDetailChange?.(
+        ""
+    );
+
+}}
                 style={{
     ...optionButton,
 
@@ -462,13 +504,17 @@ const [
 }}
             >
 
-                <span style={optionIcon}>
-                    📄
-                </span>
+<span style={optionIcon}>
+    {hasPendingMedicationValidation ? "⚠️" : "📄"}
+</span>
 
-                <span style={optionLabel}>
-                    {t("medication.addPrescription")}
-                </span>
+<span style={optionLabel}>
+    {
+        hasPendingMedicationValidation
+            ? "Continue Validation"
+            : t("medication.addPrescription")
+    }
+</span>
 
             </button>
 
@@ -510,6 +556,10 @@ onClick={() => {
 </button>
 
         </div>
+
+        </>
+
+        )}
 
     </>
 

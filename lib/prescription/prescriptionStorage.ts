@@ -305,4 +305,39 @@ export const prescriptionStorage = {
 
     },
 
+async getPendingMedicationValidation(
+    context: PrescriptionSaveContext
+): Promise<CompletePrescriptionRecord | null> {
+
+    return prescriptionRepository.getPendingMedicationValidation(
+        context.userId,
+        context.recordContext,
+        context.patientId
+    );
+
+},
+
+//------------------------------------------------------------
+// Update Pending Medicines
+//------------------------------------------------------------
+
+async updatePendingMedicines(
+
+    prescriptionId: string,
+
+    medicines: CompletePrescriptionRecord["medicines"]
+
+): Promise<void> {
+
+    return prescriptionRepository
+        .updatePendingMedicines(
+
+            prescriptionId,
+
+            medicines
+
+        );
+
+},
+
 };

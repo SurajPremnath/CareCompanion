@@ -61,6 +61,9 @@ type ActionOption,
 import PrescriptionWorkspace
     from "@/Components/dashboard/PrescriptionWorkspace";
 
+import PendingMedicationValidation
+    from "@/Components/dashboard/PendingMedicationValidation";
+
 import PrescriptionHistoryWorkspace
     from "@/Components/dashboard/PrescriptionHistoryWorkspace";
 
@@ -76,6 +79,10 @@ import UploadCareWorkspace
 import {
     consentStorage,
 } from "@/lib/consent/storage/consentStorage";
+
+import {
+    prescriptionStorage,
+} from "@/lib/prescription/prescriptionStorage";
 
 type DashboardUser = {
 
@@ -156,6 +163,16 @@ const [
     useState<MedicationDetailOption>(
         ""
     );
+
+const [
+    hasPendingMedicationValidation,
+    setHasPendingMedicationValidation,
+] = useState(false);
+
+const [
+    checkingPendingMedicationValidation,
+    setCheckingPendingMedicationValidation,
+] = useState(false);
 
 const [
     recordHealthOption,
@@ -618,6 +635,68 @@ try {
     };
 
 
+//------------------------------------------------------------
+// Pending Medication Validation
+//------------------------------------------------------------
+
+useEffect(() => {
+
+    if (
+        selectedAction !== "MEDICATION_MANAGEMENT" ||
+        !user
+    ) {
+        return;
+    }
+
+async function checkPendingValidation() {
+
+    if (!user) {
+        return;
+    }
+
+    setCheckingPendingMedicationValidation(true);
+
+    try {
+
+        const pending =
+            await prescriptionStorage
+                .getPendingMedicationValidation({
+
+                    userId: user.id,
+
+                    patientId: personSelection.patientId,
+
+                    familyId: null,
+
+                    recordContext:
+                        personSelection.mode === "FAMILY"
+                            ? "FAMILY"
+                            : "SELF",
+
+                });
+
+        setHasPendingMedicationValidation(
+            pending !== null
+        );
+
+    }
+    finally {
+
+        setCheckingPendingMedicationValidation(false);
+
+    }
+
+}
+
+    void checkPendingValidation();
+
+}, [
+    selectedAction,
+    user,
+    personSelection,
+]);
+
+
     //------------------------------------------------------------
     // Loading
     //------------------------------------------------------------
@@ -662,6 +741,9 @@ const isPersonSelectionComplete =
         personSelection.mode === "FAMILY" &&
         personSelection.patientId !== null
     );
+
+
+
 
     //------------------------------------------------------------
     // UI
@@ -1128,6 +1210,14 @@ disabled={!consentGranted}
             : personSelection.patientName ?? ""
     }
 
+hasPendingMedicationValidation={
+        hasPendingMedicationValidation
+    }
+
+checkingPendingMedicationValidation={
+    checkingPendingMedicationValidation
+}
+
     onStartAssessment={
         handleStartAssessment
     }
@@ -1218,6 +1308,7 @@ disabled={!consentGranted}
 )}
 
 {selectedAction === "MEDICATION_MANAGEMENT" &&
+ !hasPendingMedicationValidation &&
     (
         medicationDetail === "TAKE_PHOTO" ||
         medicationDetail === "CHOOSE_PHOTOS" ||
@@ -1261,6 +1352,58 @@ onCancelReview={() => {
     );
 
 }}
+
+/>
+
+)}
+
+{selectedAction === "MEDICATION_MANAGEMENT" &&
+    medicationDetail === "CONTINUE_VALIDATION" && (
+
+<PendingMedicationValidation
+
+    userId={user.id}
+
+    patientId={personSelection.patientId}
+
+    familyId={null}
+
+    recordContext={
+        personSelection.mode === "FAMILY"
+            ? "FAMILY"
+            : "SELF"
+    }
+
+    onSaveComplete={async () => {
+
+        const pending =
+            await prescriptionStorage
+                .getPendingMedicationValidation({
+
+                    userId: user.id,
+
+                    patientId: personSelection.patientId,
+
+                    familyId: null,
+
+                    recordContext:
+                        personSelection.mode === "FAMILY"
+                            ? "FAMILY"
+                            : "SELF",
+
+                });
+
+        setHasPendingMedicationValidation(
+            pending !== null
+        );
+
+    }}
+
+    onClose={() => {
+
+        setMedicationDetail("");
+
+    }}
 
 />
 

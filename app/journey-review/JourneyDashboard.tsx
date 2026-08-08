@@ -34,17 +34,8 @@ useEffect(() => {
 
     async function loadExecutiveSummary(){
 
-console.log(
-    "CALLING BUILD EXECUTIVE SUMMARY"
-);
-
         const summary =
             await buildExecutiveSummary();
-
-console.log(
-    "BUILD SUMMARY OUTPUT",
-    summary
-);
 
 
 
