@@ -318,91 +318,91 @@ onChange({
 
                 <div style={familySection}>
 
-                    <label style={label}>
-                        Select family member
-                    </label>
+<div style={familyHeader}>
 
+    <label style={label}>
+        Select family member
+    </label>
 
-                    {loadingPatients ? (
+    <button
+        type="button"
+        style={addPatientButton}
+        onClick={() => {
+            window.location.href = "/add-patient";
+        }}
+    >
+        ➕ Add New Patient
+    </button>
 
-                        <p style={mutedText}>
-                            Loading family members...
-                        </p>
+</div>
 
-                    ) : error ? (
+{loadingPatients ? (
 
-                        <p style={errorText}>
-                            {error}
-                        </p>
+    <p style={mutedText}>
+        Loading family members...
+    </p>
 
-                    ) : patients.length === 0 ? (
+) : error ? (
 
-                        <p style={mutedText}>
-                            No family members found.
-                        </p>
+    <p style={errorText}>
+        {error}
+    </p>
 
-                    ) : (
+) : patients.length === 0 ? (
 
-                        <select
-disabled={disabled}
-                            value={
-                                value.patientId ??
-                                ""
-                            }
-                            onChange={(event) => {
+    <p style={mutedText}>
+        No family members found.
+    </p>
 
-const selectedPatient =
-    patients.find(
-        patient =>
-            patient.id === event.target.value
-    );
+) : (
 
-onChange({
+    <select
+        disabled={disabled}
+        value={value.patientId ?? ""}
+        onChange={(event) => {
 
-    mode:
-        "FAMILY",
+            const selectedPatient =
+                patients.find(
+                    patient =>
+                        patient.id === event.target.value
+                );
 
-    patientId:
-        event.target.value || null,
+            onChange({
 
-    patientName:
-        selectedPatient?.fullName ?? null,
+                mode: "FAMILY",
 
-});
+                patientId:
+                    event.target.value || null,
 
-                            }}
-                            style={selectStyle}
-                        >
+                patientName:
+                    selectedPatient?.fullName ?? null,
 
-                            <option value="">
-                                Select patient
-                            </option>
+            });
 
+        }}
+        style={selectStyle}
+    >
 
-                            {
-                                patients.map(
-                                    patient => (
+        <option value="">
+            Select patient
+        </option>
 
-                                        <option
-                                            key={
-                                                patient.id
-                                            }
-                                            value={
-                                                patient.id
-                                            }
-                                        >
-                                            {
-                                                patient.fullName
-                                            }
-                                        </option>
+        {patients.map(
+            patient => (
 
-                                    )
-                                )
-                            }
+                <option
+                    key={patient.id}
+                    value={patient.id}
+                >
+                    {patient.fullName}
+                </option>
 
-                        </select>
+            )
+        )}
 
-                    )}
+    </select>
+
+)}
 
                 </div>
 
@@ -601,6 +601,22 @@ const familySection:
 
     };
 
+
+const familyHeader: React.CSSProperties = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+};
+
+const addPatientButton: React.CSSProperties = {
+    background: "transparent",
+    border: "none",
+    color: "#2563eb",
+    fontSize: "14px",
+    fontWeight: 600,
+    cursor: "pointer",
+    padding: 0,
+};
 
 const label:
     React.CSSProperties = {

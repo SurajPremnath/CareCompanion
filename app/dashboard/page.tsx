@@ -869,36 +869,26 @@ headerAccessory={<LanguageSelector />}
 
 <section style={homeSection}>
 
-    <div style={personSelectorWrapper}>
+<div style={personSelectorWrapper}>
 
-        <PersonSelector
-            value={
-                personSelection
+    <PersonSelector
+        value={personSelection}
+        disabled={!consentGranted}
+        onChange={(selection) => {
+            if (!consentGranted) {
+                return;
             }
-disabled={!consentGranted}
-onChange={(selection) => {
-if (!consentGranted) {
 
-            return;
+            setPersonSelection(selection);
 
-        }
-    setPersonSelection(
-        selection
-    );
+            setSelectedAction("");
 
-    setSelectedAction(
-        ""
-    );
+            setRecordHealthOption("");
+        }}
+        question={t("medication.whoIsThisFor")}
+    />
 
-    setRecordHealthOption(
-        ""
-    );
-
-}}
-            question={t("medication.whoIsThisFor")}
-        />
-
-    </div>
+</div>
 
 {isPersonSelectionComplete && (
 
@@ -1967,6 +1957,7 @@ width:
 
     };
 
+
 const mainActionWrapper:
     React.CSSProperties = {
 
@@ -2232,3 +2223,4 @@ const careVrJourneyButton: React.CSSProperties = {
     whiteSpace: "nowrap",
 
 };
+
