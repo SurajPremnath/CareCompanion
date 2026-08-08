@@ -1298,12 +1298,7 @@ checkingPendingMedicationValidation={
 )}
 
 {selectedAction === "MEDICATION_MANAGEMENT" &&
- !hasPendingMedicationValidation &&
-    (
-        medicationDetail === "TAKE_PHOTO" ||
-        medicationDetail === "CHOOSE_PHOTOS" ||
-        medicationDetail === "UPLOAD_PDF"
-    ) && (
+ !hasPendingMedicationValidation && (
 
     <PrescriptionWorkspace
     method={

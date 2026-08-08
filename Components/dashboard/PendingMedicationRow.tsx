@@ -132,78 +132,88 @@ export default function PendingMedicationRow({
 
         <tr>
 
-<td style={cellStyle}>
-
-    <MedicineSearch
-
-        medicineName={
-            medicine.medicineName ?? ""
-        }
-
-        selectedDose={
-            medicine.strength ?? ""
-        }
-
-        onMedicineSelected={(
-            medicineName,
-            selectedDose
-        ) => {
-
-            update({
-
-                medicineName,
-
-                strength: selectedDose,
-
-                validationStatus:
-                    "PENDING",
-
-                validatedAt: null,
-
-                validatedBy: null,
-
-            });
-
-        }}
-
-    />
-
-</td>
-
-<td style={cellStyle}>
-
-    <select
-        value={medicine.strength ?? ""}
-        onChange={(event) =>
-
-            update({
-
-                strength: event.target.value,
-
-            })
-
-        }
-        style={selectStyle}
-    >
-
-        {doseOptions.map(option => (
-
-            <option
-                key={option}
-                value={option}
+            <td
+                style={cellStyle}
+                data-label="Medicine"
             >
 
-                {option || "--"}
+                <MedicineSearch
 
-            </option>
+                    medicineName={
+                        medicine.medicineName ?? ""
+                    }
 
-        ))}
+                    selectedDose={
+                        medicine.strength ?? ""
+                    }
 
-    </select>
+                    onMedicineSelected={(
+                        medicineName,
+                        selectedDose
+                    ) => {
 
-</td>
+                        update({
 
-            <td style={cellStyle}>
+                            medicineName,
+
+                            strength: selectedDose,
+
+                            validationStatus:
+                                "PENDING",
+
+                            validatedAt: null,
+
+                            validatedBy: null,
+
+                        });
+
+                    }}
+
+                />
+
+            </td>
+
+            <td
+                style={cellStyle}
+                data-label="Dose"
+            >
+
+                <select
+                    value={medicine.strength ?? ""}
+                    onChange={(event) =>
+
+                        update({
+
+                            strength:
+                                event.target.value,
+
+                        })
+
+                    }
+                    style={selectStyle}
+                >
+
+                    {doseOptions.map(option => (
+
+                        <option
+                            key={option}
+                            value={option}
+                        >
+
+                            {option || "--"}
+
+                        </option>
+
+                    ))}
+
+                </select>
+
+            </td>
+
+            <td
+                style={cellStyle}
+                data-label="Frequency"
+            >
 
                 <select
 
@@ -244,7 +254,10 @@ export default function PendingMedicationRow({
 
             </td>
 
-            <td style={cellStyle}>
+            <td
+                style={cellStyle}
+                data-label="Duration"
+            >
 
                 <input
 
@@ -265,17 +278,20 @@ export default function PendingMedicationRow({
 
                     style={{
 
-    ...inputStyle,
+                        ...inputStyle,
 
-    minWidth: "80px",
+                        minWidth: "80px",
 
-}}
+                    }}
 
                 />
 
             </td>
 
-            <td style={cellStyle}>
+            <td
+                style={cellStyle}
+                data-label="Timing"
+            >
 
                 <select
 
@@ -306,27 +322,30 @@ export default function PendingMedicationRow({
                         --
                     </option>
 
-{timingOptions.map(option => (
+                    {timingOptions.map(option => (
 
-    <option
+                        <option
 
-        key={option.value}
+                            key={option.value}
 
-        value={option.value}
+                            value={option.value}
 
-    >
+                        >
 
-        {option.label}
+                            {option.label}
 
-    </option>
+                        </option>
 
-))}
+                    ))}
 
                 </select>
 
             </td>
 
-            <td style={cellStyle}>
+            <td
+                style={cellStyle}
+                data-label="Status"
+            >
 
                 <select
 
@@ -334,65 +353,65 @@ export default function PendingMedicationRow({
                         medicine.validationStatus
                     }
 
-onChange={(event) => {
+                    onChange={(event) => {
 
-    const status =
-        event.target.value as
-            | "PENDING"
-            | "VALIDATED"
-            | "EXCLUDE";
+                        const status =
+                            event.target.value as
+                                | "PENDING"
+                                | "VALIDATED"
+                                | "EXCLUDE";
 
-    update({
+                        update({
 
-        validationStatus: status,
+                            validationStatus: status,
 
-        validatedAt:
+                            validatedAt:
 
-            status === "VALIDATED"
+                                status === "VALIDATED"
 
-                ? new Date().toISOString()
+                                    ? new Date().toISOString()
 
-                : null,
+                                    : null,
 
-        validatedBy:
+                            validatedBy:
 
-            status === "VALIDATED"
+                                status === "VALIDATED"
 
-                ? userId
+                                    ? userId
 
-                : null,
+                                    : null,
 
-    });
+                        });
 
-}}
+                    }}
 
                     style={{
 
-    ...selectStyle,
+                        ...selectStyle,
 
-    minWidth: "100px",
+                        minWidth: "100px",
 
-}}
+                    }}
 
                 >
 
-<option value="PENDING">
+                    <option value="PENDING">
 
-    Pending
+                        Pending
 
-</option>
+                    </option>
 
-<option value="VALIDATED">
+                    <option value="VALIDATED">
 
-    Validated
+                        Validated
 
-</option>
+                    </option>
 
-<option value="EXCLUDE">
+                    <option value="EXCLUDE">
 
-    Exclude
+                        Exclude
 
-</option>
+                    </option>
 
                 </select>
 

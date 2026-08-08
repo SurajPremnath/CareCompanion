@@ -864,6 +864,7 @@ onClick={() => {
                 "CHOOSE_PHOTOS"
             );
 
+
         }}
         style={{
             ...optionButton,

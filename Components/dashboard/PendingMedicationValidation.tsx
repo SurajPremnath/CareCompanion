@@ -215,15 +215,17 @@ finally {
         border: "1px solid #E5E7EB",
         borderRadius: "10px",
         overflowX: "auto",
+        WebkitOverflowScrolling: "touch",
     }}
 >
 
-    <table
-        style={{
-            width: "100%",
-            borderCollapse: "collapse",
-        }}
-    >
+<table
+    style={{
+        width: "100%",
+        minWidth: "900px",
+        borderCollapse: "collapse",
+    }}
+>
 
         <thead>
 

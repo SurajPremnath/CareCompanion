@@ -52,7 +52,65 @@ const durationLookup = new Map(
 
     return(
 
-<section style={section}>
+<section style={section} className="complaints-card-section">
+
+
+<style>{`
+@media (max-width: 700px) {
+    .complaints-card-section {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        padding: 12px !important;
+        margin-bottom: 16px !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    .complaints-card-section h3 {
+        margin: 0 0 12px 0 !important;
+        font-size: 16px !important;
+        line-height: 1.3 !important;
+    }
+
+    .complaints-card-section ul {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding-left: 20px !important;
+        box-sizing: border-box !important;
+    }
+
+    .complaints-card-section li {
+        max-width: 100% !important;
+        padding: 3px 0 !important;
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+        box-sizing: border-box !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .complaints-card-section {
+        padding: 10px !important;
+    }
+
+    .complaints-card-section h3 {
+        font-size: 15px !important;
+    }
+
+    .complaints-card-section ul {
+        padding-left: 18px !important;
+    }
+
+    .complaints-card-section li {
+        font-size: 12.5px !important;
+        line-height: 1.45 !important;
+    }
+}
+`}</style>
 
 <h3>
 

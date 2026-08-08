@@ -143,7 +143,154 @@ const administrationTimingLabels: Record<string, string> = {
     return (
         <>
 
-    <div style={informationBox}>
+
+        <style>{`
+            @media (max-width: 700px) {
+                .medication-information-box {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    box-sizing: border-box !important;
+                    padding: 12px !important;
+                    margin-top: 12px !important;
+                    overflow-wrap: anywhere !important;
+                }
+
+                .medication-information-box p {
+                    font-size: 12px !important;
+                    line-height: 1.45 !important;
+                }
+
+                .medication-section {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    min-width: 0 !important;
+                    padding: 12px !important;
+                    margin-bottom: 16px !important;
+                    box-sizing: border-box !important;
+                    overflow: hidden !important;
+                }
+
+                .medication-section h3 {
+                    margin: 0 0 12px 0 !important;
+                    font-size: 16px !important;
+                    line-height: 1.3 !important;
+                }
+
+                .medication-table,
+                .medication-table tbody {
+                    display: block !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    box-sizing: border-box !important;
+                }
+
+                .medication-table thead {
+                    display: none !important;
+                }
+
+                .medication-table tbody tr {
+                    display: block !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    min-width: 0 !important;
+                    margin: 0 0 12px 0 !important;
+                    padding: 10px !important;
+                    box-sizing: border-box !important;
+                    border: 1px solid #e2e8f0 !important;
+                    border-radius: 12px !important;
+                    background: #ffffff !important;
+                    overflow: hidden !important;
+                }
+
+                .medication-table tbody tr:last-child {
+                    margin-bottom: 0 !important;
+                }
+
+                .medication-table tbody td {
+                    display: grid !important;
+                    grid-template-columns: 42% minmax(0, 58%) !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    min-width: 0 !important;
+                    box-sizing: border-box !important;
+                    padding: 8px 4px !important;
+                    border-bottom: 1px solid #eef2f7 !important;
+                    text-align: left !important;
+                    vertical-align: middle !important;
+                    overflow-wrap: anywhere !important;
+                    word-break: break-word !important;
+                }
+
+                .medication-table tbody td:last-child {
+                    border-bottom: 0 !important;
+                }
+
+                .medication-table tbody td::before {
+                    content: attr(data-label);
+                    display: block !important;
+                    min-width: 0 !important;
+                    padding-right: 8px !important;
+                    font-size: 10.5px !important;
+                    line-height: 1.35 !important;
+                    font-weight: 700 !important;
+                    color: #64748b !important;
+                }
+
+                .medication-table tbody td > * {
+                    min-width: 0 !important;
+                    max-width: 100% !important;
+                    box-sizing: border-box !important;
+                }
+
+                .medication-table tbody td input,
+                .medication-table tbody td select {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    min-width: 0 !important;
+                    box-sizing: border-box !important;
+                }
+
+                .medication-table tbody td button {
+                    max-width: 100% !important;
+                    box-sizing: border-box !important;
+                }
+
+                .medication-section > div:first-child {
+                    max-width: 100% !important;
+                    box-sizing: border-box !important;
+                }
+            }
+
+            @media (max-width: 420px) {
+                .medication-section {
+                    padding: 10px !important;
+                }
+
+                .medication-section h3 {
+                    font-size: 15px !important;
+                }
+
+                .medication-table tbody tr {
+                    padding: 8px !important;
+                    border-radius: 10px !important;
+                }
+
+                .medication-table tbody td {
+                    grid-template-columns: 40% minmax(0, 60%) !important;
+                    padding: 7px 3px !important;
+                    font-size: 12px !important;
+                }
+
+                .medication-table tbody td::before {
+                    font-size: 10px !important;
+                }
+            }
+        `}</style>
+
+    <div
+        style={informationBox}
+        className="medication-information-box"
+    >
 
         <div style={informationTitle}>
             ℹ️ {t("medication.importantAdministrationTiming")}

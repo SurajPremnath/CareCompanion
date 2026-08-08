@@ -44,6 +44,23 @@ type FilterMode =
     | "LATEST"
     | "DATE_RANGE";
 
+
+function getLocalDateInputValue(): string {
+    const now = new Date();
+
+    const year = now.getFullYear();
+
+    const month = String(
+        now.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+        now.getDate()
+    ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
 export default function PrescriptionHistoryWorkspace({
 
     userId,
@@ -374,13 +391,139 @@ catch (error) {
 
     return (
 
-        <section style={cardStyle}>
+        <section style={cardStyle} className="prescription-history-workspace">
+
+            <style>{`
+                /* Mobile-only layout. Desktop styles remain unchanged. */
+                @media (max-width: 700px) {
+                    .prescription-history-workspace {
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        box-sizing: border-box !important;
+                        padding: 12px !important;
+                        margin-top: 10px !important;
+                        overflow-x: hidden !important;
+                    }
+
+                    .prescription-history-workspace * {
+                        box-sizing: border-box;
+                        max-width: 100%;
+                    }
+
+                    .prescription-availability {
+                        font-size: 12px !important;
+                        margin-bottom: 14px !important;
+                        line-height: 1.45 !important;
+                        overflow-wrap: anywhere;
+                    }
+
+                    .prescription-filter-card {
+                        padding: 12px !important;
+                        margin-bottom: 14px !important;
+                    }
+
+                    .prescription-filter-options {
+                        flex-direction: column !important;
+                        gap: 8px !important;
+                        margin-bottom: 12px !important;
+                    }
+
+                    .prescription-filter-options > button {
+                        width: 100% !important;
+                        min-height: 44px;
+                    }
+
+                    .prescription-date-grid {
+                        grid-template-columns: minmax(0, 1fr) !important;
+                        gap: 10px !important;
+                        margin-top: 10px !important;
+                    }
+
+                    .prescription-date-grid input {
+                        width: 100% !important;
+                        min-width: 0 !important;
+                    }
+
+                    .prescription-retrieve-row {
+                        margin-top: 12px !important;
+                    }
+
+                    .prescription-retrieve-row button {
+                        width: 100% !important;
+                        min-height: 44px;
+                    }
+
+                    .latest-prescription-card {
+                        padding: 14px !important;
+                        margin-bottom: 14px !important;
+                        border-width: 1px !important;
+                    }
+
+                    .latest-prescription-header {
+                        margin-bottom: 12px !important;
+                        align-items: flex-start !important;
+                    }
+
+                    .latest-prescription-header h3 {
+                        font-size: 17px !important;
+                        line-height: 1.3 !important;
+                    }
+
+                    .latest-prescription-summary {
+                        grid-template-columns: minmax(0, 1fr) !important;
+                        gap: 8px !important;
+                    }
+
+                    .latest-prescription-summary > * {
+                        min-width: 0 !important;
+                        width: 100% !important;
+                    }
+
+                    .latest-prescription-summary div {
+                        overflow-wrap: anywhere;
+                    }
+
+                    .latest-prescription-actions {
+                        margin-top: 14px !important;
+                    }
+
+                    .latest-prescription-actions button {
+                        width: 100% !important;
+                        min-height: 44px;
+                    }
+
+                    .prescription-history-card {
+                        padding: 12px !important;
+                        max-height: none !important;
+                        overflow: visible !important;
+                    }
+
+                    .prescription-history-item {
+                        flex-direction: column !important;
+                        align-items: stretch !important;
+                        gap: 10px !important;
+                        padding: 12px 0 !important;
+                    }
+
+                    .prescription-history-item button {
+                        width: 100% !important;
+                        min-height: 42px;
+                    }
+
+                    /* The PrescriptionReview child must be allowed to occupy
+                       the complete mobile width. Its internal layout will be
+                       handled in its own component. */
+                    .prescription-history-workspace > section > div {
+                        min-width: 0 !important;
+                    }
+                }
+            `}</style>
 
 {
     summary &&
     summary.total > 0 && (
 
-        <div style={subTitleStyle}>
+        <div style={subTitleStyle} className="prescription-availability">
 
             📅{" "}
 
@@ -417,7 +560,7 @@ catch (error) {
 
 summary?.total === 0 ? (
 
-    <section style={filterCard}>
+    <section style={filterCard} className="prescription-filter-card">
 
         <div style={emptyCard}>
 
@@ -445,9 +588,9 @@ summary?.total === 0 ? (
 
 ) : (
 
-<section style={filterCard}>
+<section style={filterCard} className="prescription-filter-card">
 
-<div style={optionRow}>
+<div style={optionRow} className="prescription-filter-options">
 
     <button
         type="button"
@@ -536,28 +679,30 @@ catch (error) {
 
     <button
         type="button"
-        onClick={() => {
+onClick={() => {
 
-setValidationMessage("");
+    setValidationMessage("");
 
-setFromDate("");
+    const today =
+        getLocalDateInputValue();
 
-setToDate("");
+    setFromDate(today);
 
+    setToDate(today);
 
-setFilterMode("DATE_RANGE");
+    setFilterMode("DATE_RANGE");
 
-setShowRetrieve(true);
+    setShowRetrieve(true);
 
-setHasRetrieved(false);
+    setHasRetrieved(false);
 
-setPrescriptions([]);
+    setPrescriptions([]);
 
-setSelectedPrescription(null);
+    setSelectedPrescription(null);
 
-// Hide previously viewed prescription
-setReviewMode(null);
-setReviewPrescription(null);
+    // Hide previously viewed prescription
+    setReviewMode(null);
+    setReviewPrescription(null);
 
 }}
         style={{
@@ -578,7 +723,7 @@ setReviewPrescription(null);
 
                     filterMode === "DATE_RANGE" && (
 
-                        <div style={dateGrid}>
+                        <div style={dateGrid} className="prescription-date-grid">
 
                             <div>
 
@@ -662,7 +807,7 @@ onChange={(event) => {
     showRetrieve &&
     filterMode === "DATE_RANGE" && (
 
-        <div style={retrieveButtonRow}>
+        <div style={retrieveButtonRow} className="prescription-retrieve-row">
 
 <button
     type="button"
@@ -762,9 +907,9 @@ onChange={(event) => {
 
                 <>
 
-                    <section style={latestCard}>
+                    <section style={latestCard} className="latest-prescription-card">
 
-                        <div style={sectionHeader}>
+                        <div style={sectionHeader} className="latest-prescription-header">
 
                             <h3 style={sectionTitle}>
                                 ⭐ Latest Prescription
@@ -772,7 +917,7 @@ onChange={(event) => {
 
                         </div>
 
-                        <div style={summaryGrid}>
+                        <div style={summaryGrid} className="latest-prescription-summary">
 
                             <SummaryItem
                                 label="Consultation Date"
@@ -821,7 +966,7 @@ onChange={(event) => {
 
                         </div>
 
-                        <div style={buttonRow}>
+                        <div style={buttonRow} className="latest-prescription-actions">
 
                             <button
                                 type="button"
@@ -893,7 +1038,7 @@ setReviewPrescription(review);
 
 {history.length > 0 ? (
 
-    <section style={historyCard}>
+    <section style={historyCard} className="prescription-history-card">
 
         <h3 style={sectionTitle}>
 
@@ -908,6 +1053,7 @@ setReviewPrescription(review);
                 <div
                     key={item.id}
                     style={historyItem}
+                    className="prescription-history-item"
                 >
 
                     <div>
@@ -975,7 +1121,7 @@ onClick={async () => {
     hasRetrieved &&
     latestPrescription && (
 
-        <section style={historyCard}>
+        <section style={historyCard} className="prescription-history-card">
 
             <h3 style={sectionTitle}>
 

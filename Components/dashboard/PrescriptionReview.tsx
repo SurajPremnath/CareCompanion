@@ -371,15 +371,55 @@ const handleSave = async () => {
     return (
 
 
-        <div style={reviewContainer}>
+        <div style={reviewContainer} className="prescription-review-container">
+            <style>{`
+                @media (max-width: 700px) {
+                    .prescription-review-container {
+                        padding: 12px !important;
+                        border-radius: 10px !important;
+                    }
+                    .prescription-review-container .prescription-review-title {
+                        font-size: 20px !important;
+                        line-height: 1.25 !important;
+                    }
+                    .prescription-review-container .prescription-review-description {
+                        font-size: 12px !important;
+                        line-height: 1.45 !important;
+                        margin-bottom: 14px !important;
+                    }
+                    .prescription-review-container .prescription-review-actions {
+                        width: 100% !important;
+                    }
+                    .prescription-review-container .prescription-review-actions > * {
+                        width: 100% !important;
+                    }
+                }
+                @media (max-width: 420px) {
+                    .prescription-review-container {
+                        padding: 10px !important;
+                    }
+                    .prescription-review-container .prescription-review-title {
+                        font-size: 18px !important;
+                    }
+                    .prescription-review-container .prescription-review-description {
+                        font-size: 11.5px !important;
+                    }
+                }
+            `}</style>
 
 
 
-            <h2 style={reviewTitle}>
+            <h2
+                style={reviewTitle}
+                className="prescription-review-title"
+            >
                 {t("medication.prescriptionDetails")}
             </h2>
 
-          <p style={reviewDescription}>
+            <p
+                style={reviewDescription}
+                className="prescription-review-description"
+            >
 Note: {t("medication.reviewNoteDescription")}                
 <strong> {t("medication.reviewInstruction")} </strong>
 		
@@ -692,6 +732,7 @@ All medicines have been reviewed.
 
 }
 
+<div className="prescription-review-actions">
 <ReviewActions
     saving={saving}
     saved={prescriptionSaved}
@@ -703,6 +744,7 @@ All medicines have been reviewed.
     onReviewMedicines={handleReviewMedicines}
     onReviewCompleted={handleReviewCompleted}
 />
+</div>
 
 </>
 

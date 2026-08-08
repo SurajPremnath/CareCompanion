@@ -250,17 +250,22 @@ const MAX_IMAGE_SIZE =
 
         }
 
-        if (
-            method ===
-            "CHOOSE_PHOTOS"
-        ) {
+if (
+    method ===
+    "CHOOSE_PHOTOS"
+) {
 
-            galleryInputRef.current
-                ?.click();
+    const input =
+        galleryInputRef.current;
 
-            return;
+    if (!input) {
+        return;
+    }
 
-        }
+    input.click();
+
+    return;
+}
 
         if (
             method ===
@@ -276,6 +281,7 @@ const MAX_IMAGE_SIZE =
         method,
     ]);
 
+
     //--------------------------------------------------------
     // Handle Files
     //--------------------------------------------------------
@@ -288,6 +294,8 @@ const files =
     Array.from(
         event.target.files ?? []
     );
+
+event.target.value = "";
 
 const oversizedFiles =
     files.filter(
@@ -336,13 +344,10 @@ setPatientValidationError(
             null
         );
 
-        setSelectedFiles(
-            files
-        );
+setSelectedFiles(files);
 
-        await readPrescription(
-            files
-        );
+await readPrescription(files);
+
 
     }
 
@@ -623,79 +628,83 @@ function cancelReview() {
             null
         );
 
-        setProcessing(
-            true
+setProcessing(
+    true
+);
+
+
+setReadingProgress(
+    10
+);
+
+setReadingStatus(
+    t("medication.preparingPrescription")
+);
+
+// Give the browser one render cycle to display
+// the progress UI before starting prescription processing.
+await new Promise<void>(
+    resolve => {
+        window.setTimeout(
+            resolve,
+            0
+        );
+    }
+);
+
+try {
+
+    const progressTimer =
+        window.setInterval(
+            () => {
+                setReadingProgress(
+                    current => {
+
+                        if (
+                            current >= 90
+                        ) {
+                            return current;
+                        }
+
+                        if (
+                            current < 50
+                        ) {
+                            return current + 5;
+                        }
+
+                        if (
+                            current < 75
+                        ) {
+                            return current + 3;
+                        }
+
+                        return current + 1;
+
+                    }
+                );
+            },
+            700
         );
 
-        setReadingProgress(
-            10
-        );
+    setReadingProgress(
+        35
+    );
 
-        setReadingStatus(
-            t("medication.preparingPrescription")
-        );
+    setReadingStatus(
+        t("medication.readingPrescription")
+    );
 
-        try {
+    let result;
 
-            const progressTimer =
-                window.setInterval(
-                    () => {
+    try {
 
-                        setReadingProgress(
-                            current => {
-
-                                if (
-                                    current >= 90
-                                ) {
-
-                                    return current;
-
-                                }
-
-                                if (
-                                    current < 50
-                                ) {
-
-                                    return current + 5;
-
-                                }
-
-                                if (
-                                    current < 75
-                                ) {
-
-                                    return current + 3;
-
-                                }
-
-                                return current + 1;
-
-                            }
-                        );
-
-                    },
-                    700
+        result =
+            await prescriptionImageService
+                .processFiles(
+                    filesToRead
                 );
 
-            setReadingProgress(
-                35
-            );
-
-            setReadingStatus(
-                t("medication.readingPrescription")
-            );
-
-            let result;
-
-            try {
-
-                result =
-                    await prescriptionImageService
-                        .processFiles(
-                            filesToRead
-                        );
-
-            }
+    }
             finally {
 
                 window.clearInterval(
@@ -819,16 +828,6 @@ const comparison =
         previous
     );
 
-alert(
-    JSON.stringify(
-        {
-            current: DuplicatePrescriptionMapper.fromOCR(result.data),
-            previous: DuplicatePrescriptionMapper.fromDatabase(previousPrescription)
-        },
-        null,
-        2
-    )
-);
 
 const duplicate =
     DuplicatePrescriptionEngine.check(
@@ -962,11 +961,6 @@ const savedPrescription =
         }
     );
 
-console.log(
-    "Prescription Saved:",
-    savedPrescription
-);
-
 removeAllSelectedFiles();
 
 setSaveSuccess(
@@ -998,11 +992,13 @@ setSaveSuccess(
 
 }
 
+
     //--------------------------------------------------------
     // UI
     //--------------------------------------------------------
 
 return (
+
 
 <div style={workspaceContainer}>
             {/* Hidden Camera Input */}

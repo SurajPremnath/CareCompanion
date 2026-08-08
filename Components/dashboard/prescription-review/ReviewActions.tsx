@@ -194,6 +194,7 @@ Review the medicines carefully before clicking
 }
 
 <div
+    className="review-actions-buttons"
     style={{
         display: "flex",
         justifyContent: "flex-end",
@@ -206,6 +207,7 @@ Review the medicines carefully before clicking
 >
 
     <button
+        className="review-action-button"
         type="button"
         onClick={onReupload}
         style={{
@@ -222,6 +224,7 @@ Review the medicines carefully before clicking
     </button>
 
 <button
+    className="review-action-button"
     type="button"
     onClick={
         reviewMode
@@ -248,6 +251,7 @@ Review the medicines carefully before clicking
 </button>
 
 <button
+    className="review-action-button"
     type="button"
     onClick={onConfirm}
     disabled={!reviewCompleted || saving || saved}
@@ -281,6 +285,28 @@ Review the medicines carefully before clicking
 </button>
 
 </div>
+
+<style>{`
+    .review-actions-buttons {
+        width: 100%;
+    }
+
+    .review-action-button {
+        min-height: 44px;
+    }
+
+    @media (max-width: 600px) {
+        .review-actions-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .review-action-button {
+            width: 100%;
+            min-height: 48px;
+        }
+    }
+`}</style>
 
 </>
 

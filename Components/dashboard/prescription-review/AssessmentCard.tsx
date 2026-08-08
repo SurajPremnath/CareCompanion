@@ -100,7 +100,77 @@ const hasAssessment =
 
     return (
 
-        <section style={section}>
+        <section style={section} className="assessment-card-section">
+
+
+<style>{`
+@media (max-width: 700px) {
+    .assessment-card-section {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        padding: 12px !important;
+        margin-bottom: 16px !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    .assessment-card-section h3 {
+        margin: 0 0 12px 0 !important;
+        font-size: 16px !important;
+        line-height: 1.3 !important;
+    }
+
+    .assessment-card-section h4 {
+        margin-top: 14px !important;
+        margin-bottom: 7px !important;
+        font-size: 13px !important;
+        line-height: 1.35 !important;
+    }
+
+    .assessment-card-section p,
+    .assessment-card-section li {
+        max-width: 100% !important;
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+        box-sizing: border-box !important;
+    }
+
+    .assessment-card-section ul {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        padding-left: 20px !important;
+        margin: 0 !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .assessment-card-section {
+        padding: 10px !important;
+    }
+
+    .assessment-card-section h3 {
+        font-size: 15px !important;
+    }
+
+    .assessment-card-section h4 {
+        font-size: 12.5px !important;
+    }
+
+    .assessment-card-section p,
+    .assessment-card-section li {
+        font-size: 12.5px !important;
+        line-height: 1.45 !important;
+    }
+
+    .assessment-card-section ul {
+        padding-left: 18px !important;
+    }
+}
+`}</style>
 
             <h3 style={sectionTitle}>
 
