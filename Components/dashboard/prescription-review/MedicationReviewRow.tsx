@@ -204,11 +204,40 @@ useEffect(() => {
     resolver
 ]);
 
+
+                <style>{`
+                    @media (max-width: 700px) {
+                        .medication-table tbody td {
+                            display: grid !important;
+                            grid-template-columns: 42% minmax(0, 58%) !important;
+                            width: 100% !important;
+                            min-width: 0 !important;
+                            box-sizing: border-box !important;
+                        }
+
+                        .medication-table tbody td::before {
+                            content: attr(data-label);
+                            font-size: 11px;
+                            font-weight: 700;
+                            color: #64748b;
+                            padding-right: 8px;
+                        }
+
+                        .medication-table tbody td select,
+                        .medication-table tbody td input {
+                            width: 100% !important;
+                            min-width: 0 !important;
+                            max-width: 100% !important;
+                            box-sizing: border-box !important;
+                        }
+                    }
+                `}</style>
+
     return (
         <>
             <tr>
 
-<td style={cell}>
+<td style={cell} data-label="Medicine">
 
     <div
         style={{
@@ -359,7 +388,7 @@ onClick={async () => {
 
 {/* Review handled by MedicationReviewRow */}
 
-<td style={centerCell}>
+<td style={centerCell} data-label="Dose">
 
 <select
     value={selectedDose}
@@ -421,7 +450,7 @@ onClick={async () => {
 
 </td>
 
-<td style={centerCell}>
+<td style={centerCell} data-label="Frequency">
 
 <select
     value={selectedFrequency}
@@ -486,7 +515,7 @@ onClick={async () => {
 
 </td>
 
-<td style={centerCell}>
+<td style={centerCell} data-label="Duration">
 
     <div
         style={{
@@ -577,7 +606,7 @@ onClick={async () => {
 
 </td>
 
-<td style={cell}>
+<td style={cell} data-label="Administration Timing">
 
     <select
         value={administrationTiming}
@@ -609,7 +638,7 @@ onClick={async () => {
 
 </td>
 
-<td style={centerCell}>
+<td style={centerCell} data-label="User Acceptance">
 
     {
         readOnly ? (

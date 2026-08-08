@@ -168,7 +168,7 @@ const administrationTimingLabels: Record<string, string> = {
 
     {prescription.medicines.length > 0 && (
 
-        <section style={section}>
+        <section style={section} className="medication-section">
 
             <h3 style={sectionTitle}>
                 {t("medication.medicationsPrescribed")}
@@ -183,7 +183,7 @@ const administrationTimingLabels: Record<string, string> = {
 
                 ) : (
 
-                    <table style={table}>
+                    <table style={table} className="medication-table">
 
                         <thead>
 

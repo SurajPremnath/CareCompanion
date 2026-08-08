@@ -79,7 +79,7 @@ export default function MedicineRow({
         <>
             <tr>
 
-<td style={cell}>
+<td style={cell} data-label="Medicine">
 
     <div style={medicineContainer}>
 
@@ -100,11 +100,11 @@ export default function MedicineRow({
 
 {/* Review handled by MedicationReviewRow */}
 
-<td style={centerCell}>
+<td style={centerCell} data-label="Dose">
     {medicine.strength ?? "-"}
 </td>
 
-<td style={centerCell}>
+<td style={centerCell} data-label="Frequency">
 
 {
 (
@@ -142,11 +142,11 @@ medicine.frequency
 
 </td>
 
-<td style={centerCell}>
+<td style={centerCell} data-label="Duration">
     {medicine.duration ?? "-"}
 </td>
 
-<td style={cell}>
+<td style={cell} data-label="Administration Timing">
 
 {
     administrationTimingLabels[
@@ -160,6 +160,7 @@ medicine.frequency
     (reviewCompleted || readOnly) && (
 
         <td
+            data-label="Validation Status"
             style={{
                 ...centerCell,
                 fontWeight: 600,
