@@ -5,49 +5,47 @@ export interface ClinicalQuestion {
     order: number;
 
     question: string;
-
 }
 
 
 export const CLINICAL_QUESTIONS = [
-
     {
         id: "Q1",
         order: 1,
         icon: "🩺",
-        title: "Symptoms",
-        question:
-            "How has the patient been feeling during this period?"
+        title: "Health Events",
+        question: "What happened during this period?"
     },
-
 
     {
         id: "Q2",
         order: 2,
-        icon: "❤️",
-        title: "Vitals",
-        question:
-            "Were there any notable vital parameter observations?"
+        icon: "🔄",
+        title: "Health Changes",
+        question: "What changed during this period?"
     },
-
 
     {
         id: "Q3",
         order: 3,
-        icon: "📋",
-        title: "Measurements",
-        question:
-            "What objective measurements were recorded?"
+        icon: "❤️",
+        title: "Patient Status",
+        question: "How is the patient doing now?"
     },
-
 
     {
         id: "Q4",
         order: 4,
-        icon: "⚠️",
-        title: "Events",
-        question:
-            "What clinical events require attention?"
-    }
+        icon: "💊",
+        title: "Current Medications & Treatment",
+        question: "What treatment is the patient currently receiving?"
+    },
 
+    {
+        id: "Q5",
+        order: 5,
+        icon: "📋",
+        title: "Latest Clinical Plan",
+        question: "What was the latest clinical plan?"
+    }
 ];

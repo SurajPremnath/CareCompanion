@@ -87,11 +87,9 @@ return {
 
 
 answer:
-    removeDuplicateWords(
-        week.answers[
-            question.id as keyof ClinicalAnswers
-        ] ?? ""
-    )
+    week.answers[
+        question.id as keyof ClinicalAnswers
+    ] ?? ""
 
                         })
                     )

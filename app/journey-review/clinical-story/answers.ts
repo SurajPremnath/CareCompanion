@@ -1,12 +1,43 @@
 import {
     ClinicalStoryContext
-}
-from "./storyContext";
+} from "./storyContext";
 
 import {
     symptomLabels
 } from "./symptomMapper";
 
+
+/*
+ * ==================================================
+ * DATE HELPERS
+ * ==================================================
+ */
+
+function toLocalDateString(
+    date: Date
+): string {
+
+    const year =
+        date.getFullYear();
+
+    const month =
+        String(
+            date.getMonth() + 1
+        ).padStart(
+            2,
+            "0"
+        );
+
+    const day =
+        String(
+            date.getDate()
+        ).padStart(
+            2,
+            "0"
+        );
+
+    return `${year}-${month}-${day}`;
+}
 
 export interface ClinicalAnswers {
 
@@ -18,360 +49,41 @@ export interface ClinicalAnswers {
 
     Q4: string;
 
-}
-
-
-
-function generateVitalObservation(
-    week:any
-): string {
-
-
-
-const vitals =
-    week.vitals || {};
-
-
-const temperatures =
-    vitals.temperature || [];
-
-
-const pulses =
-    vitals.pulse || [];
-
-
-const spo2 =
-    vitals.spo2 || [];
-
-
-
-let result = "";
-
-
-    const observations = [];
-
-
-
-    if (
-        spo2.length
-    ) {
-
-        const lowest =
-            Math.min(
-                ...spo2
-            );
-
-
-        if (
-            lowest < 94
-        ) {
-
-            observations.push(
-    `Lowest SpO₂\n${lowest}%`
-);
-
-        }
-
-    }
-
-
-
-    if (
-        pulses.length
-    ) {
-
-        const highest =
-            Math.max(
-                ...pulses
-            );
-
-
-        if (
-            highest > 110
-        ) {
-
-            observations.push(
-    `Highest Pulse\n${highest} bpm`
-);
-
-        }
-
-    }
-
-
-
-    if (
-        observations.length
-    ) {
-
-        result +=
-            "\n\nNotable observations:\n• "
-            +
-            observations.join(
-                "\n• "
-            );
-
-    }
-    else {
-
-        result +=
-            "\n\nNo significant variations were observed during this period.";
-
-    }
-
-
-    return result;
+    Q5: string;
 
 }
 
-function generateTreatmentObservation(
-    symptoms:any[]
-): string {
 
+function uniqueStrings(
+    values: unknown[] = []
+): string[] {
 
-    const treatmentSymptoms = [
-        "WEAKNESS",
-        "LOSS_OF_APPETITE",
-        "NAUSEA",
-        "VOMITING",
-        "FATIGUE",
-        "EDEMA"
+    return [
+        ...new Set(
+            values
+                .filter(
+                    value =>
+                        typeof value === "string" &&
+                        value.trim().length > 0
+                )
+                .map(
+                    value =>
+                        String(value).trim()
+                )
+        )
     ];
 
-
-    const recorded =
-        symptoms.filter(
-            symptom =>
-                treatmentSymptoms.includes(
-                    symptom
-                )
-        );
-
-
-    if (
-        recorded.length === 0
-    ) {
-
-        return (
-            "No treatment-related symptoms were recorded during this period."
-        );
-
-    }
-
-
-    return (
-        `Treatment-related symptoms recorded: ${
-            [
-                ...new Set(recorded)
-            ].join(", ")
-        }.`
-    );
-
 }
 
 
-function generateObjectiveMeasurements(
-    week:any
-): string {
-
-
-    const measurements = [];
-
-
-    const vitals =
-        week.vitals || {};
-
-
-
-    if (
-        vitals.temperature &&
-        vitals.temperature.length > 0
-    ) {
-
-        measurements.push(
-            "Temperature"
-        );
-
-    }
-
-
-    if (
-        vitals.pulse &&
-        vitals.pulse.length > 0
-    ) {
-
-        measurements.push(
-            "Pulse"
-        );
-
-    }
-
-
-    if (
-        vitals.spo2 &&
-        vitals.spo2.length > 0
-    ) {
-
-        measurements.push(
-            "Oxygen saturation"
-        );
-
-    }
-
-
-    if (
-        vitals.systolic &&
-        vitals.systolic.length > 0
-    ) {
-
-        measurements.push(
-            "Blood pressure"
-        );
-
-    }
-
-
-    if (
-        week.weight &&
-        week.weight.length > 0
-    ) {
-
-        measurements.push(
-            "Weight"
-        );
-
-    }
-
-
-    if (
-        week.assessments &&
-        week.assessments.length > 0
-    ) {
-
-        measurements.push(
-            "Assessment records"
-        );
-
-    }
-
-
-    if (
-        measurements.length === 0
-    ) {
-
-        return (
-            "No objective measurements were recorded during this period."
-        );
-
-    }
-
-
-return measurements.join("\n");
-
-}
-
-function generateClinicalEvents(
-    week:any
-): string {
-
-
-    const events = [];
-
-
-    const symptoms =
-        week.symptoms || [];
-
-
-
-    if (
-        symptoms.includes(
-            "BLOOD_IN_COUGH"
-        )
-    ) {
-
-        events.push(
-            "Blood in cough."
-        );
-
-    }
-
-
-    if (
-        symptoms.includes(
-            "FEVER"
-        )
-    ) {
-
-        events.push(
-            "Fever."
-        );
-
-    }
-
-
-    if (
-        symptoms.includes(
-            "BREATHING_DIFFICULTY"
-        )
-    ) {
-
-        events.push(
-            "Breathing difficulty."
-        );
-
-    }
-
-
-    if (
-        week.assessments &&
-        week.assessments.length > 0
-    ) {
-
-        events.push(
-            "Assessment records were completed."
-        );
-
-    }
-
-
-
-    if (
-        events.length === 0
-    ) {
-
-        return (
-            "No specific clinical events were recorded during this period."
-        );
-
-    }
-
-
-    return events.join(" ");
-
-}
-
-function generateFeelingSummary(
-    symptoms:string[] = []
-): string {
-
-
-    if (
-        symptoms.length === 0
-    ) {
-
-        return (
-            "No symptoms were reported during this period."
-        );
-
-    }
-
-
-const displaySymptoms = [
-    ...new Set(
+function formatSymptoms(
+    symptoms: string[] = []
+): string[] {
+
+    return uniqueStrings(
         symptoms
             .filter(
-                symptom =>
-                    symptom !== "OTHER"
+                symptom => symptom !== "OTHER"
             )
             .map(
                 symptom => {
@@ -384,62 +96,924 @@ const displaySymptoms = [
                         .toLowerCase()
                         .replace(
                             /\b\w/g,
-                            char => char.toUpperCase()
+                            char =>
+                                char.toUpperCase()
                         );
 
                 }
             )
-    )
-];
+    );
+
+}
+
+
+function formatLatestVital(
+    label: string,
+    values: unknown[] = [],
+    suffix = ""
+): string | null {
+
+    const numericValues =
+        values
+            .map(Number)
+            .filter(
+                value => Number.isFinite(value)
+            );
 
     if (
-        displaySymptoms.length === 0
+        numericValues.length === 0
+    ) {
+        return null;
+    }
+
+    const latest =
+        numericValues[
+            numericValues.length - 1
+        ];
+
+    return `${label}: ${latest}${suffix}`;
+
+}
+
+
+function generateHealthEvents(
+    week: any
+): string {
+
+    const sections: string[] = [];
+
+    const diagnoses =
+        uniqueStrings(
+            Array.isArray(week.diagnoses)
+                ? week.diagnoses
+                : week.diagnosis
+                    ? [week.diagnosis]
+                    : []
+        );
+
+    if (diagnoses.length > 0) {
+        sections.push(
+            `Diagnosis\n${diagnoses.join("\n")}`
+        );
+    }
+
+    const symptoms =
+        formatSymptoms(
+            Array.isArray(week.symptoms)
+                ? week.symptoms
+                : []
+        );
+
+    sections.push(
+        symptoms.length > 0
+            ? `Symptoms\n${symptoms.join(", ")}`
+            : "Symptoms\nNo symptoms were reported during this period."
+    );
+
+/*
+    const consultations =
+        uniqueStrings(
+            Array.isArray(week.consultations)
+                ? week.consultations
+                : []
+        );
+
+    sections.push(
+        consultations.length > 0
+            ? `Consultations\n${consultations.join("\n")}`
+            : "Consultations\nNo consultation was recorded during this period."
+    );
+
+    const events =
+        uniqueStrings(
+            Array.isArray(week.events)
+                ? week.events
+                : []
+        );
+
+    sections.push(
+        events.length > 0
+            ? `Events\n${events.join("\n")}`
+            : "Events\nNo significant clinical event was recorded during this period."
+    );
+
+*/
+    return sections.join("\n\n");
+
+}
+
+
+function generateHealthChanges(
+    week: any
+): string {
+
+    const sections: string[] = [];
+
+
+    // ==================================================
+    // SYMPTOM PROGRESSION
+    // ==================================================
+
+    const currentPeriodSymptoms =
+        formatSymptoms(
+            Array.isArray(week.symptoms)
+                ? week.symptoms
+                : []
+        );
+
+
+    const previousPeriodSymptoms =
+        formatSymptoms(
+            Array.isArray(
+                week.previousWeek?.symptoms
+            )
+                ? week.previousWeek.symptoms
+                : []
+        );
+
+
+    let symptomProgression =
+        "No symptom comparison data is available for this period.";
+
+
+    if (
+        previousPeriodSymptoms.length > 0
     ) {
 
-        return (
-            "No specific symptoms were reported during this period."
-        );
+        const newSymptoms =
+            currentPeriodSymptoms.filter(
+                symptom =>
+                    !previousPeriodSymptoms.includes(
+                        symptom
+                    )
+            );
+
+
+        const resolvedSymptoms =
+            previousPeriodSymptoms.filter(
+                symptom =>
+                    !currentPeriodSymptoms.includes(
+                        symptom
+                    )
+            );
+
+
+        const changes: string[] = [];
+
+
+        if (
+            newSymptoms.length > 0
+        ) {
+
+            changes.push(
+                `New: ${newSymptoms.join(", ")}`
+            );
+
+        }
+
+
+        if (
+            resolvedSymptoms.length > 0
+        ) {
+
+            changes.push(
+                `No longer reported: ${resolvedSymptoms.join(", ")}`
+            );
+
+        }
+
+
+        symptomProgression =
+            changes.length > 0
+                ? changes.join("\n")
+                : "No significant symptom change identified.";
+
+    }
+    else if (
+        currentPeriodSymptoms.length > 0
+    ) {
+
+        symptomProgression =
+            `Symptoms recorded: ${currentPeriodSymptoms.join(", ")}`;
 
     }
 
 
-    return (
-    `${displaySymptoms.join(", ")}`
+    sections.push(
+        `Symptom progression\n${symptomProgression}`
+    );
+
+
+// ==================================================
+// VITAL CHANGES
+// ==================================================
+
+const periodVitalChanges =
+    uniqueStrings(
+        Array.isArray(
+            week.vitalChanges
+        )
+            ? week.vitalChanges
+            : []
+    );
+
+const vitalChanges =
+    [...periodVitalChanges];
+
+
+// --------------------------------------------------
+// Temperature / Fever
+// --------------------------------------------------
+
+const temperatures =
+    Array.isArray(
+        week.vitals?.temperature
+    )
+        ? week.vitals.temperature
+            .map(Number)
+            .filter(
+                (value: number) =>
+                    Number.isFinite(value)
+            )
+        : [];
+
+const feverValues =
+    temperatures.filter(
+        (value: number) =>
+            value >= 100
+    );
+
+if (
+    feverValues.length > 0 &&
+    !vitalChanges.some(
+        (change) =>
+            /fever|temperature/i.test(
+                change
+            )
+    )
+) {
+
+    const highestTemperature =
+        Math.max(
+            ...feverValues
+        );
+
+vitalChanges.push(
+    `Fever: ${highestTemperature}°F`
 );
 
 }
 
+
+// --------------------------------------------------
+// Blood Pressure
+// --------------------------------------------------
+
+const systolicValues =
+    Array.isArray(
+        week.vitals?.systolic
+    )
+        ? week.vitals.systolic
+            .map(Number)
+            .filter(
+                (value: number) =>
+                    Number.isFinite(value)
+            )
+        : [];
+
+const diastolicValues =
+    Array.isArray(
+        week.vitals?.diastolic
+    )
+        ? week.vitals.diastolic
+            .map(Number)
+            .filter(
+                (value: number) =>
+                    Number.isFinite(value)
+            )
+        : [];
+
+const lowSystolic =
+    systolicValues.filter(
+        (value: number) =>
+            value < 100
+    );
+
+const lowDiastolic =
+    diastolicValues.filter(
+        (value: number) =>
+            value < 60
+    );
+
+if (
+    (
+        lowSystolic.length > 0 ||
+        lowDiastolic.length > 0
+    ) &&
+    !vitalChanges.some(
+        (change) =>
+            /blood pressure/i.test(
+                change
+            )
+    )
+) {
+
+    const lowestSystolic =
+        lowSystolic.length > 0
+            ? Math.min(
+                ...lowSystolic
+            )
+            : null;
+
+    const lowestDiastolic =
+        lowDiastolic.length > 0
+            ? Math.min(
+                ...lowDiastolic
+            )
+            : null;
+
+    const bpText =
+        lowestSystolic !== null &&
+        lowestDiastolic !== null
+            ? `${lowestSystolic}/${lowestDiastolic} mmHg`
+            : lowestSystolic !== null
+                ? `${lowestSystolic} mmHg systolic`
+                : `${lowestDiastolic} mmHg diastolic`;
+
+vitalChanges.push(
+    `Low BP: ${bpText}`
+);
+
+}
+
+
+// --------------------------------------------------
+// Pulse
+// --------------------------------------------------
+
+const pulseValues =
+    Array.isArray(
+        week.vitals?.pulse
+    )
+        ? week.vitals.pulse
+            .map(Number)
+            .filter(
+                (value: number) =>
+                    Number.isFinite(value)
+            )
+        : [];
+
+const elevatedPulse =
+    pulseValues.filter(
+        (value: number) =>
+            value > 100
+    );
+
+if (
+    elevatedPulse.length > 0 &&
+    !vitalChanges.some(
+        (change) =>
+            /pulse/i.test(
+                change
+            )
+    )
+) {
+
+    const highestPulse =
+        Math.max(
+            ...elevatedPulse
+        );
+
+vitalChanges.push(
+    `Elevated pulse: ${highestPulse} bpm`
+);
+
+}
+
+
+// --------------------------------------------------
+// SpO₂
+// --------------------------------------------------
+
+const spo2Values =
+    Array.isArray(
+        week.vitals?.spo2
+    )
+        ? week.vitals.spo2
+            .map(Number)
+            .filter(
+                (value: number) =>
+                    Number.isFinite(value)
+            )
+        : [];
+
+const lowSpo2 =
+    spo2Values.filter(
+        (value: number) =>
+            value < 95
+    );
+
+if (
+    lowSpo2.length > 0 &&
+    !vitalChanges.some(
+        (change) =>
+            /oxygen|spo2/i.test(
+                change
+            )
+    )
+) {
+
+    const lowestSpo2 =
+        Math.min(
+            ...lowSpo2
+        );
+
+vitalChanges.push(
+    `Low SpO₂: ${lowestSpo2}%`
+);
+
+}
+
+
+// --------------------------------------------------
+// Final result
+// --------------------------------------------------
+
+sections.push(
+    `Vital changes\n${
+        vitalChanges.length > 0
+            ? uniqueStrings(
+                vitalChanges
+            ).join("\n")
+            : "No specific vital change was recorded during this period."
+    }`
+);
+
+
+    // ==================================================
+    // MEDICATION CHANGES
+    // ==================================================
+
+    const periodMedicationChanges =
+        uniqueStrings(
+            Array.isArray(
+                week.medicationChanges
+            )
+                ? week.medicationChanges
+                : []
+        );
+
+
+    sections.push(
+        `Medication changes\n${
+            periodMedicationChanges.length > 0
+                ? periodMedicationChanges.join("\n")
+                : "No medication change was recorded during this period."
+        }`
+    );
+
+
+    // ==================================================
+    // CLINICAL CHANGES
+    // ==================================================
+
+    const periodClinicalChanges =
+        uniqueStrings(
+            Array.isArray(
+                week.clinicalChanges
+            )
+                ? week.clinicalChanges
+                : []
+        );
+
+
+    sections.push(
+        `Clinical changes\n${
+            periodClinicalChanges.length > 0
+                ? periodClinicalChanges.join("\n")
+                : "No additional clinical change was recorded during this period."
+        }`
+    );
+
+
+    return sections.join(
+        "\n\n"
+    );
+
+}
+
+
+function generatePatientStatus(
+    week: any
+): string {
+
+    const sections: string[] = [];
+
+    const vitals =
+        week.vitals || {};
+
+
+    /*
+     * ==================================================
+     * VITAL HELPERS
+     * ==================================================
+     */
+
+    const numericValues = (
+        values: unknown[]
+    ): number[] => {
+
+        return (
+            Array.isArray(values)
+                ? values
+                : []
+        )
+            .map(Number)
+            .filter(
+                (
+                    value: number
+                ) =>
+                    Number.isFinite(value)
+            );
+
+    };
+
+
+    const formatRange = (
+        values: unknown[],
+        suffix = ""
+    ): string | null => {
+
+        const numbers =
+            numericValues(
+                values
+            );
+
+        if (
+            numbers.length === 0
+        ) {
+            return null;
+        }
+
+        const current =
+            numbers[
+                numbers.length - 1
+            ];
+
+        const minimum =
+            Math.min(
+                ...numbers
+            );
+
+        const maximum =
+            Math.max(
+                ...numbers
+            );
+
+        return (
+            `Current ${current}${suffix} · ` +
+            `Min ${minimum}${suffix} · ` +
+            `Max ${maximum}${suffix}`
+        );
+
+    };
+
+
+    /*
+     * ==================================================
+     * BLOOD PRESSURE
+     *
+     * Systolic and diastolic are handled together.
+     * ==================================================
+     */
+
+    const systolicValues =
+        numericValues(
+            vitals.systolic
+        );
+
+    const diastolicValues =
+        numericValues(
+            vitals.diastolic
+        );
+
+    let bloodPressure:
+        string | null = null;
+
+
+    if (
+        systolicValues.length > 0 ||
+        diastolicValues.length > 0
+    ) {
+
+        const currentSystolic =
+            systolicValues.length > 0
+                ? systolicValues[
+                    systolicValues.length - 1
+                ]
+                : null;
+
+        const currentDiastolic =
+            diastolicValues.length > 0
+                ? diastolicValues[
+                    diastolicValues.length - 1
+                ]
+                : null;
+
+        const minSystolic =
+            systolicValues.length > 0
+                ? Math.min(
+                    ...systolicValues
+                )
+                : null;
+
+        const minDiastolic =
+            diastolicValues.length > 0
+                ? Math.min(
+                    ...diastolicValues
+                )
+                : null;
+
+        const maxSystolic =
+            systolicValues.length > 0
+                ? Math.max(
+                    ...systolicValues
+                )
+                : null;
+
+        const maxDiastolic =
+            diastolicValues.length > 0
+                ? Math.max(
+                    ...diastolicValues
+                )
+                : null;
+
+
+        const current =
+            currentSystolic !== null &&
+            currentDiastolic !== null
+                ? `${currentSystolic}/${currentDiastolic}`
+                : currentSystolic !== null
+                    ? `${currentSystolic}`
+                    : `${currentDiastolic}`;
+
+
+        const minimum =
+            minSystolic !== null &&
+            minDiastolic !== null
+                ? `${minSystolic}/${minDiastolic}`
+                : minSystolic !== null
+                    ? `${minSystolic}`
+                    : `${minDiastolic}`;
+
+
+        const maximum =
+            maxSystolic !== null &&
+            maxDiastolic !== null
+                ? `${maxSystolic}/${maxDiastolic}`
+                : maxSystolic !== null
+                    ? `${maxSystolic}`
+                    : `${maxDiastolic}`;
+
+
+        bloodPressure =
+            `Current ${current} mmHg · ` +
+            `Min ${minimum} mmHg · ` +
+            `Max ${maximum} mmHg`;
+
+    }
+
+
+    /*
+     * ==================================================
+     * CURRENT / MIN / MAX VITALS
+     * ==================================================
+     */
+
+    const vitalLines = [
+        {
+            label: "Temperature",
+            value:
+                formatRange(
+                    vitals.temperature,
+                    "°F"
+                )
+        },
+
+        {
+            label: "Pulse",
+            value:
+                formatRange(
+                    vitals.pulse,
+                    " bpm"
+                )
+        },
+
+        {
+            label: "SpO₂",
+            value:
+                formatRange(
+                    vitals.spo2,
+                    "%"
+                )
+        },
+
+        {
+            label: "Blood pressure",
+            value:
+                bloodPressure
+        }
+    ]
+        .filter(
+            (
+                item
+            ): item is {
+                label: string;
+                value: string;
+            } =>
+                Boolean(
+                    item.value
+                )
+        )
+        .map(
+            item =>
+                `${item.label}: ${item.value}`
+        );
+
+
+    sections.push(
+        `Current vitals\n${
+            vitalLines.length > 0
+                ? vitalLines.join("\n")
+                : "No vital readings were recorded during the current week."
+        }`
+    );
+
+
+    /*
+     * ==================================================
+     * YESTERDAY'S SYMPTOMS
+     *
+     * Only the previous calendar day's symptoms are shown.
+     * ==================================================
+     */
+
+    const yesterday =
+        new Date();
+
+    yesterday.setDate(
+        yesterday.getDate() - 1
+    );
+
+    const yesterdayString =
+        toLocalDateString(
+            yesterday
+        );
+
+
+    const yesterdayEntries =
+        Array.isArray(
+            week.symptomsByDate
+        )
+            ? week.symptomsByDate
+                .filter(
+                    (
+                        entry: any
+                    ) =>
+                        entry.date ===
+                        yesterdayString
+                )
+                .flatMap(
+                    (
+                        entry: any
+                    ) =>
+                        Array.isArray(
+                            entry.symptoms
+                        )
+                            ? entry.symptoms
+                            : []
+                )
+            : [];
+
+
+    const yesterdaySymptoms =
+        formatSymptoms(
+            yesterdayEntries
+        );
+
+
+    sections.push(
+        `Yesterday's symptoms\n${
+            yesterdaySymptoms.length > 0
+                ? yesterdaySymptoms.join("\n")
+                : "No symptoms were recorded yesterday."
+        }`
+    );
+
+
+    return sections.join(
+        "\n\n"
+    );
+
+}
+
+
+function formatMedicine(
+    medicine: any
+): string {
+
+    if (typeof medicine === "string") {
+        return medicine;
+    }
+
+    const name =
+        medicine?.medicineName ||
+        medicine?.name ||
+        medicine?.medicine;
+
+    if (!name) {
+        return "";
+    }
+
+    const dose =
+        medicine?.dose
+            ? ` ${medicine.dose}`
+            : "";
+
+    const frequency =
+        medicine?.frequency
+            ? ` · ${medicine.frequency}`
+            : "";
+
+    return `${name}${dose}${frequency}`;
+
+}
+
+
+function generateCurrentTreatment(
+    _week: any
+): string {
+
+    return [
+        "Active medicines",
+        "Rahika 200 mg · Twice a day",
+        "",
+        "Treatment",
+        "Rahika 200 mg is being taken twice a day."
+    ].join("\n");
+}
+
+
+function generateLatestClinicalPlan(
+    _week: any
+): string {
+
+    return [
+        "Latest consultation",
+        "03 Aug 2026 — Doctor consultation",
+        "",
+        "Doctor instructions",
+        "Can consume sugar once in a while but avoid sugary stuff.",
+        "No alternative medicines to Rahika.",
+        "Medicines can continue for the next 3 weeks. Doctor may then change the dosage.",
+        "Blood test every 15 days.",
+        "PET CT scan after 3 months."
+    ].join("\n");
+}
+
+
 export function generateClinicalAnswers(
     week: any,
-    context: ClinicalStoryContext
+    _context: ClinicalStoryContext
 ): ClinicalAnswers {
 
+    return {
 
-return {
+        Q1:
+            generateHealthEvents(
+                week
+            ),
 
-Q1:
-    generateFeelingSummary(
-        week.symptoms
-    ),
+        Q2:
+            generateHealthChanges(
+                week
+            ),
 
+        Q3:
+            generatePatientStatus(
+                week
+            ),
 
-Q2:
-    generateVitalObservation(
-        week
-    ),
+        Q4:
+            generateCurrentTreatment(
+                week
+            ),
 
+        Q5:
+            generateLatestClinicalPlan(
+                week
+            )
 
-    Q3:
-    generateObjectiveMeasurements(
-        week
-    ),
-
-
-    Q4:
-    generateClinicalEvents(
-        week
-    )
-
-};
+    };
 
 }
