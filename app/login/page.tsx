@@ -526,26 +526,26 @@ return (
     background: #f1eaff;
   }
 
-  .login-shell {
-    position: relative;
-    width: 100%;
-    height: 100dvh;
-    min-height: 100dvh;
+.login-shell {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
 
-    display: block;
+  display: block;
 
-    overflow: hidden;
+  overflow: hidden;
 
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 
-    background:
-      #f1eaff
-      url("/images/Mobile%20Login%20Background.png")
-      center top / cover
-      no-repeat;
-  }
+  background-color: #f1eaff;
+  background-image: url("/images/Mobile%20Login%20Background.png");
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: 100% 100%;
+}
 
   /* Desktop artwork panel is not used on mobile */
   .login-right {
