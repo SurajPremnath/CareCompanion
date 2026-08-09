@@ -92,6 +92,10 @@ interface ManualCareWorkspaceProps {
         | "self"
         | "family";
 
+    context?:
+        | "DAILY_CARE"
+        | "DOCTOR_NOTES";
+
     patientId?:
         string;
 
@@ -225,6 +229,8 @@ export default function ManualCareWorkspace({
 
     mode,
 
+    context,
+
     patientId,
 
     patientName,
@@ -236,6 +242,9 @@ export default function ManualCareWorkspace({
 const {
     t,
 } = useLanguage();
+
+const workspaceContext =
+    context ?? "DAILY_CARE";
 
     //--------------------------------------------------------
     // State
@@ -264,20 +273,22 @@ const {
         useState(false);
 
 
-    const [
-        showSymptoms,
-        setShowSymptoms,
-    ] =
-        useState(false);
+const [
+    showSymptoms,
+    setShowSymptoms,
+] =
+    useState(false);
 
+const [
+    doctorNote,
+    setDoctorNote,
+] =
+    useState("");
 
-    const recordingName =
-
-        mode === "self"
-
-            ? currentUserName
-
-            : patientName ?? "your family member";
+const recordingName =
+    mode === "self"
+        ? currentUserName
+        : patientName ?? "your family member";
 
 
     //--------------------------------------------------------
@@ -678,607 +689,413 @@ t("medication.pleaseRecordatleastOneObservation")
 
     }
 
+//--------------------------------------------------------
+// Save
+//--------------------------------------------------------
 
-    //--------------------------------------------------------
-    // Save
-    //--------------------------------------------------------
+async function handleSave() {
 
-    async function handleSave() {
+    if (saving) {
 
-        if (saving) {
-
-            return;
-
-        }
-
-
-        if (!validateForm()) {
-
-            return;
-
-        }
-
-
-        setSaving(
-            true
-        );
-
-
-        try {
-
-            const commonReading = {
-
-                recordedAt:
-
-                    `${formData.date}T${formData.time}:00`,
-
-                overallStatus:
-                    null,
-
-                temperature:
-
-                    formData.temperature.trim()
-
-                        ? Number(
-                            formData.temperature
-                        )
-
-                        : null,
-
-                temperatureUnit:
-                    formData.temperatureUnit,
-
-weightKg:
-    formData.weightKg.trim()
-        ? Number(formData.weightKg)
-        : null,
-
-                systolic:
-
-                    formData.systolic.trim()
-
-                        ? Number(
-                            formData.systolic
-                        )
-
-                        : null,
-
-                diastolic:
-
-                    formData.diastolic.trim()
-
-                        ? Number(
-                            formData.diastolic
-                        )
-
-                        : null,
-
-                pulse:
-
-                    formData.pulse.trim()
-
-                        ? Number(
-                            formData.pulse
-                        )
-
-                        : null,
-
-                spo2:
-
-                    formData.spo2.trim()
-
-                        ? Number(
-                            formData.spo2
-                        )
-
-                        : null,
-
-                symptoms:
-                    formData.symptoms,
-
-                otherSymptom:
-
-                    formData.otherSymptom.trim()
-
-                        ? formData.otherSymptom.trim()
-
-                        : null,
-
-                painLocations:
-                    formData.painLocations,
-
-                otherPainLocation:
-
-                    formData.otherPainLocation.trim()
-
-                        ? formData.otherPainLocation.trim()
-
-                        : null,
-
-            };
-
-
-            const result =
-
-                mode === "self"
-
-                    ? await selfDailyCareStorage
-                        .save(
-                            commonReading
-                        )
-
-                    : await dailyCareStorage
-                        .save({
-
-                            ...commonReading,
-
-                            patientId:
-                                patientId!,
-
-                        });
-
-
-            if (!result.success) {
-
-                throw new Error(
-
-                    result.error ??
-
-                    t("dailyCare.unableToSaveHealthInformation")
-
-                );
-
-            }
-
-
-            resetForm();
-
-
-            AppAlert.success(
-                t("dailyCare.healthInformationSaved")
-            );
-
-        }
-        catch (error) {
-
-            console.error(
-
-                t("medication.manualCareSaveError"),
-
-                error
-
-            );
-
-
-            AppAlert.error(
-
-                error instanceof Error
-
-                    ? error.message
-
-                    : t("dailyCare.unableToSaveHealthInformation")
-
-            );
-
-        }
-        finally {
-
-            setSaving(
-                false
-            );
-
-        }
+        return;
 
     }
 
 
-    //--------------------------------------------------------
-    // Render
-    //--------------------------------------------------------
+    if (!validateForm()) {
+
+        return;
+
+    }
+
+
+    setSaving(
+        true
+    );
+
+
+    try {
+
+        const commonReading = {
+
+            recordedAt:
+
+                `${formData.date}T${formData.time}:00`,
+
+            overallStatus:
+                null,
+
+            temperature:
+
+                formData.temperature.trim()
+
+                    ? Number(
+                        formData.temperature
+                    )
+
+                    : null,
+
+            temperatureUnit:
+                formData.temperatureUnit,
+
+            weightKg:
+
+                formData.weightKg.trim()
+                    ? Number(formData.weightKg)
+                    : null,
+
+            systolic:
+
+                formData.systolic.trim()
+
+                    ? Number(
+                        formData.systolic
+                    )
+
+                    : null,
+
+            diastolic:
+
+                formData.diastolic.trim()
+
+                    ? Number(
+                        formData.diastolic
+                    )
+
+                    : null,
+
+            pulse:
+
+                formData.pulse.trim()
+
+                    ? Number(
+                        formData.pulse
+                    )
+
+                    : null,
+
+            spo2:
+
+                formData.spo2.trim()
+
+                    ? Number(
+                        formData.spo2
+                    )
+
+                    : null,
+
+            symptoms:
+                formData.symptoms,
+
+            otherSymptom:
+
+                formData.otherSymptom.trim()
+
+                    ? formData.otherSymptom.trim()
+
+                    : null,
+
+            painLocations:
+                formData.painLocations,
+
+            otherPainLocation:
+
+                formData.otherPainLocation.trim()
+
+                    ? formData.otherPainLocation.trim()
+
+                    : null,
+
+        };
+
+
+        const result =
+
+            mode === "self"
+
+                ? await selfDailyCareStorage
+                    .save(
+                        commonReading
+                    )
+
+                : await dailyCareStorage
+                    .save({
+
+                        ...commonReading,
+
+                        patientId:
+                            patientId!,
+
+                    });
+
+
+        if (!result.success) {
+
+            throw new Error(
+
+                result.error ??
+
+                t(
+                    "dailyCare.unableToSaveHealthInformation"
+                )
+
+            );
+
+        }
+
+
+        resetForm();
+
+
+        AppAlert.success(
+            t(
+                "dailyCare.healthInformationSaved"
+            )
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+
+            t(
+                "medication.manualCareSaveError"
+            ),
+
+            error
+
+        );
+
+
+        AppAlert.error(
+
+            error instanceof Error
+
+                ? error.message
+
+                : t(
+                    "dailyCare.unableToSaveHealthInformation"
+                )
+
+        );
+
+    }
+
+    finally {
+
+        setSaving(
+            false
+        );
+
+    }
+
+}
+
+
+//--------------------------------------------------------
+// Doctor's Notes Save
+//--------------------------------------------------------
+
+async function handleSaveDoctorNote() {
+
+    if (saving) {
+
+        return;
+
+    }
+
+
+    const trimmedNote =
+        doctorNote.trim();
+
+
+    if (!trimmedNote) {
+
+        AppAlert.warning(
+            "Please enter the doctor's notes."
+        );
+
+        return;
+
+    }
+
+
+    setSaving(
+        true
+    );
+
+
+    try {
+
+        /*
+         * Doctor's Notes persistence will be
+         * connected separately.
+         *
+         * DO NOT use Daily Care storage here.
+         */
+
+        AppAlert.success(
+            "Doctor's note captured."
+        );
+
+        setDoctorNote(
+            ""
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Doctor's note capture error:",
+            error
+        );
+
+        AppAlert.error(
+            "Unable to capture doctor's note."
+        );
+
+    }
+
+    finally {
+
+        setSaving(
+            false
+        );
+
+    }
+
+}
+
+
+//--------------------------------------------------------
+// Render
+//--------------------------------------------------------
+
+if (
+    workspaceContext ===
+    "DOCTOR_NOTES"
+) {
 
     return (
 
         <section style={workspace}>
 
-
             <div style={headerBlock}>
 
                 <h3 style={title}>
-
-                    ✍️ {t("dailyCare.enterHealthInformation")}
-
+                    📝 Doctor's Notes
                 </h3>
-
 
                 <p style={description}>
+                    Record notes provided by the doctor
+                    when no prescription is available.
+                    <br />
+                    Enter notes remembered by the
+                    patient or caregiver, or information
+                    received through messages such as WhatsApp.
+                </p>
 
-                     {t("dailyCare.recordHealthInformationFor")
-        .replace("{name}", recordingName)}
-<br />
-    {t("dailyCare.enterRelevantInformation")}
-</p>
             </div>
 
-
-            {/*------------------------------------------------
-              Date and Time
-            ------------------------------------------------*/}
 
             <section style={cardStyle}>
 
                 <h3 style={sectionTitle}>
-                    🕒 {t("dailyCare.dateAndTime")}
+                    Doctor's Note
                 </h3>
 
 
-                <div style={dateTimeGrid}>
-
-
-                    <div>
-
-                        <label style={labelStyle}>
-                            {t("dailyCare.date")}
-                        </label>
-
-                        <input
-                            type="date"
-                            value={
-                                formData.date
-                            }
-                            disabled={
-                                saving
-                            }
-                            onChange={
-                                event =>
-                                    updateField(
-                                        "date",
-                                        event.target.value
-                                    )
-                            }
-                            style={inputStyle}
-                        />
-
-                    </div>
-
-
-                    <div>
-
-                        <label style={labelStyle}>
-                            {t("dailyCare.time")}
-                        </label>
-
-                        <input
-                            type="time"
-                            value={
-                                formData.time
-                            }
-                            disabled={
-                                saving
-                            }
-                            onChange={
-                                event =>
-                                    updateField(
-                                        "time",
-                                        event.target.value
-                                    )
-                            }
-                            style={inputStyle}
-                        />
-
-                    </div>
-
-
-                </div>
-
-            </section>
-
-
-            {/*------------------------------------------------
-              Temperature
-            ------------------------------------------------*/}
-
-            <section style={cardStyle}>
-
-                <h3 style={sectionTitle}>
-                    🌡 {t("dailyCare.temperature")}
-                </h3>
-
-
-                <div style={temperatureGrid}>
-
-
-                    <div>
-
-                        <label style={labelStyle}>
-                            {t("dailyCare.temperature")}
-                        </label>
-
-                        <input
-                            type="number"
-                            step="0.1"
-                            placeholder=
-                                {t("dailyCare.enterTemperature")}
-                            value={
-                                formData.temperature
-                            }
-                            disabled={
-                                saving
-                            }
-                            onChange={
-                                event =>
-                                    updateField(
-                                        "temperature",
-                                        event.target.value
-                                    )
-                            }
-                            style={inputStyle}
-                        />
-
-                    </div>
-
-
-                    <div>
-
-                        <label style={labelStyle}>
-                            {t("dailyCare.unit")}
-                        </label>
-
-                        <select
-                            value={
-                                formData.temperatureUnit
-                            }
-                            disabled={
-                                saving
-                            }
-                            onChange={
-                                event =>
-                                    updateField(
-                                        "temperatureUnit",
-                                        event.target.value as TemperatureUnit
-                                    )
-                            }
-                            style={inputStyle}
-                        >
-
-                            <option value="F">
-                                °F
-                            </option>
-
-                            <option value="C">
-                                °C
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                </div>
-
-            </section>
-
-
-{/*------------------------------------------------
-  Weight
-------------------------------------------------*/}
-
-<section style={cardStyle}>
-
-    <h3 style={sectionTitle}>
-        ⚖ {t("medication.weight")}
-    </h3>
-
-    <div style={temperatureGrid}>
-
-        <div>
-
-            <label style={labelStyle}>
-                {t("medication.weight")}
-            </label>
-
-            <input
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="Enter weight"
-                value={formData.weightKg}
-                disabled={saving}
-                onChange={(event) =>
-                    updateField(
-                        "weightKg",
-                        event.target.value
-                    )
-                }
-                style={inputStyle}
-            />
-
-        </div>
-
-        <div>
-
-            <label style={labelStyle}>
-                {t("dailyCare.unit")}
-            </label>
-
-            <div
-                style={{
-                    ...inputStyle,
-                    background: "#f3f4f6",
-                    display: "flex",
-                    alignItems: "center",
-                    minHeight: "52px",
-                    fontWeight: 600,
-                }}
-            >
-                kg
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-            {/*------------------------------------------------
-              Vitals
-            ------------------------------------------------*/}
-
-            <VitalsCard
-                expanded={
-                    showVitals
-                }
-                disabled={
-                    saving
-                }
-                systolic={
-                    formData.systolic
-                }
-                diastolic={
-                    formData.diastolic
-                }
-                pulse={
-                    formData.pulse
-                }
-                spo2={
-                    formData.spo2
-                }
-                onToggle={
-                    () =>
-                        setShowVitals(
-                            previous =>
-                                !previous
-                        )
-                }
-                onSystolicChange={
-                    value =>
-                        updateField(
-                            "systolic",
-                            value
-                        )
-                }
-                onDiastolicChange={
-                    value =>
-                        updateField(
-                            "diastolic",
-                            value
-                        )
-                }
-                onPulseChange={
-                    value =>
-                        updateField(
-                            "pulse",
-                            value
-                        )
-                }
-                onSpo2Change={
-                    value =>
-                        updateField(
-                            "spo2",
-                            value
-                        )
-                }
-            />
-
-
-            {/*------------------------------------------------
-              Symptoms
-            ------------------------------------------------*/}
-
-            <SymptomsCard
-                expanded={
-                    showSymptoms
-                }
-                disabled={
-                    saving
-                }
-                symptoms={
-                    formData.symptoms
-                }
-                otherSymptom={
-                    formData.otherSymptom
-                }
-                onToggle={
-                    () =>
-                        setShowSymptoms(
-                            previous =>
-                                !previous
-                        )
-                }
-                onSymptomToggle={
-                    toggleSymptom
-                }
-                onOtherSymptomChange={
-                    value =>
-                        updateField(
-                            "otherSymptom",
-                            value
-                        )
-                }
-            />
-
-
-            {/*------------------------------------------------
-              Pain Location
-            ------------------------------------------------*/}
-
-            {
-                formData.symptoms.includes(
-                    "BODY_PAIN"
-                ) && (
-
-                    <PainLocationCard
-                        painLocations={
-                            formData.painLocations
-                        }
-                        otherPainLocation={
-                            formData.otherPainLocation
-                        }
-                        disabled={
-                            saving
-                        }
-                        onPainLocationToggle={
-                            togglePainLocation
-                        }
-                        onOtherPainLocationChange={
-                            value =>
-                                updateField(
-                                    "otherPainLocation",
-                                    value
-                                )
-                        }
-                    />
-
-                )
-            }
-
-
-            {/*------------------------------------------------
-              Save
-            ------------------------------------------------*/}
-
-            <div
-    className="manual-care-actions"
-    style={actionRow}
->
-
-                <button
-                    type="button"
-                    onClick={
-                        resetForm
+                <textarea
+                    value={
+                        doctorNote
+                    }
+                    onChange={
+                        event =>
+                            setDoctorNote(
+                                event.target.value
+                            )
                     }
                     disabled={
                         saving
                     }
-                    style={secondaryButton}
+                    placeholder={
+                        "Enter the doctor's notes here..."
+                    }
+                    rows={8}
+                    style={{
+                        width:
+                            "100%",
+
+                        boxSizing:
+                            "border-box",
+
+                        padding:
+                            "14px",
+
+                        border:
+                            "1px solid #d1d5db",
+
+                        borderRadius:
+                            "10px",
+
+                        fontSize:
+                            "16px",
+
+                        lineHeight:
+                            1.5,
+
+                        fontFamily:
+                            "inherit",
+
+                        resize:
+                            "vertical",
+
+                        background:
+                            "#ffffff",
+
+                        outline:
+                            "none",
+                    }}
+                />
+
+            </section>
+
+
+            <div
+                className="manual-care-actions"
+                style={
+                    actionRow
+                }
+            >
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        setDoctorNote(
+                            ""
+                        )
+                    }
+                    disabled={
+                        saving
+                    }
+                    style={
+                        secondaryButton
+                    }
                 >
-                    {t("medication.clear")}
+                    {
+                        t(
+                            "medication.clear"
+                        )
+                    }
                 </button>
 
 
                 <button
                     type="button"
                     onClick={
-                        handleSave
+                        handleSaveDoctorNote
                     }
                     disabled={
                         saving
@@ -1292,39 +1109,539 @@ weightKg:
                                 : 1,
                     }}
                 >
-
                     {
                         saving
-
-                            ? t("dailyCare.saving")
-
-                            : t("dailyCare.saveHealthInformation")
+                            ? t(
+                                "dailyCare.saving"
+                              )
+                            : "Capture Doctor's Note"
                     }
-
                 </button>
 
             </div>
 
 
-<style jsx>{`
-    @media (max-width: 640px) {
+            <style jsx>{`
+                @media (max-width: 640px) {
 
-        .manual-care-actions {
-            flex-direction: column-reverse !important;
-        }
+                    .manual-care-actions {
+                        flex-direction:
+                            column-reverse !important;
+                    }
 
-        .manual-care-actions button {
-            width: 100% !important;
-            min-width: 0 !important;
-            flex: none !important;
-        }
+                    .manual-care-actions button {
+                        width:
+                            100% !important;
 
-    }
-`}</style>
+                        min-width:
+                            0 !important;
+
+                        flex:
+                            none !important;
+                    }
+
+                }
+            `}</style>
 
         </section>
 
     );
+}
+
+
+//--------------------------------------------------------
+// Existing Daily Care Render
+//--------------------------------------------------------
+
+return (
+
+    <section style={workspace}>
+
+        <div style={headerBlock}>
+
+            <h3 style={title}>
+                ✍️ {t("dailyCare.enterHealthInformation")}
+            </h3>
+
+            <p style={description}>
+                {t("dailyCare.recordHealthInformationFor")
+                    .replace(
+                        "{name}",
+                        recordingName
+                    )}
+                <br />
+                {t("dailyCare.enterRelevantInformation")}
+            </p>
+
+        </div>
+
+
+        {/*------------------------------------------------
+          Date and Time
+        ------------------------------------------------*/}
+
+        <section style={cardStyle}>
+
+            <h3 style={sectionTitle}>
+                🕒 {t("dailyCare.dateAndTime")}
+            </h3>
+
+
+            <div style={dateTimeGrid}>
+
+
+                <div>
+
+                    <label style={labelStyle}>
+                        {t("dailyCare.date")}
+                    </label>
+
+
+                    <input
+                        type="date"
+                        value={
+                            formData.date
+                        }
+                        disabled={
+                            saving
+                        }
+                        onChange={
+                            event =>
+                                updateField(
+                                    "date",
+                                    event.target.value
+                                )
+                        }
+                        style={inputStyle}
+                    />
+
+                </div>
+
+
+                <div>
+
+                    <label style={labelStyle}>
+                        {t("dailyCare.time")}
+                    </label>
+
+
+                    <input
+                        type="time"
+                        value={
+                            formData.time
+                        }
+                        disabled={
+                            saving
+                        }
+                        onChange={
+                            event =>
+                                updateField(
+                                    "time",
+                                    event.target.value
+                                )
+                        }
+                        style={inputStyle}
+                    />
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        {/*------------------------------------------------
+          Temperature
+        ------------------------------------------------*/}
+
+        <section style={cardStyle}>
+
+            <h3 style={sectionTitle}>
+                🌡 {t("dailyCare.temperature")}
+            </h3>
+
+
+            <div style={temperatureGrid}>
+
+
+                <div>
+
+                    <label style={labelStyle}>
+                        {t("dailyCare.temperature")}
+                    </label>
+
+
+                    <input
+                        type="number"
+                        step="0.1"
+                        placeholder={
+                            t(
+                                "dailyCare.enterTemperature"
+                            )
+                        }
+                        value={
+                            formData.temperature
+                        }
+                        disabled={
+                            saving
+                        }
+                        onChange={
+                            event =>
+                                updateField(
+                                    "temperature",
+                                    event.target.value
+                                )
+                        }
+                        style={inputStyle}
+                    />
+
+                </div>
+
+
+                <div>
+
+                    <label style={labelStyle}>
+                        {t("dailyCare.unit")}
+                    </label>
+
+
+                    <select
+                        value={
+                            formData.temperatureUnit
+                        }
+                        disabled={
+                            saving
+                        }
+                        onChange={
+                            event =>
+                                updateField(
+                                    "temperatureUnit",
+                                    event.target.value as TemperatureUnit
+                                )
+                        }
+                        style={inputStyle}
+                    >
+
+                        <option value="F">
+                            °F
+                        </option>
+
+                        <option value="C">
+                            °C
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        {/*------------------------------------------------
+          Weight
+        ------------------------------------------------*/}
+
+        <section style={cardStyle}>
+
+            <h3 style={sectionTitle}>
+                ⚖ {t("medication.weight")}
+            </h3>
+
+
+            <div style={temperatureGrid}>
+
+                <div>
+
+                    <label style={labelStyle}>
+                        {t("medication.weight")}
+                    </label>
+
+
+                    <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        placeholder="Enter weight"
+                        value={
+                            formData.weightKg
+                        }
+                        disabled={
+                            saving
+                        }
+                        onChange={
+                            event =>
+                                updateField(
+                                    "weightKg",
+                                    event.target.value
+                                )
+                        }
+                        style={inputStyle}
+                    />
+
+                </div>
+
+
+                <div>
+
+                    <label style={labelStyle}>
+                        {t("dailyCare.unit")}
+                    </label>
+
+
+                    <div
+                        style={{
+                            ...inputStyle,
+                            background:
+                                "#f3f4f6",
+                            display:
+                                "flex",
+                            alignItems:
+                                "center",
+                            minHeight:
+                                "52px",
+                            fontWeight:
+                                600,
+                        }}
+                    >
+                        kg
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        {/*------------------------------------------------
+          Vitals
+        ------------------------------------------------*/}
+
+        <VitalsCard
+            expanded={
+                showVitals
+            }
+            disabled={
+                saving
+            }
+            systolic={
+                formData.systolic
+            }
+            diastolic={
+                formData.diastolic
+            }
+            pulse={
+                formData.pulse
+            }
+            spo2={
+                formData.spo2
+            }
+            onToggle={
+                () =>
+                    setShowVitals(
+                        previous =>
+                            !previous
+                    )
+            }
+            onSystolicChange={
+                value =>
+                    updateField(
+                        "systolic",
+                        value
+                    )
+            }
+            onDiastolicChange={
+                value =>
+                    updateField(
+                        "diastolic",
+                        value
+                    )
+            }
+            onPulseChange={
+                value =>
+                    updateField(
+                        "pulse",
+                        value
+                    )
+            }
+            onSpo2Change={
+                value =>
+                    updateField(
+                        "spo2",
+                        value
+                    )
+            }
+        />
+
+
+        {/*------------------------------------------------
+          Symptoms
+        ------------------------------------------------*/}
+
+        <SymptomsCard
+            expanded={
+                showSymptoms
+            }
+            disabled={
+                saving
+            }
+            symptoms={
+                formData.symptoms
+            }
+            otherSymptom={
+                formData.otherSymptom
+            }
+            onToggle={
+                () =>
+                    setShowSymptoms(
+                        previous =>
+                            !previous
+                    )
+            }
+            onSymptomToggle={
+                toggleSymptom
+            }
+            onOtherSymptomChange={
+                value =>
+                    updateField(
+                        "otherSymptom",
+                        value
+                    )
+            }
+        />
+
+
+        {/*------------------------------------------------
+          Pain Location
+        ------------------------------------------------*/}
+
+        {
+            formData.symptoms.includes(
+                "BODY_PAIN"
+            ) && (
+
+                <PainLocationCard
+                    painLocations={
+                        formData.painLocations
+                    }
+                    otherPainLocation={
+                        formData.otherPainLocation
+                    }
+                    disabled={
+                        saving
+                    }
+                    onPainLocationToggle={
+                        togglePainLocation
+                    }
+                    onOtherPainLocationChange={
+                        value =>
+                            updateField(
+                                "otherPainLocation",
+                                value
+                            )
+                    }
+                />
+
+            )
+        }
+
+
+        {/*------------------------------------------------
+          Save
+        ------------------------------------------------*/}
+
+        <div
+            className="manual-care-actions"
+            style={
+                actionRow
+            }
+        >
+
+            <button
+                type="button"
+                onClick={
+                    resetForm
+                }
+                disabled={
+                    saving
+                }
+                style={
+                    secondaryButton
+                }
+            >
+                {
+                    t(
+                        "medication.clear"
+                    )
+                }
+            </button>
+
+
+            <button
+                type="button"
+                onClick={
+                    handleSave
+                }
+                disabled={
+                    saving
+                }
+                style={{
+                    ...primaryButton,
+
+                    opacity:
+                        saving
+                            ? 0.7
+                            : 1,
+                }}
+            >
+
+                {
+                    saving
+
+                        ? t(
+                            "dailyCare.saving"
+                        )
+
+                        : t(
+                            "dailyCare.saveHealthInformation"
+                        )
+                }
+
+            </button>
+
+        </div>
+
+
+        <style jsx>{`
+            @media (max-width: 640px) {
+
+                .manual-care-actions {
+                    flex-direction:
+                        column-reverse !important;
+                }
+
+                .manual-care-actions button {
+                    width:
+                        100% !important;
+
+                    min-width:
+                        0 !important;
+
+                    flex:
+                        none !important;
+                }
+
+            }
+        `}</style>
+
+
+    </section>
+
+);
 
 }
 

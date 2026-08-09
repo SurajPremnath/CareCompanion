@@ -94,25 +94,23 @@ export class AuthService {
  * Sign in using Google OAuth.
  */
 async signInWithGoogle(): Promise<void> {
-
   const { error } =
     await supabase.auth.signInWithOAuth({
-
       provider: "google",
 
       options: {
-
         redirectTo:
           `${window.location.origin}/auth/callback`,
 
+        queryParams: {
+          prompt: "select_account",
+        },
       },
-
     });
 
   if (error) {
     throw error;
   }
-
 }
 
   /**

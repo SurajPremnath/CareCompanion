@@ -431,7 +431,7 @@ backToHome:
     "Back to Home",
 
 medicationManagement:
-    "Medication Management",
+    "Care Journey",
 
 healthCheckAssessment:
     "Health Check Assessment",

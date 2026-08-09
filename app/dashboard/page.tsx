@@ -6,6 +6,7 @@ import {
     useState,
 } from "react";
 
+
 import {
     useRouter,
 } from "next/navigation";
@@ -105,6 +106,164 @@ type HomeFeature =
     | "HELP";
 
 
+function CareJourneyIcon() {
+    return (
+        <svg
+            width="42"
+            height="42"
+            viewBox="0 0 100 100"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+        >
+            <defs>
+                <linearGradient
+                    id="careJourneyHeart"
+                    x1="28"
+                    y1="18"
+                    x2="72"
+                    y2="78"
+                    gradientUnits="userSpaceOnUse"
+                >
+                    <stop offset="0" stopColor="#FF5A67" />
+                    <stop offset="0.55" stopColor="#F21F45" />
+                    <stop offset="1" stopColor="#C9163C" />
+                </linearGradient>
+
+                <linearGradient
+                    id="careJourneyOrbit"
+                    x1="22"
+                    y1="72"
+                    x2="82"
+                    y2="20"
+                    gradientUnits="userSpaceOnUse"
+                >
+                    <stop offset="0" stopColor="#1479E8" />
+                    <stop offset="0.55" stopColor="#18C7B5" />
+                    <stop offset="1" stopColor="#16B8D4" />
+                </linearGradient>
+
+                <linearGradient
+                    id="careJourneyPlus"
+                    x1="70"
+                    y1="66"
+                    x2="87"
+                    y2="88"
+                    gradientUnits="userSpaceOnUse"
+                >
+                    <stop offset="0" stopColor="#29D6D2" />
+                    <stop offset="1" stopColor="#087BE8" />
+                </linearGradient>
+
+                <filter
+                    id="careJourneyShadow"
+                    x="-20%"
+                    y="-20%"
+                    width="140%"
+                    height="160%"
+                >
+                    <feDropShadow
+                        dx="0"
+                        dy="3"
+                        stdDeviation="2.5"
+                        floodOpacity="0.18"
+                    />
+                </filter>
+            </defs>
+
+            {/* Orbit / care swoosh */}
+            <path
+                d="M18 68C28 82 49 88 68 80C81 75 88 65 90 54"
+                stroke="url(#careJourneyOrbit)"
+                strokeWidth="7"
+                strokeLinecap="round"
+                fill="none"
+            />
+
+            <path
+                d="M72 18C83 23 89 31 91 40"
+                stroke="url(#careJourneyOrbit)"
+                strokeWidth="6"
+                strokeLinecap="round"
+                fill="none"
+            />
+
+            {/* Heart */}
+            <path
+                d="
+                    M50 75
+                    C45 70 22 55 22 36
+                    C22 24 31 17 41 18
+                    C46 18 50 21 54 26
+                    C58 21 62 18 68 18
+                    C79 18 86 27 84 38
+                    C82 54 63 67 50 75Z
+                "
+                fill="url(#careJourneyHeart)"
+                filter="url(#careJourneyShadow)"
+            />
+
+            {/* Heart highlight */}
+            <path
+                d="M31 28C35 23 41 22 45 25"
+                stroke="#FFB7BE"
+                strokeWidth="3"
+                strokeLinecap="round"
+                opacity="0.75"
+            />
+
+            {/* ECG */}
+            <path
+                d="
+                    M27 45
+                    H38
+                    L43 45
+                    L47 38
+                    L52 55
+                    L57 34
+                    L62 45
+                    H76
+                "
+                stroke="white"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+            />
+
+            {/* Medical plus white border */}
+            <rect
+                x="66"
+                y="63"
+                width="25"
+                height="25"
+                rx="7"
+                fill="white"
+            />
+
+            {/* Medical plus */}
+            <path
+                d="
+                    M75 67
+                    H82
+                    V75
+                    H89
+                    V82
+                    H82
+                    V89
+                    H75
+                    V82
+                    H68
+                    V75
+                    H75
+                    Z
+                "
+                fill="url(#careJourneyPlus)"
+            />
+        </svg>
+    );
+}
+
 export default function DashboardPage() {
 
     const router =
@@ -177,6 +336,14 @@ const [
 const [
     recordHealthOption,
     setRecordHealthOption,
+] =
+    useState<ActionOption>(
+        ""
+    );
+
+const [
+    doctorNotesOption,
+    setDoctorNotesOption,
 ] =
     useState<ActionOption>(
         ""
@@ -561,8 +728,17 @@ const handleActionOption = (
         );
 
         return;
-
     }
+
+};
+
+const handleDoctorNotesOption = (
+    option: ActionOption
+) => {
+
+    setDoctorNotesOption(
+        option
+    );
 
 };
 
@@ -639,62 +815,51 @@ try {
 // Pending Medication Validation
 //------------------------------------------------------------
 
-useEffect(() => {
+const checkPendingMedicationValidation =
+    async (): Promise<void> => {
 
-    if (
-        selectedAction !== "MEDICATION_MANAGEMENT" ||
-        !user
-    ) {
-        return;
-    }
+        if (!user) {
+            return;
+        }
 
-async function checkPendingValidation() {
-
-    if (!user) {
-        return;
-    }
-
-    setCheckingPendingMedicationValidation(true);
-
-    try {
-
-        const pending =
-            await prescriptionStorage
-                .getPendingMedicationValidation({
-
-                    userId: user.id,
-
-                    patientId: personSelection.patientId,
-
-                    familyId: null,
-
-                    recordContext:
-                        personSelection.mode === "FAMILY"
-                            ? "FAMILY"
-                            : "SELF",
-
-                });
-
-        setHasPendingMedicationValidation(
-            pending !== null
+        setCheckingPendingMedicationValidation(
+            true
         );
 
-    }
-    finally {
+        try {
 
-        setCheckingPendingMedicationValidation(false);
+            const pending =
+                await prescriptionStorage
+                    .getPendingMedicationValidation({
 
-    }
+                        userId: user.id,
 
-}
+                        patientId:
+                            personSelection.patientId,
 
-    void checkPendingValidation();
+                        familyId: null,
 
-}, [
-    selectedAction,
-    user,
-    personSelection,
-]);
+                        recordContext:
+                            personSelection.mode === "FAMILY"
+                                ? "FAMILY"
+                                : "SELF",
+
+                    });
+
+            setHasPendingMedicationValidation(
+                pending !== null
+            );
+
+        }
+        finally {
+
+            setCheckingPendingMedicationValidation(
+                false
+            );
+
+        }
+
+    };
 
 
     //------------------------------------------------------------
@@ -1009,18 +1174,20 @@ disabled={!consentGranted}
 }}
     >
 
-        <span
-            style={{
-                ...mainActionCircle,
-
-                ...(selectedAction ===
-                "MEDICATION_MANAGEMENT"
-                    ? selectedActionCircle
-                    : {}),
-            }}
-        >
-            💊
-        </span>
+<span
+    style={{
+        ...mainActionCircle,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        ...(selectedAction ===
+        "MEDICATION_MANAGEMENT"
+            ? selectedActionCircle
+            : {}),
+    }}
+>
+    <CareJourneyIcon />
+</span>
 
 <span
     style={{
@@ -1184,6 +1351,7 @@ disabled={!consentGranted}
     selectedAction={
         selectedAction
     }
+
     personMode={
         personSelection.mode === "SELF"
             ? "SELF"
@@ -1200,26 +1368,34 @@ disabled={!consentGranted}
             : personSelection.patientName ?? ""
     }
 
-hasPendingMedicationValidation={
+    hasPendingMedicationValidation={
         hasPendingMedicationValidation
     }
 
-checkingPendingMedicationValidation={
-    checkingPendingMedicationValidation
+    checkingPendingMedicationValidation={
+        checkingPendingMedicationValidation
+    }
+
+onStartAssessment={
+    handleStartAssessment
 }
 
-    onStartAssessment={
-        handleStartAssessment
-    }
-    onOptionChange={
-        handleActionOption
-    }
-    onMedicationDetailChange={
-        setMedicationDetail
-    }
-    selectedMedicationDetail={
-        medicationDetail
-    }
+onOptionChange={
+    handleActionOption
+}
+
+onDoctorNotesOptionChange={
+    handleDoctorNotesOption
+}
+
+onMedicationDetailChange={
+    setMedicationDetail
+}
+
+selectedMedicationDetail={
+    medicationDetail
+}
+
 />
     </div>
 
@@ -1260,10 +1436,48 @@ checkingPendingMedicationValidation={
                     ? "self"
                     : "family"
             }
+
+context="DAILY_CARE"
+
             patientId={
                 personSelection.patientId ??
                 undefined
             }
+            currentUserName={
+                user.fullName
+            }
+        />
+
+    </div>
+
+)}
+
+{selectedAction === "MEDICATION_MANAGEMENT" &&
+    doctorNotesOption === "MANUAL" && (
+
+    <div style={workspaceContainer}>
+
+        <ManualCareWorkspace
+            mode={
+                personSelection.mode === "SELF"
+                    ? "self"
+                    : "family"
+            }
+
+            context="DOCTOR_NOTES"
+
+            patientId={
+                personSelection.patientId ??
+                undefined
+            }
+
+            patientName={
+                personSelection.mode === "SELF"
+                    ? user.fullName
+                    : personSelection.patientName ??
+                      ""
+            }
+
             currentUserName={
                 user.fullName
             }

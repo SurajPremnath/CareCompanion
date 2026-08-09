@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    useEffect,
     useState,
 } from "react";
 
@@ -27,6 +28,8 @@ export type ActionOption =
     | "VOICE"
     | "UPLOAD"
     | "MANUAL"
+    | "PRESCRIPTIONS"
+    | "DOCTOR_NOTES"
     | "ADD_PRESCRIPTION"
     | "VIEW_PRESCRIPTIONS"
     | "DAILY_CARE"
@@ -82,14 +85,20 @@ checkingPendingMedicationValidation: boolean;
     onOptionChange?:
         (option: ActionOption) => void;
 
-    selectedMedicationDetail?:
-        MedicationDetailOption;
+    onDoctorNotesOptionChange?:
+        (option: ActionOption) => void;
 
     onMedicationDetailChange?:
         (
-            detail:
+            option:
                 MedicationDetailOption
         ) => void;
+
+    onPrescriptionsSelect?:
+        () => void;
+
+    selectedMedicationDetail?:
+        MedicationDetailOption;
 
 }
 
@@ -115,7 +124,11 @@ checkingPendingMedicationValidation,
 
     onOptionChange,
 
+    onDoctorNotesOptionChange,
+
     onMedicationDetailChange,
+
+    onPrescriptionsSelect,
 
     selectedMedicationDetail,
 
@@ -133,6 +146,30 @@ const [
     setSelectedOption,
 ] =
     useState<ActionOption>(
+        ""
+    );
+
+
+//------------------------------------------------------------
+// Reset secondary options whenever the primary action changes
+//------------------------------------------------------------
+
+useEffect(() => {
+
+    setSelectedOption("");
+
+    setMedicationDetailOption("");
+
+}, [selectedAction]);
+
+
+const [
+    captureContext,
+    setCaptureContext,
+] =
+    useState<
+        "" | "DOCTOR_NOTES"
+    >(
         ""
     );
 
@@ -319,12 +356,16 @@ const [
 
         <div style={container}>
 
-{selectedAction === "RECORD_HEALTH" && (
+{(
+    selectedAction === "RECORD_HEALTH" 
+) && (
 
     <>
 
         <label style={label}>
-            {t("medication.howWouldYouLikeToRecordHealth")}
+            {selectedOption === "DOCTOR_NOTES"
+    ? "How would you like to capture the doctor's notes?"
+    : t("medication.howWouldYouLikeToRecordHealth")}
         </label>
 
         <div style={optionGridThree}>
@@ -333,21 +374,23 @@ const [
                 type="button"
                 onClick={() => {
 
+                    alert(
+                        selectedAction === "RECORD_HEALTH"
+                            ? "Capture source: RECORD_HEALTH"
+                            : "Capture source: DOCTOR_NOTES"
+                    );
+
                     setSelectedOption(
                         "VOICE"
                     );
 
-                    onOptionChange?.(
+                    onDoctorNotesOptionChange?.(
                         "VOICE"
                     );
 
                 }}
-                style={{
+style={{
     ...optionButton,
-
-    ...(selectedOption === "VOICE"
-        ? selectedOptionButton
-        : {}),
 }}
             >
 
@@ -361,58 +404,63 @@ const [
 
             </button>
 
-<button
-    type="button"
-    onClick={() => {
 
-        setSelectedOption(
-            "UPLOAD"
-        );
+            <button
+                type="button"
+                onClick={() => {
 
-        onOptionChange?.(
-            "UPLOAD"
-        );
+                    alert(
+                        selectedAction === "RECORD_HEALTH"
+                            ? "Capture source: RECORD_HEALTH"
+                            : "Capture source: DOCTOR_NOTES"
+                    );
 
-    }}
-    style={{
+                    setSelectedOption(
+                        "UPLOAD"
+                    );
+
+                    onDoctorNotesOptionChange?.(
+                        "UPLOAD"
+                    );
+
+                }}
+style={{
     ...optionButton,
-
-    ...(selectedOption === "UPLOAD"
-        ? selectedOptionButton
-        : {}),
 }}
->
+            >
 
-    <span style={optionIcon}>
-        📷
-    </span>
+                <span style={optionIcon}>
+                    📷
+                </span>
 
-    <span style={optionLabel}>
-        {t("medication.uploadReading")}
-    </span>
+                <span style={optionLabel}>
+                    {t("medication.uploadReading")}
+                </span>
 
-</button>
+            </button>
 
 
             <button
                 type="button"
                 onClick={() => {
 
+                    alert(
+                        selectedAction === "RECORD_HEALTH"
+                            ? "Capture source: RECORD_HEALTH"
+                            : "Capture source: DOCTOR_NOTES"
+                    );
+
                     setSelectedOption(
                         "MANUAL"
                     );
 
-                    onOptionChange?.(
+                    onDoctorNotesOptionChange?.(
                         "MANUAL"
                     );
 
                 }}
-                style={{
+style={{
     ...optionButton,
-
-    ...(selectedOption === "MANUAL"
-        ? selectedOptionButton
-        : {}),
 }}
             >
 
@@ -421,7 +469,7 @@ const [
                 </span>
 
                 <span style={optionLabel}>
-{t("medication.enterManually")}
+                    {t("medication.enterManually")}
                 </span>
 
             </button>
@@ -439,131 +487,382 @@ const [
 
     <>
 
-        {checkingPendingMedicationValidation ? (
-
-            <div
-                style={{
-                    padding: "24px",
-                    textAlign: "center",
-                    color: "#6B7280",
-                    fontWeight: 600,
-                }}
-            >
-
-                Checking pending validations...
-
-            </div>
-
-        ) : (
-
-        <>
-
         <label style={label}>
             {t("medication.whatWouldYouLikeToDo")}
         </label>
 
+
+        {/* PRIMARY CARE JOURNEY OPTIONS */}
+
         <div style={optionGridTwo}>
+
+            {/* PRESCRIPTIONS */}
 
             <button
                 type="button"
-onClick={() => {
+                onClick={() => {
 
-    if (hasPendingMedicationValidation) {
+                    setSelectedOption(
+                        "PRESCRIPTIONS"
+                    );
 
-        setMedicationDetailOption(
-            "CONTINUE_VALIDATION"
-        );
+                    setMedicationDetailOption(
+                        ""
+                    );
 
-        onMedicationDetailChange?.(
-            "CONTINUE_VALIDATION"
-        );
+                    onMedicationDetailChange?.(
+                        ""
+                    );
 
-        return;
+                    onPrescriptionsSelect?.();
 
-    }
-
-    setSelectedOption(
-        "ADD_PRESCRIPTION"
-    );
-
-    setMedicationDetailOption(
-        ""
-    );
-
-    onMedicationDetailChange?.(
-        ""
-    );
-
-}}
+                }}
                 style={{
-    ...optionButton,
+                    ...optionButton,
 
-    ...(selectedOption === "ADD_PRESCRIPTION"
-        ? selectedOptionButton
-        : {}),
-}}
+                    ...(selectedOption === "PRESCRIPTIONS"
+                        ? selectedOptionButton
+                        : {}),
+                }}
             >
 
-<span style={optionIcon}>
-    {hasPendingMedicationValidation ? "⚠️" : "📄"}
-</span>
+                <span style={optionIcon}>
+                    📄
+                </span>
 
-<span style={optionLabel}>
-    {
-        hasPendingMedicationValidation
-            ? "Continue Validation"
-            : t("medication.addPrescription")
-    }
-</span>
+                <span style={optionLabel}>
+                    Prescriptions
+                </span>
 
             </button>
 
 
+            {/* DOCTOR'S NOTES */}
+
             <button
                 type="button"
-onClick={() => {
+                onClick={() => {
 
-    setSelectedOption(
-        "VIEW_PRESCRIPTIONS"
-    );
+                    setSelectedOption(
+                        "DOCTOR_NOTES"
+                    );
 
-    setMedicationDetailOption(
-        "VIEW_PRESCRIPTIONS"
-    );
+                    setMedicationDetailOption(
+                        ""
+                    );
 
-    onMedicationDetailChange?.(
-        "VIEW_PRESCRIPTIONS"
-    );
+                    onMedicationDetailChange?.(
+                        ""
+                    );
 
-}}
+                }}
                 style={{
-    ...optionButton,
+                    ...optionButton,
 
-    ...(selectedOption === "VIEW_PRESCRIPTIONS"
-    ? selectedOptionButton
-    : {}),
-}}
+                    ...(selectedOption === "DOCTOR_NOTES"
+                        ? selectedOptionButton
+                        : {}),
+                }}
             >
 
-    <span style={optionIcon}>
-        📖
-    </span>
+                <span style={optionIcon}>
+                    📝
+                </span>
 
-    <span style={optionLabel}>
-        View Prescriptions
-    </span>
+                <span style={optionLabel}>
+                    Doctor's Notes
+                </span>
 
-</button>
+            </button>
 
         </div>
 
-        </>
+
+        {/* PRESCRIPTION FUNCTIONALITY */}
+
+        {(
+            selectedOption === "PRESCRIPTIONS" ||
+            selectedOption === "ADD_PRESCRIPTION" ||
+            selectedOption === "VIEW_PRESCRIPTIONS"
+        ) && (
+
+            <div
+                style={{
+                    marginTop: "16px",
+                }}
+            >
+
+                <label style={label}>
+                    Prescriptions
+                </label>
+
+
+                {checkingPendingMedicationValidation ? (
+
+                    <div
+                        style={{
+                            marginTop: "12px",
+                            padding: "24px",
+                            textAlign: "center",
+                            color: "#6B7280",
+                            fontWeight: 600,
+                        }}
+                    >
+
+                        Checking pending validations...
+
+                    </div>
+
+                ) : (
+
+                    <div
+                        style={{
+                            ...optionGridTwo,
+                            marginTop: "8px",
+                        }}
+                    >
+
+                        {/* ADD / CONTINUE VALIDATION */}
+
+                        <button
+                            type="button"
+                            onClick={() => {
+
+                                if (
+                                    hasPendingMedicationValidation
+                                ) {
+
+                                    setMedicationDetailOption(
+                                        "CONTINUE_VALIDATION"
+                                    );
+
+                                    onMedicationDetailChange?.(
+                                        "CONTINUE_VALIDATION"
+                                    );
+
+                                    return;
+                                }
+
+
+                                setSelectedOption(
+                                    "ADD_PRESCRIPTION"
+                                );
+
+                                setMedicationDetailOption(
+                                    ""
+                                );
+
+                                onMedicationDetailChange?.(
+                                    ""
+                                );
+
+                            }}
+                            style={{
+                                ...optionButton,
+
+                                ...(selectedOption === "ADD_PRESCRIPTION"
+                                    ? selectedOptionButton
+                                    : {}),
+                            }}
+                        >
+
+                            <span style={optionIcon}>
+                                {
+                                    hasPendingMedicationValidation
+                                        ? "⚠️"
+                                        : "📄"
+                                }
+                            </span>
+
+                            <span style={optionLabel}>
+                                {
+                                    hasPendingMedicationValidation
+                                        ? "Continue Validation"
+                                        : t("medication.addPrescription")
+                                }
+                            </span>
+
+                        </button>
+
+
+                        {/* VIEW PRESCRIPTIONS */}
+
+                        <button
+                            type="button"
+                            onClick={() => {
+
+                                setSelectedOption(
+                                    "VIEW_PRESCRIPTIONS"
+                                );
+
+                                setMedicationDetailOption(
+                                    "VIEW_PRESCRIPTIONS"
+                                );
+
+                                onMedicationDetailChange?.(
+                                    "VIEW_PRESCRIPTIONS"
+                                );
+
+                            }}
+                            style={{
+                                ...optionButton,
+
+                                ...(selectedOption === "VIEW_PRESCRIPTIONS"
+                                    ? selectedOptionButton
+                                    : {}),
+                            }}
+                        >
+
+                            <span style={optionIcon}>
+                                📖
+                            </span>
+
+                            <span style={optionLabel}>
+                                View Prescriptions
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                )}
+
+            </div>
+
+        )}
+
+
+        {/* DOCTOR'S NOTES CAPTURE OPTIONS */}
+
+        {selectedOption === "DOCTOR_NOTES" && (
+
+            <div
+                style={{
+                    marginTop: "16px",
+                }}
+            >
+
+                <label style={label}>
+                    How would you like to capture the doctor's notes?
+                </label>
+
+
+                <div style={optionGridThree}>
+
+                    {/* RECORD WITH VOICE */}
+
+                    <button
+                        type="button"
+                        onClick={() => {
+
+                            alert(
+                                "Capture source: DOCTOR_NOTES"
+                            );
+
+                            setSelectedOption(
+                                "VOICE"
+                            );
+
+                            onOptionChange?.(
+                                "VOICE"
+                            );
+
+                        }}
+style={{
+    ...optionButton,
+}}
+                    >
+
+                        <span style={optionIcon}>
+                            🎙️
+                        </span>
+
+                        <span style={optionLabel}>
+                            Record with Voice
+                        </span>
+
+                    </button>
+
+
+                    {/* UPLOAD IMAGES */}
+
+                    <button
+                        type="button"
+                        onClick={() => {
+
+                            alert(
+                                "Capture source: DOCTOR_NOTES"
+                            );
+
+                            setSelectedOption(
+                                "UPLOAD"
+                            );
+
+                            onOptionChange?.(
+                                "UPLOAD"
+                            );
+
+                        }}
+style={{
+    ...optionButton,
+}}
+                    >
+
+                        <span style={optionIcon}>
+                            📷
+                        </span>
+
+                        <span style={optionLabel}>
+                            Upload Images
+                        </span>
+
+                    </button>
+
+
+                    {/* ENTER MANUALLY */}
+
+                    <button
+                        type="button"
+                        onClick={() => {
+
+                            alert(
+                                "Capture source: DOCTOR_NOTES"
+                            );
+
+                            setSelectedOption(
+                                "MANUAL"
+                            );
+
+                            onOptionChange?.(
+                                "MANUAL"
+                            );
+
+                        }}
+style={{
+    ...optionButton,
+}}
+                    >
+
+                        <span style={optionIcon}>
+                            ✍️
+                        </span>
+
+                        <span style={optionLabel}>
+                            Enter Manually
+                        </span>
+
+                    </button>
+
+                </div>
+
+            </div>
 
         )}
 
     </>
 
 )}
+
 
 
 {
