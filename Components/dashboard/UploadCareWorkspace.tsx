@@ -50,13 +50,20 @@ interface UploadCareWorkspaceProps {
 
 interface UploadReadingState {
 
+    date:
+        string;
+
+    time:
+        string;
+
     temperature:
         string;
 
     temperatureUnit:
         TemperatureUnit;
 
-weightKg:string;
+    weightKg:
+        string;
 
     systolic:
         string;
@@ -76,7 +83,22 @@ weightKg:string;
 function createEmptyReading():
     UploadReadingState {
 
+    const now =
+        new Date();
+
+    const date =
+        now.toISOString()
+            .split("T")[0];
+
+    const time =
+        now.toTimeString()
+            .slice(0, 5);
+
     return {
+
+        date,
+
+        time,
 
         temperature:
             "",
@@ -84,7 +106,7 @@ function createEmptyReading():
         temperatureUnit:
             "F",
 
-weightKg: "",
+        weightKg: "",
 
         systolic:
             "",
@@ -249,230 +271,212 @@ const {
     // Process Image
     //--------------------------------------------------------
 
-    async function handleMedicalImage(
+async function handleMedicalImages(
 
-        event:
-            React.ChangeEvent<HTMLInputElement>,
+    event:
+        React.ChangeEvent<HTMLInputElement>,
 
-        source:
-            ImageSource
+    source:
+        ImageSource
 
+) {
+
+    const files =
+        Array.from(
+            event.target.files ?? []
+        );
+
+    event.target.value =
+        "";
+
+    if (
+        files.length === 0
     ) {
 
-        const image =
-            event.target.files?.[0];
+        return;
 
+    }
 
-        event.target.value =
-            "";
+    if (
+        processingImage ||
+        saving
+    ) {
 
+        return;
 
-        if (!image) {
+    }
 
-            return;
+    setError(
+        null
+    );
 
-        }
+    setSuccessMessage(
+        null
+    );
 
+    setActiveImageSource(
+        source
+    );
+
+    setProcessingImage(
+        true
+    );
+
+    try {
+
+        const result =
+            await medicalImageService
+                .processImages(
+                    files
+                );
 
         if (
-            processingImage ||
-            saving
+            !result.success ||
+            !result.data
         ) {
+
+            setError(
+                result.error ??
+                t(
+                    "dailyCare.unableToReadImage"
+                )
+            );
 
             return;
 
         }
 
+        const readings =
+            result.data;
 
-        setError(
-            null
-        );
+        const hasReading =
 
-        setSuccessMessage(
-            null
-        );
+            readings.temperature !==
+                null ||
 
-        setActiveImageSource(
-            source
-        );
+            readings.weightKg !==
+                null ||
 
-        setProcessingImage(
-            true
-        );
+            readings.systolic !==
+                null ||
 
+            readings.diastolic !==
+                null ||
 
-        try {
+            readings.pulse !==
+                null ||
 
-            const result =
+            readings.spo2 !==
+                null;
 
-                await medicalImageService
-                    .processImage(
-                        image
-                    );
+        if (!hasReading) {
 
+            setError(
+                t(
+                    "dailyCare.noReadingDetected"
+                )
+            );
 
-            if (
-                !result.success ||
-                !result.data
-            ) {
+            return;
 
-                setError(
+        }
 
-                    result.error ??
+        setReading(
+            previous => ({
 
-                    t("dailyCare.unableToReadImage")
-
-                );
-
-                return;
-
-            }
-
-
-            const readings =
-                result.data;
-
-
-            const hasReading =
-
-                readings.temperature !== null ||
-
-                readings.weightKg !== null ||
-
-                readings.systolic !== null ||
-
-                readings.diastolic !== null ||
-
-                readings.pulse !== null ||
-
-                readings.spo2 !== null;
-
-
-            if (!hasReading) {
-
-                setError(
-                    t("dailyCare.noReadingDetected")
-                );
-
-                return;
-
-            }
-
-
-            setReading(previous => ({
+                ...previous,
 
                 temperature:
-
-                    readings.temperature !== null
-
+                    readings.temperature !==
+                        null
                         ? String(
                             readings.temperature
                         )
-
-                        : "",
-
+                        : previous.temperature,
 
                 temperatureUnit:
-
                     readings.temperatureUnit ??
-
                     previous.temperatureUnit,
 
-
-weightKg:
-
-    readings.weightKg !== null
-
-        ? String(readings.weightKg)
-
-        : previous.weightKg,
+                weightKg:
+                    readings.weightKg !==
+                        null
+                        ? String(
+                            readings.weightKg
+                        )
+                        : previous.weightKg,
 
                 systolic:
-	
-                    readings.systolic !== null
-
+                    readings.systolic !==
+                        null
                         ? String(
                             readings.systolic
                         )
-
-                        : "",
-
+                        : previous.systolic,
 
                 diastolic:
-
-                    readings.diastolic !== null
-
+                    readings.diastolic !==
+                        null
                         ? String(
                             readings.diastolic
                         )
-
-                        : "",
-
+                        : previous.diastolic,
 
                 pulse:
-
-                    readings.pulse !== null
-
+                    readings.pulse !==
+                        null
                         ? String(
                             readings.pulse
                         )
-
-                        : "",
-
+                        : previous.pulse,
 
                 spo2:
-
-                    readings.spo2 !== null
-
+                    readings.spo2 !==
+                        null
                         ? String(
                             readings.spo2
                         )
+                        : previous.spo2,
 
-                        : "",
+            })
+        );
 
-            }));
-
-
-            setImageReadSuccessful(
-                true
-            );
-
-        }
-        catch (processingError) {
-
-            console.error(
-
-                t("medication.uploadCareImageProcessingError"),
-
-                processingError
-
-            );
-
-
-            setError(
-
-                processingError instanceof Error
-
-                    ? processingError.message
-
-                    : t("dailyCare.unableToProcessImage")
-
-            );
-
-        }
-        finally {
-
-            setProcessingImage(
-                false
-            );
-
-            setActiveImageSource(
-                null
-            );
-
-        }
+        setImageReadSuccessful(
+            true
+        );
 
     }
+    catch (
+        processingError
+    ) {
+
+        console.error(
+            "Upload Care Image Processing Error:",
+            processingError
+        );
+
+        setError(
+            processingError instanceof Error
+                ? processingError.message
+                : t(
+                    "dailyCare.unableToProcessImage"
+                )
+        );
+
+    }
+    finally {
+
+        setProcessingImage(
+            false
+        );
+
+        setActiveImageSource(
+            null
+        );
+
+    }
+
+}
 
 
     //--------------------------------------------------------
@@ -543,10 +547,10 @@ weightKg:
 
         try {
 
-            const commonReading = {
+const commonReading = {
 
-                recordedAt:
-                    new Date().toISOString(),
+    recordedAt:
+        `${reading.date}T${reading.time}:00`,
 
                 overallStatus:
                     null,
@@ -772,35 +776,36 @@ activeImageSource === "camera"
                         }
 
 
-                        <input
+<input
+    type="file"
 
-                            type="file"
+    accept=
+        "image/jpeg,image/png,image/webp"
 
-                            accept=
-                                "image/jpeg,image/png,image/webp"
+    capture=
+        "environment"
 
-                            capture=
-                                "environment"
+    multiple
 
-                            disabled={
-                                processingImage ||
-                                saving
-                            }
+    disabled={
+        processingImage ||
+        saving
+    }
 
-                            onChange={
-                                event =>
-                                    handleMedicalImage(
-                                        event,
-                                        "camera"
-                                    )
-                            }
+    onChange={
+        event =>
+            handleMedicalImages(
+                event,
+                "camera"
+            )
+    }
 
-                            style={{
-                                display:
-                                    "none",
-                            }}
+    style={{
+        display:
+            "none",
+    }}
 
-                        />
+/>
 
                     </label>
 
@@ -839,33 +844,33 @@ activeImageSource === "gallery"
                         }
 
 
-                        <input
+<input
+    type="file"
 
-                            type="file"
+    accept=
+        "image/jpeg,image/png,image/webp"
 
+    multiple
 
-                            accept=
-                                "image/jpeg,image/png,image/webp"
+    disabled={
+        processingImage ||
+        saving
+    }
 
-                            disabled={
-                                processingImage ||
-                                saving
-                            }
+    onChange={
+        event =>
+            handleMedicalImages(
+                event,
+                "gallery"
+            )
+    }
 
-                            onChange={
-                                event =>
-                                    handleMedicalImage(
-                                        event,
-                                        "gallery"
-                                    )
-                            }
+    style={{
+        display:
+            "none",
+    }}
 
-                            style={{
-                                display:
-                                    "none",
-                            }}
-
-                        />
+/>
 
                     </label>
 
@@ -950,6 +955,92 @@ activeImageSource === "gallery"
                         </p>
 
                     </div>
+
+<div
+    style={{
+        display:
+            "grid",
+
+        gridTemplateColumns:
+            "repeat(auto-fit, minmax(180px, 1fr))",
+
+        gap:
+            "16px",
+
+        marginBottom:
+            "20px",
+    }}
+>
+
+    <div>
+
+        <label
+            style={fieldLabel}
+        >
+            Date
+        </label>
+
+        <input
+            type="date"
+
+            value={
+                reading.date
+            }
+
+            disabled={
+                saving
+            }
+
+            onChange={
+                event =>
+                    updateField(
+                        "date",
+                        event.target.value
+                    )
+            }
+
+            style={
+                inputStyle
+            }
+        />
+
+    </div>
+
+    <div>
+
+        <label
+            style={fieldLabel}
+        >
+            Time
+        </label>
+
+        <input
+            type="time"
+
+            value={
+                reading.time
+            }
+
+            disabled={
+                saving
+            }
+
+            onChange={
+                event =>
+                    updateField(
+                        "time",
+                        event.target.value
+                    )
+            }
+
+            style={
+                inputStyle
+            }
+        />
+
+    </div>
+
+</div>
 
 
                     <div style={fieldGrid}>

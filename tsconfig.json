@@ -36,6 +36,7 @@
   "scripts",
   "tools",
   "architecture",
-  "architecture-report"
+  "architecture-report",
+  "app/dashboard-test"
 ]
 }

@@ -75,6 +75,8 @@ interface PrescriptionReviewProps {
 
     savingValidation?: boolean;
 
+hideVitals?: boolean;
+
     onReupload: () => void;
 
     onConfirm: (
@@ -97,6 +99,8 @@ export default function PrescriptionReview({
     mode,
 
     savingValidation,
+
+hideVitals,
 
     onReupload,
 

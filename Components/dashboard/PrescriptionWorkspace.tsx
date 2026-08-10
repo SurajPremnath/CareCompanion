@@ -234,52 +234,58 @@ const [
 const MAX_IMAGE_SIZE =
     2 * 1024 * 1024; // 2 MB
 
-    //--------------------------------------------------------
-    // Initial Picker
-    //--------------------------------------------------------
+//--------------------------------------------------------
+// Initial Picker
+//--------------------------------------------------------
 
-    useEffect(() => {
+useEffect(() => {
 
-        if (
-            method === "TAKE_PHOTO"
-        ) {
+    // If the user moves away from Take Photo,
+    // make sure the camera is completely closed.
+    if (
+        method !== "TAKE_PHOTO"
+    ) {
+        closeCamera();
+    }
 
-            void openCamera();
+    if (
+        method === "TAKE_PHOTO"
+    ) {
 
+        void openCamera();
+
+        return;
+
+    }
+
+    if (
+        method === "CHOOSE_PHOTOS"
+    ) {
+
+        const input =
+            galleryInputRef.current;
+
+        if (!input) {
             return;
-
         }
 
-if (
-    method ===
-    "CHOOSE_PHOTOS"
-) {
+        input.click();
 
-    const input =
-        galleryInputRef.current;
-
-    if (!input) {
         return;
     }
 
-    input.click();
+    if (
+        method === "UPLOAD_PDF"
+    ) {
 
-    return;
-}
+        pdfInputRef.current
+            ?.click();
 
-        if (
-            method ===
-            "UPLOAD_PDF"
-        ) {
+    }
 
-            pdfInputRef.current
-                ?.click();
-
-        }
-
-    }, [
-        method,
-    ]);
+}, [
+    method,
+]);
 
 
     //--------------------------------------------------------

@@ -1000,67 +1000,58 @@ if (
             </div>
 
 
-            <section style={cardStyle}>
+<textarea
+    value={
+        doctorNote
+    }
+    onChange={
+        event =>
+            setDoctorNote(
+                event.target.value
+            )
+    }
+    disabled={
+        saving
+    }
+    placeholder={
+        "Enter the doctor's notes here..."
+    }
+    rows={8}
+    style={{
+        width:
+            "100%",
 
-                <h3 style={sectionTitle}>
-                    Doctor's Note
-                </h3>
+        boxSizing:
+            "border-box",
 
+        padding:
+            "14px",
 
-                <textarea
-                    value={
-                        doctorNote
-                    }
-                    onChange={
-                        event =>
-                            setDoctorNote(
-                                event.target.value
-                            )
-                    }
-                    disabled={
-                        saving
-                    }
-                    placeholder={
-                        "Enter the doctor's notes here..."
-                    }
-                    rows={8}
-                    style={{
-                        width:
-                            "100%",
+        border:
+            "1px solid #d1d5db",
 
-                        boxSizing:
-                            "border-box",
+        borderRadius:
+            "10px",
 
-                        padding:
-                            "14px",
+        fontSize:
+            "16px",
 
-                        border:
-                            "1px solid #d1d5db",
+        lineHeight:
+            1.5,
 
-                        borderRadius:
-                            "10px",
+        fontFamily:
+            "inherit",
 
-                        fontSize:
-                            "16px",
+        resize:
+            "vertical",
 
-                        lineHeight:
-                            1.5,
+        background:
+            "#ffffff",
 
-                        fontFamily:
-                            "inherit",
-
-                        resize:
-                            "vertical",
-
-                        background:
-                            "#ffffff",
-
-                        outline:
-                            "none",
-                    }}
-                />
-
-            </section>
+        outline:
+            "none",
+    }}
+/>
 
 
             <div

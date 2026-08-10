@@ -15,7 +15,6 @@ import MedicineRow from "./MedicineRow";
 import MedicationReviewRow from "./MedicationReviewRow";
 
 interface MedicineCardProps {
-
     prescription: ExtractedPrescription;
 
     medicineTimings: string[];
@@ -25,6 +24,8 @@ interface MedicineCardProps {
     reviewCompleted: boolean;
 
     readOnly: boolean;
+
+    mode?: "PRESCRIPTION" | "DOCTOR_NOTES";
 
     onMedicineTimingChange: (
         index: number,
@@ -40,27 +41,18 @@ interface MedicineCardProps {
         index: number,
         medicine: ExtractedPrescriptionMedicine
     ) => void;
-
 }
 
 export default function MedicineCard({
-
     prescription,
-
     medicineTimings,
-
     reviewMode,
-
     reviewCompleted,
-
     readOnly,
-
+    mode = "PRESCRIPTION",
     onMedicineTimingChange,
-
     onReviewStatusChange,
-
     onMedicineUpdated,
-
 }: MedicineCardProps) {
 
 const {

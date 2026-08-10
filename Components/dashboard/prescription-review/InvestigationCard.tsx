@@ -12,6 +12,8 @@ import {
 
 interface InvestigationCardProps {
     prescription: ExtractedPrescription;
+
+    mode?: "PRESCRIPTION" | "DOCTOR_NOTES";
 }
 
 const section: React.CSSProperties = {
@@ -36,6 +38,7 @@ const list: React.CSSProperties = {
 
 export default function InvestigationCard({
     prescription,
+    mode = "PRESCRIPTION",
 }: InvestigationCardProps) {
 
 const {

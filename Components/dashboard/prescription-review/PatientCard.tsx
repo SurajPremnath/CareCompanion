@@ -12,8 +12,11 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
-interface PatientCardProps {
+export type PrescriptionDisplayMode =
+    | "PRESCRIPTION"
+    | "DOCTOR_NOTES";
 
+interface PatientCardProps {
     prescription: ExtractedPrescription;
 
     patientName: string;
@@ -22,6 +25,8 @@ interface PatientCardProps {
 
     readOnly: boolean;
 
+    mode?: PrescriptionDisplayMode;
+
     onConsultationModeChange: (
         value: ConsultationMode
     ) => void;
@@ -29,7 +34,6 @@ interface PatientCardProps {
     onConsultationDateChange: (
         value: string
     ) => void;
-
 }
 
 const CONSULTATION_OPTIONS = [
@@ -277,20 +281,14 @@ const mobileResponsiveStyles = `
 
 
 export default function PatientCard({
-
     prescription,
-
     patientName,
-
     consultationMode,
-
     readOnly,
-
+    mode = "PRESCRIPTION",
     onConsultationModeChange,
-
     onConsultationDateChange,
-
-}:PatientCardProps){
+}: PatientCardProps) {
 
  const {
     t,

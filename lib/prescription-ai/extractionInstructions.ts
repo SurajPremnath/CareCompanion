@@ -23,6 +23,10 @@ import {
   NOTES_PANEL_RULES,
 } from "./panels";
 
+import {
+  DOCTOR_NOTES_EXTRACTION_INSTRUCTIONS,
+} from "./doctorNotesExtractionInstructions";
+
 export const KNOWLEDGE = `
 MEDICINE PREFIXES: ${MEDICINE_PREFIXES.join(", ")}
 DOSAGE PATTERNS: ${DOSAGE_PATTERNS.join(", ")}
@@ -308,4 +312,9 @@ These should be returned as TWO separate presenting complaints if both are writt
 ${OUTPUT_CONTRACT}
 `;
 
-export const EXTRACTION_INSTRUCTIONS = CLINICAL_UNDERSTANDING;
+export const EXTRACTION_INSTRUCTIONS =
+  CLINICAL_UNDERSTANDING;
+
+export {
+  DOCTOR_NOTES_EXTRACTION_INSTRUCTIONS,
+};

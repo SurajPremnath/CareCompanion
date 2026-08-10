@@ -10,8 +10,10 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
-interface Props{
-    prescription:ExtractedPrescription;
+interface Props {
+    prescription: ExtractedPrescription;
+
+    mode?: "PRESCRIPTION" | "DOCTOR_NOTES";
 }
 
 const section={
@@ -23,10 +25,9 @@ const section={
 } satisfies React.CSSProperties;
 
 export default function ComplaintsCard({
-
     prescription,
-
-}:Props){
+    mode = "PRESCRIPTION",
+}: Props) {
 
 const {
     t,

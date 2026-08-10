@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
 import type {
-  MedicalImageReadings,
+  MedicalImageReadings
 } from "@/lib/medical-image/medicalImageTypes";
 
 import {
@@ -109,7 +109,7 @@ function toTemperatureUnit(
 }
 
 //------------------------------------------------------------
-// Parse Model Output
+// Parse Medical Image Output
 //------------------------------------------------------------
 
 type DetectedDeviceType =
@@ -119,10 +119,19 @@ type DetectedDeviceType =
   | "weight_scale";
 
 interface ParsedMedicalImageResponse {
-  isSupportedMedicalImage: boolean;
-  hasConflictingReadings: boolean;
-  detectedDeviceTypes: DetectedDeviceType[];
-  readings: MedicalImageReadings;
+
+  isSupportedMedicalImage:
+    boolean;
+
+  hasConflictingReadings:
+    boolean;
+
+  detectedDeviceTypes:
+    DetectedDeviceType[];
+
+  readings:
+    MedicalImageReadings;
+
 }
 
 function parseMedicalReadings(
@@ -132,9 +141,18 @@ function parseMedicalReadings(
   const cleanedOutput =
     outputText
       .trim()
-      .replace(/^```json\s*/i, "")
-      .replace(/^```\s*/i, "")
-      .replace(/\s*```$/i, "")
+      .replace(
+        /^```json\s*/i,
+        ""
+      )
+      .replace(
+        /^```\s*/i,
+        ""
+      )
+      .replace(
+        /\s*```$/i,
+        ""
+      )
       .trim();
 
   const parsed =
@@ -148,23 +166,31 @@ function parseMedicalReadings(
   return {
 
     isSupportedMedicalImage:
-      parsed.isSupportedMedicalImage === true,
+      parsed.isSupportedMedicalImage ===
+      true,
 
-hasConflictingReadings:
-  parsed.hasConflictingReadings === true,
+    hasConflictingReadings:
+      parsed.hasConflictingReadings ===
+      true,
 
-detectedDeviceTypes:
-  Array.isArray(parsed.detectedDeviceTypes)
-    ? parsed.detectedDeviceTypes.filter(
-        (
-          deviceType
-        ): deviceType is DetectedDeviceType =>
-          deviceType === "thermometer" ||
-          deviceType === "blood_pressure_monitor" ||
-          deviceType === "pulse_oximeter" ||
-          deviceType === "weight_scale"
+    detectedDeviceTypes:
+      Array.isArray(
+        parsed.detectedDeviceTypes
       )
-    : [],
+        ? parsed.detectedDeviceTypes.filter(
+            (
+              deviceType
+            ): deviceType is DetectedDeviceType =>
+              deviceType ===
+                "thermometer" ||
+              deviceType ===
+                "blood_pressure_monitor" ||
+              deviceType ===
+                "pulse_oximeter" ||
+              deviceType ===
+                "weight_scale"
+          )
+        : [],
 
     readings: {
 
@@ -178,10 +204,10 @@ detectedDeviceTypes:
           parsed.temperatureUnit
         ),
 
-weightKg:
-  toNullableNumber(
-    parsed.weightKg
-  ),
+      weightKg:
+        toNullableNumber(
+          parsed.weightKg
+        ),
 
       systolic:
         toNullableNumber(
@@ -208,6 +234,7 @@ weightKg:
   };
 
 }
+
 //------------------------------------------------------------
 // POST
 //------------------------------------------------------------
@@ -218,147 +245,149 @@ export async function POST(
 
   try {
 
-//--------------------------------------------------------
-// Authenticate User
-//--------------------------------------------------------
+    //--------------------------------------------------------
+    // Authenticate User
+    //--------------------------------------------------------
 
-const authorizationHeader =
-  request.headers.get(
-    "authorization"
-  );
+    const authorizationHeader =
+      request.headers.get(
+        "authorization"
+      );
 
-if (
-  !authorizationHeader?.startsWith(
-    "Bearer "
-  )
-) {
+    if (
+      !authorizationHeader?.startsWith(
+        "Bearer "
+      )
+    ) {
 
-  return NextResponse.json(
-    {
-      error:
-        "Authentication required.",
-    },
-    {
-      status: 401,
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required.",
+        },
+        {
+          status: 401,
+        }
+      );
+
     }
-  );
 
-}
+    const accessToken =
+      authorizationHeader.slice(
+        7
+      );
 
-const accessToken =
-  authorizationHeader.slice(
-    7
-  );
+    const {
+      data: {
+        user,
+      },
+      error: authError,
+    } =
+      await supabaseAdmin.auth.getUser(
+        accessToken
+      );
 
-const {
-  data: {
-    user,
-  },
-  error: authError,
-} =
-  await supabaseAdmin.auth.getUser(
-    accessToken
-  );
+    if (
+      authError ||
+      !user
+    ) {
 
-if (
-  authError ||
-  !user
-) {
+      return NextResponse.json(
+        {
+          error:
+            "Your session is invalid or has expired. Please sign in again.",
+        },
+        {
+          status: 401,
+        }
+      );
 
-  return NextResponse.json(
-    {
-      error:
-        "Your session is invalid or has expired. Please sign in again.",
-    },
-    {
-      status: 401,
     }
-  );
 
-}
+    //--------------------------------------------------------
+    // Load Profile And Usage
+    //--------------------------------------------------------
 
-//--------------------------------------------------------
-// Load Profile And Usage
-//--------------------------------------------------------
+    const {
+      data: profile,
+      error: profileError,
+    } =
+      await supabaseAdmin
+        .from("profiles")
+        .select(
+          "role, medical_image_usage_count"
+        )
+        .eq(
+          "id",
+          user.id
+        )
+        .single();
 
-const {
-  data: profile,
-  error: profileError,
-} =
-  await supabaseAdmin
-    .from("profiles")
-    .select(
-      "role, medical_image_usage_count"
-    )
-    .eq(
-      "id",
-      user.id
-    )
-    .single();
+    if (
+      profileError ||
+      !profile
+    ) {
 
-if (
-  profileError ||
-  !profile
-) {
+      console.error(
+        "Medical Image Profile Error:",
+        profileError
+      );
 
-  console.error(
-    "Medical Image Profile Error:",
-    profileError
-  );
+      return NextResponse.json(
+        {
+          error:
+            "Unable to verify image usage allowance.",
+        },
+        {
+          status: 500,
+        }
+      );
 
-  return NextResponse.json(
-    {
-      error:
-        "Unable to verify image usage allowance.",
-    },
-    {
-      status: 500,
     }
-  );
 
-}
-
-//--------------------------------------------------------
-// Check Trial Limit
-//--------------------------------------------------------
-
-const isAdmin =
-  profile.role === "ADMIN";
-
-const currentUsage =
-  profile.medical_image_usage_count;
-
-if (
-  !isAdmin &&
-  currentUsage >= 5
-) {
-
-  return NextResponse.json(
-    {
-      error:
-        "Trial image reading limit reached. Please enter readings manually.",
-    },
-    {
-      status: 403,
-    }
-  );
-
-}
     //--------------------------------------------------------
     // Read Form Data
     //--------------------------------------------------------
 
-    const formData =
-      await request.formData();
+const formData =
+    await request.formData();
 
-    const image =
-      formData.get("image");
+//--------------------------------------------------------
+// Determine Images
+//--------------------------------------------------------
 
-    //--------------------------------------------------------
-    // Validate Image
-    //--------------------------------------------------------
+const images =
+    formData
+        .getAll("images")
+        .filter(
+            value =>
+                value instanceof File
+        ) as File[];
 
-    if (!(image instanceof File)) {
+if (
+    images.length === 0
+) {
+
+    return NextResponse.json(
+        {
+            error:
+                "No image was provided.",
+        },
+        {
+            status: 400,
+        }
+    );
+
+}
+
+//--------------------------------------------------------
+// Validate Image Count
+//--------------------------------------------------------
+
+if (
+  images.length ===
+  0
+) {
 
       return NextResponse.json(
         {
@@ -372,131 +401,218 @@ if (
 
     }
 
+
+    //--------------------------------------------------------
+    // Validate Images
+    //--------------------------------------------------------
+
+    for (
+      const image of images
+    ) {
+
+      if (
+        !SUPPORTED_IMAGE_TYPES.has(
+          image.type
+        )
+      ) {
+
+        return NextResponse.json(
+          {
+            error:
+              "Unsupported image format. Please use JPG, PNG, or WebP.",
+          },
+          {
+            status: 400,
+          }
+        );
+
+      }
+
+      if (
+        image.size >
+        MAX_IMAGE_SIZE_BYTES
+      ) {
+
+        return NextResponse.json(
+          {
+            error:
+              "Image is too large. Maximum allowed size is 10 MB.",
+          },
+          {
+            status: 400,
+          }
+        );
+
+      }
+
+    }
+
+    //--------------------------------------------------------
+    // Check Trial Limit
+    //--------------------------------------------------------
+
+    const isAdmin =
+      profile.role ===
+      "ADMIN";
+
+    const currentUsage =
+      profile.medical_image_usage_count;
+
+    const requestedImageCount =
+      images.length;
+
     if (
-      !SUPPORTED_IMAGE_TYPES.has(
-        image.type
-      )
+      !isAdmin &&
+      currentUsage +
+        requestedImageCount >
+        5
     ) {
 
       return NextResponse.json(
         {
           error:
-            "Unsupported image format. Please use JPG, PNG, or WebP.",
+            "Trial image reading limit reached. Please enter readings manually.",
         },
         {
-          status: 400,
-        }
-      );
-
-    }
-
-
-    if (
-      image.size >
-      MAX_IMAGE_SIZE_BYTES
-    ) {
-
-      return NextResponse.json(
-        {
-          error:
-            "Image is too large. Maximum allowed size is 10 MB.",
-        },
-        {
-          status: 400,
+          status: 403,
         }
       );
 
     }
 
     //--------------------------------------------------------
-    // Convert Image To Base64 Data URL
+    // Convert Images To Base64
     //--------------------------------------------------------
 
-    const imageBuffer =
-      Buffer.from(
-        await image.arrayBuffer()
-      );
-
-    const base64Image =
-      imageBuffer.toString("base64");
-
-    const imageDataUrl =
-      `data:${image.type};base64,${base64Image}`;
 
     //--------------------------------------------------------
-    // OpenAI Vision Request
+    // OpenAI
     //--------------------------------------------------------
 
     const openai =
       getOpenAIClient();
 
+//--------------------------------------------------------
+// RECORD HEALTH
+//--------------------------------------------------------
+
+const imageDataUrls =
+    await Promise.all(
+        images.map(
+            async image => {
+
+                const imageBuffer =
+                    Buffer.from(
+                        await image.arrayBuffer()
+                    );
+
+                const base64Image =
+                    imageBuffer.toString(
+                        "base64"
+                    );
+
+                return (
+                    `data:${image.type};base64,${base64Image}`
+                );
+
+            }
+        )
+    );
+
+    //--------------------------------------------------------
+    // OpenAI Vision Request
+    //--------------------------------------------------------
+
     const response =
       await openai.responses.create({
 
-        model: "gpt-4.1-mini",
+        model:
+          "gpt-4.1-mini",
 
         input: [
+
           {
-            role: "user",
+            role:
+              "user",
 
             content: [
+
               {
-                type: "input_text",
+                type:
+                  "input_text",
 
-text:
-"Identify every supported medical device that is clearly visible and has a clearly readable measurement display. " +
+                text:
+                  "Identify every supported medical device that is clearly visible and has a clearly readable measurement display. " +
 
-"detectedDeviceTypes must be an array containing zero or more of: thermometer, blood_pressure_monitor, pulse_oximeter, weight_scale. " +
+                  "detectedDeviceTypes must be an array containing zero or more of: thermometer, blood_pressure_monitor, pulse_oximeter, weight_scale. " +
 
-"If the image contains more than one supported device with clearly readable measurements, include every applicable device type in detectedDeviceTypes and extract readings from all of them. " +
+                  "If the image contains more than one supported device with clearly readable measurements, include every applicable device type in detectedDeviceTypes and extract readings from all of them. " +
 
-"Multiple supported devices with different measurement types in the same image are valid and must not be treated as conflicting readings. " +
+                  "Multiple supported devices with different measurement types in the same image are valid and must not be treated as conflicting readings. " +
 
-"Set hasConflictingReadings to true only when the image contains multiple competing or ambiguous values for the same measurement type and it is not possible to determine which value is the current reading. " +
+                  "Set hasConflictingReadings to true only when the image contains multiple competing or ambiguous values for the same measurement type and it is not possible to determine which value is the current reading. " +
 
-"For example, one blood pressure reading together with one temperature reading is not a conflict. Multiple blood pressure values or multiple temperature values are conflicting only when the current or latest reading cannot be determined reliably. " +
+                  "For example, one blood pressure reading together with one temperature reading is not a conflict. Multiple blood pressure values or multiple temperature values are conflicting only when the current or latest reading cannot be determined reliably. " +
 
-"If detectedDeviceTypes includes thermometer, a clearly visible temperature reading is required. " +
+                  "If detectedDeviceTypes includes thermometer, a clearly visible temperature reading is required. " +
 
-"If detectedDeviceTypes includes blood_pressure_monitor, both systolic and diastolic readings are required. " +
+                  "If detectedDeviceTypes includes blood_pressure_monitor, both systolic and diastolic readings are required. " +
 
-"If detectedDeviceTypes includes pulse_oximeter, an SpO2 reading is required. " +
+                  "If detectedDeviceTypes includes pulse_oximeter, an SpO2 reading is required. " +
 
-"If detectedDeviceTypes includes weight_scale, a clearly readable weight in kilograms is required. " +
+                  "If detectedDeviceTypes includes weight_scale, a clearly readable weight in kilograms is required. " +
 
-"Return the numeric value only in weightKg. " +
+                  "Return the numeric value only in weightKg. " +
 
-"Examples: 72 kg -> 72, 72.4 kg -> 72.4. " +
+                  "Examples: 72 kg -> 72, 72.4 kg -> 72.4. " +
 
-"Do not include the unit in the value. " +
+                  "Do not include the unit in the value. " +
 
-"Do not infer weight. " +
+                  "Do not infer weight. " +
 
-"If no readable weight is present, return null. " +
+                  "If no readable weight is present, return null. " +
 
-"If no supported medical device with a clearly readable measurement is visible, set isSupportedMedicalImage to false and return an empty detectedDeviceTypes array. " +
+                  "If no supported medical device with a clearly readable measurement is visible, set isSupportedMedicalImage to false and return an empty detectedDeviceTypes array. " +
 
-"Return JSON only with exactly these keys: " +
+"Analyze all uploaded images together as one health-reading session. " +
 
-"isSupportedMedicalImage, hasConflictingReadings, detectedDeviceTypes, temperature, temperatureUnit, weightKg, systolic, diastolic, pulse, spo2. " +
+"Measurements may be distributed across different images. " +
 
-"isSupportedMedicalImage and hasConflictingReadings must be true or false. " +
+"Combine valid readings across all images into the single response. " +
 
-'temperatureUnit must be "F", "C", or null.',
+"If one image contains temperature and another contains blood pressure or SpO2, return all of those readings together. " +
 
+"Do not treat different measurement types across different images as conflicting. " +
+
+"If the same measurement type appears multiple times, use the clearest/latest identifiable reading; if it cannot be determined reliably, set hasConflictingReadings to true. " +
+
+                  "Return JSON only with exactly these keys: " +
+
+                  "isSupportedMedicalImage, hasConflictingReadings, detectedDeviceTypes, temperature, temperatureUnit, weightKg, systolic, diastolic, pulse, spo2. " +
+
+                  "isSupportedMedicalImage and hasConflictingReadings must be true or false. " +
+
+                  'temperatureUnit must be "F", "C", or null.',
 
               },
 
-              {
-                type: "input_image",
+...imageDataUrls.map(
+    imageDataUrl => ({
+        type:
+            "input_image" as const,
 
-                image_url:
-                  imageDataUrl,
+        image_url:
+            imageDataUrl,
 
-                detail: "high",
-              },
+        detail:
+            "high" as const,
+    })
+),
+
             ],
+
           },
+
         ],
 
       });
@@ -508,7 +624,9 @@ text:
     const outputText =
       response.output_text?.trim();
 
-    if (!outputText) {
+    if (
+      !outputText
+    ) {
 
       return NextResponse.json(
         {
@@ -526,180 +644,222 @@ text:
     // Parse Structured Readings
     //--------------------------------------------------------
 
-let parsedResponse:
-  ParsedMedicalImageResponse;
+    let parsedResponse:
+      ParsedMedicalImageResponse;
 
-try {
+    try {
 
-  parsedResponse =
-    parseMedicalReadings(
-      outputText
-    );
+      parsedResponse =
+        parseMedicalReadings(
+          outputText
+        );
 
-}
-catch (error: unknown) {
+    }
+    catch (
+      error: unknown
+    ) {
 
-  console.error(
-    "Medical Image Route Error:",
-    error
-  );
+      console.error(
+        "Medical Image Route Error:",
+        error
+      );
 
-  const apiError =
-    error as {
-      status?: number;
-      code?: string;
-      type?: string;
-    };
+      const apiError =
+        error as {
+          status?: number;
+          code?: string;
+          type?: string;
+        };
 
-  if (
-    apiError.status === 429 &&
-    (
-      apiError.code === "insufficient_quota" ||
-      apiError.type === "insufficient_quota"
-    )
-  ) {
+      if (
+        apiError.status ===
+          429 &&
+        (
+          apiError.code ===
+            "insufficient_quota" ||
+          apiError.type ===
+            "insufficient_quota"
+        )
+      ) {
 
-    return NextResponse.json(
-      {
-        error:
-          "Credits over. Contact Admin.",
-      },
-      {
-        status: 503,
+        return NextResponse.json(
+          {
+            error:
+              "Credits over. Contact Admin.",
+          },
+          {
+            status: 503,
+          }
+        );
+
       }
-    );
 
-  }
+      return NextResponse.json(
+        {
+          error:
+            "Unable to process the medical image. Please try again.",
+        },
+        {
+          status: 500,
+        }
+      );
 
-  return NextResponse.json(
-    {
-      error:
-        "Unable to process the medical image. Please try again.",
-    },
-    {
-      status: 500,
-    }
-  );
-
-}
-
-
-if (
-  !parsedResponse.isSupportedMedicalImage
-) {
-
-  return NextResponse.json(
-    {
-      error:
-        "Please upload a clear photo of a thermometer, blood pressure monitor, or pulse oximeter display.",
-    },
-    {
-      status: 422,
-    }
-  );
-
-}
-
-if (
-  parsedResponse.hasConflictingReadings
-) {
-
-  return NextResponse.json(
-    {
-      error:
-        "Multiple readings were found. Please upload a photo showing only the latest reading.",
-    },
-    {
-      status: 422,
-    }
-  );
-
-}
-
-const readings =
-  parsedResponse.readings;
-
-const deviceTypes =
-  parsedResponse.detectedDeviceTypes;
-
-const hasValidThermometerReading =
-  deviceTypes.includes("thermometer") &&
-  readings.temperature !== null;
-
-const hasValidBloodPressureReading =
-  deviceTypes.includes(
-    "blood_pressure_monitor"
-  ) &&
-  readings.systolic !== null &&
-  readings.diastolic !== null;
-
-const hasValidPulseOximeterReading =
-  deviceTypes.includes("pulse_oximeter") &&
-  readings.spo2 !== null;
-
-const hasValidWeightScaleReading =
-  deviceTypes.includes("weight_scale") &&
-  readings.weightKg !== null;
-
-const everyDetectedDeviceIsValid =
-  deviceTypes.length > 0 &&
-  deviceTypes.every((deviceType) => {
-
-    if (deviceType === "thermometer") {
-      return hasValidThermometerReading;
     }
 
     if (
-      deviceType ===
-      "blood_pressure_monitor"
+      !parsedResponse.isSupportedMedicalImage
     ) {
-      return hasValidBloodPressureReading;
+
+      return NextResponse.json(
+        {
+          error:
+            "Please upload a clear photo of a thermometer, blood pressure monitor, or pulse oximeter display.",
+        },
+        {
+          status: 422,
+        }
+      );
+
     }
 
     if (
-      deviceType === "pulse_oximeter"
+      parsedResponse.hasConflictingReadings
     ) {
-      return hasValidPulseOximeterReading;
+
+      return NextResponse.json(
+        {
+          error:
+            "Multiple readings were found. Please upload a photo showing only the latest reading.",
+        },
+        {
+          status: 422,
+        }
+      );
+
     }
 
-if (
-  deviceType ===
-  "weight_scale"
-) {
-  return hasValidWeightScaleReading;
-}
+    const readings =
+      parsedResponse.readings;
 
-    return false;
+    const deviceTypes =
+      parsedResponse.detectedDeviceTypes;
 
-  });
+    const hasValidThermometerReading =
+      deviceTypes.includes(
+        "thermometer"
+      ) &&
+      readings.temperature !==
+        null;
 
-if (!everyDetectedDeviceIsValid) {
+    const hasValidBloodPressureReading =
+      deviceTypes.includes(
+        "blood_pressure_monitor"
+      ) &&
+      readings.systolic !==
+        null &&
+      readings.diastolic !==
+        null;
 
-  return NextResponse.json(
-    {
-      error:
-        "Please upload a clear photo of a thermometer, blood pressure monitor, or pulse oximeter display.",
-    },
-    {
-      status: 422,
+    const hasValidPulseOximeterReading =
+      deviceTypes.includes(
+        "pulse_oximeter"
+      ) &&
+      readings.spo2 !==
+        null;
+
+    const hasValidWeightScaleReading =
+      deviceTypes.includes(
+        "weight_scale"
+      ) &&
+      readings.weightKg !==
+        null;
+
+    const everyDetectedDeviceIsValid =
+      deviceTypes.length >
+        0 &&
+      deviceTypes.every(
+        (
+          deviceType
+        ) => {
+
+          if (
+            deviceType ===
+            "thermometer"
+          ) {
+
+            return hasValidThermometerReading;
+
+          }
+
+          if (
+            deviceType ===
+            "blood_pressure_monitor"
+          ) {
+
+            return hasValidBloodPressureReading;
+
+          }
+
+          if (
+            deviceType ===
+            "pulse_oximeter"
+          ) {
+
+            return hasValidPulseOximeterReading;
+
+          }
+
+          if (
+            deviceType ===
+            "weight_scale"
+          ) {
+
+            return hasValidWeightScaleReading;
+
+          }
+
+          return false;
+
+        }
+      );
+
+    if (
+      !everyDetectedDeviceIsValid
+    ) {
+
+      return NextResponse.json(
+        {
+          error:
+            "Please upload a clear photo of a thermometer, blood pressure monitor, or pulse oximeter display.",
+        },
+        {
+          status: 422,
+        }
+      );
+
     }
-  );
-
-}
 
     //--------------------------------------------------------
     // Ensure At Least One Reading Exists
     //--------------------------------------------------------
 
     const hasReading =
-      readings.temperature !== null ||
-      readings.weightKg !== null ||
-      readings.systolic !== null ||
-      readings.diastolic !== null ||
-      readings.pulse !== null ||
-      readings.spo2 !== null;
+      readings.temperature !==
+        null ||
+      readings.weightKg !==
+        null ||
+      readings.systolic !==
+        null ||
+      readings.diastolic !==
+        null ||
+      readings.pulse !==
+        null ||
+      readings.spo2 !==
+        null;
 
-    if (!hasReading) {
+    if (
+      !hasReading
+    ) {
 
       return NextResponse.json(
         {
@@ -713,40 +873,146 @@ if (!everyDetectedDeviceIsValid) {
 
     }
 
-//--------------------------------------------------------
-// Increment Successful Image Usage
-//--------------------------------------------------------
+    //--------------------------------------------------------
+    // Increment Successful Image Usage
+    //--------------------------------------------------------
 
-if (!isAdmin) {
+    if (
+      !isAdmin
+    ) {
 
-  const nextUsage =
-    currentUsage + 1;
+const nextUsage =
+    currentUsage +
+    requestedImageCount;
 
-  const {
-    error: usageUpdateError,
-  } =
-    await supabaseAdmin
-      .from("profiles")
-      .update({
-        medical_image_usage_count:
-          nextUsage,
-      })
-      .eq(
-        "id",
-        user.id
-      );
+      const {
+        error:
+          usageUpdateError,
+      } =
+        await supabaseAdmin
+          .from("profiles")
+          .update({
+            medical_image_usage_count:
+              nextUsage,
+          })
+          .eq(
+            "id",
+            user.id
+          );
 
-  if (usageUpdateError) {
+      if (
+        usageUpdateError
+      ) {
+
+        console.error(
+          "Medical Image Usage Update Error:",
+          usageUpdateError
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "The image was processed, but usage tracking could not be updated. Please try again.",
+          },
+          {
+            status: 500,
+          }
+        );
+
+      }
+
+    }
+
+    //--------------------------------------------------------
+    // Success
+    //--------------------------------------------------------
+
+    return NextResponse.json({
+
+      data:
+        readings,
+
+    });
+
+  }
+  catch (
+    error: unknown
+  ) {
 
     console.error(
-      "Medical Image Usage Update Error:",
-      usageUpdateError
+      "Medical Image Route Error:",
+      error
     );
+
+    const apiError =
+      error as {
+        status?: number;
+        code?: string;
+        type?: string;
+        message?: string;
+      };
+
+    //--------------------------------------------------------
+    // Invalid Or Undecodable Image
+    //--------------------------------------------------------
+
+    if (
+      apiError.status ===
+        400 &&
+      apiError.code ===
+        "invalid_value" &&
+      apiError.message?.includes(
+        "image data you provided does not represent a valid image"
+      )
+    ) {
+
+      return NextResponse.json(
+        {
+          error:
+            "The selected image could not be read. Please choose a valid JPG, PNG, or WebP image and try again.",
+        },
+        {
+          status: 422,
+        }
+      );
+
+    }
+
+    //--------------------------------------------------------
+    // OpenAI Quota Error
+    //--------------------------------------------------------
+
+    if (
+      apiError.status ===
+        429 &&
+      (
+        apiError.code ===
+          "insufficient_quota" ||
+        apiError.type ===
+          "insufficient_quota"
+      )
+    ) {
+
+      return NextResponse.json(
+        {
+          error:
+            "Credits over. Contact Admin.",
+        },
+        {
+          status: 503,
+        }
+      );
+
+    }
+
+    //--------------------------------------------------------
+    // Unexpected Error
+    //--------------------------------------------------------
 
     return NextResponse.json(
       {
         error:
-          "The image was processed, but usage tracking could not be updated. Please try again.",
+          "Unable to process the medical image. Please try again.",
       },
       {
         status: 500,
@@ -754,97 +1020,5 @@ if (!isAdmin) {
     );
 
   }
-
-}
-
-//--------------------------------------------------------
-// Success
-//--------------------------------------------------------
-
-return NextResponse.json({
-
-  data: readings,
-
-});
-
-  }
-catch (error: unknown) {
-
-  console.error(
-    "Medical Image Route Error:",
-    error
-  );
-
-  const apiError =
-    error as {
-      status?: number;
-      code?: string;
-      type?: string;
-      message?: string;
-    };
-
-  //--------------------------------------------------------
-  // Invalid Or Undecodable Image
-  //--------------------------------------------------------
-
-  if (
-    apiError.status === 400 &&
-    apiError.code === "invalid_value" &&
-    apiError.message?.includes(
-      "image data you provided does not represent a valid image"
-    )
-  ) {
-
-    return NextResponse.json(
-      {
-        error:
-          "The selected image could not be read. Please choose a valid JPG, PNG, or WebP image and try again.",
-      },
-      {
-        status: 422,
-      }
-    );
-
-  }
-
-  //--------------------------------------------------------
-  // OpenAI Quota Error
-  //--------------------------------------------------------
-
-  if (
-    apiError.status === 429 &&
-    (
-      apiError.code === "insufficient_quota" ||
-      apiError.type === "insufficient_quota"
-    )
-  ) {
-
-    return NextResponse.json(
-      {
-        error:
-          "Credits over. Contact Admin.",
-      },
-      {
-        status: 503,
-      }
-    );
-
-  }
-
-  //--------------------------------------------------------
-  // Unexpected Error
-  //--------------------------------------------------------
-
-  return NextResponse.json(
-    {
-      error:
-        "Unable to process the medical image. Please try again.",
-    },
-    {
-      status: 500,
-    }
-  );
-
-}
 
 }

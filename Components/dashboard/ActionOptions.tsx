@@ -44,6 +44,7 @@ export type MedicationDetailOption =
     | "TAKE_PHOTO"
     | "CHOOSE_PHOTOS"
     | "UPLOAD_PDF"
+    | "DOCTOR_NOTES_UPLOAD"
     | "CONTINUE_VALIDATION"
     | "VIEW_PRESCRIPTIONS"
     | "IN_PERSON"
@@ -355,43 +356,33 @@ const [
     return (
 
         <div style={container}>
-
-{(
-    selectedAction === "RECORD_HEALTH" 
-) && (
+{selectedAction === "RECORD_HEALTH" && (
 
     <>
 
         <label style={label}>
-            {selectedOption === "DOCTOR_NOTES"
-    ? "How would you like to capture the doctor's notes?"
-    : t("medication.howWouldYouLikeToRecordHealth")}
+            {t("medication.howWouldYouLikeToRecordHealth")}
         </label>
 
         <div style={optionGridThree}>
+
+            {/* RECORD WITH VOICE */}
 
             <button
                 type="button"
                 onClick={() => {
 
-                    alert(
-                        selectedAction === "RECORD_HEALTH"
-                            ? "Capture source: RECORD_HEALTH"
-                            : "Capture source: DOCTOR_NOTES"
-                    );
 
                     setSelectedOption(
                         "VOICE"
                     );
 
-                    onDoctorNotesOptionChange?.(
+                    onOptionChange?.(
                         "VOICE"
                     );
 
                 }}
-style={{
-    ...optionButton,
-}}
+style={optionButton}
             >
 
                 <span style={optionIcon}>
@@ -405,28 +396,23 @@ style={{
             </button>
 
 
+            {/* UPLOAD */}
+
             <button
                 type="button"
                 onClick={() => {
 
-                    alert(
-                        selectedAction === "RECORD_HEALTH"
-                            ? "Capture source: RECORD_HEALTH"
-                            : "Capture source: DOCTOR_NOTES"
-                    );
 
                     setSelectedOption(
                         "UPLOAD"
                     );
 
-                    onDoctorNotesOptionChange?.(
+                    onOptionChange?.(
                         "UPLOAD"
                     );
 
                 }}
-style={{
-    ...optionButton,
-}}
+style={optionButton}
             >
 
                 <span style={optionIcon}>
@@ -440,28 +426,23 @@ style={{
             </button>
 
 
+            {/* MANUAL */}
+
             <button
                 type="button"
                 onClick={() => {
 
-                    alert(
-                        selectedAction === "RECORD_HEALTH"
-                            ? "Capture source: RECORD_HEALTH"
-                            : "Capture source: DOCTOR_NOTES"
-                    );
 
                     setSelectedOption(
                         "MANUAL"
                     );
 
-                    onDoctorNotesOptionChange?.(
+                    onOptionChange?.(
                         "MANUAL"
                     );
 
                 }}
-style={{
-    ...optionButton,
-}}
+style={optionButton}
             >
 
                 <span style={optionIcon}>
@@ -514,15 +495,22 @@ style={{
                         ""
                     );
 
+                    onDoctorNotesOptionChange?.(
+                        ""
+                    );
+
                     onPrescriptionsSelect?.();
 
                 }}
                 style={{
                     ...optionButton,
-
-                    ...(selectedOption === "PRESCRIPTIONS"
+                    ...(
+                        selectedOption === "PRESCRIPTIONS" ||
+                        selectedOption === "ADD_PRESCRIPTION" ||
+                        selectedOption === "VIEW_PRESCRIPTIONS"
+                    )
                         ? selectedOptionButton
-                        : {}),
+                        : {},
                 }}
             >
 
@@ -555,13 +543,21 @@ style={{
                         ""
                     );
 
+                    onDoctorNotesOptionChange?.(
+                        ""
+                    );
+
                 }}
                 style={{
                     ...optionButton,
-
-                    ...(selectedOption === "DOCTOR_NOTES"
+                    ...(
+                        selectedOption === "DOCTOR_NOTES" ||
+                        selectedOption === "VOICE" ||
+                        selectedOption === "UPLOAD" ||
+                        selectedOption === "MANUAL"
+                    )
                         ? selectedOptionButton
-                        : {}),
+                        : {},
                 }}
             >
 
@@ -577,292 +573,291 @@ style={{
 
         </div>
 
-
-        {/* PRESCRIPTION FUNCTIONALITY */}
-
-        {(
-            selectedOption === "PRESCRIPTIONS" ||
-            selectedOption === "ADD_PRESCRIPTION" ||
-            selectedOption === "VIEW_PRESCRIPTIONS"
-        ) && (
-
-            <div
-                style={{
-                    marginTop: "16px",
-                }}
-            >
-
-                <label style={label}>
-                    Prescriptions
-                </label>
-
-
-                {checkingPendingMedicationValidation ? (
-
-                    <div
-                        style={{
-                            marginTop: "12px",
-                            padding: "24px",
-                            textAlign: "center",
-                            color: "#6B7280",
-                            fontWeight: 600,
-                        }}
-                    >
-
-                        Checking pending validations...
-
-                    </div>
-
-                ) : (
-
-                    <div
-                        style={{
-                            ...optionGridTwo,
-                            marginTop: "8px",
-                        }}
-                    >
-
-                        {/* ADD / CONTINUE VALIDATION */}
-
-                        <button
-                            type="button"
-                            onClick={() => {
-
-                                if (
-                                    hasPendingMedicationValidation
-                                ) {
-
-                                    setMedicationDetailOption(
-                                        "CONTINUE_VALIDATION"
-                                    );
-
-                                    onMedicationDetailChange?.(
-                                        "CONTINUE_VALIDATION"
-                                    );
-
-                                    return;
-                                }
-
-
-                                setSelectedOption(
-                                    "ADD_PRESCRIPTION"
-                                );
-
-                                setMedicationDetailOption(
-                                    ""
-                                );
-
-                                onMedicationDetailChange?.(
-                                    ""
-                                );
-
-                            }}
-                            style={{
-                                ...optionButton,
-
-                                ...(selectedOption === "ADD_PRESCRIPTION"
-                                    ? selectedOptionButton
-                                    : {}),
-                            }}
-                        >
-
-                            <span style={optionIcon}>
-                                {
-                                    hasPendingMedicationValidation
-                                        ? "⚠️"
-                                        : "📄"
-                                }
-                            </span>
-
-                            <span style={optionLabel}>
-                                {
-                                    hasPendingMedicationValidation
-                                        ? "Continue Validation"
-                                        : t("medication.addPrescription")
-                                }
-                            </span>
-
-                        </button>
-
-
-                        {/* VIEW PRESCRIPTIONS */}
-
-                        <button
-                            type="button"
-                            onClick={() => {
-
-                                setSelectedOption(
-                                    "VIEW_PRESCRIPTIONS"
-                                );
-
-                                setMedicationDetailOption(
-                                    "VIEW_PRESCRIPTIONS"
-                                );
-
-                                onMedicationDetailChange?.(
-                                    "VIEW_PRESCRIPTIONS"
-                                );
-
-                            }}
-                            style={{
-                                ...optionButton,
-
-                                ...(selectedOption === "VIEW_PRESCRIPTIONS"
-                                    ? selectedOptionButton
-                                    : {}),
-                            }}
-                        >
-
-                            <span style={optionIcon}>
-                                📖
-                            </span>
-
-                            <span style={optionLabel}>
-                                View Prescriptions
-                            </span>
-
-                        </button>
-
-                    </div>
-
-                )}
-
-            </div>
-
-        )}
-
-
-        {/* DOCTOR'S NOTES CAPTURE OPTIONS */}
-
-        {selectedOption === "DOCTOR_NOTES" && (
-
-            <div
-                style={{
-                    marginTop: "16px",
-                }}
-            >
-
-                <label style={label}>
-                    How would you like to capture the doctor's notes?
-                </label>
-
-
-                <div style={optionGridThree}>
-
-                    {/* RECORD WITH VOICE */}
-
-                    <button
-                        type="button"
-                        onClick={() => {
-
-                            alert(
-                                "Capture source: DOCTOR_NOTES"
-                            );
-
-                            setSelectedOption(
-                                "VOICE"
-                            );
-
-                            onOptionChange?.(
-                                "VOICE"
-                            );
-
-                        }}
-style={{
-    ...optionButton,
-}}
-                    >
-
-                        <span style={optionIcon}>
-                            🎙️
-                        </span>
-
-                        <span style={optionLabel}>
-                            Record with Voice
-                        </span>
-
-                    </button>
-
-
-                    {/* UPLOAD IMAGES */}
-
-                    <button
-                        type="button"
-                        onClick={() => {
-
-                            alert(
-                                "Capture source: DOCTOR_NOTES"
-                            );
-
-                            setSelectedOption(
-                                "UPLOAD"
-                            );
-
-                            onOptionChange?.(
-                                "UPLOAD"
-                            );
-
-                        }}
-style={{
-    ...optionButton,
-}}
-                    >
-
-                        <span style={optionIcon}>
-                            📷
-                        </span>
-
-                        <span style={optionLabel}>
-                            Upload Images
-                        </span>
-
-                    </button>
-
-
-                    {/* ENTER MANUALLY */}
-
-                    <button
-                        type="button"
-                        onClick={() => {
-
-                            alert(
-                                "Capture source: DOCTOR_NOTES"
-                            );
-
-                            setSelectedOption(
-                                "MANUAL"
-                            );
-
-                            onOptionChange?.(
-                                "MANUAL"
-                            );
-
-                        }}
-style={{
-    ...optionButton,
-}}
-                    >
-
-                        <span style={optionIcon}>
-                            ✍️
-                        </span>
-
-                        <span style={optionLabel}>
-                            Enter Manually
-                        </span>
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        )}
-
     </>
 
 )}
 
+
+
+
+{/*
+ * CARE JOURNEY → PRESCRIPTIONS
+ * The child options remain visible after Add/View is selected.
+ * Selection is represented only by the highlight state.
+ */}
+
+{selectedAction === "MEDICATION_MANAGEMENT" &&
+    (
+        selectedOption === "PRESCRIPTIONS" ||
+        selectedOption === "ADD_PRESCRIPTION" ||
+        selectedOption === "VIEW_PRESCRIPTIONS"
+    ) && (
+
+    <div
+        style={{
+            marginTop: "16px",
+        }}
+    >
+
+        <label style={label}>
+            Prescriptions
+        </label>
+
+        {checkingPendingMedicationValidation ? (
+
+            <div
+                style={{
+                    marginTop: "12px",
+                    padding: "20px",
+                    textAlign: "center",
+                    color: "#6B7280",
+                    fontWeight: 600,
+                }}
+            >
+                Checking pending validations...
+            </div>
+
+        ) : (
+
+            <div
+                style={{
+                    ...optionGridTwo,
+                    marginTop: "8px",
+                }}
+            >
+
+                <button
+                    type="button"
+                    onClick={() => {
+
+                        if (
+                            hasPendingMedicationValidation
+                        ) {
+
+                            setSelectedOption(
+                                "ADD_PRESCRIPTION"
+                            );
+
+                            setMedicationDetailOption(
+                                "CONTINUE_VALIDATION"
+                            );
+
+                            onMedicationDetailChange?.(
+                                "CONTINUE_VALIDATION"
+                            );
+
+                            return;
+                        }
+
+                        setSelectedOption(
+                            "ADD_PRESCRIPTION"
+                        );
+
+                        setMedicationDetailOption(
+                            ""
+                        );
+
+                        onMedicationDetailChange?.(
+                            ""
+                        );
+
+                        onDoctorNotesOptionChange?.(
+                            ""
+                        );
+
+                    }}
+style={optionButton}
+                >
+
+                    <span style={optionIcon}>
+                        {
+                            hasPendingMedicationValidation
+                                ? "⚠️"
+                                : "📄"
+                        }
+                    </span>
+
+                    <span style={optionLabel}>
+                        {
+                            hasPendingMedicationValidation
+                                ? "Continue Validation"
+                                : t("medication.addPrescription")
+                        }
+                    </span>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    onClick={() => {
+
+                        setSelectedOption(
+                            "VIEW_PRESCRIPTIONS"
+                        );
+
+                        setMedicationDetailOption(
+                            "VIEW_PRESCRIPTIONS"
+                        );
+
+                        onMedicationDetailChange?.(
+                            "VIEW_PRESCRIPTIONS"
+                        );
+
+                        onDoctorNotesOptionChange?.(
+                            ""
+                        );
+
+                    }}
+style={optionButton}
+                >
+
+                    <span style={optionIcon}>
+                        📖
+                    </span>
+
+                    <span style={optionLabel}>
+                        View Prescriptions
+                    </span>
+
+                </button>
+
+            </div>
+
+        )}
+
+    </div>
+
+)}
+
+
+{/* CARE JOURNEY → DOCTOR'S NOTES */}
+
+{selectedAction === "MEDICATION_MANAGEMENT" &&
+    (
+        selectedOption === "DOCTOR_NOTES" ||
+        selectedOption === "VOICE" ||
+        selectedOption === "UPLOAD" ||
+        selectedOption === "MANUAL"
+    ) && (
+
+    <div
+        style={{
+            marginTop: "16px",
+        }}
+    >
+
+        <label style={label}>
+            How would you like to capture the doctor's notes?
+        </label>
+
+        <div style={optionGridThree}>
+
+            <button
+                type="button"
+                onClick={() => {
+
+                    setSelectedOption(
+                        "VOICE"
+                    );
+
+                    setMedicationDetailOption(
+                        ""
+                    );
+
+                    onMedicationDetailChange?.(
+                        ""
+                    );
+
+                    onDoctorNotesOptionChange?.(
+                        "VOICE"
+                    );
+
+                }}
+style={optionButton}
+            >
+
+                <span style={optionIcon}>
+                    🎙️
+                </span>
+
+                <span style={optionLabel}>
+                    Record with Voice
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                onClick={() => {
+
+                    setSelectedOption(
+                        "UPLOAD"
+                    );
+
+                    onDoctorNotesOptionChange?.(
+                        ""
+                    );
+
+                    onMedicationDetailChange?.(
+                        "DOCTOR_NOTES_UPLOAD"
+                    );
+
+                }}
+style={optionButton}
+            >
+
+                <span style={optionIcon}>
+                    📷
+                </span>
+
+                <span style={optionLabel}>
+                    Upload Images
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                onClick={() => {
+
+                    setSelectedOption(
+                        "MANUAL"
+                    );
+
+                    setMedicationDetailOption(
+                        ""
+                    );
+
+                    onMedicationDetailChange?.(
+                        ""
+                    );
+
+                    onDoctorNotesOptionChange?.(
+                        "MANUAL"
+                    );
+
+                }}
+style={optionButton}
+            >
+
+                <span style={optionIcon}>
+                    ✍️
+                </span>
+
+                <span style={optionLabel}>
+                    Enter Manually
+                </span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+)}
 
 
 {
@@ -949,12 +944,7 @@ style={{
         router.push("/journey-review");
 
     }}
-    style={{
-        ...optionButton,
-        ...(selectedOption === "DETAILED_TIMELINE"
-            ? selectedOptionButton
-            : {}),
-    }}
+style={optionButton}
 >
     <span style={optionIcon}>🗓️</span>
     <span style={optionLabel}>Detailed Timeline</span>
@@ -1165,13 +1155,7 @@ style={{
 
 
         }}
-        style={{
-            ...optionButton,
-
-            ...(selectedMedicationDetail === "CHOOSE_PHOTOS"
-    ? selectedOptionButton
-    : {}),
-        }}
+style={optionButton}
     >
         <span style={optionIcon}>
             🖼️
@@ -1196,13 +1180,7 @@ style={{
             );
 
         }}
-        style={{
-            ...optionButton,
-
-            ...(selectedMedicationDetail === "UPLOAD_PDF"
-    ? selectedOptionButton
-    : {}),
-        }}
+style={optionButton}
     >
         <span style={optionIcon}>
             📄

@@ -13,9 +13,10 @@ import {
 
 export const prescriptionImageService = {
 
-  async processFiles(
-    files: File[]
-  ): Promise<PrescriptionImageProcessingResult> {
+async processFiles(
+    files: File[],
+    mode: "PRESCRIPTION" | "DOCTOR_NOTES" = "PRESCRIPTION"
+): Promise<PrescriptionImageProcessingResult> {
 
 
     try {
@@ -88,6 +89,11 @@ for (const file of files) {
     );
 
 }
+
+formData.append(
+    "mode",
+    mode
+);
 
       //------------------------------------------------------
       // Call Prescription API

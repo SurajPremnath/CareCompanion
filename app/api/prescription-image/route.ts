@@ -20,6 +20,7 @@ import {
 
 import {
     EXTRACTION_INSTRUCTIONS,
+    DOCTOR_NOTES_EXTRACTION_INSTRUCTIONS,
 } from "@/lib/prescription-ai/extractionInstructions";
 
 import { resolveMedicine } from "@/lib/medication/medicineResolver";
@@ -560,6 +561,11 @@ const authStart = performance.now();
     const formData =
       await request.formData();
 
+const extractionMode =
+    formData.get("mode") === "DOCTOR_NOTES"
+        ? "DOCTOR_NOTES"
+        : "PRESCRIPTION";
+
     const documentEntries =
       formData.getAll(
         "documents"
@@ -764,8 +770,10 @@ const authStart = performance.now();
             type:
               "input_text",
 
-            text:
-              EXTRACTION_INSTRUCTIONS,
+text:
+    extractionMode === "DOCTOR_NOTES"
+        ? DOCTOR_NOTES_EXTRACTION_INSTRUCTIONS
+        : EXTRACTION_INSTRUCTIONS,
           },
         ];
 

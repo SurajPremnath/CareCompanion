@@ -1,5 +1,6 @@
 import type {
   MedicalImageProcessingResult,
+  DoctorNotesImageProcessingResult,
 } from "./medicalImageTypes";
 
 import {
@@ -7,60 +8,218 @@ import {
 } from "@/lib/supabase";
 
 //------------------------------------------------------------
+// Medical Image Analysis Modes
+//------------------------------------------------------------
+
+export type MedicalImageAnalysisMode =
+  | "RECORD_HEALTH"
+  | "DOCTOR_NOTES";
+
+//------------------------------------------------------------
 // Medical Image Service
 //------------------------------------------------------------
 
 export const medicalImageService = {
 
-  async processImage(
-    image: File
-  ): Promise<MedicalImageProcessingResult> {
+  //----------------------------------------------------------
+  // Record Health
+  //
+  // Existing functionality remains unchanged.
+  //----------------------------------------------------------
+
+async processImages(
+    images: File[]
+): Promise<MedicalImageProcessingResult> {
 
     try {
 
-const {
-  data: {
-    session,
-  },
-  error: sessionError,
-} =
-  await supabase.auth.getSession();
+        if (
+            images.length === 0
+        ) {
 
-if (
-  sessionError ||
-  !session?.access_token
-) {
+            return {
+                success: false,
+                error:
+                    "Please upload at least one image.",
+            };
 
-  return {
-    success: false,
-    error:
-      "Your session has expired. Please sign in again.",
-  };
+        }
 
-}
+        const {
+            data: {
+                session,
+            },
+            error: sessionError,
+        } =
+            await supabase.auth.getSession();
+
+        if (
+            sessionError ||
+            !session?.access_token
+        ) {
+
+            return {
+                success: false,
+                error:
+                    "Your session has expired. Please sign in again.",
+            };
+
+        }
+
+        const formData =
+            new FormData();
+
+        images.forEach(
+            image => {
+
+                formData.append(
+                    "images",
+                    image
+                );
+
+            }
+        );
+
+        formData.append(
+            "analysisMode",
+            "RECORD_HEALTH"
+        );
+
+        const response =
+            await fetch(
+                "/api/medical-image",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        Authorization:
+                            `Bearer ${session.access_token}`,
+                    },
+
+                    body:
+                        formData,
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if (
+            !response.ok
+        ) {
+
+            return {
+                success: false,
+                error:
+                    result?.error ??
+                    "Unable to read the medical images.",
+            };
+
+        }
+
+        return {
+            success: true,
+            data:
+                result.data,
+        };
+
+    }
+    catch (
+        error
+    ) {
+
+        console.error(
+            "Medical Images Processing Error:",
+            error
+        );
+
+        return {
+            success: false,
+            error:
+                "Unable to process the medical images.",
+        };
+
+    }
+
+},
+
+  //----------------------------------------------------------
+  // Doctor's Notes
+  //----------------------------------------------------------
+
+  async processDoctorNotes(
+    images: File[]
+  ): Promise<DoctorNotesImageProcessingResult> {
+
+    try {
+
+      if (
+        images.length === 0
+      ) {
+
+        return {
+          success: false,
+          error:
+            "Please upload at least one image.",
+        };
+
+      }
+
+      const {
+        data: {
+          session,
+        },
+        error: sessionError,
+      } =
+        await supabase.auth.getSession();
+
+      if (
+        sessionError ||
+        !session?.access_token
+      ) {
+
+        return {
+          success: false,
+          error:
+            "Your session has expired. Please sign in again.",
+        };
+
+      }
 
       const formData =
         new FormData();
 
-      formData.append(
-        "image",
-        image
+      images.forEach(
+        image => {
+
+          formData.append(
+            "images",
+            image
+          );
+
+        }
       );
 
-const response =
-  await fetch(
-    "/api/medical-image",
-    {
-      method: "POST",
+      formData.append(
+        "analysisMode",
+        "DOCTOR_NOTES"
+      );
 
-      headers: {
-        Authorization:
-          `Bearer ${session.access_token}`,
-      },
+      const response =
+        await fetch(
+          "/api/medical-image",
+          {
+            method: "POST",
 
-      body: formData,
-    }
-  );
+            headers: {
+              Authorization:
+                `Bearer ${session.access_token}`,
+            },
+
+            body: formData,
+          }
+        );
 
       const result =
         await response.json();
@@ -71,7 +230,7 @@ const response =
           success: false,
           error:
             result?.error ??
-            "Unable to read the medical image.",
+            "Unable to read the doctor's notes.",
         };
 
       }
@@ -85,14 +244,14 @@ const response =
     catch (error) {
 
       console.error(
-        "Medical Image Processing Error:",
+        "Doctor's Notes Image Processing Error:",
         error
       );
 
       return {
         success: false,
         error:
-          "Unable to process the medical image.",
+          "Unable to process the doctor's notes.",
       };
 
     }

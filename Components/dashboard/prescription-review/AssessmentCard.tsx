@@ -11,9 +11,9 @@ import {
 } from "@/Components/language/LanguageProvider";
 
 interface AssessmentCardProps {
-
     prescription: ExtractedPrescription;
 
+    mode?: "PRESCRIPTION" | "DOCTOR_NOTES";
 }
 
 const section: React.CSSProperties = {
@@ -55,9 +55,8 @@ const bulletItem: React.CSSProperties = {
 };
 
 export default function AssessmentCard({
-
     prescription,
-
+    mode = "PRESCRIPTION",
 }: AssessmentCardProps) {
 
 const {

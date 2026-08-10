@@ -582,9 +582,9 @@ void analyticsService
 
 try {
 
-  const result =
-    await medicalImageService.processImage(
-      image
+const result =
+    await medicalImageService.processImages(
+        [image]
     );
 
 if (
