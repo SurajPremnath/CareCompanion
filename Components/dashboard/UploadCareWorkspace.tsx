@@ -9,6 +9,10 @@ import {
 } from "@/lib/medical-image/medicalImageService";
 
 import {
+    supabase,
+} from "@/lib/supabase";
+
+import {
     dailyCareStorage,
 } from "@/lib/storage/DailyCareStorage";
 
@@ -540,14 +544,61 @@ async function handleMedicalImages(
             null
         );
 
-        setSuccessMessage(
-            null
-        );
+setSuccessMessage(
+    null
+);
 
 
-        try {
+try {
 
-const commonReading = {
+    //--------------------------------------------------------
+    // Validate Current Session Before Save
+    //--------------------------------------------------------
+
+    let {
+        data: {
+            session,
+        },
+        error: sessionError,
+    } =
+        await supabase.auth.getSession();
+
+
+    //--------------------------------------------------------
+    // Refresh Session If Required
+    //--------------------------------------------------------
+
+    if (
+        sessionError ||
+        !session?.access_token
+    ) {
+
+        const {
+            data: {
+                session: refreshedSession,
+            },
+            error: refreshError,
+        } =
+            await supabase.auth.refreshSession();
+
+        if (
+            refreshError ||
+            !refreshedSession?.access_token
+        ) {
+
+            setError(
+                "Your session has expired. Please sign in again."
+            );
+
+            return;
+        }
+
+        session =
+            refreshedSession;
+    }
+
+
+    const commonReading = {
 
     recordedAt:
         `${reading.date}T${reading.time}:00`,

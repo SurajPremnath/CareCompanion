@@ -114,6 +114,159 @@ if (error) {
 
   }
 
+//------------------------------------------------------------
+// Get Latest Available Snapshot
+//------------------------------------------------------------
+
+async getLatestSnapshotByPatientId(
+  patientId: string
+): Promise<{
+  latest: DailyCare | null;
+  bloodPressure: DailyCare | null;
+  spo2: DailyCare | null;
+  pulse: DailyCare | null;
+  temperature: DailyCare | null;
+}> {
+
+  const [
+    latestResult,
+    bloodPressureResult,
+    spo2Result,
+    pulseResult,
+    temperatureResult
+  ] = await Promise.all([
+
+    supabase
+      .from("daily_care")
+      .select("*")
+      .eq("patient_id", patientId)
+      .order(
+        "recorded_at",
+        {
+          ascending: false
+        }
+      )
+      .limit(1)
+      .maybeSingle(),
+
+    supabase
+      .from("daily_care")
+      .select("*")
+      .eq("patient_id", patientId)
+      .not(
+        "systolic",
+        "is",
+        null
+      )
+      .not(
+        "diastolic",
+        "is",
+        null
+      )
+      .order(
+        "recorded_at",
+        {
+          ascending: false
+        }
+      )
+      .limit(1)
+      .maybeSingle(),
+
+    supabase
+      .from("daily_care")
+      .select("*")
+      .eq("patient_id", patientId)
+      .not(
+        "spo2",
+        "is",
+        null
+      )
+      .order(
+        "recorded_at",
+        {
+          ascending: false
+        }
+      )
+      .limit(1)
+      .maybeSingle(),
+
+    supabase
+      .from("daily_care")
+      .select("*")
+      .eq("patient_id", patientId)
+      .not(
+        "pulse",
+        "is",
+        null
+      )
+      .order(
+        "recorded_at",
+        {
+          ascending: false
+        }
+      )
+      .limit(1)
+      .maybeSingle(),
+
+    supabase
+      .from("daily_care")
+      .select("*")
+      .eq("patient_id", patientId)
+      .not(
+        "temperature",
+        "is",
+        null
+      )
+      .order(
+        "recorded_at",
+        {
+          ascending: false
+        }
+      )
+      .limit(1)
+      .maybeSingle()
+
+  ]);
+
+  return {
+    latest:
+      latestResult.data
+        ? DailyCareMapper.toDomain(
+            latestResult.data as DailyCareRow
+          )
+        : null,
+
+    bloodPressure:
+      bloodPressureResult.data
+        ? DailyCareMapper.toDomain(
+            bloodPressureResult.data as DailyCareRow
+          )
+        : null,
+
+    spo2:
+      spo2Result.data
+        ? DailyCareMapper.toDomain(
+            spo2Result.data as DailyCareRow
+          )
+        : null,
+
+    pulse:
+      pulseResult.data
+        ? DailyCareMapper.toDomain(
+            pulseResult.data as DailyCareRow
+          )
+        : null,
+
+    temperature:
+      temperatureResult.data
+        ? DailyCareMapper.toDomain(
+            temperatureResult.data as DailyCareRow
+          )
+        : null
+  };
+
+}
+
   //------------------------------------------------------------
   // Get User Readings
   //------------------------------------------------------------

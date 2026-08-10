@@ -463,6 +463,13 @@ const [
 
     });
 
+const [
+    mobileCareMode,
+    setMobileCareMode,
+] = useState<"FAMILY" | "SELF">(
+    "FAMILY"
+);
+
     //------------------------------------------------------------
     // Reset Care Journey child state whenever the primary action changes
     //------------------------------------------------------------
@@ -508,6 +515,11 @@ const [
         mobilePeopleLoading,
         setMobilePeopleLoading,
     ] = useState(false);
+
+const [
+    mobileAccountMenuOpen,
+    setMobileAccountMenuOpen,
+] = useState(false);
 
     //------------------------------------------------------------
     // Load User
@@ -771,31 +783,72 @@ else {
         );
 }
 
-                                    const latest =
-                                        records[0] ??
-                                        null;
+const snapshot =
+    person.mode === "FAMILY" &&
+    person.patientId
+        ? await dailyCareRepository
+              .getLatestSnapshotByPatientId(
+                  person.patientId
+              )
+        : null;
 
-                                    const recordWithStatus =
-                                        latest as
-                                            (
-                                                DailyCare & {
-                                                    overallStatus?:
-                                                        string | null;
-                                                }
-                                            ) |
-                                            null;
+const latestDailyCare =
+    snapshot?.latest
+        ? {
+              ...snapshot.latest,
 
-                                    return [
-                                        person.id,
-                                        {
-                                            dailyCare:
-                                                latest,
-                                            needsAttention:
-                                                recordWithStatus
-                                                    ?.overallStatus ===
-                                                "CONCERNS_REPORTED",
-                                        },
-                                    ];
+              systolic:
+                  snapshot.bloodPressure
+                      ?.systolic ??
+                  null,
+
+              diastolic:
+                  snapshot.bloodPressure
+                      ?.diastolic ??
+                  null,
+
+              spo2:
+                  snapshot.spo2?.spo2 ??
+                  null,
+
+              pulse:
+                  snapshot.pulse?.pulse ??
+                  null,
+
+              temperature:
+                  snapshot.temperature
+                      ?.temperature ??
+                  null,
+
+              temperatureUnit:
+                  snapshot.temperature
+                      ?.temperatureUnit ??
+                  "F",
+          }
+        : null;
+
+const needsAttention =
+    snapshot?.latest?.overallStatus ===
+        "CONCERNS_REPORTED" ||
+    snapshot?.bloodPressure
+        ?.overallStatus ===
+        "CONCERNS_REPORTED" ||
+    snapshot?.spo2?.overallStatus ===
+        "CONCERNS_REPORTED" ||
+    snapshot?.pulse?.overallStatus ===
+        "CONCERNS_REPORTED" ||
+    snapshot?.temperature
+        ?.overallStatus ===
+        "CONCERNS_REPORTED";
+
+return [
+    person.id,
+    {
+        dailyCare:
+            latestDailyCare,
+        needsAttention,
+    },
+];
 
                                 }
                                 catch (
@@ -1360,89 +1413,136 @@ const isPersonSelectionComplete =
 
 <div className="mobile-dashboard-shell">
 
-    <header className="mobile-dashboard-header">
+<header className="mobile-dashboard-header">
 
-        <div className="mobile-brand">
+    <div className="mobile-brand">
+        <img
+            src="/images/carevr-logo new.png"
+            alt="CareVR"
+            className="mobile-brand-logo"
+        />
+    </div>
 
-            <svg
-                width="42"
-                height="42"
-                viewBox="0 0 42 42"
-                fill="none"
-                aria-hidden="true"
+    <div className="mobile-header-actions">
+
+        <div
+            className="mobile-mode-toggle"
+            aria-label="Care mode"
+        >
+            <button
+                type="button"
+                className={`mobile-mode-toggle-option ${
+                    mobileCareMode === "FAMILY"
+                        ? "mobile-mode-toggle-option-active"
+                        : ""
+                }`}
+                onClick={() =>
+                    setMobileCareMode(
+                        "FAMILY"
+                    )
+                }
             >
-                <path
-                    d="M21 35C18.1 31.9 6 23.5 6 13.9C6 8.8 9.9 5 14.7 5C17.6 5 19.8 6.5 21 8.7C22.2 6.5 24.4 5 27.3 5C32.1 5 36 8.8 36 13.9C36 23.5 23.9 31.9 21 35Z"
-                    stroke="url(#mobileCareVRHeart)"
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-                <path
-                    d="M10 20H15L17.2 16L20.2 25L23.3 13L26 20H32"
-                    stroke="url(#mobileCareVREcg)"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-                <defs>
-                    <linearGradient
-                        id="mobileCareVRHeart"
-                        x1="5"
-                        y1="5"
-                        x2="37"
-                        y2="35"
-                        gradientUnits="userSpaceOnUse"
-                    >
-                        <stop stopColor="#18C7B5" />
-                        <stop offset="0.55" stopColor="#2563EB" />
-                        <stop offset="1" stopColor="#6D28D9" />
-                    </linearGradient>
-                    <linearGradient
-                        id="mobileCareVREcg"
-                        x1="10"
-                        y1="13"
-                        x2="32"
-                        y2="25"
-                        gradientUnits="userSpaceOnUse"
-                    >
-                        <stop stopColor="#2563EB" />
-                        <stop offset="1" stopColor="#6D28D9" />
-                    </linearGradient>
-                </defs>
-            </svg>
-
-            <span className="mobile-brand-text">
-                Care<span>VR</span>
-            </span>
-
-        </div>
-
-        <div className="mobile-header-actions">
+                Family
+            </button>
 
             <button
                 type="button"
-                className="mobile-icon-button"
-                aria-label="Notifications"
+                className={`mobile-mode-toggle-option ${
+                    mobileCareMode === "SELF"
+                        ? "mobile-mode-toggle-option-active"
+                        : ""
+                }`}
+                onClick={() =>
+                    setMobileCareMode(
+                        "SELF"
+                    )
+                }
             >
-                <span className="mobile-bell">
-                    ♧
-                </span>
-                <span className="mobile-notification-badge">
-                    3
-                </span>
+                Self
+            </button>
+        </div>
+
+        <div className="mobile-account-wrapper">
+
+            <button
+                type="button"
+                className="mobile-user-avatar"
+                aria-label="Account menu"
+                aria-expanded={
+                    mobileAccountMenuOpen
+                }
+                onClick={() =>
+                    setMobileAccountMenuOpen(
+                        previous =>
+                            !previous
+                    )
+                }
+            >
+                {getInitials(
+                    user.fullName
+                )}
             </button>
 
-            <div
-                className="mobile-user-avatar"
-                aria-label={user.fullName}
-            >
-                {getInitials(user.fullName)}
+{mobileAccountMenuOpen && (
+    <div className="mobile-account-menu">
+
+        <button
+            type="button"
+            className="mobile-account-menu-add"
+            disabled={!consentGranted}
+            onClick={() => {
+                setMobileAccountMenuOpen(false);
+                router.push("/add-patient");
+            }}
+        >
+            Add Patient
+        </button>
+
+        <button
+            type="button"
+            className="mobile-account-menu-help"
+            onClick={() => {
+                setMobileAccountMenuOpen(false);
+                openHelp();
+            }}
+        >
+            Help & FAQ
+        </button>
+
+        <div className="mobile-account-menu-language">
+
+            <span className="mobile-account-menu-language-label">
+                Language
+            </span>
+
+            <div className="mobile-account-menu-language-selector">
+                <LanguageSelector />
             </div>
 
         </div>
 
-    </header>
+        <button
+            type="button"
+            className="mobile-account-menu-logout"
+            onClick={() => {
+                setMobileAccountMenuOpen(false);
+                void logout();
+            }}
+            disabled={loggingOut}
+        >
+            {loggingOut
+                ? "Logging out…"
+                : "Log out"}
+        </button>
+
+    </div>
+)}
+
+        </div>
+
+    </div>
+
+</header>	
 
 
     {!consentGranted && (
@@ -1471,167 +1571,120 @@ const isPersonSelectionComplete =
     )}
 
 
-    <section className="mobile-greeting-section">
+<section className="mobile-section mobile-greeting-people-section">
 
-        <div>
+    <div className="mobile-greeting-people-row">
 
-            <h1>
-                Good morning,{" "}
-                {user.fullName.split(" ")[0]}{" "}
-                <span aria-hidden="true">
-                    👋
-                </span>
-            </h1>
+        <h1>
+    Good morning{" "}
+    {user.fullName.split(" ")[0]}.
+</h1>
 
-            <p>
-                You’re caring for{" "}
-                {mobilePeople.length}{" "}
-                {mobilePeople.length === 1
-                    ? "person"
-                    : "people"}
-            </p>
-
-        </div>
-
-        <button
-            type="button"
-            className="mobile-add-person-button"
-            disabled={!consentGranted}
-            onClick={() =>
-                router.push("/add-patient")
-            }
-        >
-            <span>+</span>
-            Add Person
-        </button>
-
-    </section>
-
-
-    <section className="mobile-section">
-
-        <div className="mobile-section-heading">
+        <div className="mobile-people-heading">
 
             <h2>
-                People you care for
+                People you care for :
             </h2>
 
             {mobilePeople.length > 4 && (
                 <button
                     type="button"
+                    className="mobile-view-all-button"
                     onClick={() =>
-                        setMobileShowAllPeople(
-                            previous =>
-                                !previous
+                        router.push(
+                            "/patients"
                         )
                     }
                 >
-                    {mobileShowAllPeople
-                        ? "Show less"
-                        : "View all"}
-                    <span>›</span>
+                    View all
                 </button>
             )}
 
         </div>
 
+    </div>
 
-        <div className="mobile-people-row">
+    <div className="mobile-people-row">
 
-            {mobilePeopleLoading ? (
+        {mobilePeopleLoading ? (
 
-                <div className="mobile-inline-loading">
-                    Loading people…
-                </div>
+            <div className="mobile-inline-loading">
+                Loading people…
+            </div>
 
-            ) : mobilePeople.length === 0 ? (
+        ) : mobilePeople.length === 0 ? (
 
-                <div className="mobile-empty-people">
-                    No people added yet.
-                </div>
+            <div className="mobile-empty-people">
+                No people added yet.
+            </div>
 
-            ) : (
+        ) : (
 
-                (
-                    mobileShowAllPeople
-                        ? mobilePeople
-                        : mobilePeople.slice(0, 4)
-                ).map(
-                    person => {
+            (
+                mobileShowAllPeople
+                    ? mobilePeople
+                    : mobilePeople.slice(0, 4)
+            ).map(
+                person => {
 
-                        const selected =
-                            person.id ===
-                            mobileSelectedPersonId;
+                    const selected =
+                        person.id ===
+                        mobileSelectedPersonId;
 
-                        return (
-                            <button
-                                type="button"
-                                key={person.id}
-                                className={
-                                    selected
-                                        ? "mobile-person-card mobile-person-card-selected"
-                                        : "mobile-person-card"
-                                }
-                                onClick={() =>
-                                    selectMobilePerson(
-                                        person
-                                    )
-                                }
-                                disabled={!consentGranted}
-                            >
+                    return (
+                        <button
+                            type="button"
+                            key={person.id}
+                            className={
+                                selected
+                                    ? "mobile-person-card mobile-person-card-selected"
+                                    : "mobile-person-card"
+                            }
+                            onClick={() =>
+                                selectMobilePerson(
+                                    person
+                                )
+                            }
+                            disabled={!consentGranted}
+                        >
 
-                                <div className="mobile-person-avatar">
-                                    {getInitials(
-                                        person.fullName
-                                    )}
-                                </div>
-
-                                <div className="mobile-person-name">
-                                    {person.fullName}
-                                </div>
-
-                                <div className="mobile-person-meta">
-                                    {person.age !== null
-                                        ? `${person.age} years`
-                                        : "Age not recorded"}
-                                    {" • "}
-                                    {person.gender ??
-                                        "Sex not recorded"}
-                                </div>
-
-                                <div
-                                    className={
-                                        selected
-                                            ? "mobile-person-status mobile-person-status-selected"
-                                            : "mobile-person-status"
-                                    }
-                                >
-                                    <span />
-                                    {mobileSnapshots[
-                                        person.id
-                                    ]?.needsAttention
-                                        ? "Needs attention"
-                                        : "Doing well"}
-                                </div>
-
-                                {selected && (
-                                    <span className="mobile-person-check">
-                                        ✓
-                                    </span>
+                            <div className="mobile-person-avatar">
+                                {getInitials(
+                                    person.fullName
                                 )}
+                            </div>
 
-                            </button>
-                        );
+                            <div className="mobile-person-name">
+                                {person.fullName}
+                            </div>
 
-                    }
-                )
+                            <div className="mobile-person-meta">
+                                {person.age !== null
+                                    ? `${person.age} years`
+                                    : "Age not recorded"}
+                                {" • "}
+                                {person.gender ??
+                                    "Sex not recorded"}
+                            </div>
 
-            )}
+                            {selected && (
+                                <span className="mobile-person-check">
+                                    ✓
+                                </span>
+                            )}
 
-        </div>
+                        </button>
+                    );
 
-    </section>
+                }
+            )
 
+        )}
+
+    </div>
+
+
+</section>
 
     {selectedMobilePerson && (
 
@@ -1640,26 +1693,9 @@ const isPersonSelectionComplete =
             <div className="mobile-health-card-heading">
 
                 <h2>
-                    Today’s Health Snapshot
+                    Latest Health Snapshot
                 </h2>
 
-                {mobileSnapshots[
-                    selectedMobilePerson.id
-                ]?.dailyCare && (
-                    <span>
-                        {new Date(
-                            mobileSnapshots[
-                                selectedMobilePerson.id
-                            ].dailyCare!.recordedAt
-                        ).toLocaleTimeString(
-                            [],
-                            {
-                                hour: "numeric",
-                                minute: "2-digit",
-                            }
-                        )}
-                    </span>
-                )}
 
             </div>
 
@@ -1734,42 +1770,42 @@ const isPersonSelectionComplete =
             </div>
 
 
-            {mobileSnapshots[
-                selectedMobilePerson.id
-            ]?.dailyCare ? (
+{mobileSnapshots[
+    selectedMobilePerson.id
+]?.dailyCare ? (
 
-                mobileSnapshots[
-                    selectedMobilePerson.id
-                ]?.needsAttention ? (
+    mobileSnapshots[
+        selectedMobilePerson.id
+    ]?.needsAttention ? (
 
-                    <div className="mobile-health-message mobile-health-message-attention">
-                        <span>!</span>
-                        <span>
-                            This person has a health concern recorded in the latest Daily Care entry.
-                        </span>
-                    </div>
+        <div className="mobile-health-message mobile-health-message-attention">
+            <span>!</span>
+            <span>
+                Some readings need monitoring.
+            </span>
+        </div>
 
-                ) : (
+    ) : (
 
-                    <div className="mobile-health-message">
-                        <span>✦</span>
-                        <span>
-                            Latest recorded vitals are available.
-                        </span>
-                    </div>
+        <div className="mobile-health-message">
+            <span>✓</span>
+            <span>
+                {selectedMobilePerson.fullName} is doing well.
+            </span>
+        </div>
 
-                )
+    )
 
-            ) : (
+) : (
 
-                <div className="mobile-health-message mobile-health-message-empty">
-                    <span>✦</span>
-                    <span>
-                        No Daily Care reading has been recorded yet.
-                    </span>
-                </div>
+    <div className="mobile-health-message mobile-health-message-empty">
+        <span>✦</span>
+        <span>
+            No Daily Care reading has been recorded yet.
+        </span>
+    </div>
 
-            )}
+)}
 
         </section>
 
@@ -1837,9 +1873,11 @@ const isPersonSelectionComplete =
                 <span className="mobile-action-icon mobile-action-heart">
                     ♡
                 </span>
+
                 <strong>
                     Record Health
                 </strong>
+
                 <span>
                     Vitals, symptoms & more
                 </span>
@@ -1858,9 +1896,11 @@ const isPersonSelectionComplete =
                 <span className="mobile-action-icon mobile-action-purple">
                     ♧
                 </span>
+
                 <strong>
                     Care Journey
                 </strong>
+
                 <span>
                     Prescriptions & doctor’s notes
                 </span>
@@ -1879,9 +1919,11 @@ const isPersonSelectionComplete =
                 <span className="mobile-action-icon mobile-action-green">
                     ✓
                 </span>
+
                 <strong>
                     Assessment
                 </strong>
+
                 <span>
                     Health check & assessments
                 </span>
@@ -1900,9 +1942,11 @@ const isPersonSelectionComplete =
                 <span className="mobile-action-icon mobile-action-blue">
                     ▣
                 </span>
+
                 <strong>
                     Health Timeline
                 </strong>
+
                 <span>
                     View history & past records
                 </span>
@@ -1913,6 +1957,7 @@ const isPersonSelectionComplete =
     </section>
 
 </div>
+
 
 <div className="desktop-dashboard-ui">
 <AppHeader
@@ -2701,7 +2746,51 @@ onCancelReview={() => {
 )}
 
 
+<footer className="mobile-dashboard-footer">
 
+    <div className="mobile-dashboard-footer-security">
+
+        <div className="mobile-dashboard-footer-icon">
+
+            <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                aria-hidden="true"
+            >
+                <path d="M12 3 20 6v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-3Z" />
+
+                <rect
+                    x="9"
+                    y="10"
+                    width="6"
+                    height="5"
+                    rx="1"
+                />
+
+                <path d="M10.5 10V8.5a1.5 1.5 0 0 1 3 0V10" />
+            </svg>
+
+        </div>
+
+        <div>
+
+            <p className="mobile-dashboard-footer-title">
+                Your health information is private and secure.
+            </p>
+
+            <p className="mobile-dashboard-footer-text">
+                We use industry-standard security to keep your data safe.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
 
                 <div className="desktop-dashboard-footer">
                 {user.role === "ADMIN" && 
@@ -2763,6 +2852,7 @@ onCancelReview={() => {
 
             </div>
 
+
 <style jsx>{`
     .mobile-dashboard-shell {
         display: none;
@@ -2770,134 +2860,244 @@ onCancelReview={() => {
 
     @media (max-width: 767px) {
 
-        .desktop-dashboard-ui,
-        .desktop-dashboard-footer {
-            display: none !important;
-        }
+.desktop-dashboard-ui,
+.desktop-dashboard-footer,
+.mobile-dashboard-footer {
+    display: none !important;
+}
+
+.mobile-dashboard-footer {
+    display: block !important;
+}
 
         :global(main) {
             padding: 12px !important;
             box-sizing: border-box;
         }
 
-        :global(main > div) {
-            max-width: none !important;
-            padding: 8px 0 24px !important;
-            border: 0 !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            background: transparent !important;
-        }
+:global(main > div) {
+    max-width: none !important;
+    min-height: calc(100vh - 24px) !important;
+    padding: 8px 0 24px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+}
 
         :global(body) {
             background: #fbfaff !important;
         }
 
-        .mobile-dashboard-shell {
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
-            color: #101d45;
-        }
+.mobile-dashboard-shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+    min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
+    color: #101d45;
+}
 
-        .mobile-dashboard-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            padding: 4px 0 18px;
-        }
+.mobile-dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 2px 0 2px;
+}
 
-        .mobile-brand {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            min-width: 0;
-        }
+.mobile-brand {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
 
-        .mobile-brand-text {
-            font-size: 30px;
-            line-height: 1;
-            font-weight: 800;
-            letter-spacing: -1.2px;
-            color: #10204a;
-        }
+.mobile-brand-logo {
+    display: block;
+    width: 200px;
+    height: 100px;
+    object-fit: contain;
+    object-position: left center;
+}
 
-        .mobile-brand-text span {
-            color: #5b2be0;
-        }
+.mobile-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex: 0 0 auto;
+}
 
-        .mobile-header-actions {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
 
-        .mobile-icon-button {
-            position: relative;
-            width: 42px;
-            height: 42px;
-            border: 0;
-            background: transparent;
-            color: #526184;
-            cursor: pointer;
-            font-size: 26px;
-        }
 
-        .mobile-bell {
-            display: block;
-            font-size: 27px;
-            line-height: 1;
-        }
+.mobile-account-wrapper {
+    position: relative;
+}
 
-        .mobile-notification-badge {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: #6533e8;
-            color: #fff;
-            font-size: 11px;
-            font-weight: 800;
-        }
+.mobile-user-avatar {
+    width: 42px;
+    height: 42px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
 
-        .mobile-user-avatar {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #eee8ff;
-            color: #5630d7;
-            border: 2px solid #fff;
-            box-shadow: 0 3px 12px rgba(40, 31, 90, 0.10);
-            font-size: 14px;
-            font-weight: 800;
-        }
+.mobile-account-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 50;
+    min-width: 170px;
+    padding: 6px;
+    background: #ffffff;
+    border: 1px solid #e8eaf1;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(40, 31, 90, 0.12);
+}
 
-        .mobile-greeting-section {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 14px;
-            margin-top: 8px;
-            margin-bottom: 28px;
-        }
+.mobile-account-menu button {
+    width: 100%;
+    border: 0;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+    padding: 11px 12px;
+    border-radius: 9px;
+    cursor: pointer;
+}
+
+.mobile-account-menu-add,
+.mobile-account-menu-help {
+    background: #2563eb;
+    color: #ffffff;
+    text-align: center;
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.18);
+}
+
+.mobile-account-menu-add:hover,
+.mobile-account-menu-help:hover {
+    background: #1d4ed8;
+}
+
+.mobile-account-menu-help {
+    margin-top: 4px;
+}
+
+.mobile-account-menu-language {
+    padding: 10px 8px;
+}
+
+.mobile-account-menu-language-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #687390;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.mobile-account-menu-language-selector {
+    width: 100%;
+}
+
+.mobile-account-menu-logout {
+    margin-top: 4px;
+    background: #dc2626;
+    color: #ffffff;
+    text-align: center;
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.18);
+}
+
+.mobile-account-menu-logout:hover {
+    background: #b91c1c;
+}
+
+.mobile-account-menu button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.mobile-greeting-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 6px;
+    margin-bottom: 24px;
+}
+
+.mobile-greeting-content {
+    width: 100%;
+}
 
         .mobile-greeting-section h1 {
             margin: 0;
-            font-size: 25px;
-            line-height: 1.22;
+            font-size: 18px;
+            line-height: 1.4;
             font-weight: 800;
-            letter-spacing: -0.55px;
+            letter-spacing: -0.2px;
             color: #101d45;
         }
+
+.mobile-greeting-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+.mobile-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px;
+    border-radius: 20px;
+    background: #f1f3f8;
+    border: 1px solid #d9deea;
+    box-shadow: 0 2px 7px rgba(31, 42, 78, 0.10);
+    flex: 0 0 auto;
+}
+
+.mobile-mode-toggle-option {
+    min-width: 48px;
+    min-height: 30px;
+    padding: 0 11px;
+    border: 0;
+    border-radius: 17px;
+    background: transparent;
+    color: #68728d;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.mobile-mode-toggle-option-active {
+    background: #2563eb;
+    color: #ffffff;
+    box-shadow:
+        0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
 
         .mobile-greeting-section p {
             margin: 7px 0 0;
@@ -2906,28 +3106,31 @@ onCancelReview={() => {
             line-height: 1.4;
         }
 
-        .mobile-add-person-button {
-            flex: 0 0 auto;
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            min-height: 46px;
-            padding: 0 15px;
-            border: 0;
-            border-radius: 24px;
-            background: linear-gradient(135deg, #7440f3, #5922df);
-            color: #fff;
-            font-size: 14px;
-            font-weight: 750;
-            box-shadow: 0 8px 18px rgba(93, 43, 224, 0.22);
-            cursor: pointer;
-        }
+.mobile-add-person-button {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 9px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.22);
+    cursor: pointer;
+    appearance: none;
+}
 
-        .mobile-add-person-button span {
-            font-size: 23px;
-            line-height: 1;
-            font-weight: 300;
-        }
+.mobile-add-person-button span {
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 500;
+}
 
         .mobile-add-person-button:disabled {
             opacity: 0.45;
@@ -2960,17 +3163,61 @@ onCancelReview={() => {
             cursor: pointer;
         }
 
-        .mobile-section {
-            margin-bottom: 24px;
-        }
+.mobile-section {
+    margin-bottom: 24px;
+}
 
-        .mobile-section-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
+.mobile-people-section {
+    margin-bottom: 10px;
+}
+
+.mobile-greeting-people-section {
+    width: 100%;
+    margin: 0;
+}
+
+.mobile-greeting-people-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.mobile-greeting-people-row h1,
+.mobile-people-heading h2 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.1px;
+}
+
+.mobile-people-heading {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+
+.mobile-greeting-people-section .mobile-people-row {
+    width: 100%;
+}
+
+.mobile-quick-actions-section {
+    margin-top: -10px;
+}
+
+.mobile-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
 
         .mobile-section-heading h2 {
             margin: 0;
@@ -2998,6 +3245,31 @@ onCancelReview={() => {
             line-height: 0.8;
         }
 
+.mobile-section-heading .mobile-add-person-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 9px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.22);
+    cursor: pointer;
+}
+
+.mobile-section-heading .mobile-add-person-button span {
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 500;
+}
+
+
         .mobile-people-row {
             display: flex;
             gap: 12px;
@@ -3011,70 +3283,55 @@ onCancelReview={() => {
             display: none;
         }
 
-        .mobile-person-card {
-            position: relative;
-            flex: 0 0 172px;
-            min-height: 198px;
-            padding: 16px 13px 14px;
-            border: 1px solid #eef0f7;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.94);
-            box-shadow: 0 8px 24px rgba(50, 45, 100, 0.07);
-            text-align: left;
-            color: #101d45;
-            cursor: pointer;
-        }
+.mobile-person-card {
+    position: relative;
+    flex: 0 0 148px;
+    min-height: 148px;
+    padding: 12px 11px 11px;
+    border: 1px solid #eef0f7;
+    border-radius: 17px;
+    background: rgba(255,255,255,0.94);
+    box-shadow: 0 5px 16px rgba(50, 45, 100, 0.055);
+    text-align: left;
+    color: #101d45;
+    cursor: pointer;
+}
 
         .mobile-person-card-selected {
             border: 1.5px solid #7440f3;
             box-shadow: 0 10px 28px rgba(102, 51, 226, 0.12);
         }
 
-        .mobile-person-avatar {
-            width: 72px;
-            height: 72px;
-            margin-bottom: 12px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f0eef9;
-            color: #5c2ce0;
-            font-size: 20px;
-            font-weight: 800;
-        }
+.mobile-person-avatar {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0eef9;
+    color: #5c2ce0;
+    font-size: 17px;
+    font-weight: 800;
+}
 
-        .mobile-person-name {
-            min-height: 42px;
-            font-size: 16px;
-            line-height: 1.25;
-            font-weight: 800;
-            color: #101d45;
-        }
+.mobile-person-name {
+    min-height: 40px;
+    font-size: 15px;
+    line-height: 1.25;
+    font-weight: 800;
+    color: #101d45;
+}
 
-        .mobile-person-meta {
-            margin-top: 5px;
-            color: #687390;
-            font-size: 12px;
-            line-height: 1.4;
-        }
+.mobile-person-meta {
+    margin-top: 3px;
+    color: #687390;
+    font-size: 11px;
+    line-height: 1.35;
+}
 
-        .mobile-person-status {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 13px;
-            color: #16a866;
-            font-size: 12px;
-            font-weight: 700;
-        }
 
-        .mobile-person-status span {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #23c985;
-        }
 
         .mobile-person-check {
             position: absolute;
@@ -3348,6 +3605,49 @@ onCancelReview={() => {
             line-height: 1.4;
         }
 
+.mobile-dashboard-footer {
+    margin-top: 18px;
+    padding: 18px 4px 6px;
+    border-top: 1px solid #eceef4;
+}
+
+.mobile-dashboard-footer-security {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.mobile-dashboard-footer-icon {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    background: #f5f7fa;
+    border-radius: 50%;
+}
+
+.mobile-dashboard-footer-security p {
+    margin: 0;
+}
+
+.mobile-dashboard-footer-title {
+    color: #4b5563;
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+.mobile-dashboard-footer-text {
+    margin-top: 3px !important;
+    color: #8a94a8;
+    font-size: 11px;
+    line-height: 1.45;
+    font-weight: 400;
+}
+
         .dashboard-action-options,
         .dashboard-workspace {
             margin-top: 18px !important;
@@ -3358,10 +3658,6 @@ onCancelReview={() => {
 
     @media (max-width: 390px) {
 
-        .mobile-brand-text {
-            font-size: 27px;
-        }
-
         .mobile-greeting-section {
             align-items: flex-start;
             flex-direction: column;
@@ -3371,9 +3667,6 @@ onCancelReview={() => {
             align-self: flex-start;
         }
 
-        .mobile-person-card {
-            flex-basis: 158px;
-        }
 
         .mobile-vital {
             padding: 0 3px;
@@ -3497,7 +3790,7 @@ const homeSection:
     React.CSSProperties = {
 
         marginTop:
-            "8px",
+            "2px",
 
         marginBottom:
             "24px",
