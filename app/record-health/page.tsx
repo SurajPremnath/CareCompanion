@@ -54,6 +54,11 @@ import UploadCareWorkspace
 import ManualCareWorkspace
     from "@/Components/dashboard/ManualCareWorkspace";
 
+import ExecutiveSummaryPdfGenerator
+    from "@/app/journey-review/mobile/ExecutiveSummaryPdfGenerator";
+
+import ClinicalTrendPdfGenerator
+    from "@/app/journey-review/mobile/ClinicalTrendPdfGenerator";
 
 type DashboardUser = {
     id: string;
@@ -67,6 +72,8 @@ type RecordHealthOption =
     | "VOICE"
     | "UPLOAD"
     | "MANUAL"
+    | "EXECUTIVE_SUMMARY"
+    | "CLINICAL_TRENDS"
     | "";
 
 
@@ -657,106 +664,234 @@ const [
 
                         <section className="record-health-section">
 
-                            <div className="record-health-heading">
+<div className="record-health-heading">
 
-                                <h1>
-                                    Record Health
-                                </h1>
+    <h1>
+        {searchParams.get("view") === "timeline"
+            ? "Health Timeline"
+            : "Record Health"}
+    </h1>
 
-                                <p>
-                                    Choose how you want to record today's information
-                                </p>
+    <p>
+        {searchParams.get("view") === "timeline"
+            ? "View your health journey and clinical trends"
+            : "Choose how you want to record today's information"}
+    </p>
 
-                            </div>
+</div>
+{searchParams.get("view") === "timeline" ? (
 
+    <>
+        {careMode === "FAMILY" &&
+        selectedPatient?.fullName === "K V Premnath" ? (
 
-                            <div className="record-method-grid">
+            <div className="timeline-report-grid">
 
-                                <button
-                                    type="button"
-                                    className={
-                                        selectedOption === "VOICE"
-                                            ? "record-method record-method-selected"
-                                            : "record-method"
-                                    }
-                                    onClick={() =>
-                                        setSelectedOption(
-                                            "VOICE"
-                                        )
-                                    }
-                                >
+                <button
+                    type="button"
+                    className={
+                        selectedOption === "EXECUTIVE_SUMMARY"
+                            ? "timeline-report-option timeline-report-option-selected"
+                            : "timeline-report-option"
+                    }
+                    onClick={() =>
+                        setSelectedOption(
+                            "EXECUTIVE_SUMMARY"
+                        )
+                    }
+                >
 
-                                    <span className="record-method-icon voice-icon">
-                                        🎙
-                                    </span>
+                    <span className="timeline-report-icon">
+                        📋
+                    </span>
 
-                                    <strong>
-                                        Record with
-                                        <br />
-                                        Voice
-                                    </strong>
+                    <strong>
+                        Executive Summary
+                    </strong>
 
-
-
-                                </button>
-
-
-                                <button
-                                    type="button"
-                                    className={
-                                        selectedOption === "UPLOAD"
-                                            ? "record-method record-method-selected"
-                                            : "record-method"
-                                    }
-                                    onClick={() =>
-                                        setSelectedOption(
-                                            "UPLOAD"
-                                        )
-                                    }
-                                >
-
-                                    <span className="record-method-icon upload-icon">
-                                        📷
-                                    </span>
-
-                                    <strong>
-                                        Upload
-                                        <br />
-                                        Reading
-                                    </strong>
+                </button>
 
 
-                                </button>
+                <button
+                    type="button"
+                    className={
+                        selectedOption === "CLINICAL_TRENDS"
+                            ? "timeline-report-option timeline-report-option-selected"
+                            : "timeline-report-option"
+                    }
+                    onClick={() =>
+                        setSelectedOption(
+                            "CLINICAL_TRENDS"
+                        )
+                    }
+                >
+
+                    <span className="timeline-report-icon">
+                        📈
+                    </span>
+
+                    <strong>
+                        Clinical Trends
+                    </strong>
+
+                </button>
+
+            </div>
+
+        ) : (
+
+            <div className="timeline-unavailable">
+                <div className="timeline-unavailable-icon">
+                    💙
+                </div>
+
+                <strong>
+                    Health Timeline is currently available for K V Premnath.
+                </strong>
+
+                <p>
+                    We are working to make this available for other family
+                    members too.
+                </p>
+            </div>
+
+        )}
 
 
-                                <button
-                                    type="button"
-                                    className={
-                                        selectedOption === "MANUAL"
-                                            ? "record-method record-method-selected"
-                                            : "record-method"
-                                    }
-                                    onClick={() =>
-                                        setSelectedOption(
-                                            "MANUAL"
-                                        )
-                                    }
-                                >
+        {careMode === "FAMILY" &&
+        selectedPatient?.fullName === "K V Premnath" &&
+        selectedOption === "EXECUTIVE_SUMMARY" && (
 
-                                    <span className="record-method-icon manual-icon">
-                                        ✎
-                                    </span>
+            <section className="workspace-section">
 
-                                    <strong>
-                                        Enter
-                                        <br />
-                                        Manually
-                                    </strong>
+                <ExecutiveSummaryPdfGenerator
+                    patientId={
+                        selectedPatient.id
+                    }
+                    patientName={
+                        selectedPatient.fullName
+                    }
+                    onComplete={() => {
+                        setSelectedOption("");
+                    }}
+                />
+
+            </section>
+
+        )}
 
 
-                                </button>
+        {careMode === "FAMILY" &&
+        selectedPatient?.fullName === "K V Premnath" &&
+        selectedOption === "CLINICAL_TRENDS" && (
 
-                            </div>
+            <section className="workspace-section">
+
+                <ClinicalTrendPdfGenerator
+                    patientId={
+                        selectedPatient.id
+                    }
+                    patientName={
+                        selectedPatient.fullName
+                    }
+                    onComplete={() => {
+                        setSelectedOption("");
+                    }}
+                />
+
+            </section>
+
+        )}
+
+    </>
+
+) : (
+
+    <div className="record-method-grid">
+
+        <button
+            type="button"
+            className={
+                selectedOption === "VOICE"
+                    ? "record-method record-method-selected"
+                    : "record-method"
+            }
+            onClick={() =>
+                setSelectedOption(
+                    "VOICE"
+                )
+            }
+        >
+
+            <span className="record-method-icon voice-icon">
+                🎙
+            </span>
+
+            <strong>
+                Record with
+                <br />
+                Voice
+            </strong>
+
+        </button>
+
+
+        <button
+            type="button"
+            className={
+                selectedOption === "UPLOAD"
+                    ? "record-method record-method-selected"
+                    : "record-method"
+            }
+            onClick={() =>
+                setSelectedOption(
+                    "UPLOAD"
+                )
+            }
+        >
+
+            <span className="record-method-icon upload-icon">
+                📷
+            </span>
+
+            <strong>
+                Upload
+                <br />
+                Reading
+            </strong>
+
+        </button>
+
+
+        <button
+            type="button"
+            className={
+                selectedOption === "MANUAL"
+                    ? "record-method record-method-selected"
+                    : "record-method"
+            }
+            onClick={() =>
+                setSelectedOption(
+                    "MANUAL"
+                )
+            }
+        >
+
+            <span className="record-method-icon manual-icon">
+                ✎
+            </span>
+
+            <strong>
+                Enter
+                <br />
+                Manually
+            </strong>
+
+        </button>
+
+    </div>
+
+)}
 
                         </section>
 
@@ -1065,6 +1200,62 @@ const [
         0 2px 8px rgba(79, 32, 216, 0.07);
 }
 
+.timeline-report-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+
+.timeline-report-option {
+    min-width: 0;
+    min-height: 130px;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid #e3e0eb;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #101d45;
+    font-family: inherit;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
+}
+
+.timeline-report-option-selected {
+    border: 2px solid #5630e8;
+    background: #faf8ff;
+    box-shadow:
+        0 3px 10px rgba(79, 32, 216, 0.08);
+}
+
+.timeline-report-icon {
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #eef4ff;
+    font-size: 27px;
+    line-height: 1;
+}
+
+.timeline-report-option strong {
+    color: #101d45;
+    font-size: 14px;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
 .record-method-icon {
     width: 38px;
     height: 38px;
@@ -1110,7 +1301,70 @@ const [
                     font-size: 14px;
                 }
 
+.timeline-unavailable {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 4px;
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #dbe7f7;
+    border-radius: 18px;
+    background: #f7fbff;
+    text-align: center;
+}
+
+.timeline-unavailable-icon {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e8f3ff;
+    font-size: 24px;
+}
+
+.timeline-unavailable strong {
+    color: #101d45;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.timeline-unavailable p {
+    margin: 0;
+    max-width: 300px;
+    color: #59657f;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+
+
                 @media (max-width: 420px) {
+
+.timeline-report-grid {
+    gap: 8px;
+}
+
+.timeline-report-option {
+    min-height: 120px;
+    padding: 12px 8px;
+}
+
+.timeline-report-icon {
+    width: 46px;
+    height: 46px;
+    font-size: 24px;
+}
+
+.timeline-report-option strong {
+    font-size: 13px;
+}
+
 
                     .record-health-content {
                         padding-left: 12px;

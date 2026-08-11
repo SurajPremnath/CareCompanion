@@ -1078,9 +1078,9 @@ records =
 ]);
 
 
-    //------------------------------------------------------------
-    // Mobile Dashboard Actions
-    //------------------------------------------------------------
+//------------------------------------------------------------
+// Mobile Dashboard Actions
+//------------------------------------------------------------
 
 const selectedMobilePatient =
     mobileCareMode === "FAMILY"
@@ -1127,7 +1127,6 @@ const selectMobileSelf = () => {
     }
 
     setMobileSelectedPatientId("");
-
     setMobileCareMode("SELF");
 
     setPersonSelection({
@@ -1141,6 +1140,7 @@ const selectMobileSelf = () => {
     setMedicationDetail("");
 };
 
+
 const openMobileFeature = (
     feature: HomeFeature
 ) => {
@@ -1152,9 +1152,18 @@ const openMobileFeature = (
         return;
     }
 
+    const selectedPatient =
+        mobilePatients.find(
+            patient =>
+                patient.id ===
+                mobileSelectedPatientId
+        ) ??
+        mobilePatients[0] ??
+        null;
+
     if (
         mobileCareMode === "FAMILY" &&
-        !selectedMobilePatient
+        !selectedPatient
     ) {
         return;
     }
@@ -1175,10 +1184,11 @@ const openMobileFeature = (
         setPersonSelection({
             mode: "FAMILY",
             patientId:
-                selectedMobilePatient!.id,
+                selectedPatient!.id,
             patientName:
-                selectedMobilePatient!.fullName,
+                selectedPatient!.fullName,
         });
+
     }
 
     trackFeatureClick(
@@ -1188,10 +1198,22 @@ const openMobileFeature = (
     if (
         feature === "RECORD_HEALTH"
     ) {
+
         router.push(
             mobileCareMode === "SELF"
                 ? "/record-health?mode=self"
                 : "/record-health"
+        );
+
+        return;
+    }
+
+    if (
+        feature === "VIEW_HEALTH"
+    ) {
+
+        router.push(
+            "/record-health?view=timeline"
         );
 
         return;
@@ -1203,7 +1225,6 @@ const openMobileFeature = (
 
     setMedicationDetail("");
 };
-
 
     //------------------------------------------------------------
     // Performance Completion
@@ -1594,7 +1615,7 @@ const isPersonSelectionComplete =
 const mobileSnapshotKey =
     mobileCareMode === "SELF"
         ? "SELF"
-        : selectedMobilePatient?.id ?? "";
+        : mobileSelectedPatientId;
 
     //------------------------------------------------------------
     // UI
