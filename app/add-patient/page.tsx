@@ -1,16 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
+
 import { useRouter } from "next/navigation";
 
 import { authService } from "@/lib/auth/authService";
 import { patientStorage } from "@/lib/storage/patientStorage";
-import AppHeader from "@/app/components/AppHeader";
 import { AppAlert } from "@/lib/utils/appAlert";
+
+import MobileHeader from "@/Components/common/MobileHeader";
+import CareVRFooter from "@/Components/common/CareVRFooter";
 
 import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
+
+import LanguageSelector from "@/Components/language/LanguageSelector";
 
 import {
   performanceTracker,
@@ -33,8 +43,14 @@ const {
   const [saving, setSaving] =
     useState(false);
 
-  const [currentUserName, setCurrentUserName] =
-    useState("");
+const [currentUserName, setCurrentUserName] =
+  useState("");
+
+const [accountMenuOpen, setAccountMenuOpen] =
+  useState(false);
+
+const [loggingOut, setLoggingOut] =
+  useState(false);
 
   //------------------------------------------------------------
   // Patient Details
@@ -245,6 +261,78 @@ const handleBackToDashboard = () => {
 
 };
 
+//------------------------------------------------------------
+// Header Actions
+//------------------------------------------------------------
+
+const handleAccountMenuToggle = () => {
+
+  setAccountMenuOpen(
+    (current) => !current
+  );
+
+};
+
+
+const handleAddPatient = () => {
+
+  setAccountMenuOpen(false);
+
+};
+
+
+const handleCareVRJourney = () => {
+
+  setAccountMenuOpen(false);
+
+  router.push(
+    "/dashboard"
+  );
+
+};
+
+
+const handleHelp = () => {
+
+  setAccountMenuOpen(false);
+
+  router.push(
+    "/help"
+  );
+
+};
+
+
+const handleLogout = async () => {
+
+  if (loggingOut) {
+    return;
+  }
+
+  setLoggingOut(true);
+
+  try {
+
+    await authService.logout();
+
+    router.replace(
+      "/login"
+    );
+
+  }
+  catch (error) {
+
+    console.error(
+      "Unable to log out.",
+      error
+    );
+
+    setLoggingOut(false);
+
+  }
+
+};
+
   //------------------------------------------------------------
   // Loading Screen
   //------------------------------------------------------------
@@ -274,31 +362,272 @@ const handleBackToDashboard = () => {
   //------------------------------------------------------------
     return (
 
-    <main
+<main
+  style={{
+    minHeight: "100vh",
+    background: "#F7F3FF",
+    padding: "12px",
+    fontFamily: "Inter, Arial, sans-serif",
+    color: "#101D45",
+  }}
+>
+  <div
+    style={{
+      width: "100%",
+      maxWidth: "980px",
+      margin: "0 auto",
+      boxSizing: "border-box",
+    }}
+  >
+
+<MobileHeader
+
+  careMode="FAMILY"
+
+  onCareModeChange={() => {
+    // Add Patient is always a Family workflow.
+  }}
+
+  userName={
+    currentUserName
+  }
+
+  showCareModeToggle={false}
+
+  showHomeButton={true}
+
+  onHomeClick={
+    handleBackToDashboard
+  }
+
+  accountMenuOpen={
+    accountMenuOpen
+  }
+
+  onAccountMenuToggle={
+    handleAccountMenuToggle
+  }
+
+  consentGranted={true}
+
+  onAddPatient={
+    handleAddPatient
+  }
+
+  onCareVRJourney={
+    handleCareVRJourney
+  }
+
+  onHelp={
+    handleHelp
+  }
+
+  languageSelector={
+    <LanguageSelector />
+  }
+
+  onLogout={
+    handleLogout
+  }
+
+  loggingOut={
+    loggingOut
+  }
+
+/>
+
+<section
+  className="carevr-add-patient-hero"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "20px",
+    padding: "16px 4px 10px",
+  }}
+>
+
+  <div
+    style={{
+      flex: "1 1 auto",
+      minWidth: 0,
+    }}
+  >
+
+    <p
       style={{
-        minHeight: "100vh",
-        background: "#f8fafc",
-        padding: "24px",
-        fontFamily: "Inter, Arial, sans-serif",
+        margin: "0 0 8px",
+        color: "#101D45",
+        fontSize: "16px",
+        lineHeight: 1.4,
+        fontWeight: 600,
       }}
     >
-      <div
-        style={{
-          maxWidth: "760px",
-          margin: "0 auto",
-          background: "#ffffff",
-          borderRadius: "16px",
-          padding: "32px",
-          border: "1px solid #d1d5db",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
-        }}
-      >
+      Good morning{" "}
+      {currentUserName
+        ? currentUserName
+            .trim()
+            .split(/\s+/)[0]
+        : "there"}
+      .
+    </p>
 
-<AppHeader
-  pageTitle={t("addPatient.title")}
-  pageIcon="➕"
-  currentUserName={currentUserName}
-/>
+<h1
+  className="carevr-add-patient-title"
+  style={{
+    margin: 0,
+    color: "#101D45",
+    fontSize: "20px",
+    lineHeight: 1.15,
+    fontWeight: 800,
+    letterSpacing: "-0.5px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  }}
+>
+  {t("addPatient.title")}
+
+  <span
+    style={{
+      position: "relative",
+      width: "38px",
+      height: "38px",
+      flex: "0 0 46px",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "50%",
+      background: "#EEE7FF",
+    }}
+    aria-hidden="true"
+  >
+    <svg
+      width="34"
+      height="34"
+      viewBox="0 0 88 88"
+      fill="none"
+    >
+      <circle
+        cx="44"
+        cy="29"
+        r="9"
+        fill="#6531DD"
+      />
+
+      <path
+        d="M27 64C27 52.954 34.611 44 44 44C53.389 44 61 52.954 61 64"
+        fill="#6531DD"
+      />
+
+      <circle
+        cx="22"
+        cy="39"
+        r="7"
+        fill="#8B63E8"
+      />
+
+      <circle
+        cx="66"
+        cy="39"
+        r="7"
+        fill="#8B63E8"
+      />
+    </svg>
+
+    <span
+      style={{
+        position: "absolute",
+        right: "-3px",
+        bottom: "-2px",
+        width: "18px",
+        height: "18px",
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#6531DD",
+        color: "#FFFFFF",
+        fontSize: "14px",
+        lineHeight: 1,
+        fontWeight: 500,
+      }}
+    >
+      +
+    </span>
+  </span>
+</h1>
+
+<p
+  className="carevr-add-patient-subtitle"
+  style={{
+    margin: "12px 0 0",
+    maxWidth: "520px",
+    color: "#687390",
+    fontSize: "17px",
+    lineHeight: 1.5,
+  }}
+>
+      Add someone you care for to manage
+      their health journey.
+    </p>
+
+  </div>
+
+</section>
+
+
+<section
+  className="carevr-add-patient-card"
+  style={{
+    background: "#FFFFFF",
+    border: "1px solid #E7E0F7",
+    borderRadius: "18px",
+    padding: "16px 18px",
+    boxShadow:
+      "0 6px 18px rgba(70,45,120,0.05)",
+  }}
+>
+
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    paddingBottom: "10px",
+    borderBottom:
+      "1px solid #EEEAF6",
+  }}
+>
+
+<div
+  style={{
+    width: "34px",
+    height: "34px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#F0EAFF",
+    color: "#6531DD",
+    fontSize: "16px",
+  }}
+>
+      👤
+    </div>
+
+    <h2
+      style={{
+        margin: 0,
+        color: "#101D45",
+        fontSize: "20px",
+        fontWeight: 800,
+      }}
+    >
+      Patient Information
+    </h2>
+
+  </div>
 
         <label style={labelStyle}>
           {t("addPatient.fullName")} *
@@ -332,8 +661,8 @@ const handleBackToDashboard = () => {
             style={{
               marginTop: "-8px",
               marginBottom: "20px",
-              color: "#2563eb",
-              fontWeight: 600,
+              color: "#6531DD",
+fontWeight: 700,
             }}
           >
             {t("addPatient.age")} : {calculatedAge}
@@ -446,6 +775,8 @@ const handleBackToDashboard = () => {
 
         </select>
 
+</section>
+
         <button
           onClick={handleSavePatient}
           disabled={saving}
@@ -461,29 +792,74 @@ const handleBackToDashboard = () => {
         >
           {saving
   ? t("addPatient.savingPatient")
-  : `💾 ${t("addPatient.savePatient")}`}
+  : t("addPatient.savePatient")}
         </button>
 
-        <button
-  onClick={handleBackToDashboard}
-  disabled={saving}
-  style={secondaryButton}
->
-  ← {t("addPatient.backToDashboard")}
-</button>
 
-        <div
-          style={{
-            marginTop: "32px",
-            textAlign: "center",
-            color: "#6b7280",
-            fontSize: "12px",
-          }}
-        >
-          {t("addPatient.createdBy")}
+<div
+  style={{
+    marginTop: "18px",
+    padding: "18px 4px 8px",
+    borderTop: "1px solid #ECEEF4",
+  }}
+>
+
+<div
+  style={{
+    marginTop: "0px",
+  }}
+>
+  <CareVRFooter />
+</div>
+
+
         </div>
 
-    </div>
+      </div>
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .carevr-add-patient-hero {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 18px 4px 22px;
+          }
+
+          .carevr-add-patient-hero-illustration {
+            align-self: center;
+            width: 112px !important;
+            height: 112px !important;
+            margin-top: -4px;
+          }
+
+          .carevr-add-patient-title {
+            font-size: 32px !important;
+          }
+
+          .carevr-add-patient-subtitle {
+            font-size: 15px !important;
+          }
+
+          .carevr-add-patient-card {
+            padding: 18px !important;
+            border-radius: 18px !important;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .carevr-add-patient-title {
+            font-size: 29px !important;
+          }
+
+          .carevr-add-patient-subtitle {
+            font-size: 14px !important;
+          }
+
+          .carevr-add-patient-card {
+            padding: 16px !important;
+          }
+        }
+      `}</style>
 
     </main>
 
@@ -495,52 +871,65 @@ const loadingContainer: React.CSSProperties = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  background: "#f8fafc",
+  background: "#F7F3FF",
   fontFamily: "Inter, Arial, sans-serif",
+  color: "#101D45",
 };
 
-const labelStyle: React.CSSProperties = {
+const labelStyle: CSSProperties = {
   display: "block",
-  marginBottom: "8px",
-  marginTop: "18px",
-  fontWeight: 600,
-  color: "#111827",
-  fontSize: "15px",
+  marginBottom: "6px",
+  marginTop: "12px",
+  fontWeight: 700,
+  color: "#101D45",
+  fontSize: "13px",
+  lineHeight: 1.3,
 };
 
-const inputStyle: React.CSSProperties = {
+const inputStyle: CSSProperties = {
   width: "100%",
-  padding: "14px",
-  border: "1px solid #d1d5db",
-  borderRadius: "10px",
+  minHeight: "48px",
+  padding: "0 13px",
+  border: "1px solid #DDD6EF",
+  borderRadius: "14px",
   fontSize: "16px",
+  lineHeight: 1.4,
   boxSizing: "border-box",
   marginBottom: "8px",
-  background: "#ffffff",
+  background: "#FFFFFF",
+  color: "#101D45",
+  outline: "none",
+  fontFamily: "inherit",
 };
 
-const primaryButton: React.CSSProperties = {
+const primaryButton: CSSProperties = {
   width: "100%",
-  padding: "14px",
-  marginTop: "30px",
-  background: "#2563eb",
-  color: "#ffffff",
+  minHeight: "58px",
+  padding: "0 20px",
+  marginTop: "22px",
+  background: "#6531DD",
+  color: "#FFFFFF",
   border: "none",
-  borderRadius: "10px",
+  borderRadius: "16px",
   fontSize: "16px",
-  fontWeight: "bold",
+  fontWeight: 800,
+  fontFamily: "inherit",
   transition: "0.2s",
+  boxShadow:
+    "0 7px 16px rgba(101,49,221,0.20)",
 };
 
-const secondaryButton: React.CSSProperties = {
+const secondaryButton: CSSProperties = {
   width: "100%",
-  padding: "14px",
-  marginTop: "12px",
-  background: "#ffffff",
-  color: "#111827",
-  border: "1px solid #d1d5db",
-  borderRadius: "10px",
-  fontSize: "16px",
-  fontWeight: "bold",
+  minHeight: "46px",
+  padding: "0 16px",
+  marginTop: "8px",
+  background: "transparent",
+  color: "#687390",
+  border: "none",
+  borderRadius: "12px",
+  fontSize: "14px",
+  fontWeight: 700,
+  fontFamily: "inherit",
   cursor: "pointer",
 };
