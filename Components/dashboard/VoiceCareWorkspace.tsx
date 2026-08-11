@@ -475,12 +475,12 @@ setClarificationError(null);
 {!voiceDraft &&
     !processingVoice && (
 
-    <h3>
+    <h3 className="voice-care-heading">
         {
             mode === "self"
-    ? t("dailyCare.tellUsHowYouFeel")
-    : t("dailyCare.tellUsHowPatientFeels")
-        .replace("{name}", recordingName)
+                ? t("dailyCare.tellUsHowYouFeel")
+                : t("dailyCare.tellUsHowPatientFeels")
+                    .replace("{name}", recordingName)
         }
     </h3>
 
@@ -712,71 +712,68 @@ setClarificationError(null);
         )}
 
 
-        <div
-            className="voice-review-actions"
-            style={reviewActionRow}
+<div
+    className="voice-review-actions"
+    style={reviewActionRow}
+>
+    <div className="voice-review-secondary-actions">
+        <button
+            type="button"
+            onClick={() =>
+                setShowTranscript(
+                    previous =>
+                        !previous
+                )
+            }
+            disabled={
+                savingVoice
+            }
+            style={secondaryActionButton}
         >
+            {
+                showTranscript
+                    ? "📄 Hide Transcript"
+                    : "📄 Show Transcript"
+            }
+        </button>
 
-            <button
-                type="button"
-                onClick={() =>
-                    setShowTranscript(
-                        previous =>
-                            !previous
-                    )
-                }
-                disabled={
-                    savingVoice
-                }
-                style={secondaryActionButton}
-            >
-                {
-                    showTranscript
-                        ? "📄 Hide Transcript"
-                        : "📄 Show Transcript"
-                }
-            </button>
+        <button
+            type="button"
+            onClick={
+                reRecordVoice
+            }
+            disabled={
+                savingVoice
+            }
+            style={secondaryActionButton}
+        >
+            🎙️ Re-record
+        </button>
+    </div>
 
-
-            <button
-                type="button"
-                onClick={
-                    reRecordVoice
-                }
-                disabled={
-                    savingVoice
-                }
-                style={secondaryActionButton}
-            >
-                🎙️ Re-record
-            </button>
-
-
-            <button
-                type="button"
-                onClick={
-                    saveVoiceObservation
-                }
-                disabled={
-                    savingVoice
-                }
-                style={{
-                    ...saveButton,
-
-                    opacity:
-                        savingVoice
-                            ? 0.7
-                            : 1,
-                }}
-            >
-                {
-                    savingVoice
-                        ? "Saving..."
-                        : "✓ Save"
-                }
-            </button>
-
-        </div>
+    <button
+        type="button"
+        onClick={
+            saveVoiceObservation
+        }
+        disabled={
+            savingVoice
+        }
+        style={{
+            ...saveButton,
+            opacity:
+                savingVoice
+                    ? 0.7
+                    : 1,
+        }}
+    >
+        {
+            savingVoice
+                ? "Saving..."
+                : "✓ Save"
+        }
+    </button>
+</div>
 
     </div>
 
@@ -802,19 +799,52 @@ setClarificationError(null);
 
     }
 
-    @media (max-width: 640px) {
+.voice-care-heading {
+    margin: 0 0 8px;
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 600;
+}
 
-        .voice-review-actions {
-            flex-direction: column;
-        }
-
-        .voice-review-actions button {
-            width: 100%;
-            min-width: 0;
-            flex: none;
-        }
-
+@media (max-width: 640px) {
+    .voice-care-heading {
+        margin-bottom: 6px;
+        font-size: 14px;
+        line-height: 1.2;
     }
+
+.voice-review-actions {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.voice-review-secondary-actions {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+}
+
+.voice-review-secondary-actions button {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    padding: 9px 8px !important;
+    font-size: 12px !important;
+    border-radius: 10px !important;
+    white-space: nowrap;
+}
+
+.voice-review-actions > button {
+    width: 100%;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    padding: 9px 10px !important;
+    font-size: 13px !important;
+    border-radius: 10px !important;
+    flex: none !important;
+}
+}
 `}</style>
 
         </section>

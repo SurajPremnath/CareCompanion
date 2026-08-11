@@ -28,14 +28,29 @@ import type {
 } from "@/lib/types/patient";
 
 import {
-    dailyCareRepository,
+    dailyCareRepository
 } from "@/lib/repositories/DailyCareRepository";
 
+import {
+    selfDailyCareStorage
+} from "@/lib/storage/SelfDailyCareStorage";
+
 import type {
-    DailyCare,
+    DailyCare
 } from "@/lib/types/dailyCare";
 
+import type {
+    SelfDailyCare
+} from "@/lib/types/selfDailyCare";
+
 import AppHeader from "@/app/components/AppHeader";
+
+import MobileHeader from "@/Components/common/MobileHeader";
+
+import PatientPanel
+    from "@/Components/common/PatientPanel";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
 
 import LanguageSelector from "@/Components/language/LanguageSelector";
 
@@ -87,12 +102,6 @@ import PrescriptionHistoryWorkspace
 import ConsultationWorkspace
     from "@/Components/dashboard/ConsultationWorkspace";
 
-import VoiceCareWorkspace
-    from "@/Components/dashboard/VoiceCareWorkspace";
-
-import UploadCareWorkspace
-    from "@/Components/dashboard/UploadCareWorkspace";
-
 import DoctorNotesUploadWorkspace
     from "@/Components/dashboard/DoctorNotesUploadWorkspace";
 
@@ -124,79 +133,21 @@ type HomeFeature =
     | "VIEW_HEALTH"
     | "HELP";
 
-type MobilePerson = {
-    id: string;
-    patientId: string | null;
-    fullName: string;
-    age: number | null;
-    gender: string | null;
-    relationship: string | null;
-    mode: "SELF" | "FAMILY";
-};
 
 type MobileSnapshot = {
-    dailyCare: DailyCare | null;
-    needsAttention: boolean;
+    dailyCare:
+        | DailyCare
+        | SelfDailyCare
+        | null;
+
+    needsAttention:
+        boolean;
+
+    monitoringItems?:
+        string[];
 };
 
-function calculateAge(
-    dateOfBirth: string | null
-): number | null {
-    if (!dateOfBirth) {
-        return null;
-    }
 
-    const birthDate = new Date(dateOfBirth);
-
-    if (Number.isNaN(birthDate.getTime())) {
-        return null;
-    }
-
-    const today = new Date();
-
-    let age =
-        today.getFullYear() -
-        birthDate.getFullYear();
-
-    const monthDifference =
-        today.getMonth() -
-        birthDate.getMonth();
-
-    if (
-        monthDifference < 0 ||
-        (
-            monthDifference === 0 &&
-            today.getDate() < birthDate.getDate()
-        )
-    ) {
-        age -= 1;
-    }
-
-    return age >= 0 ? age : null;
-}
-
-function getInitials(
-    fullName: string
-): string {
-    const parts =
-        fullName
-            .trim()
-            .split(/\\s+/)
-            .filter(Boolean);
-
-    if (parts.length === 0) {
-        return "?";
-    }
-
-    if (parts.length === 1) {
-        return parts[0].slice(0, 2).toUpperCase();
-    }
-
-    return (
-        parts[0][0] +
-        parts[parts.length - 1][0]
-    ).toUpperCase();
-}
 
 function CareJourneyIcon() {
     return (
@@ -425,13 +376,6 @@ const [
     setCheckingPendingMedicationValidation,
 ] = useState(false);
 
-const [
-    recordHealthOption,
-    setRecordHealthOption,
-] =
-    useState<ActionOption>(
-        ""
-    );
 
 const [
     doctorNotesOption,
@@ -478,8 +422,6 @@ const [
 
         setMedicationDetail("");
 
-        setRecordHealthOption("");
-
         setDoctorNotesOption("");
 
         setMedicationOption("");
@@ -491,27 +433,22 @@ const [
     // Mobile Caretaker Dashboard State
     //------------------------------------------------------------
 
-    const [
-        mobilePeople,
-        setMobilePeople,
-    ] = useState<MobilePerson[]>([]);
+const [
+    mobilePatients,
+    setMobilePatients,
+] = useState<Patient[]>([]);
 
-    const [
-        mobileSnapshots,
-        setMobileSnapshots,
-    ] = useState<Record<string, MobileSnapshot>>({});
+const [
+    mobileSnapshots,
+    setMobileSnapshots,
+] = useState<Record<string, MobileSnapshot>>({});
 
-    const [
-        mobileSelectedPersonId,
-        setMobileSelectedPersonId,
-    ] = useState<string>("");
+const [
+    mobileSelectedPatientId,
+    setMobileSelectedPatientId,
+] = useState<string>("");
 
-    const [
-        mobileShowAllPeople,
-        setMobileShowAllPeople,
-    ] = useState(false);
-
-    const [
+const [
         mobilePeopleLoading,
         setMobilePeopleLoading,
     ] = useState(false);
@@ -676,324 +613,596 @@ useEffect(() => {
         return;
     }
 
-    const currentUser = user;
+const currentUserId = user.id;
 
     let cancelled = false;
 
-    async function loadMobileCaretakerData() {
+    async function loadMobileCareData() {
 
-            setMobilePeopleLoading(true);
+        setMobilePeopleLoading(true);
 
-            try {
+        try {
+
+            //--------------------------------------------------------
+            // SELF MODE
+            //--------------------------------------------------------
+
+            if (
+                mobileCareMode === "SELF"
+            ) {
 
                 const result =
-                    await patientStorage
-                        .getPatients();
+                    await selfDailyCareStorage
+                        .getUserHistory();
 
                 if (cancelled) {
                     return;
                 }
 
-                const patients =
+                const history =
                     result.success
                         ? result.data ?? []
                         : [];
 
-                const familyPeople: MobilePerson[] =
-                    patients.map(
-                        (
-                            patient: Patient
-                        ) => ({
-                            id: patient.id,
-                            patientId: patient.id,
-                            fullName: patient.fullName,
-                            age: calculateAge(
-                                patient.dateOfBirth
-                            ),
-                            gender:
-                                patient.gender,
-                            relationship:
-                                patient.relationship,
-                            mode: "FAMILY",
-                        })
-                    );
-
-                // Caretaker mode shows the people being cared for.
-                // "Myself" remains available through the existing
-                // desktop/self workflow and is not mixed into this
-                // caretaker carousel.
-                const people: MobilePerson[] =
-                    familyPeople;
-
-                setMobilePeople(
-                    people
+                const sortedRecords = [
+                    ...history,
+                ].sort(
+                    (a, b) =>
+                        new Date(
+                            b.recordedAt
+                        ).getTime() -
+                        new Date(
+                            a.recordedAt
+                        ).getTime()
                 );
 
-                const defaultPerson =
-                    people[0] ??
+                const latest =
+                    sortedRecords[0] ??
                     null;
 
-                if (
-                    !mobileSelectedPersonId &&
-                    defaultPerson
-                ) {
-                    setMobileSelectedPersonId(
-                        defaultPerson.id
-                    );
-                }
+                const latestBloodPressureRecord =
+                    sortedRecords.find(
+                        record =>
+                            record.systolic != null &&
+                            record.diastolic != null
+                    ) ?? null;
 
-                const snapshotEntries =
-                    await Promise.all(
-                        people.map(
-                            async (
-                                person
-                            ): Promise<
-                                [
-                                    string,
-                                    MobileSnapshot
-                                ]
-                            > => {
+                const latestSpo2Record =
+                    sortedRecords.find(
+                        record =>
+                            record.spo2 != null
+                    ) ?? null;
 
-                                try {
+                const latestPulseRecord =
+                    sortedRecords.find(
+                        record =>
+                            record.pulse != null
+                    ) ?? null;
 
-                                    let records:
-                                        DailyCare[] = [];
+                const latestTemperatureRecord =
+                    sortedRecords.find(
+                        record =>
+                            record.temperature != null
+                    ) ?? null;
 
-if (
-    person.mode === "FAMILY" &&
-    person.patientId
-) {
-    records =
-        await dailyCareRepository
-            .getByPatientId(
-                person.patientId
-            );
-}
-else {
-    records =
-        await dailyCareRepository
-            .getByUserId(
-                currentUser.id
-            );
+                const selfDailyCare =
+                    latest
+                        ? {
+                            ...latest,
 
-    records =
-        records.filter(
-            (record) =>
-                record.patientId === null
+                            systolic:
+                                latestBloodPressureRecord
+                                    ?.systolic ??
+                                null,
+
+                            diastolic:
+                                latestBloodPressureRecord
+                                    ?.diastolic ??
+                                null,
+
+                            spo2:
+                                latestSpo2Record
+                                    ?.spo2 ??
+                                null,
+
+                            pulse:
+                                latestPulseRecord
+                                    ?.pulse ??
+                                null,
+
+                            temperature:
+                                latestTemperatureRecord
+                                    ?.temperature ??
+                                null,
+
+                            temperatureUnit:
+                                latestTemperatureRecord
+                                    ?.temperatureUnit ??
+                                latest.temperatureUnit ??
+                                "F",
+                        }
+                        : null;
+
+const monitoringItems: string[] = [];
+
+if (selfDailyCare) {
+
+    if (
+        selfDailyCare.spo2 != null &&
+        selfDailyCare.spo2 < 94
+    ) {
+        monitoringItems.push(
+            `SpO₂ ${selfDailyCare.spo2}%`
         );
+    }
+
+    if (
+        selfDailyCare.pulse != null &&
+        (
+            selfDailyCare.pulse < 60 ||
+            selfDailyCare.pulse > 100
+        )
+    ) {
+        monitoringItems.push(
+            `Pulse ${selfDailyCare.pulse}`
+        );
+    }
+
+    if (
+        selfDailyCare.systolic != null &&
+        selfDailyCare.diastolic != null &&
+        (
+            selfDailyCare.systolic >= 140 ||
+            selfDailyCare.diastolic >= 90 ||
+            selfDailyCare.systolic < 90 ||
+            selfDailyCare.diastolic < 60
+        )
+    ) {
+        monitoringItems.push(
+            `BP ${selfDailyCare.systolic}/${selfDailyCare.diastolic}`
+        );
+    }
+
+    if (
+        selfDailyCare.temperature != null
+    ) {
+
+        const temperatureF =
+            selfDailyCare.temperatureUnit === "C"
+                ? (
+                    selfDailyCare.temperature * 9 / 5
+                ) + 32
+                : selfDailyCare.temperature;
+
+        if (
+            temperatureF >= 100.4
+        ) {
+            monitoringItems.push(
+                `Temperature ${selfDailyCare.temperature}°${selfDailyCare.temperatureUnit}`
+            );
+        }
+    }
+
+    if (
+        selfDailyCare.symptoms?.length > 0
+    ) {
+        monitoringItems.push(
+            "Symptoms reported"
+        );
+    }
+
+    if (
+        selfDailyCare.painLocations?.length > 0
+    ) {
+        monitoringItems.push(
+            "Pain reported"
+        );
+    }
+
+    if (
+        selfDailyCare.otherSymptom?.trim()
+    ) {
+        monitoringItems.push(
+            "Other symptom reported"
+        );
+    }
+
+    if (
+        selfDailyCare.otherPainLocation?.trim()
+    ) {
+        monitoringItems.push(
+            "Other pain reported"
+        );
+    }
 }
-
-const snapshot =
-    person.mode === "FAMILY" &&
-    person.patientId
-        ? await dailyCareRepository
-              .getLatestSnapshotByPatientId(
-                  person.patientId
-              )
-        : null;
-
-const latestDailyCare =
-    snapshot?.latest
-        ? {
-              ...snapshot.latest,
-
-              systolic:
-                  snapshot.bloodPressure
-                      ?.systolic ??
-                  null,
-
-              diastolic:
-                  snapshot.bloodPressure
-                      ?.diastolic ??
-                  null,
-
-              spo2:
-                  snapshot.spo2?.spo2 ??
-                  null,
-
-              pulse:
-                  snapshot.pulse?.pulse ??
-                  null,
-
-              temperature:
-                  snapshot.temperature
-                      ?.temperature ??
-                  null,
-
-              temperatureUnit:
-                  snapshot.temperature
-                      ?.temperatureUnit ??
-                  "F",
-          }
-        : null;
 
 const needsAttention =
-    snapshot?.latest?.overallStatus ===
+    selfDailyCare?.overallStatus ===
         "CONCERNS_REPORTED" ||
-    snapshot?.bloodPressure
-        ?.overallStatus ===
-        "CONCERNS_REPORTED" ||
-    snapshot?.spo2?.overallStatus ===
-        "CONCERNS_REPORTED" ||
-    snapshot?.pulse?.overallStatus ===
-        "CONCERNS_REPORTED" ||
-    snapshot?.temperature
-        ?.overallStatus ===
-        "CONCERNS_REPORTED";
+    monitoringItems.length > 0;
 
-return [
-    person.id,
-    {
-        dailyCare:
-            latestDailyCare,
-        needsAttention,
-    },
-];
+setMobilePatients([]);
 
+setMobileSelectedPatientId("");
+
+setMobileSnapshots(
+    selfDailyCare
+        ? {
+            SELF: {
+                dailyCare:
+                    selfDailyCare,
+                needsAttention,
+                monitoringItems,
+            },
+        }
+        : {}
+);
+
+                setMobilePeopleLoading(
+                    false
+                );
+
+                return;
+            }
+
+
+            //--------------------------------------------------------
+            // FAMILY MODE
+            //--------------------------------------------------------
+
+            const result =
+                await patientStorage
+                    .getPatients();
+
+            if (cancelled) {
+                return;
+            }
+
+            const patients =
+                result.success
+                    ? result.data ?? []
+                    : [];
+
+            setMobilePatients(
+                patients
+            );
+
+            const defaultPatient =
+                patients[0] ??
+                null;
+
+            if (
+                !mobileSelectedPatientId &&
+                defaultPatient
+            ) {
+                setMobileSelectedPatientId(
+                    defaultPatient.id
+                );
+            }
+
+            const snapshotEntries =
+                await Promise.all(
+                    patients.map(
+                        async (
+                            patient
+                        ): Promise<
+                            [
+                                string,
+                                MobileSnapshot
+                            ]
+                        > => {
+
+                            try {
+
+                                let records:
+                                    DailyCare[] = [];
+
+                                if (patient.id) {
+
+                                    records =
+                                        await dailyCareRepository
+                                            .getByPatientId(
+                                                patient.id
+                                            );
+
+                                } else {
+
+records =
+    await dailyCareRepository
+        .getByUserId(
+            currentUserId
+        );
+
+                                    records =
+                                        records.filter(
+                                            record =>
+                                                record.patientId ===
+                                                null
+                                        );
                                 }
-                                catch (
-                                    snapshotError
-                                ) {
 
-                                    console.error(
-                                        "Unable to load mobile Daily Care snapshot.",
-                                        snapshotError
-                                    );
+                                const snapshot =
+                                    await dailyCareRepository
+                                        .getLatestSnapshotByPatientId(
+                                            patient.id
+                                        );
 
-                                    return [
-                                        person.id,
-                                        {
-                                            dailyCare:
+                                const sortedRecords = [
+                                    ...records,
+                                ].sort(
+                                    (a, b) =>
+                                        new Date(
+                                            b.recordedAt
+                                        ).getTime() -
+                                        new Date(
+                                            a.recordedAt
+                                        ).getTime()
+                                );
+
+                                const latestDailyCare =
+                                    snapshot?.latest?.id
+                                        ? {
+                                            ...snapshot.latest,
+
+                                            id:
+                                                snapshot.latest.id,
+
+                                            systolic:
+                                                snapshot.bloodPressure
+                                                    ?.systolic ??
                                                 null,
-                                            needsAttention:
-                                                false,
-                                        },
-                                    ];
-                                }
+
+                                            diastolic:
+                                                snapshot.bloodPressure
+                                                    ?.diastolic ??
+                                                null,
+
+                                            spo2:
+                                                snapshot.spo2
+                                                    ?.spo2 ??
+                                                null,
+
+                                            pulse:
+                                                snapshot.pulse
+                                                    ?.pulse ??
+                                                null,
+
+                                            temperature:
+                                                snapshot.temperature
+                                                    ?.temperature ??
+                                                null,
+
+                                            temperatureUnit:
+                                                snapshot.temperature
+                                                    ?.temperatureUnit ??
+                                                "F",
+                                        }
+                                        : null;
+
+                                const needsAttention =
+                                    snapshot?.latest?.overallStatus ===
+                                        "CONCERNS_REPORTED" ||
+                                    snapshot?.bloodPressure
+                                        ?.overallStatus ===
+                                        "CONCERNS_REPORTED" ||
+                                    snapshot?.spo2
+                                        ?.overallStatus ===
+                                        "CONCERNS_REPORTED" ||
+                                    snapshot?.pulse
+                                        ?.overallStatus ===
+                                        "CONCERNS_REPORTED" ||
+                                    snapshot?.temperature
+                                        ?.overallStatus ===
+                                        "CONCERNS_REPORTED";
+
+                                return [
+                                    patient.id,
+                                    {
+                                        dailyCare:
+                                            latestDailyCare,
+                                        needsAttention,
+                                    },
+                                ];
 
                             }
-                        )
-                    );
+                            catch (
+                                snapshotError
+                            ) {
 
-                if (cancelled) {
-                    return;
-                }
+                                console.error(
+                                    "Unable to load mobile Daily Care snapshot.",
+                                    snapshotError
+                                );
 
-                setMobileSnapshots(
-                    Object.fromEntries(
-                        snapshotEntries
+                                return [
+                                    patient.id,
+                                    {
+                                        dailyCare:
+                                            null,
+                                        needsAttention:
+                                            false,
+                                    },
+                                ];
+                            }
+                        }
                     )
                 );
 
+            if (cancelled) {
+                return;
             }
-            catch (error) {
 
-                console.error(
-                    "Unable to load mobile caretaker dashboard.",
-                    error
-                );
+            setMobileSnapshots(
+                Object.fromEntries(
+                    snapshotEntries
+                )
+            );
 
-                if (!cancelled) {
-                    setMobilePeople([]);
-                    setMobileSnapshots({});
-                }
+        }
+        catch (error) {
 
-            }
-            finally {
+            console.error(
+                "Unable to load mobile care dashboard.",
+                error
+            );
 
-                if (!cancelled) {
-                    setMobilePeopleLoading(false);
-                }
+            if (!cancelled) {
 
+                setMobilePatients([]);
+
+                setMobileSnapshots({});
             }
 
         }
+        finally {
 
-        void loadMobileCaretakerData();
+            if (!cancelled) {
 
-        return () => {
-            cancelled = true;
-        };
+                setMobilePeopleLoading(
+                    false
+                );
+            }
+        }
+    }
 
-    }, [
-        user,
-        consentGranted,
-    ]);
+    void loadMobileCareData();
+
+    return () => {
+        cancelled = true;
+    };
+
+}, [
+    user,
+    consentGranted,
+    mobileCareMode,
+]);
 
 
     //------------------------------------------------------------
     // Mobile Dashboard Actions
     //------------------------------------------------------------
 
-    const selectedMobilePerson =
-        mobilePeople.find(
-            person =>
-                person.id ===
-                mobileSelectedPersonId
-        ) ??
-        mobilePeople[0] ??
-        null;
+const selectedMobilePatient =
+    mobileCareMode === "FAMILY"
+        ? (
+            mobilePatients.find(
+                patient =>
+                    patient.id ===
+                    mobileSelectedPatientId
+            ) ??
+            mobilePatients[0] ??
+            null
+        )
+        : null;
 
-    const selectMobilePerson = (
-        person: MobilePerson
-    ) => {
+const selectMobilePatient = (
+    patient: Patient
+) => {
 
-        if (!consentGranted) {
-            return;
-        }
+    if (!consentGranted) {
+        return;
+    }
 
-        setMobileSelectedPersonId(
-            person.id
-        );
+    setMobileSelectedPatientId(
+        patient.id
+    );
+
+    setPersonSelection({
+        mode: "FAMILY",
+        patientId:
+            patient.id,
+        patientName:
+            patient.fullName,
+    });
+
+    setSelectedAction("");
+    setMedicationDetail("");
+};
+
+
+const selectMobileSelf = () => {
+
+    if (!consentGranted || !user) {
+        return;
+    }
+
+    setMobileSelectedPatientId("");
+
+    setMobileCareMode("SELF");
+
+    setPersonSelection({
+        mode: "SELF",
+        patientId: null,
+        patientName:
+            user.fullName,
+    });
+
+    setSelectedAction("");
+    setMedicationDetail("");
+};
+
+const openMobileFeature = (
+    feature: HomeFeature
+) => {
+
+    if (
+        !consentGranted ||
+        !user
+    ) {
+        return;
+    }
+
+    if (
+        mobileCareMode === "FAMILY" &&
+        !selectedMobilePatient
+    ) {
+        return;
+    }
+
+    if (
+        mobileCareMode === "SELF"
+    ) {
 
         setPersonSelection({
-            mode: person.mode,
-            patientId:
-                person.patientId,
+            mode: "SELF",
+            patientId: null,
             patientName:
-                person.mode === "FAMILY"
-                    ? person.fullName
-                    : null,
+                user.fullName,
         });
 
-        setSelectedAction("");
-        setRecordHealthOption("");
-        setMedicationDetail("");
-    };
-
-    const openMobileFeature = (
-        feature: HomeFeature
-    ) => {
-
-        if (
-            !consentGranted ||
-            !selectedMobilePerson
-        ) {
-            return;
-        }
+    } else {
 
         setPersonSelection({
-            mode:
-                selectedMobilePerson.mode,
+            mode: "FAMILY",
             patientId:
-                selectedMobilePerson.patientId,
+                selectedMobilePatient!.id,
             patientName:
-                selectedMobilePerson.mode === "FAMILY"
-                    ? selectedMobilePerson.fullName
-                    : null,
+                selectedMobilePatient!.fullName,
         });
+    }
 
-        setSelectedAction(
-            feature
+    trackFeatureClick(
+        feature
+    );
+
+    if (
+        feature === "RECORD_HEALTH"
+    ) {
+        router.push(
+            mobileCareMode === "SELF"
+                ? "/record-health?mode=self"
+                : "/record-health"
         );
 
-        setRecordHealthOption("");
-        setMedicationDetail("");
+        return;
+    }
 
-        trackFeatureClick(
-            feature
-        );
-    };
+    setSelectedAction(
+        feature
+    );
+
+    setMedicationDetail("");
+};
 
 
     //------------------------------------------------------------
@@ -1197,23 +1406,6 @@ const handleStartAssessment = () => {
 
 };
 
-const handleActionOption = (
-    option: ActionOption
-) => {
-
-    if (
-        selectedAction ===
-        "RECORD_HEALTH"
-    ) {
-
-        setRecordHealthOption(
-            option
-        );
-
-        return;
-    }
-
-};
 
 const handleDoctorNotesOption = (
     option: ActionOption
@@ -1399,7 +1591,10 @@ const isPersonSelectionComplete =
     );
 
 
-
+const mobileSnapshotKey =
+    mobileCareMode === "SELF"
+        ? "SELF"
+        : selectedMobilePatient?.id ?? "";
 
     //------------------------------------------------------------
     // UI
@@ -1413,136 +1608,70 @@ const isPersonSelectionComplete =
 
 <div className="mobile-dashboard-shell">
 
-<header className="mobile-dashboard-header">
+<MobileHeader
+    careMode={mobileCareMode}
+    onCareModeChange={(mode) => {
 
-    <div className="mobile-brand">
-        <img
-            src="/images/carevr-logo new.png"
-            alt="CareVR"
-            className="mobile-brand-logo"
-        />
-    </div>
+        setMobileCareMode(mode);
 
-    <div className="mobile-header-actions">
+        if (mode === "SELF") {
 
-        <div
-            className="mobile-mode-toggle"
-            aria-label="Care mode"
-        >
-            <button
-                type="button"
-                className={`mobile-mode-toggle-option ${
-                    mobileCareMode === "FAMILY"
-                        ? "mobile-mode-toggle-option-active"
-                        : ""
-                }`}
-                onClick={() =>
-                    setMobileCareMode(
-                        "FAMILY"
-                    )
-                }
-            >
-                Family
-            </button>
+            setMobileSelectedPatientId("");
 
-            <button
-                type="button"
-                className={`mobile-mode-toggle-option ${
-                    mobileCareMode === "SELF"
-                        ? "mobile-mode-toggle-option-active"
-                        : ""
-                }`}
-                onClick={() =>
-                    setMobileCareMode(
-                        "SELF"
-                    )
-                }
-            >
-                Self
-            </button>
-        </div>
+            setPersonSelection({
+                mode: "SELF",
+                patientId: null,
+                patientName:
+                    user.fullName,
+            });
 
-        <div className="mobile-account-wrapper">
+            setSelectedAction("");
+            setDoctorNotesOption("");
+            setMedicationOption("");
+            setMedicationDetail("");
 
-            <button
-                type="button"
-                className="mobile-user-avatar"
-                aria-label="Account menu"
-                aria-expanded={
-                    mobileAccountMenuOpen
-                }
-                onClick={() =>
-                    setMobileAccountMenuOpen(
-                        previous =>
-                            !previous
-                    )
-                }
-            >
-                {getInitials(
-                    user.fullName
-                )}
-            </button>
+        } else {
 
-{mobileAccountMenuOpen && (
-    <div className="mobile-account-menu">
+            setPersonSelection({
+                mode: "FAMILY",
+                patientId: null,
+                patientName: null,
+            });
 
-        <button
-            type="button"
-            className="mobile-account-menu-add"
-            disabled={!consentGranted}
-            onClick={() => {
-                setMobileAccountMenuOpen(false);
-                router.push("/add-patient");
-            }}
-        >
-            Add Patient
-        </button>
-
-        <button
-            type="button"
-            className="mobile-account-menu-help"
-            onClick={() => {
-                setMobileAccountMenuOpen(false);
-                openHelp();
-            }}
-        >
-            Help & FAQ
-        </button>
-
-        <div className="mobile-account-menu-language">
-
-            <span className="mobile-account-menu-language-label">
-                Language
-            </span>
-
-            <div className="mobile-account-menu-language-selector">
-                <LanguageSelector />
-            </div>
-
-        </div>
-
-        <button
-            type="button"
-            className="mobile-account-menu-logout"
-            onClick={() => {
-                setMobileAccountMenuOpen(false);
-                void logout();
-            }}
-            disabled={loggingOut}
-        >
-            {loggingOut
-                ? "Logging out…"
-                : "Log out"}
-        </button>
-
-    </div>
-)}
-
-        </div>
-
-    </div>
-
-</header>	
+            setSelectedAction("");
+            setDoctorNotesOption("");
+            setMedicationOption("");
+            setMedicationDetail("");
+        }
+    }}
+    userName={user.fullName}
+    showHomeButton={false}
+    accountMenuOpen={mobileAccountMenuOpen}
+    onAccountMenuToggle={() =>
+        setMobileAccountMenuOpen(
+            previous => !previous
+        )
+    }
+    consentGranted={consentGranted}
+    onAddPatient={() => {
+        setMobileAccountMenuOpen(false);
+        router.push("/add-patient");
+    }}
+    onCareVRJourney={() => {
+        setMobileAccountMenuOpen(false);
+        router.push("/carevr-journey");
+    }}
+    onHelp={() => {
+        setMobileAccountMenuOpen(false);
+        openHelp();
+    }}
+    languageSelector={<LanguageSelector />}
+    onLogout={() => {
+        setMobileAccountMenuOpen(false);
+        void logout();
+    }}
+    loggingOut={loggingOut}
+/>
 
 
     {!consentGranted && (
@@ -1571,124 +1700,19 @@ const isPersonSelectionComplete =
     )}
 
 
-<section className="mobile-section mobile-greeting-people-section">
+<PatientPanel
+    userName={user.fullName}
+    patients={mobilePatients}
+    selectedPatientId={mobileSelectedPatientId}
+    onPatientSelect={selectMobilePatient}
+    careMode={mobileCareMode}
+/>
 
-    <div className="mobile-greeting-people-row">
-
-        <h1>
-    Good morning{" "}
-    {user.fullName.split(" ")[0]}.
-</h1>
-
-        <div className="mobile-people-heading">
-
-            <h2>
-                People you care for :
-            </h2>
-
-            {mobilePeople.length > 4 && (
-                <button
-                    type="button"
-                    className="mobile-view-all-button"
-                    onClick={() =>
-                        router.push(
-                            "/patients"
-                        )
-                    }
-                >
-                    View all
-                </button>
-            )}
-
-        </div>
-
-    </div>
-
-    <div className="mobile-people-row">
-
-        {mobilePeopleLoading ? (
-
-            <div className="mobile-inline-loading">
-                Loading people…
-            </div>
-
-        ) : mobilePeople.length === 0 ? (
-
-            <div className="mobile-empty-people">
-                No people added yet.
-            </div>
-
-        ) : (
-
-            (
-                mobileShowAllPeople
-                    ? mobilePeople
-                    : mobilePeople.slice(0, 4)
-            ).map(
-                person => {
-
-                    const selected =
-                        person.id ===
-                        mobileSelectedPersonId;
-
-                    return (
-                        <button
-                            type="button"
-                            key={person.id}
-                            className={
-                                selected
-                                    ? "mobile-person-card mobile-person-card-selected"
-                                    : "mobile-person-card"
-                            }
-                            onClick={() =>
-                                selectMobilePerson(
-                                    person
-                                )
-                            }
-                            disabled={!consentGranted}
-                        >
-
-                            <div className="mobile-person-avatar">
-                                {getInitials(
-                                    person.fullName
-                                )}
-                            </div>
-
-                            <div className="mobile-person-name">
-                                {person.fullName}
-                            </div>
-
-                            <div className="mobile-person-meta">
-                                {person.age !== null
-                                    ? `${person.age} years`
-                                    : "Age not recorded"}
-                                {" • "}
-                                {person.gender ??
-                                    "Sex not recorded"}
-                            </div>
-
-                            {selected && (
-                                <span className="mobile-person-check">
-                                    ✓
-                                </span>
-                            )}
-
-                        </button>
-                    );
-
-                }
-            )
-
-        )}
-
-    </div>
-
-
-</section>
-
-    {selectedMobilePerson && (
-
-        <section className="mobile-health-card">
+{(
+    mobileCareMode === "SELF" ||
+    selectedMobilePatient
+) && (
+    <section className="mobile-health-card">
 
             <div className="mobile-health-card-heading">
 
@@ -1699,26 +1723,31 @@ const isPersonSelectionComplete =
 
             </div>
 
+<div className="mobile-vitals-grid">
+<div className="mobile-vital">
+    <div className="mobile-vital-icon mobile-vital-heart">
+        ♡
+    </div>
 
-            <div className="mobile-vitals-grid">
+    <strong>
+        {mobileSnapshots[
+            mobileSnapshotKey
+        ]?.dailyCare?.systolic != null &&
+        mobileSnapshots[
+            mobileSnapshotKey
+        ]?.dailyCare?.diastolic != null
+            ? `${mobileSnapshots[
+                mobileSnapshotKey
+            ].dailyCare!.systolic}/${mobileSnapshots[
+                mobileSnapshotKey
+            ].dailyCare!.diastolic}`
+            : "—"}
+    </strong>
 
-                <div className="mobile-vital">
-                    <div className="mobile-vital-icon mobile-vital-heart">
-                        ♡
-                    </div>
-                    <strong>
-                        {mobileSnapshots[
-                            selectedMobilePerson.id
-                        ]?.dailyCare?.systolic != null &&
-                        mobileSnapshots[
-                            selectedMobilePerson.id
-                        ]?.dailyCare?.diastolic != null
-                            ? `${mobileSnapshots[selectedMobilePerson.id].dailyCare!.systolic}/${mobileSnapshots[selectedMobilePerson.id].dailyCare!.diastolic}`
-                            : "—"}
-                    </strong>
-                    <span>mmHg</span>
-                    <label>Blood Pressure</label>
-                </div>
+    <label>
+        Blood Pressure
+    </label>
+</div>
 
 
                 <div className="mobile-vital">
@@ -1727,12 +1756,11 @@ const isPersonSelectionComplete =
                     </div>
                     <strong>
                         {mobileSnapshots[
-                            selectedMobilePerson.id
+                            mobileSnapshotKey
                         ]?.dailyCare?.spo2 != null
-                            ? `${mobileSnapshots[selectedMobilePerson.id].dailyCare!.spo2}%`
+                            ? `${mobileSnapshots[mobileSnapshotKey].dailyCare!.spo2}%`
                             : "—"}
                     </strong>
-                    <span>&nbsp;</span>
                     <label>SpO₂</label>
                 </div>
 
@@ -1743,11 +1771,10 @@ const isPersonSelectionComplete =
                     </div>
                     <strong>
                         {mobileSnapshots[
-                            selectedMobilePerson.id
+                            mobileSnapshotKey
                         ]?.dailyCare?.pulse ??
                             "—"}
                     </strong>
-                    <span>bpm</span>
                     <label>Pulse</label>
                 </div>
 
@@ -1758,12 +1785,11 @@ const isPersonSelectionComplete =
                     </div>
                     <strong>
                         {mobileSnapshots[
-                            selectedMobilePerson.id
+                            mobileSnapshotKey
                         ]?.dailyCare?.temperature != null
-                            ? `${mobileSnapshots[selectedMobilePerson.id].dailyCare!.temperature}°${mobileSnapshots[selectedMobilePerson.id].dailyCare!.temperatureUnit}`
+                            ? `${mobileSnapshots[mobileSnapshotKey].dailyCare!.temperature}°${mobileSnapshots[mobileSnapshotKey].dailyCare!.temperatureUnit}`
                             : "—"}
                     </strong>
-                    <span>&nbsp;</span>
                     <label>Temperature</label>
                 </div>
 
@@ -1771,11 +1797,11 @@ const isPersonSelectionComplete =
 
 
 {mobileSnapshots[
-    selectedMobilePerson.id
+    mobileSnapshotKey
 ]?.dailyCare ? (
 
     mobileSnapshots[
-        selectedMobilePerson.id
+        mobileSnapshotKey
     ]?.needsAttention ? (
 
         <div className="mobile-health-message mobile-health-message-attention">
@@ -1787,12 +1813,50 @@ const isPersonSelectionComplete =
 
     ) : (
 
-        <div className="mobile-health-message">
-            <span>✓</span>
-            <span>
-                {selectedMobilePerson.fullName} is doing well.
-            </span>
-        </div>
+        (() => {
+            const dailyCare =
+                mobileSnapshots[
+                    mobileSnapshotKey
+                ]?.dailyCare;
+
+            const hasBloodPressure =
+                dailyCare?.systolic != null &&
+                dailyCare?.diastolic != null;
+
+            const hasSpo2 =
+                dailyCare?.spo2 != null;
+
+            const hasPulse =
+                dailyCare?.pulse != null;
+
+            const allVitalsAvailable =
+                hasBloodPressure &&
+                hasSpo2 &&
+                hasPulse;
+
+            if (allVitalsAvailable) {
+                return (
+                    <div className="mobile-health-message">
+                        <span>✓</span>
+                        <span>
+                            {mobileCareMode === "SELF"
+    ? `${user.fullName} is doing well.`
+    : `${selectedMobilePatient?.fullName ?? "The patient"} is doing well.`
+}
+                        </span>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="mobile-health-message mobile-health-message-empty">
+                    <span>✦</span>
+                    <span>
+                        Please record BP, SpO₂ and Pulse to display the latest or last recorded values.
+                    </span>
+                </div>
+            );
+        })()
 
     )
 
@@ -1801,7 +1865,7 @@ const isPersonSelectionComplete =
     <div className="mobile-health-message mobile-health-message-empty">
         <span>✦</span>
         <span>
-            No Daily Care reading has been recorded yet.
+            Please record BP, SpO₂ and Pulse to display the latest or last recorded values.
         </span>
     </div>
 
@@ -1812,10 +1876,9 @@ const isPersonSelectionComplete =
     )}
 
 
-    {selectedMobilePerson &&
-        mobileSnapshots[
-            selectedMobilePerson.id
-        ]?.needsAttention && (
+    {mobileSnapshots[
+    mobileSnapshotKey
+]?.needsAttention && (
 
         <section className="mobile-attention-section">
 
@@ -1825,28 +1888,34 @@ const isPersonSelectionComplete =
                 </h2>
             </div>
 
-            <button
-                type="button"
-                className="mobile-attention-card"
-                onClick={() =>
-                    openMobileFeature(
-                        "RECORD_HEALTH"
-                    )
-                }
-            >
-                <span className="mobile-attention-dot" />
+<button
+    type="button"
+    className="mobile-attention-card"
+    onClick={() =>
+        openMobileFeature(
+            "RECORD_HEALTH"
+        )
+    }
+>
+    <span className="mobile-attention-dot" />
 
-                <div>
-                    <strong>
-                        {selectedMobilePerson.fullName}
-                    </strong>
-                    <span>
-                        Review the latest Daily Care record
-                    </span>
-                </div>
+    <div>
+        <strong>
+            {(
+                mobileSnapshots[
+                    mobileSnapshotKey
+                ]?.monitoringItems ?? []
+            ).length > 0
+                ? (
+                    mobileSnapshots[
+                        mobileSnapshotKey
+                    ]?.monitoringItems ?? []
+                ).join(" • ")
+                : "Review latest readings"}
+        </strong>
+    </div>
 
-                <span>›</span>
-            </button>
+</button>
 
         </section>
 
@@ -2088,7 +2157,6 @@ headerAccessory={<LanguageSelector />}
 
             setSelectedAction("");
 
-            setRecordHealthOption("");
         }}
         question={t("medication.whoIsThisFor")}
     />
@@ -2111,23 +2179,23 @@ headerAccessory={<LanguageSelector />}
 <button
     type="button"
 disabled={!consentGranted}
-    onClick={() => {
+onClick={() => {
 
-        if (!consentGranted) {
+    if (!consentGranted) {
+        return;
+    }
 
-            return;
+    trackFeatureClick(
+        "RECORD_HEALTH"
+    );
 
-        }
+    router.push(
+        personSelection.mode === "SELF"
+            ? "/record-health?mode=self"
+            : "/record-health"
+    );
 
-        setSelectedAction(
-            "RECORD_HEALTH"
-        );
-
-        setRecordHealthOption(
-            ""
-        );
-
-    }}
+}}
         style={{
 
     ...mainActionButton,
@@ -2186,10 +2254,6 @@ disabled={!consentGranted}
 
         setSelectedAction(
             "MEDICATION_MANAGEMENT"
-        );
-
-        setRecordHealthOption(
-            ""
         );
 
     setMedicationDetail(
@@ -2259,9 +2323,6 @@ disabled={!consentGranted}
             "ASSESSMENT"
         );
 
-        setRecordHealthOption(
-            ""
-        );
 
     }}
         style={{
@@ -2324,10 +2385,7 @@ disabled={!consentGranted}
             "VIEW_HEALTH"
         );
 
-        setRecordHealthOption(
-            ""
-        );
-
+        
     }}
         style={{
 
@@ -2424,10 +2482,6 @@ onStartAssessment={
     handleStartAssessment
 }
 
-onOptionChange={
-    handleActionOption
-}
-
 onDoctorNotesOptionChange={
     handleDoctorNotesOption
 }
@@ -2455,57 +2509,6 @@ selectedMedicationDetail={
 }
 
 />
-    </div>
-
-)}
-
-{selectedAction === "RECORD_HEALTH" &&
-    recordHealthOption === "VOICE" && (
-
-    <div className="dashboard-workspace" style={workspaceContainer}>
-
-        <VoiceCareWorkspace
-            mode={
-                personSelection.mode === "SELF"
-                    ? "self"
-                    : "family"
-            }
-            patientId={
-                personSelection.patientId ??
-                undefined
-            }
-            currentUserName={
-                user.fullName
-            }
-        />
-
-    </div>
-
-)}
-
-{selectedAction === "RECORD_HEALTH" &&
-    recordHealthOption === "MANUAL" && (
-
-    <div className="dashboard-workspace" style={workspaceContainer}>
-
-        <ManualCareWorkspace
-            mode={
-                personSelection.mode === "SELF"
-                    ? "self"
-                    : "family"
-            }
-
-context="DAILY_CARE"
-
-            patientId={
-                personSelection.patientId ??
-                undefined
-            }
-            currentUserName={
-                user.fullName
-            }
-        />
-
     </div>
 
 )}
@@ -2544,31 +2547,6 @@ context="DAILY_CARE"
     </div>
 
 )}
-
-{selectedAction === "RECORD_HEALTH" &&
-    recordHealthOption === "UPLOAD" && (
-
-    <div className="dashboard-workspace" style={workspaceContainer}>
-
-        <UploadCareWorkspace
-            mode={
-                personSelection.mode === "SELF"
-                    ? "self"
-                    : "family"
-            }
-            patientId={
-                personSelection.patientId ??
-                undefined
-            }
-            currentUserName={
-                user.fullName
-            }
-        />
-
-    </div>
-
-)}
-
 
 {selectedAction === "MEDICATION_MANAGEMENT" &&
     medicationDetail === "DOCTOR_NOTES_UPLOAD" && (
@@ -2746,51 +2724,7 @@ onCancelReview={() => {
 )}
 
 
-<footer className="mobile-dashboard-footer">
-
-    <div className="mobile-dashboard-footer-security">
-
-        <div className="mobile-dashboard-footer-icon">
-
-            <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                aria-hidden="true"
-            >
-                <path d="M12 3 20 6v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-3Z" />
-
-                <rect
-                    x="9"
-                    y="10"
-                    width="6"
-                    height="5"
-                    rx="1"
-                />
-
-                <path d="M10.5 10V8.5a1.5 1.5 0 0 1 3 0V10" />
-            </svg>
-
-        </div>
-
-        <div>
-
-            <p className="mobile-dashboard-footer-title">
-                Your health information is private and secure.
-            </p>
-
-            <p className="mobile-dashboard-footer-text">
-                We use industry-standard security to keep your data safe.
-            </p>
-
-        </div>
-
-    </div>
-
-</footer>
+<CareVRFooter />
 
                 <div className="desktop-dashboard-footer">
                 {user.role === "ADMIN" && 
@@ -2853,6 +2787,8 @@ onCancelReview={() => {
             </div>
 
 
+
+
 <style jsx>{`
     .mobile-dashboard-shell {
         display: none;
@@ -2902,135 +2838,6 @@ onCancelReview={() => {
     color: #101d45;
 }
 
-.mobile-dashboard-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 2px 0 2px;
-}
-
-.mobile-brand {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-}
-
-.mobile-brand-logo {
-    display: block;
-    width: 200px;
-    height: 100px;
-    object-fit: contain;
-    object-position: left center;
-}
-
-.mobile-header-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-    flex: 0 0 auto;
-}
-
-
-
-.mobile-account-wrapper {
-    position: relative;
-}
-
-.mobile-user-avatar {
-    width: 42px;
-    height: 42px;
-    border: 2px solid #ffffff;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #2563eb, #4f46e5);
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 800;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition:
-        transform 0.15s ease,
-        box-shadow 0.15s ease;
-}
-
-.mobile-account-menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    z-index: 50;
-    min-width: 170px;
-    padding: 6px;
-    background: #ffffff;
-    border: 1px solid #e8eaf1;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(40, 31, 90, 0.12);
-}
-
-.mobile-account-menu button {
-    width: 100%;
-    border: 0;
-    font-size: 14px;
-    font-weight: 700;
-    text-align: left;
-    padding: 11px 12px;
-    border-radius: 9px;
-    cursor: pointer;
-}
-
-.mobile-account-menu-add,
-.mobile-account-menu-help {
-    background: #2563eb;
-    color: #ffffff;
-    text-align: center;
-    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.18);
-}
-
-.mobile-account-menu-add:hover,
-.mobile-account-menu-help:hover {
-    background: #1d4ed8;
-}
-
-.mobile-account-menu-help {
-    margin-top: 4px;
-}
-
-.mobile-account-menu-language {
-    padding: 10px 8px;
-}
-
-.mobile-account-menu-language-label {
-    display: block;
-    margin-bottom: 6px;
-    color: #687390;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.mobile-account-menu-language-selector {
-    width: 100%;
-}
-
-.mobile-account-menu-logout {
-    margin-top: 4px;
-    background: #dc2626;
-    color: #ffffff;
-    text-align: center;
-    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.18);
-}
-
-.mobile-account-menu-logout:hover {
-    background: #b91c1c;
-}
-
-.mobile-account-menu button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
 
 .mobile-greeting-section {
     display: flex;
@@ -3219,13 +3026,13 @@ onCancelReview={() => {
     margin-bottom: 12px;
 }
 
-        .mobile-section-heading h2 {
-            margin: 0;
-            font-size: 18px;
-            line-height: 1.25;
-            font-weight: 800;
-            color: #101d45;
-        }
+.mobile-section-heading h2 {
+    margin: 0;
+    color: #101d45;
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 700;
+}
 
         .mobile-section-heading button {
             display: inline-flex;
@@ -3374,12 +3181,12 @@ onCancelReview={() => {
             margin-bottom: 16px;
         }
 
-        .mobile-health-card-heading h2 {
-            margin: 0;
-            font-size: 17px;
-            font-weight: 800;
-            color: #101d45;
-        }
+.mobile-health-card-heading h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #101d45;
+}
 
         .mobile-health-card-heading span {
             color: #65718e;
@@ -3434,13 +3241,13 @@ onCancelReview={() => {
             background: #fff4e8;
         }
 
-        .mobile-vital strong {
-            display: block;
-            font-size: 16px;
-            line-height: 1.2;
-            font-weight: 850;
-            color: #101d45;
-        }
+.mobile-vital strong {
+    display: block;
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 800;
+    color: #101d45;
+}
 
         .mobile-vital > span {
             display: block;
@@ -3452,10 +3259,10 @@ onCancelReview={() => {
 
         .mobile-vital label {
             display: block;
-            margin-top: 7px;
+            margin-top: 5px;
             color: #65718e;
-            font-size: 10px;
-            line-height: 1.25;
+            font-size: 9px;
+            line-height: 1.2;
         }
 
         .mobile-health-message {
@@ -3506,7 +3313,7 @@ onCancelReview={() => {
             background: #fff7f8;
             color: #101d45;
             text-align: left;
-            cursor: pointer;
+            cursor: default;
         }
 
         .mobile-attention-dot {
@@ -3526,51 +3333,54 @@ onCancelReview={() => {
         }
 
         .mobile-attention-card strong {
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .mobile-attention-card span:not(.mobile-attention-dot) {
             color: #737d98;
-            font-size: 12px;
+            font-size: 14px;
         }
 
-        .mobile-quick-actions {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
+.mobile-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
 
-        .mobile-quick-actions button {
-            min-height: 170px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 16px 10px 13px;
-            border: 1px solid #eef0f7;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.94);
-            box-shadow: 0 8px 22px rgba(50, 45, 100, 0.06);
-            color: #101d45;
-            text-align: center;
-            cursor: pointer;
-        }
+.mobile-quick-actions button {
+    min-height: 100px;
+    height: 76px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 5px;
+    border: 1px solid #eef0f7;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 4px 12px rgba(50, 45, 100, 0.05);
+    color: #101d45;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+}
 
         .mobile-quick-actions button:disabled {
             opacity: 0.45;
             cursor: not-allowed;
         }
 
-        .mobile-action-icon {
-            width: 58px;
-            height: 58px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-size: 30px;
-        }
+.mobile-action-icon {
+    width: 34px;
+    height: 34px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 18px;
+    flex: 0 0 auto;
+}
 
         .mobile-action-heart {
             color: #ec3d68;
@@ -3592,18 +3402,18 @@ onCancelReview={() => {
             background: #edf6ff;
         }
 
-        .mobile-quick-actions strong {
-            font-size: 14px;
-            line-height: 1.25;
-            font-weight: 800;
-        }
+.mobile-quick-actions strong {
+    font-size: 11px;
+    line-height: 1.15;
+    font-weight: 800;
+}
 
-        .mobile-quick-actions button > span:last-child {
-            margin-top: 7px;
-            color: #687390;
-            font-size: 11px;
-            line-height: 1.4;
-        }
+.mobile-quick-actions button > span:last-child {
+    margin-top: 2px;
+    color: #687390;
+    font-size: 9px;
+    line-height: 1.15;
+}
 
 .mobile-dashboard-footer {
     margin-top: 18px;

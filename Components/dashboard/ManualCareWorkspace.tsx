@@ -983,7 +983,7 @@ if (
         <section style={workspace}>
 
             <div style={headerBlock}>
-
+className="manual-care-header"
                 <h3 style={title}>
                     📝 Doctor's Notes
                 </h3>
@@ -1148,264 +1148,320 @@ return (
 
     <section style={workspace}>
 
-        <div style={headerBlock}>
+<div
+    className="manual-care-header"
+    style={headerBlock}
+>
 
-            <h3 style={title}>
-                ✍️ {t("dailyCare.enterHealthInformation")}
-            </h3>
+    <h3
+        className="manual-care-title"
+        style={title}
+    >
+        ✍️ {t("dailyCare.enterHealthInformation")}
+    </h3>
 
-            <p style={description}>
-                {t("dailyCare.recordHealthInformationFor")
-                    .replace(
-                        "{name}",
-                        recordingName
-                    )}
-                <br />
-                {t("dailyCare.enterRelevantInformation")}
-            </p>
+    <p
+        className="manual-care-description"
+        style={description}
+    >
+        {t("dailyCare.recordHealthInformationFor")
+            .replace(
+                "{name}",
+                recordingName
+            )}
+        <br />
+        {t("dailyCare.enterRelevantInformation")}
+    </p>
 
-        </div>
+</div>
 
 
         {/*------------------------------------------------
           Date and Time
         ------------------------------------------------*/}
 
-        <section style={cardStyle}>
+<section
+    className="manual-care-card"
+    style={cardStyle}
+>
 
-            <h3 style={sectionTitle}>
-                🕒 {t("dailyCare.dateAndTime")}
-            </h3>
+    <h3
+        className="manual-care-section-title"
+        style={sectionTitle}
+    >
+        🕒 {t("dailyCare.dateAndTime")}
+    </h3>
 
+    <div
+        className="manual-care-date-time"
+        style={dateTimeGrid}
+    >
 
-            <div style={dateTimeGrid}>
+        <div>
 
+            <label
+                className="manual-care-label"
+                style={labelStyle}
+            >
+                {t("dailyCare.date")}
+            </label>
 
-                <div>
+            <input
+                className="manual-care-input"
+                type="date"
+                value={
+                    formData.date
+                }
+                disabled={
+                    saving
+                }
+                onChange={
+                    event =>
+                        updateField(
+                            "date",
+                            event.target.value
+                        )
+                }
+                style={inputStyle}
+            />
 
-                    <label style={labelStyle}>
-                        {t("dailyCare.date")}
-                    </label>
+        </div>
 
+        <div>
 
-                    <input
-                        type="date"
-                        value={
-                            formData.date
-                        }
-                        disabled={
-                            saving
-                        }
-                        onChange={
-                            event =>
-                                updateField(
-                                    "date",
-                                    event.target.value
-                                )
-                        }
-                        style={inputStyle}
-                    />
+            <label
+                className="manual-care-label"
+                style={labelStyle}
+            >
+                {t("dailyCare.time")}
+            </label>
 
-                </div>
+            <input
+                className="manual-care-input"
+                type="time"
+                value={
+                    formData.time
+                }
+                disabled={
+                    saving
+                }
+                onChange={
+                    event =>
+                        updateField(
+                            "time",
+                            event.target.value
+                        )
+                }
+                style={inputStyle}
+            />
 
+        </div>
 
-                <div>
+    </div>
 
-                    <label style={labelStyle}>
-                        {t("dailyCare.time")}
-                    </label>
-
-
-                    <input
-                        type="time"
-                        value={
-                            formData.time
-                        }
-                        disabled={
-                            saving
-                        }
-                        onChange={
-                            event =>
-                                updateField(
-                                    "time",
-                                    event.target.value
-                                )
-                        }
-                        style={inputStyle}
-                    />
-
-                </div>
-
-
-            </div>
-
-        </section>
+</section>
 
 
         {/*------------------------------------------------
           Temperature
         ------------------------------------------------*/}
 
-        <section style={cardStyle}>
+<section
+    className="manual-care-card"
+    style={cardStyle}
+>
 
-            <h3 style={sectionTitle}>
-                🌡 {t("dailyCare.temperature")}
-            </h3>
+    <h3
+        className="manual-care-section-title"
+        style={sectionTitle}
+    >
+        🌡 {t("dailyCare.temperature")}
+    </h3>
 
+    <div
+        className="manual-care-temperature"
+        style={temperatureGrid}
+    >
 
-            <div style={temperatureGrid}>
+        <div>
 
+            <label
+                className="manual-care-label"
+                style={labelStyle}
+            >
+                {t("dailyCare.temperature")}
+            </label>
 
-                <div>
+            <input
+                className="manual-care-input"
+                type="number"
+                step="0.1"
+                placeholder={
+                    t(
+                        "dailyCare.enterTemperature"
+                    )
+                }
+                value={
+                    formData.temperature
+                }
+                disabled={
+                    saving
+                }
+                onChange={
+                    event =>
+                        updateField(
+                            "temperature",
+                            event.target.value
+                        )
+                }
+                style={inputStyle}
+            />
 
-                    <label style={labelStyle}>
-                        {t("dailyCare.temperature")}
-                    </label>
+        </div>
 
+        <div>
 
-                    <input
-                        type="number"
-                        step="0.1"
-                        placeholder={
-                            t(
-                                "dailyCare.enterTemperature"
-                            )
-                        }
-                        value={
-                            formData.temperature
-                        }
-                        disabled={
-                            saving
-                        }
-                        onChange={
-                            event =>
-                                updateField(
-                                    "temperature",
-                                    event.target.value
-                                )
-                        }
-                        style={inputStyle}
-                    />
+            <label
+                className="manual-care-label"
+                style={labelStyle}
+            >
+                {t("dailyCare.unit")}
+            </label>
 
-                </div>
+            <select
+                className="manual-care-input"
+                value={
+                    formData.temperatureUnit
+                }
+                disabled={
+                    saving
+                }
+                onChange={
+                    event =>
+                        updateField(
+                            "temperatureUnit",
+                            event.target.value as TemperatureUnit
+                        )
+                }
+                style={inputStyle}
+            >
 
+                <option value="F">
+                    °F
+                </option>
 
-                <div>
+                <option value="C">
+                    °C
+                </option>
 
-                    <label style={labelStyle}>
-                        {t("dailyCare.unit")}
-                    </label>
+            </select>
 
+        </div>
 
-                    <select
-                        value={
-                            formData.temperatureUnit
-                        }
-                        disabled={
-                            saving
-                        }
-                        onChange={
-                            event =>
-                                updateField(
-                                    "temperatureUnit",
-                                    event.target.value as TemperatureUnit
-                                )
-                        }
-                        style={inputStyle}
-                    >
+    </div>
 
-                        <option value="F">
-                            °F
-                        </option>
-
-                        <option value="C">
-                            °C
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-            </div>
-
-        </section>
+</section>
 
 
         {/*------------------------------------------------
           Weight
         ------------------------------------------------*/}
 
-        <section style={cardStyle}>
+<section
+    className="manual-care-card"
+    style={cardStyle}
+>
 
-            <h3 style={sectionTitle}>
-                ⚖ {t("medication.weight")}
-            </h3>
+    <h3
+        className="manual-care-section-title"
+        style={sectionTitle}
+    >
+        ⚖ {t("medication.weight")}
+    </h3>
 
+    <div
+        className="manual-care-temperature"
+        style={temperatureGrid}
+    >
 
-            <div style={temperatureGrid}>
+        <div>
 
-                <div>
+            <label
+                className="manual-care-label"
+                style={labelStyle}
+            >
+                {t("medication.weight")}
+            </label>
 
-                    <label style={labelStyle}>
-                        {t("medication.weight")}
-                    </label>
+            <input
+                className="manual-care-input"
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="Enter weight"
+                value={
+                    formData.weightKg
+                }
+                disabled={
+                    saving
+                }
+                onChange={
+                    event =>
+                        updateField(
+                            "weightKg",
+                            event.target.value
+                        )
+                }
+                style={inputStyle}
+            />
 
+        </div>
 
-                    <input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        placeholder="Enter weight"
-                        value={
-                            formData.weightKg
-                        }
-                        disabled={
-                            saving
-                        }
-                        onChange={
-                            event =>
-                                updateField(
-                                    "weightKg",
-                                    event.target.value
-                                )
-                        }
-                        style={inputStyle}
-                    />
+        <div>
 
-                </div>
+            <label
+                className="manual-care-label"
+                style={labelStyle}
+            >
+                {t("dailyCare.unit")}
+            </label>
 
+<div
+    className="manual-care-input manual-care-unit"
+    style={{
+        ...inputStyle,
+        background:
+            "#f3f4f6",
+        display:
+            "flex",
+        alignItems:
+            "center",
+        justifyContent:
+            "center",
+        minHeight:
+            "38px",
+        height:
+            "38px",
+        boxSizing:
+            "border-box",
+        padding:
+            "7px 9px",
+        fontSize:
+            "13px",
+        lineHeight:
+            "1.2",
+        fontWeight:
+            600,
+    }}
+>
+    kg
+</div>
 
-                <div>
+        </div>
 
-                    <label style={labelStyle}>
-                        {t("dailyCare.unit")}
-                    </label>
+    </div>
 
-
-                    <div
-                        style={{
-                            ...inputStyle,
-                            background:
-                                "#f3f4f6",
-                            display:
-                                "flex",
-                            alignItems:
-                                "center",
-                            minHeight:
-                                "52px",
-                            fontWeight:
-                                600,
-                        }}
-                    >
-                        kg
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
+</section>
 
 
         {/*------------------------------------------------
@@ -1607,27 +1663,146 @@ return (
         </div>
 
 
-        <style jsx>{`
-            @media (max-width: 640px) {
+<style jsx>{`
+    @media (max-width: 640px) {
 
-                .manual-care-actions {
-                    flex-direction:
-                        column-reverse !important;
-                }
+        .manual-care-header {
+            margin-bottom: 12px !important;
+        }
 
-                .manual-care-actions button {
-                    width:
-                        100% !important;
+        .manual-care-title {
+            font-size: 17px !important;
+            line-height: 1.2 !important;
+            margin-bottom: 5px !important;
+        }
 
-                    min-width:
-                        0 !important;
+        .manual-care-description {
+            font-size: 12px !important;
+            line-height: 1.35 !important;
+        }
 
-                    flex:
-                        none !important;
-                }
 
-            }
-        `}</style>
+        /* -----------------------------
+           Cards
+        ----------------------------- */
+
+.manual-care-card {
+    padding: 10px !important;
+    margin-bottom: 8px !important;
+    border-radius: 9px !important;
+}
+
+
+        /* -----------------------------
+           Section headings
+        ----------------------------- */
+
+.manual-care-section-title {
+    font-size: 15px !important;
+    line-height: 1.2 !important;
+    margin: 0 0 7px 0 !important;
+}
+
+
+        /* -----------------------------
+           Field labels
+        ----------------------------- */
+
+.manual-care-label {
+    font-size: 11px !important;
+    margin-bottom: 3px !important;
+    line-height: 1.2 !important;
+}
+
+
+        /* -----------------------------
+           Inputs
+        ----------------------------- */
+
+.manual-care-input {
+    width: 90% !important;
+    min-width: 0 !important;
+    height: 38px !important;
+    box-sizing: border-box !important;
+    padding: 7px 9px !important;
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+}
+
+
+        /* -----------------------------
+           Date / Time
+        ----------------------------- */
+
+.manual-care-date-time {
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr) !important;
+
+    gap: 8px !important;
+}
+
+        .manual-care-date-time > div {
+            min-width: 0 !important;
+        }
+
+
+        /* -----------------------------
+           Temperature / Weight
+        ----------------------------- */
+
+.manual-care-temperature {
+    grid-template-columns:
+        minmax(0, 2fr)
+        minmax(0, 1fr) !important;
+
+    gap: 8px !important;
+}
+
+        .manual-care-unit {
+            justify-content: center;
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+        }
+
+
+        /* -----------------------------
+           Save / Clear
+        ----------------------------- */
+
+        .manual-care-actions {
+            flex-direction:
+                column-reverse !important;
+
+            gap:
+                5px !important;
+
+            margin-top:
+                12px !important;
+        }
+
+        .manual-care-actions button {
+            width:
+                100% !important;
+
+            min-width:
+                0 !important;
+
+            min-height:
+                30px !important;
+
+            padding:
+                9px 10px !important;
+
+            font-size:
+                13px !important;
+
+            flex:
+                none !important;
+        }
+
+    }
+`}</style>
 
 
     </section>

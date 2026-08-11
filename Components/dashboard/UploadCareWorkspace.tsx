@@ -777,13 +777,19 @@ weightKg:
 
     <div style={headerBlock}>
 
-        <h3 style={title}>
-            📷 {t("dailyCare.uploadHealthReading")}
-        </h3>
+<h3
+    className="upload-care-title"
+    style={title}
+>
+    📷 {t("dailyCare.uploadHealthReading")}
+</h3>
 
-        <p style={description}>
-            {t("dailyCare.uploadReadingDescription")}
-        </p>
+<p
+    className="upload-care-description"
+    style={description}
+>
+    {t("dailyCare.uploadReadingDescription")}
+</p>
 
     </div>
 
@@ -791,10 +797,14 @@ weightKg:
 
             {!imageReadSuccessful && (
 
-                <div style={uploadGrid}>
+                <div
+    className="upload-care-grid"
+    style={uploadGrid}
+>
 
 
                     <label
+                    className="upload-care-button"
                         style={{
                             ...uploadButton,
 
@@ -862,6 +872,7 @@ activeImageSource === "camera"
 
 
                     <label
+                    className="upload-care-button"
                         style={{
                             ...uploadButton,
 
@@ -992,38 +1003,33 @@ activeImageSource === "gallery"
 
                     <div>
 
-                        <h3 style={reviewTitle}>
+<h3
+    className="upload-review-title"
+    style={reviewTitle}
+>
+    {t("dailyCare.reviewHealthReading")}
+</h3>
 
-                            {t("dailyCare.reviewHealthReading")}
 
-                        </h3>
-
-
-                        <p style={description}>
-
-                            {t("dailyCare.reviewReadingDescription")}
-
-                        </p>
+<p
+    className="upload-review-description"
+    style={description}
+>
+    {t("dailyCare.reviewReadingDescription")}
+</p>
 
                     </div>
 
 <div
+    className="upload-review-date-time"
     style={{
-        display:
-            "grid",
-
+        display: "grid",
         gridTemplateColumns:
             "repeat(auto-fit, minmax(180px, 1fr))",
-
-        gap:
-            "16px",
-
-        marginBottom:
-            "20px",
+        gap: "16px",
+        marginBottom: "20px",
     }}
->
-
-    <div>
+>    <div>
 
         <label
             style={fieldLabel}
@@ -1032,6 +1038,7 @@ activeImageSource === "gallery"
         </label>
 
         <input
+className="upload-review-input"
             type="date"
 
             value={
@@ -1066,6 +1073,7 @@ activeImageSource === "gallery"
         </label>
 
         <input
+className="upload-review-input"
             type="time"
 
             value={
@@ -1094,7 +1102,10 @@ activeImageSource === "gallery"
 </div>
 
 
-                    <div style={fieldGrid}>
+                    <div
+    className="upload-review-fields"
+    style={fieldGrid}
+>
 
 
                         <div>
@@ -1104,7 +1115,7 @@ activeImageSource === "gallery"
                             </label>
 
                             <input
-
+className="upload-review-input"
                                 type="number"
 
                                 step="0.1"
@@ -1134,6 +1145,7 @@ activeImageSource === "gallery"
     </label>
 
     <input
+className="upload-review-input"
         type="number"
         step="0.1"
         value={reading.weightKg}
@@ -1156,7 +1168,7 @@ activeImageSource === "gallery"
                             </label>
 
                             <select
-
+className="upload-review-input"
                                 value={
                                     reading.temperatureUnit
                                 }
@@ -1193,7 +1205,7 @@ activeImageSource === "gallery"
                             </label>
 
                             <input
-
+className="upload-review-input"
                                 type="number"
 
                                 value={
@@ -1222,7 +1234,7 @@ activeImageSource === "gallery"
                             </label>
 
                             <input
-
+className="upload-review-input"
                                 type="number"
 
                                 value={
@@ -1251,7 +1263,7 @@ activeImageSource === "gallery"
                             </label>
 
                             <input
-
+className="upload-review-input"
                                 type="number"
 
                                 value={
@@ -1280,7 +1292,7 @@ activeImageSource === "gallery"
                             </label>
 
                             <input
-
+className="upload-review-input"
                                 type="number"
 
                                 value={
@@ -1304,10 +1316,14 @@ activeImageSource === "gallery"
                     </div>
 
 
-<div style={actionRow}>
+<div
+    className="upload-review-actions"
+    style={actionRow}
+>
 
     <button
         type="button"
+        className="upload-review-cancel"
         onClick={
             resetUploadSession
         }
@@ -1319,9 +1335,9 @@ activeImageSource === "gallery"
         {t("common.cancel")}
     </button>
 
-
     <button
         type="button"
+        className="upload-review-another"
         onClick={
             resetUploadSession
         }
@@ -1333,9 +1349,9 @@ activeImageSource === "gallery"
         📷 {t("medication.useAnotherPhoto")}
     </button>
 
-
     <button
         type="button"
+        className="upload-review-save"
         onClick={
             saveReading
         }
@@ -1351,27 +1367,240 @@ activeImageSource === "gallery"
                     : 1,
         }}
     >
-
         {
-saving
-    ? t("dailyCare.saving")
-    : `💾 ${t("medication.saveHealthReading")}`
+            saving
+                ? t("dailyCare.saving")
+                : `💾 ${t("medication.saveHealthReading")}`
         }
-
     </button>
 
 </div>
 
                 </div>
-
             )}
 
-        </section>
+<style jsx>{`
+    @media (max-width: 640px) {
 
+        /* ---------------------------------
+           Initial Upload Reading screen
+        --------------------------------- */
+
+        .upload-care-title {
+            font-size: 17px !important;
+            margin-bottom: 5px !important;
+            line-height: 1.2;
+        }
+
+        .upload-care-description {
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .upload-care-grid {
+            gap: 8px !important;
+        }
+
+        .upload-care-button {
+            padding: 11px 8px !important;
+            font-size: 13px !important;
+            border-radius: 9px !important;
+        }
+
+
+        /* ---------------------------------
+           Review heading
+        --------------------------------- */
+
+        .upload-review-title {
+            font-size: 15px !important;
+            line-height: 1.2;
+        }
+
+        .upload-review-description {
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+
+        /* ---------------------------------
+           Date + Time
+        --------------------------------- */
+
+.upload-review-date-time label,
+.upload-review-fields label {
+    font-size: 13px !important;
+    margin-bottom: 5px !important;
+    line-height: 1.2 !important;
+}
+
+.upload-review-date-time {
+    display: grid !important;
+    grid-template-columns:
+        minmax(0, 1fr) minmax(0, 1fr) !important;
+
+    gap: 12px !important;
+
+    margin-bottom:
+        10px !important;
+
+    width: 100% !important;
+}
+
+.upload-review-date-time > div {
+    min-width: 0 !important;
+    width: 95% !important;
+}
+
+.upload-review-date-time .upload-review-input {
+    display: flex !important;
+
+    width: calc(100% - 6px) !important;
+    max-width: 100% !important;
+
+    height: 42px !important;
+
+    box-sizing: border-box !important;
+
+    padding: 0 10px !important;
+
+    font-size: 14px !important;
+
+    line-height: 42px !important;
+
+    vertical-align: middle !important;
+}
+
+        /* ---------------------------------
+           Health readings
+        --------------------------------- */
+
+        .upload-review-fields {
+            grid-template-columns:
+                1fr 1fr !important;
+
+            gap: 10px !important;
+        }
+
+.upload-review-input {
+    width: 100% !important;
+    height: 42px !important;
+    box-sizing: border-box !important;
+    padding: 9px 10px !important;
+    font-size: 15px !important;
+    line-height: 1.2;
+}
+
+
+        /* ---------------------------------
+           Review actions
+        --------------------------------- */
+
+        .upload-review-actions {
+            display: grid !important;
+
+            grid-template-columns:
+                1fr 1.4fr !important;
+
+            gap: 8px !important;
+
+            margin-top:
+                4px !important;
+        }
+
+        .upload-review-cancel {
+            min-width: 0 !important;
+
+            padding:
+                10px 8px !important;
+
+            font-size:
+                12px !important;
+
+            border-radius:
+                9px !important;
+        }
+
+        .upload-review-another {
+            min-width: 0 !important;
+
+            padding:
+                10px 8px !important;
+
+            font-size:
+                12px !important;
+
+            border-radius:
+                9px !important;
+        }
+
+        .upload-review-save {
+            grid-column:
+                1 / -1;
+
+            min-width:
+                0 !important;
+
+            padding:
+                10px 10px !important;
+
+            font-size:
+                13px !important;
+
+            border-radius:
+                9px !important;
+        }
+    }
+
+
+
+.upload-review-fields {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 12px !important;
+}
+
+.upload-review-fields {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 10px !important;
+}
+
+.upload-review-input {
+    width: 100% !important;
+    height: 40px !important;
+    box-sizing: border-box !important;
+    padding: 8px 9px !important;
+    font-size: 14px !important;
+    line-height: 1.2;
+}
+
+        .upload-review-actions {
+            gap:
+                7px !important;
+        }
+
+        .upload-review-cancel,
+        .upload-review-another {
+            padding:
+                9px 6px !important;
+
+            font-size:
+                11.5px !important;
+        }
+
+        .upload-review-save {
+            padding:
+                9px 8px !important;
+
+            font-size:
+                12px !important;
+        }
+    }
+`}</style>
+
+        </section>
     );
 
 }
-
 
 //------------------------------------------------------------
 // Styles

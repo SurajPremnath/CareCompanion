@@ -426,32 +426,35 @@ setIsRecording(
 
   return (
 
-    <div className="space-y-3">
+    <div className="space-y-2">
 
       {!isRecording ? (
 
-        <button
-          type="button"
-          onClick={
-            startRecording
-          }
-          disabled={
-            disabled
-          }
-          className="
-            w-full
-            rounded-xl
-            bg-blue-600
-            px-4
-            py-3
-            font-semibold
-            text-white
-            disabled:cursor-not-allowed
-            disabled:opacity-50
-          "
-        >
-          🎙️ Start Recording
-        </button>
+<button
+    type="button"
+    onClick={
+        startRecording
+    }
+    disabled={
+        disabled
+    }
+className="
+    w-full
+    rounded-xl
+    px-4
+    py-2
+    font-semibold
+    text-white
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+    text-sm
+"
+style={{
+    backgroundColor: "#5B8DEF",
+}}
+>
+    🎙️ Start Recording
+</button>
 
       ) : (
 
