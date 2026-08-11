@@ -688,27 +688,19 @@ return (
     pointer-events: none;
   }
 
-  .login-input {
-    width: 100%;
-
-    height: 41px;
-
-    padding: 0 42px;
-
-    border: 1px solid #d9dce6;
-    border-radius: 11px;
-
-    outline: none;
-
-    background: rgba(255, 255, 255, 0.96);
-
-    color: #15203d;
-
-    font-size: 13.5px;
-
-    -webkit-appearance: none;
-    appearance: none;
-  }
+.login-input {
+  width: 100%;
+  height: 41px;
+  padding: 0 42px;
+  border: 1px solid #d9dce6;
+  border-radius: 11px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.96);
+  color: #15203d;
+  font-size: 16px;
+  -webkit-appearance: none;
+  appearance: none;
+}
 
   .login-input::placeholder {
     color: #9ba1b2;
