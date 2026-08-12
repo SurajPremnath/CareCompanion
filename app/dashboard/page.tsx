@@ -1208,24 +1208,36 @@ const openMobileFeature = (
         return;
     }
 
-    if (
-        feature === "VIEW_HEALTH"
-    ) {
+if (
+    feature === "VIEW_HEALTH"
+) {
 
-        router.push(
-            "/record-health?view=timeline"
-        );
-
-        return;
-    }
-
-    setSelectedAction(
-        feature
+    router.push(
+        "/record-health?view=timeline"
     );
 
-    setMedicationDetail("");
-};
+    return;
+}
 
+if (
+    feature === "ASSESSMENT"
+) {
+
+    router.push(
+        mobileCareMode === "SELF"
+            ? "/record-health?view=assessment&mode=self"
+            : "/record-health?view=assessment"
+    );
+
+    return;
+}
+
+setSelectedAction(
+    feature
+);
+
+setMedicationDetail("");
+};
     //------------------------------------------------------------
     // Performance Completion
     //------------------------------------------------------------
@@ -1326,34 +1338,6 @@ const openMobileFeature = (
     };
 
 
-    const openViewHealth = () => {
-
-        trackFeatureClick(
-            "VIEW_HEALTH"
-        );
-
-
-        performanceTracker.start({
-
-            fromPath:
-                "/dashboard",
-
-            toPath:
-                "/reports",
-
-            feature:
-                "DASHBOARD_TO_REPORTS",
-
-        });
-
-
-        router.push(
-            "/reports"
-        );
-
-    };
-
-
     const openHelp = () => {
 
         trackFeatureClick(
@@ -1399,33 +1383,6 @@ const openMedicationManagement = () => {
 // Start Assessment
 //------------------------------------------------------------
 
-const handleStartAssessment = () => {
-
-    if (
-        personSelection.mode === "SELF"
-    ) {
-
-        router.push(
-            "/self/page2"
-        );
-
-        return;
-
-    }
-
-
-    if (
-        personSelection.mode === "FAMILY" &&
-        personSelection.patientId
-    ) {
-
-        router.push(
-            "/family/page2"
-        );
-
-    }
-
-};
 
 
 const handleDoctorNotesOption = (
@@ -1590,17 +1547,6 @@ const checkPendingMedicationValidation =
         return null;
 
     }
-
-const showPersonSelector =
-
-    selectedAction === "RECORD_HEALTH" ||
-
-    selectedAction === "MEDICATION_MANAGEMENT" ||
-
-    selectedAction === "ASSESSMENT" ||
-
-    selectedAction === "VIEW_HEALTH";
-
 
 const isPersonSelectionComplete =
 
@@ -2334,34 +2280,37 @@ disabled={!consentGranted}
     type="button"
 disabled={!consentGranted}
     onClick={() => {
+
         if (!consentGranted) {
-
             return;
-
         }
 
-        setSelectedAction(
+        trackFeatureClick(
             "ASSESSMENT"
         );
 
+        router.push(
+            personSelection.mode === "SELF"
+                ? "/record-health?view=assessment&mode=self"
+                : "/record-health?view=assessment"
+        );
 
     }}
-        style={{
+    style={{
+        ...mainActionButton,
 
-    ...mainActionButton,
+        opacity:
+            consentGranted
+                ? 1
+                : 0.45,
 
-    opacity:
-        consentGranted
-            ? 1
-            : 0.45,
+        cursor:
+            consentGranted
+                ? "pointer"
+                : "not-allowed",
 
-    cursor:
-        consentGranted
-            ? "pointer"
-            : "not-allowed",
-
-}}
-    >
+    }}
+>
 
         <span
             style={{
@@ -2395,19 +2344,20 @@ disabled={!consentGranted}
 <button
     type="button"
 disabled={!consentGranted}
-    onClick={() => {
-        if (!consentGranted) {
+onClick={() => {
 
-            return;
+    if (!consentGranted) {
+        return;
+    }
 
-        }
+    trackFeatureClick(
+        "VIEW_HEALTH"
+    );
 
-        setSelectedAction(
-            "VIEW_HEALTH"
-        );
-
-        
-    }}
+    router.push(
+        "/record-health?view=timeline"
+    );
+}}
         style={{
 
     ...mainActionButton,
@@ -2499,9 +2449,6 @@ disabled={!consentGranted}
         checkingPendingMedicationValidation
     }
 
-onStartAssessment={
-    handleStartAssessment
-}
 
 onDoctorNotesOptionChange={
     handleDoctorNotesOption

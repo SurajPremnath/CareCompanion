@@ -35,13 +35,11 @@ const {
   const [temperatureUnit, setTemperatureUnit] = useState("F");
   const [energy, setEnergy] = useState("");
 
-  useEffect(() => {
-    setFever(localStorage.getItem("fever") || "");
-    setTemperatureChecked(localStorage.getItem("temperatureChecked") || "");
-    setTemperatureReading(localStorage.getItem("temperatureReading") || "");
-    setTemperatureUnit(localStorage.getItem("temperatureUnit") || "F");
-    setEnergy(localStorage.getItem("energy") || "");
-  }, []);
+useEffect(() => {
+
+    clearAssessmentData();
+
+}, []);
 
 //------------------------------------------------------------
 // Back To Dashboard

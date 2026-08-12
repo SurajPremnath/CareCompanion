@@ -74,6 +74,7 @@ type RecordHealthOption =
     | "MANUAL"
     | "EXECUTIVE_SUMMARY"
     | "CLINICAL_TRENDS"
+    | "START_ASSESSMENT"
     | "";
 
 
@@ -666,17 +667,21 @@ const [
 
 <div className="record-health-heading">
 
-    <h1>
-        {searchParams.get("view") === "timeline"
-            ? "Health Timeline"
+<h1>
+    {searchParams.get("view") === "timeline"
+        ? "Health Timeline"
+        : searchParams.get("view") === "assessment"
+            ? "Health Assessment"
             : "Record Health"}
-    </h1>
+</h1>
 
-    <p>
-        {searchParams.get("view") === "timeline"
-            ? "View your health journey and clinical trends"
+<p>
+    {searchParams.get("view") === "timeline"
+        ? "View your health journey and clinical trends"
+        : searchParams.get("view") === "assessment"
+            ? "Answer a few questions about your current health"
             : "Choose how you want to record today's information"}
-    </p>
+</p>
 
 </div>
 {searchParams.get("view") === "timeline" ? (
@@ -804,6 +809,56 @@ const [
         )}
 
     </>
+
+) : searchParams.get("view") === "assessment" ? (
+
+    <div className="assessment-mobile-panel">
+
+        <button
+            type="button"
+            className="assessment-start-option"
+            onClick={() => {
+
+                if (
+                    careMode === "SELF"
+                ) {
+
+                    router.push(
+                        "/self/page2"
+                    );
+
+                    return;
+                }
+
+                if (
+                    careMode === "FAMILY" &&
+                    selectedPatient
+                ) {
+
+                    router.push(
+                        "/family/page2"
+                    );
+
+                }
+
+            }}
+        >
+
+            <span className="assessment-start-icon">
+                🩺
+            </span>
+
+            <strong>
+                Start Assessment
+            </strong>
+
+            <span>
+                Answer a few questions about your current health
+            </span>
+
+        </button>
+
+    </div>
 
 ) : (
 
@@ -1043,6 +1098,58 @@ const [
 
 
             <style jsx>{`
+
+.assessment-mobile-panel {
+    width: 100%;
+    margin-top: 4px;
+}
+
+.assessment-start-option {
+    width: 100%;
+    min-height: 150px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid #dbe7f7;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #101d45;
+    font-family: inherit;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.assessment-start-option:active {
+    transform: scale(0.99);
+}
+
+.assessment-start-icon {
+    width: 54px;
+    height: 54px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e8f3ff;
+    font-size: 28px;
+}
+
+.assessment-start-option strong {
+    font-size: 16px;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.assessment-start-option > span:last-child {
+    max-width: 280px;
+    color: #59657f;
+    font-size: 12px;
+    line-height: 1.45;
+}
 
                 .record-health-page {
                     min-height: 100vh;
