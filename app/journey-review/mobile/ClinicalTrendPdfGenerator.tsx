@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
     buildClinicalTrends,
@@ -10,6 +10,7 @@ import {
 import {
     trendReportPdf,
 } from "@/lib/pdf/trendReportPdf";
+
 
 interface ClinicalTrendPdfGeneratorProps {
 
@@ -40,7 +41,17 @@ export default function ClinicalTrendPdfGenerator({
 const [trends, setTrends] =
     useState<ClinicalTrendSummary[]>([]);
 
+const generationStartedRef =
+    useRef(false);
+
+
 useEffect(() => {
+
+    if (generationStartedRef.current) {
+        return;
+    }
+
+    generationStartedRef.current = true;
 
     async function startGeneration() {
 

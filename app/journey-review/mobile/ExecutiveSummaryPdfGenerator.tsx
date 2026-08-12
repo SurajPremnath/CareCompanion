@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { executiveSummaryPdf }
     from "@/lib/pdf/executiveSummaryPdf";
@@ -55,7 +55,7 @@ export default function ExecutiveSummaryPdfGenerator({
 
 }: ExecutiveSummaryPdfGeneratorProps) {
 
-    const [progress, setProgress] =
+const [progress, setProgress] =
         useState(0);
 
 const [message, setMessage] =
@@ -63,11 +63,19 @@ const [message, setMessage] =
         "Preparing Executive Summary..."
     );
 
+const generationStartedRef =
+    useRef(false);
 // No state required.
 // Summary and Clinical Story are generated
 // immediately before creating the PDF.
 
 useEffect(() => {
+
+    if (generationStartedRef.current) {
+        return;
+    }
+
+    generationStartedRef.current = true;
 
     async function startGeneration() {
 
