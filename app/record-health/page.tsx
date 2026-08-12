@@ -1170,17 +1170,13 @@ const checkPendingMedicationValidation =
 
             <section className="workspace-section">
 
-                <ExecutiveSummaryPdfGenerator
-                    patientId={
-                        selectedPatient.id
-                    }
-                    patientName={
-                        selectedPatient.fullName
-                    }
-                    onComplete={() => {
-                        setSelectedOption("");
-                    }}
-                />
+<ExecutiveSummaryPdfGenerator
+    patientId={selectedPatient.id}
+    patientName={selectedPatient.fullName}
+    onComplete={() => {
+        setSelectedOption("");
+    }}
+/>
 
             </section>
 
