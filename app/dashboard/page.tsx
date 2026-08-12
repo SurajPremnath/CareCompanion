@@ -78,40 +78,15 @@ import {
 
 import HelpWorkspace from "@/app/components/dashboard/HelpWorkspace";
 
-import ManualCareWorkspace
-    from "@/Components/dashboard/ManualCareWorkspace";
 
 import PersonSelector, {
     type PersonSelection,
 } from "@/Components/patient/PersonSelector";
 
-import ActionOptions, {
-type ActionOption,
-    type MedicationDetailOption,
-} from "@/Components/dashboard/ActionOptions";
-
-import PrescriptionWorkspace
-    from "@/Components/dashboard/PrescriptionWorkspace";
-
-import PendingMedicationValidation
-    from "@/Components/dashboard/PendingMedicationValidation";
-
-import PrescriptionHistoryWorkspace
-    from "@/Components/dashboard/PrescriptionHistoryWorkspace";
-
-import ConsultationWorkspace
-    from "@/Components/dashboard/ConsultationWorkspace";
-
-import DoctorNotesUploadWorkspace
-    from "@/Components/dashboard/DoctorNotesUploadWorkspace";
-
 import {
     consentStorage,
 } from "@/lib/consent/storage/consentStorage";
 
-import {
-    prescriptionStorage,
-} from "@/lib/prescription/prescriptionStorage";
 
 type DashboardUser = {
 
@@ -359,41 +334,6 @@ const [
     );
 
 const [
-    medicationDetail,
-    setMedicationDetail,
-] =
-    useState<MedicationDetailOption>(
-        ""
-    );
-
-const [
-    hasPendingMedicationValidation,
-    setHasPendingMedicationValidation,
-] = useState(false);
-
-const [
-    checkingPendingMedicationValidation,
-    setCheckingPendingMedicationValidation,
-] = useState(false);
-
-
-const [
-    doctorNotesOption,
-    setDoctorNotesOption,
-] =
-    useState<ActionOption>(
-        ""
-    );
-
-const [
-    medicationOption,
-    setMedicationOption,
-] =
-    useState<ActionOption>(
-        ""
-    );
-
-const [
     personSelection,
     setPersonSelection,
 ] =
@@ -413,21 +353,6 @@ const [
 ] = useState<"FAMILY" | "SELF">(
     "FAMILY"
 );
-
-    //------------------------------------------------------------
-    // Reset Care Journey child state whenever the primary action changes
-    //------------------------------------------------------------
-
-    useEffect(() => {
-
-        setMedicationDetail("");
-
-        setDoctorNotesOption("");
-
-        setMedicationOption("");
-
-    }, [selectedAction]);
-
 
     //------------------------------------------------------------
     // Mobile Caretaker Dashboard State
@@ -1116,7 +1041,7 @@ const selectMobilePatient = (
     });
 
     setSelectedAction("");
-    setMedicationDetail("");
+    
 };
 
 
@@ -1137,7 +1062,7 @@ const selectMobileSelf = () => {
     });
 
     setSelectedAction("");
-    setMedicationDetail("");
+    
 };
 
 
@@ -1232,11 +1157,24 @@ if (
     return;
 }
 
+if (
+    feature === "MEDICATION_MANAGEMENT"
+) {
+
+    router.push(
+        mobileCareMode === "SELF"
+            ? "/record-health?view=care-journey&mode=self"
+            : "/record-health?view=care-journey"
+    );
+
+    return;
+}
+
 setSelectedAction(
     feature
 );
 
-setMedicationDetail("");
+
 };
     //------------------------------------------------------------
     // Performance Completion
@@ -1306,36 +1244,6 @@ setMedicationDetail("");
         };
 
 
-    //------------------------------------------------------------
-    // Navigation
-    //------------------------------------------------------------
-
-    const openRecordHealth = () => {
-
-        trackFeatureClick(
-            "RECORD_HEALTH"
-        );
-
-
-        performanceTracker.start({
-
-            fromPath:
-                "/dashboard",
-
-            toPath:
-                "/care",
-
-            feature:
-                "DASHBOARD_TO_CARE",
-
-        });
-
-
-        router.push(
-            "/care"
-        );
-
-    };
 
 
     const openHelp = () => {
@@ -1351,57 +1259,6 @@ setMedicationDetail("");
 
     };
 
-
-const openMedicationManagement = () => {
-
-    trackFeatureClick(
-        "MEDICATION_MANAGEMENT"
-    );
-
-
-    performanceTracker.start({
-
-        fromPath:
-            "/dashboard",
-
-        toPath:
-            "/medications",
-
-        feature:
-            "DASHBOARD_TO_MEDICATIONS",
-
-    });
-
-
-    router.push(
-        "/medications"
-    );
-
-};
-
-//------------------------------------------------------------
-// Start Assessment
-//------------------------------------------------------------
-
-
-
-const handleDoctorNotesOption = (
-    option: ActionOption
-) => {
-
-    setDoctorNotesOption(
-        option
-    );
-
-    if (option) {
-
-        setMedicationDetail(
-            ""
-        );
-
-    }
-
-};
 
     //------------------------------------------------------------
     // Logout
@@ -1471,56 +1328,6 @@ try {
 
     };
 
-
-//------------------------------------------------------------
-// Pending Medication Validation
-//------------------------------------------------------------
-
-const checkPendingMedicationValidation =
-    async (): Promise<void> => {
-
-        if (!user) {
-            return;
-        }
-
-        setCheckingPendingMedicationValidation(
-            true
-        );
-
-        try {
-
-            const pending =
-                await prescriptionStorage
-                    .getPendingMedicationValidation({
-
-                        userId: user.id,
-
-                        patientId:
-                            personSelection.patientId,
-
-                        familyId: null,
-
-                        recordContext:
-                            personSelection.mode === "FAMILY"
-                                ? "FAMILY"
-                                : "SELF",
-
-                    });
-
-            setHasPendingMedicationValidation(
-                pending !== null
-            );
-
-        }
-        finally {
-
-            setCheckingPendingMedicationValidation(
-                false
-            );
-
-        }
-
-    };
 
 
     //------------------------------------------------------------
@@ -1593,9 +1400,8 @@ const mobileSnapshotKey =
             });
 
             setSelectedAction("");
-            setDoctorNotesOption("");
-            setMedicationOption("");
-            setMedicationDetail("");
+            
+            
 
         } else {
 
@@ -1606,9 +1412,7 @@ const mobileSnapshotKey =
             });
 
             setSelectedAction("");
-            setDoctorNotesOption("");
-            setMedicationOption("");
-            setMedicationDetail("");
+            
         }
     }}
     userName={user.fullName}
@@ -2212,22 +2016,23 @@ onClick={() => {
 <button
     type="button"
 disabled={!consentGranted}
-    onClick={() => {
-        if (!consentGranted) {
+onClick={() => {
 
-            return;
+    if (!consentGranted) {
+        return;
+    }
 
-        }
-
-        setSelectedAction(
-            "MEDICATION_MANAGEMENT"
-        );
-
-    setMedicationDetail(
-        ""
+    trackFeatureClick(
+        "MEDICATION_MANAGEMENT"
     );
 
-    }}
+    router.push(
+        personSelection.mode === "SELF"
+            ? "/record-health?view=care-journey&mode=self"
+            : "/record-health?view=care-journey"
+    );
+
+}}
         style={{
 
     ...mainActionButton,
@@ -2414,272 +2219,7 @@ onClick={() => {
 
 </div>
 
-{isPersonSelectionComplete &&
-    selectedAction !== "" &&
-    selectedAction !== "HELP" && (
 
-    <div className="dashboard-action-options" style={actionOptionsWrapper}>
-
-<ActionOptions
-    selectedAction={
-        selectedAction
-    }
-
-    personMode={
-        personSelection.mode === "SELF"
-            ? "SELF"
-            : "FAMILY"
-    }
-
-    patientId={
-        personSelection.patientId
-    }
-
-    patientName={
-        personSelection.mode === "SELF"
-            ? user.fullName
-            : personSelection.patientName ?? ""
-    }
-
-    hasPendingMedicationValidation={
-        hasPendingMedicationValidation
-    }
-
-    checkingPendingMedicationValidation={
-        checkingPendingMedicationValidation
-    }
-
-
-onDoctorNotesOptionChange={
-    handleDoctorNotesOption
-}
-
-onMedicationDetailChange={
-    (option) => {
-
-        setMedicationDetail(
-            option
-        );
-
-        if (option) {
-
-            setDoctorNotesOption(
-                ""
-            );
-
-        }
-
-    }
-}
-
-selectedMedicationDetail={
-    medicationDetail
-}
-
-/>
-    </div>
-
-)}
-
-{selectedAction === "MEDICATION_MANAGEMENT" &&
-    doctorNotesOption === "MANUAL" && (
-
-    <div className="dashboard-workspace" style={workspaceContainer}>
-
-        <ManualCareWorkspace
-            mode={
-                personSelection.mode === "SELF"
-                    ? "self"
-                    : "family"
-            }
-
-            context="DOCTOR_NOTES"
-
-            patientId={
-                personSelection.patientId ??
-                undefined
-            }
-
-            patientName={
-                personSelection.mode === "SELF"
-                    ? user.fullName
-                    : personSelection.patientName ??
-                      ""
-            }
-
-            currentUserName={
-                user.fullName
-            }
-        />
-
-    </div>
-
-)}
-
-{selectedAction === "MEDICATION_MANAGEMENT" &&
-    medicationDetail === "DOCTOR_NOTES_UPLOAD" && (
-        <div className="dashboard-workspace" style={workspaceContainer}>
-            <DoctorNotesUploadWorkspace
-                mode={
-                    personSelection.mode === "SELF"
-                        ? "self"
-                        : "family"
-                }
-                patientId={
-                    personSelection.patientId
-                }
-                patientName={
-                    personSelection.mode === "SELF"
-                        ? user.fullName
-                        : personSelection.patientName ?? ""
-                }
-                currentUserName={
-                    user.fullName
-                }
-                onCancel={() => {
-                    setMedicationDetail("");
-                }}
-            />
-        </div>
-)}
-
-{selectedAction === "MEDICATION_MANAGEMENT" &&
- !hasPendingMedicationValidation && (
-
-    <PrescriptionWorkspace
-    method={
-        medicationDetail
-    }
-
-    userId={
-        user.id
-    }
-
-    recordContext={
-    personSelection.mode === "FAMILY"
-        ? "FAMILY"
-        : "SELF"
-}
-
-    patientId={
-        personSelection.patientId
-    }
-
-patientName={
-    personSelection.mode === "SELF"
-        ? user.fullName
-        : personSelection.patientName ?? ""
-}
-
-
-    familyId={
-        null
-    }
-
-onCancelReview={() => {
-
-    setMedicationDetail(
-        ""
-    );
-
-}}
-
-/>
-
-)}
-
-{selectedAction === "MEDICATION_MANAGEMENT" &&
-    medicationDetail === "CONTINUE_VALIDATION" && (
-
-<PendingMedicationValidation
-
-    userId={user.id}
-
-    patientId={personSelection.patientId}
-
-    familyId={null}
-
-    recordContext={
-        personSelection.mode === "FAMILY"
-            ? "FAMILY"
-            : "SELF"
-    }
-
-    onSaveComplete={async () => {
-
-        const pending =
-            await prescriptionStorage
-                .getPendingMedicationValidation({
-
-                    userId: user.id,
-
-                    patientId: personSelection.patientId,
-
-                    familyId: null,
-
-                    recordContext:
-                        personSelection.mode === "FAMILY"
-                            ? "FAMILY"
-                            : "SELF",
-
-                });
-
-        setHasPendingMedicationValidation(
-            pending !== null
-        );
-
-    }}
-
-    onClose={() => {
-
-        setMedicationDetail("");
-
-    }}
-
-/>
-
-)}
-
-{selectedAction === "MEDICATION_MANAGEMENT" &&
-    medicationDetail === "VIEW_PRESCRIPTIONS" && (
-
-    <div className="dashboard-workspace" style={workspaceContainer}>
-
-        <PrescriptionHistoryWorkspace
-            userId={user.id}
-            recordContext={
-                personSelection.mode === "FAMILY"
-                    ? "FAMILY"
-                    : "SELF"
-            }
-            patientId={personSelection.patientId}
-            patientName={
-                personSelection.mode === "SELF"
-                    ? user.fullName
-                    : personSelection.patientName ?? ""
-            }
-        />
-
-    </div>
-
-)}
-
-{selectedAction === "MEDICATION_MANAGEMENT" &&
-    (
-        medicationDetail === "IN_PERSON" ||
-        medicationDetail === "VIDEO" ||
-        medicationDetail === "PHONE" ||
-        medicationDetail === "HOME_VISIT" ||
-        medicationDetail === "OTHER"
-    ) && (
-
-    <ConsultationWorkspace
-        mode={
-            medicationDetail
-        }
-    />
-
-)}
 
 {selectedAction === "HELP" && (
 
@@ -3895,26 +3435,6 @@ const mainActionWrapper:
 
         marginTop:
             "24px",
-
-    };
-
-const actionOptionsWrapper:
-    React.CSSProperties = {
-
-        marginTop:
-            "20px",
-
-        padding:
-            "20px",
-
-        background:
-            "#f8fafc",
-
-        border:
-            "1px solid #e2e8f0",
-
-        borderRadius:
-            "12px",
 
     };
 

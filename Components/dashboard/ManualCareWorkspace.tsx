@@ -982,11 +982,13 @@ if (
 
         <section style={workspace}>
 
-            <div style={headerBlock}>
-className="manual-care-header"
-                <h3 style={title}>
-                    📝 Doctor's Notes
-                </h3>
+            <div
+    className="manual-care-header"
+    style={headerBlock}
+>
+    <h3 style={title}>
+        📝 Doctor's Notes
+    </h3>
 
                 <p style={description}>
                     Record notes provided by the doctor

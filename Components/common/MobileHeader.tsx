@@ -80,7 +80,7 @@ export default function MobileHeader({
         <header className="carevr-mobile-header">
             <div className="carevr-mobile-brand">
                 <img
-                    src="/images/carevr-logo new.png"
+                    src="/images/CareVR v1.0.png"
                     alt="CareVR"
                     className="carevr-mobile-logo"
                 />

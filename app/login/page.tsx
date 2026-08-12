@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import CareVRFooter from "@/Components/common/CareVRFooter";
 
 import { authService } from "@/lib/auth/authService";
 import {
@@ -151,6 +152,7 @@ return (
         min-height: 720px;
         display: grid;
         grid-template-columns: 47% 53%;
+        position: relative;
         overflow: hidden;
         border-radius: 28px;
         border: 1px solid #e9e5f3;
@@ -176,27 +178,14 @@ return (
    ========================================================= */
 
 .carevr-logo {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-
   width: 250px;
-  height: auto;
-
+  height: 150px;
   margin-bottom: 28px;
 
-  overflow: visible;
-  text-decoration: none;
-}
-
-.carevr-logo img {
-  display: block;
-
-  width: 250px;
-  height: auto;
-
-  object-fit: contain;
-  object-position: center;
+  background-image: url("/images/CareVR%20v1.0.png");
+  background-repeat: no-repeat;
+  background-position: left top;
+  background-size: contain;
 }
 
       .login-content {
@@ -245,7 +234,7 @@ return (
         margin-bottom: 7px;
         font-size: 14px;
         line-height: 1.3;
-        font-weight: 650;
+        font-weight: 700;
         color: #25304d;
       }
 
@@ -314,18 +303,21 @@ return (
         flex-direction: column;
       }
 
-      .forgot-password {
-        display: block;
-        align-self: flex-end;
-        margin: -1px 0 19px auto;
-        padding: 2px 0;
-        border: 0;
-        background: transparent;
-        color: #7043f5;
-        font-size: 13px;
-        font-weight: 650;
-        cursor: pointer;
-      }
+.forgot-password {
+  order: 1;
+  align-self: center;
+  justify-self: start;
+  margin: 0;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: #7043f5;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
 
       .primary-button {
         width: 100%;
@@ -408,72 +400,58 @@ return (
         height: 19px;
       }
 
-      .register {
-        margin: 17px 0 18px;
-        text-align: center;
-        color: #7b8296;
-        font-size: 13px;
-      }
+.register {
+  margin: 8px 0 0;
+  text-align: center;
+  color: #7b8296;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 600;
+}
 
-      .register button {
-        padding: 0;
-        border: 0;
-        background: transparent;
-        color: #7043f5;
-        font-size: inherit;
-        font-weight: 700;
-        cursor: pointer;
-      }
+.register button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #7043f5;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 700;
+  cursor: pointer;
+}
 
-      .security {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        padding: 12px 14px;
-        border-radius: 13px;
-        background: #f7f4ff;
-      }
+.registerPrompt {
+  font-size: 15px;
+  font-weight: 600;
+  color: #7b8296;
+}
 
-      .security-icon {
-        width: 34px;
-        height: 34px;
-        flex: 0 0 34px;
-        display: grid;
-        place-items: center;
-        border-radius: 10px;
-        background: #ece5ff;
-        color: #7043f5;
-      }
+      /* ==============================
+         COMMON CAREVR FOOTER
+      ============================== */
 
-      .security-title {
-        margin: 0 0 2px;
-        font-size: 12px;
-        line-height: 1.35;
-        font-weight: 700;
-        color: #27314d;
-      }
-
-      .security-text {
-        margin: 0;
-        font-size: 11px;
-        line-height: 1.35;
-        color: #7e8598;
+      .login-footer {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 5;
       }
 
       /* ==============================
          RIGHT — BRAND IMAGE
       ============================== */
 
-      .login-right {
-        position: relative;
-        min-height: 720px;
-        overflow: hidden;
-        background:
-          #f2edff
-          url("/images/Desktop%20Login%20Background.png")
-          center center / 100% 100%
-          no-repeat;
-      }
+.login-right {
+  position: relative;
+  min-height: 720px;
+  overflow: hidden;
+  background:
+    #f2edff
+    url("/images/Desktop%20Login%20Background.png")
+    center center / 100% 100%
+    no-repeat;
+}
 
       /* ==============================
          TABLET
@@ -552,6 +530,11 @@ return (
     display: none;
   }
 
+  .login-footer {
+    z-index: 4;
+    padding: 0 12px 8px;
+  }
+
   /* ---------------------------------------------------------
      LOGIN LAYER
      --------------------------------------------------------- */
@@ -590,7 +573,7 @@ return (
   .login-content {
     position: absolute;
 
-    top: 47%;
+    top: 44%;
     left: 6%;
     right: 6%;
 
@@ -605,13 +588,13 @@ return (
      --------------------------------------------------------- */
 
   .login-heading {
-    margin-bottom: 11px;
+    margin-bottom: 9px;
   }
 
   .login-heading h1 {
     margin: 0;
 
-    font-size: 23px;
+    font-size: 27px;
     line-height: 1.1;
 
     letter-spacing: -0.5px;
@@ -663,7 +646,7 @@ return (
     font-size: 10.5px;
     line-height: 1.25;
 
-    font-weight: 600;
+    font-weight: 700;
 
     color: #4b556d;
   }
@@ -773,8 +756,8 @@ return (
 
     color: #7043f5;
 
-    font-size: 10.5px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 650;
 
     white-space: nowrap;
 
@@ -872,94 +855,9 @@ return (
     font-size: 10.5px;
   }
 
-  /* ---------------------------------------------------------
-     SECURITY DISCLAIMER
-     --------------------------------------------------------- */
-
-  .security {
-    position: fixed;
-
-    left: 5%;
-    right: 5%;
-    bottom: 10px;
-
-    z-index: 10;
-
-    display: flex;
-    align-items: center;
-
-    gap: 10px;
-
-    padding: 9px 11px;
-
-    border-radius: 12px;
-
-    background:
-      rgba(247, 244, 255, 0.97);
-
-    box-shadow:
-      0 4px 14px
-      rgba(58, 39, 105, 0.06);
-  }
-
-  .security-icon {
-    width: 32px;
-    height: 32px;
-
-    flex: 0 0 32px;
-
-    display: grid;
-    place-items: center;
-
-    border-radius: 10px;
-
-    background: #ece5ff;
-
-    color: #7043f5;
-  }
-
-  .security-title {
-    margin: 0 0 2px;
-
-    font-size: 11.5px;
-    line-height: 1.25;
-
-    font-weight: 700;
-
-    color: #27314d;
-  }
-
-  .security-text {
-    margin: 0;
-
-    font-size: 10.5px;
-    line-height: 1.3;
-
-    color: #7e8598;
-  }
-}
-
-        .security-icon {
-          width: 32px;
-          height: 32px;
-          flex: 0 0 32px;
-        }
-
-        .security-title {
-          font-size: 11.5px;
-          line-height: 1.25;
-          margin-bottom: 2px;
-        }
-
-        .security-text {
-          font-size: 10.5px;
-          line-height: 1.3;
-        }
-      }
-
       @media (max-width: 380px) {
         .login-content {
-          top: 36.5%;
+          top: 30%;
           left: 5%;
           right: 5%;
         }
@@ -978,7 +876,7 @@ return (
         }
 
         .forgot-password {
-          font-size: 10.5px;
+          font-size: 16px;
         }
 
         .field {
@@ -1002,7 +900,7 @@ return (
 
       @media (max-height: 700px) and (max-width: 600px) {
         .login-content {
-          top: 34%;
+          top: 28%;
         }
 
         .login-heading {
@@ -1028,7 +926,7 @@ return (
         }
 
         .forgot-password {
-          font-size: 10px;
+          font-size: 14px;
         }
 
         .divider {
@@ -1060,14 +958,9 @@ return (
         <div className="login-left">
 
           <div
-            className="carevr-logo"
-            aria-label="CareVR"
-          >
-            <img
-              src="/images/carevr-logo%20Mobile.png"
-              alt="CareVR"
-            />
-          </div>
+  className="carevr-logo"
+  aria-label="CareVR"
+/>
 
           <div className="login-content">
 
@@ -1308,68 +1201,30 @@ return (
                 : "Continue with Google"}
             </button>
 
-            <div className="register">
-              New to CareVR?{" "}
-              <button
-                type="button"
-                onClick={() =>
-                  router.replace("/register")
-                }
-                disabled={loading}
-              >
-                Create an account
-              </button>
-            </div>
-
-            <div className="security">
-
-              <div className="security-icon">
-                <svg
-                  width="19"
-                  height="19"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  aria-hidden="true"
-                >
-                  <path d="M12 3 20 6v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-3Z" />
-                  <rect
-                    x="9"
-                    y="10"
-                    width="6"
-                    height="5"
-                    rx="1"
-                  />
-                  <path d="M10.5 10V8.5a1.5 1.5 0 0 1 3 0V10" />
-                </svg>
-              </div>
-
-              <div>
-                <p className="security-title">
-                  Your health information is private and secure.
-                </p>
-
-                <p className="security-text">
-                  We use industry-standard security
-                  to keep your data safe.
-                </p>
-              </div>
-
-            </div>
-
+<div className="register">
+  <span className="registerPrompt">New to CareVR?  </span>{" "}
+  <button
+    type="button"
+    onClick={() =>
+      router.replace("/register")
+    }
+    disabled={loading}
+  >
+    Create an account
+  </button>
+</div>
           </div>
         </div>
 
+<div className="login-footer">
+  <CareVRFooter />
+</div>
+
 {/* ============================
-            RIGHT — BRAND EXPERIENCE
-        ============================ */}
+    RIGHT — BRAND EXPERIENCE
+============================ */}
 
-        <aside
-          className="login-right"
-          aria-label="CareVR"
-        />
-
+<div className="login-right" aria-hidden="true" />
       </section>
     </main>
   </>

@@ -45,14 +45,39 @@ import CareVRFooter
 import LanguageSelector
     from "@/Components/language/LanguageSelector";
 
+import ManualCareWorkspace
+    from "@/Components/dashboard/ManualCareWorkspace";
+
 import VoiceCareWorkspace
     from "@/Components/dashboard/VoiceCareWorkspace";
 
 import UploadCareWorkspace
     from "@/Components/dashboard/UploadCareWorkspace";
 
-import ManualCareWorkspace
-    from "@/Components/dashboard/ManualCareWorkspace";
+import ActionOptions, {
+    type ActionOption,
+    type MedicationDetailOption,
+} from "@/Components/dashboard/ActionOptions";
+
+
+import PrescriptionWorkspace
+    from "@/Components/dashboard/PrescriptionWorkspace";
+
+import PendingMedicationValidation
+    from "@/Components/dashboard/PendingMedicationValidation";
+
+import PrescriptionHistoryWorkspace
+    from "@/Components/dashboard/PrescriptionHistoryWorkspace";
+
+import ConsultationWorkspace
+    from "@/Components/dashboard/ConsultationWorkspace";
+
+import DoctorNotesUploadWorkspace
+    from "@/Components/dashboard/DoctorNotesUploadWorkspace";
+
+import {
+    prescriptionStorage,
+} from "@/lib/prescription/prescriptionStorage";
 
 import ExecutiveSummaryPdfGenerator
     from "@/app/journey-review/mobile/ExecutiveSummaryPdfGenerator";
@@ -72,6 +97,7 @@ type RecordHealthOption =
     | "VOICE"
     | "UPLOAD"
     | "MANUAL"
+    | "MEDICATION_MANAGEMENT"
     | "EXECUTIVE_SUMMARY"
     | "CLINICAL_TRENDS"
     | "START_ASSESSMENT"
@@ -126,6 +152,103 @@ const [
         ""
     );
 
+const [
+    medicationDetail,
+    setMedicationDetail,
+] =
+    useState<MedicationDetailOption>(
+        ""
+    );
+
+const [
+    hasPendingMedicationValidation,
+    setHasPendingMedicationValidation,
+] =
+    useState(false);
+
+const [
+    checkingPendingMedicationValidation,
+    setCheckingPendingMedicationValidation,
+] =
+    useState(false);
+
+const [
+    doctorNotesOption,
+    setDoctorNotesOption,
+] =
+    useState<ActionOption>(
+        ""
+    );
+
+
+const handleDoctorNotesOption = (
+    option: ActionOption
+) => {
+
+    setDoctorNotesOption(
+        option
+    );
+
+    if (option) {
+
+        setMedicationDetail(
+            ""
+        );
+
+    }
+
+};
+
+const checkPendingMedicationValidation =
+    async (): Promise<void> => {
+
+        if (!user) {
+            return;
+        }
+
+        setCheckingPendingMedicationValidation(
+            true
+        );
+
+        try {
+
+            const pending =
+                await prescriptionStorage
+                    .getPendingMedicationValidation({
+
+                        userId:
+                            user.id,
+
+                        patientId:
+                            careMode === "FAMILY"
+                                ? selectedPatient?.id ??
+                                  null
+                                : null,
+
+                        familyId:
+                            null,
+
+                        recordContext:
+                            careMode === "FAMILY"
+                                ? "FAMILY"
+                                : "SELF",
+
+                    });
+
+            setHasPendingMedicationValidation(
+                pending !== null
+            );
+
+        }
+        finally {
+
+            setCheckingPendingMedicationValidation(
+                false
+            );
+
+        }
+
+    };
 
     const [
         consentGranted,
@@ -684,12 +807,290 @@ const [
 </p>
 
 </div>
-{searchParams.get("view") === "timeline" ? (
+{searchParams.get("view") === "care-journey" ? (
+
+    <>
+
+        <ActionOptions
+            selectedAction="MEDICATION_MANAGEMENT"
+
+            personMode={
+                careMode === "SELF"
+                    ? "SELF"
+                    : "FAMILY"
+            }
+
+            patientId={
+                careMode === "FAMILY"
+                    ? selectedPatient?.id ?? null
+                    : null
+            }
+
+            patientName={
+                careMode === "SELF"
+                    ? user.fullName
+                    : selectedPatient?.fullName ?? ""
+            }
+
+            hasPendingMedicationValidation={
+                hasPendingMedicationValidation
+            }
+
+            checkingPendingMedicationValidation={
+                checkingPendingMedicationValidation
+            }
+
+            onDoctorNotesOptionChange={
+                handleDoctorNotesOption
+            }
+
+            onMedicationDetailChange={
+                (option) => {
+
+                    setMedicationDetail(
+                        option
+                    );
+
+                    if (option) {
+
+                        setDoctorNotesOption(
+                            ""
+                        );
+
+                    }
+
+                }
+            }
+
+            selectedMedicationDetail={
+                medicationDetail
+            }
+        />
+
+        {doctorNotesOption === "MANUAL" && (
+
+    <div className="dashboard-workspace">
+
+        <ManualCareWorkspace
+            mode={
+                careMode === "SELF"
+                    ? "self"
+                    : "family"
+            }
+            context="DOCTOR_NOTES"
+            patientId={
+                careMode === "FAMILY"
+                    ? selectedPatient?.id ??
+                      undefined
+                    : undefined
+            }
+            patientName={
+                careMode === "SELF"
+                    ? user.fullName
+                    : selectedPatient?.fullName ??
+                      ""
+            }
+            currentUserName={
+                user.fullName
+            }
+        />
+
+    </div>
+
+)}
+
+{medicationDetail ===
+    "DOCTOR_NOTES_UPLOAD" && (
+
+    <div className="dashboard-workspace">
+
+        <DoctorNotesUploadWorkspace
+            mode={
+                careMode === "SELF"
+                    ? "self"
+                    : "family"
+            }
+            patientId={
+                careMode === "FAMILY"
+                    ? selectedPatient?.id ??
+                      null
+                    : null
+            }
+            patientName={
+                careMode === "SELF"
+                    ? user.fullName
+                    : selectedPatient?.fullName ??
+                      ""
+            }
+            currentUserName={
+                user.fullName
+            }
+            onCancel={() => {
+                setMedicationDetail("");
+            }}
+        />
+
+    </div>
+
+)}
+
+{medicationDetail !== "" &&
+            !hasPendingMedicationValidation && (
+
+            <PrescriptionWorkspace
+
+                method={
+                    medicationDetail
+                }
+
+                userId={
+                    user.id
+                }
+
+                recordContext={
+                    careMode === "FAMILY"
+                        ? "FAMILY"
+                        : "SELF"
+                }
+
+                patientId={
+                    careMode === "FAMILY"
+                        ? selectedPatient?.id ??
+                          null
+                        : null
+                }
+
+                patientName={
+                    careMode === "SELF"
+                        ? user.fullName
+                        : selectedPatient?.fullName ??
+                          ""
+                }
+
+                familyId={
+                    null
+                }
+
+                onCancelReview={() => {
+
+                    setMedicationDetail(
+                        ""
+                    );
+
+                }}
+
+            />
+
+        )}
+
+        {medicationDetail ===
+            "CONTINUE_VALIDATION" && (
+
+            <PendingMedicationValidation
+
+                userId={
+                    user.id
+                }
+
+                patientId={
+                    careMode === "FAMILY"
+                        ? selectedPatient?.id ??
+                          null
+                        : null
+                }
+
+                familyId={
+                    null
+                }
+
+                recordContext={
+                    careMode === "FAMILY"
+                        ? "FAMILY"
+                        : "SELF"
+                }
+
+                onSaveComplete={
+                    async () => {
+
+                        await checkPendingMedicationValidation();
+
+                    }
+                }
+
+                onClose={() => {
+
+                    setMedicationDetail(
+                        ""
+                    );
+
+                }}
+
+            />
+
+        )}
+
+        {medicationDetail ===
+            "VIEW_PRESCRIPTIONS" && (
+
+            <div className="dashboard-workspace">
+
+                <PrescriptionHistoryWorkspace
+
+                    userId={
+                        user.id
+                    }
+
+                    recordContext={
+                        careMode === "FAMILY"
+                            ? "FAMILY"
+                            : "SELF"
+                    }
+
+                    patientId={
+                        careMode === "FAMILY"
+                            ? selectedPatient?.id ??
+                              null
+                            : null
+                    }
+
+                    patientName={
+                        careMode === "SELF"
+                            ? user.fullName
+                            : selectedPatient?.fullName ??
+                              ""
+                    }
+
+                />
+
+            </div>
+
+        )}
+
+        {(
+            medicationDetail === "IN_PERSON" ||
+            medicationDetail === "VIDEO" ||
+            medicationDetail === "PHONE" ||
+            medicationDetail === "HOME_VISIT" ||
+            medicationDetail === "OTHER"
+        ) && (
+
+            <ConsultationWorkspace
+
+                mode={
+                    medicationDetail
+                }
+
+            />
+
+        )}
+
+    </>
+
+) : searchParams.get("view") === "timeline" ? (
 
     <>
         {careMode === "FAMILY" &&
         selectedPatient?.fullName === "K V Premnath" ? (
-
             <div className="timeline-report-grid">
 
                 <button
