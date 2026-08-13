@@ -303,18 +303,19 @@ const [active,setActive] = useState(0);
 
 
 
-          <div
-            className="
-            relative
-            flex
-            h-[520px]
-            items-center
-            justify-center
-            overflow-hidden
-            rounded-[24px]
-            bg-blue-50
-            "
-          >
+<div
+    className="
+    relative
+    flex
+    h-[420px]
+    sm:h-[520px]
+    items-center
+    justify-center
+    overflow-hidden
+    rounded-[24px]
+    bg-blue-50
+"
+>
 
 
 <Image
