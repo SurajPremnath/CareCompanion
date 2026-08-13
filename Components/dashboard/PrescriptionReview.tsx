@@ -318,35 +318,38 @@ const handleReviewMedicines = () => {
 
 const handleReviewCompleted = () => {
 
-const pendingMedicines =
-    reviewPrescription.medicines.filter(
-        medicine =>
-            medicine.reviewStatus === "REVIEW"
-    );
+    const pendingMedicines =
+        reviewPrescription.medicines.filter(
+            medicine =>
+                medicine.reviewStatus === "REVIEW"
+        );
 
-const validatedCount =
-    reviewPrescription.medicines.filter(
-        medicine =>
-            medicine.reviewStatus === "VERIFIED"
-    ).length;
+    const validatedCount =
+        reviewPrescription.medicines.filter(
+            medicine =>
+                medicine.reviewStatus === "VERIFIED"
+        ).length;
 
-const excludedCount =
-    reviewPrescription.medicines.filter(
-        medicine =>
-            medicine.reviewStatus === "EXCLUDED"
-    ).length;
+    const excludedCount =
+        reviewPrescription.medicines.filter(
+            medicine =>
+                medicine.reviewStatus === "EXCLUDED"
+        ).length;
 
-setReviewSummary({
+    setReviewSummary({
 
-    validated: validatedCount,
+        validated:
+            validatedCount,
 
-    excluded: excludedCount,
+        excluded:
+            excludedCount,
 
-    pending: pendingMedicines.map(
-        medicine => medicine.name
-    ),
+        pending:
+            pendingMedicines.map(
+                medicine => medicine.name
+            ),
 
-});
+    });
 
     setReviewMode(false);
 

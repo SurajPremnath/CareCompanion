@@ -447,32 +447,63 @@ const checkPendingMedicationValidation =
     }, [router]);
 
 
-    const selectedPatient =
-        useMemo(
-            () =>
-                patients.find(
-                    patient =>
-                        patient.id ===
-                        selectedPatientId
-                ) ?? null,
-            [
-                patients,
-                selectedPatientId,
-            ]
-        );
+const selectedPatient =
+    useMemo(
+        () =>
+            patients.find(
+                patient =>
+                    patient.id ===
+                    selectedPatientId
+            ) ?? null,
+        [
+            patients,
+            selectedPatientId,
+        ]
+    );
 
 
-    /*
-     * Changing Family / Self clears
-     * the current recording option.
-     *
-     * Family:
-     *   patient must be selected.
-     *
-     * Self:
-     *   no Patient record is required.
-     */
-    const handleCareModeChange =
+/*
+ * Check whether the current user / patient
+ * has any medicines waiting for validation.
+ *
+ * This must run after:
+ * - user is loaded
+ * - patients are loaded
+ * - selected patient is available
+ */
+useEffect(() => {
+
+    if (!user) {
+        return;
+    }
+
+    if (
+        careMode === "FAMILY" &&
+        !selectedPatient
+    ) {
+        return;
+    }
+
+    void checkPendingMedicationValidation();
+
+}, [
+    user,
+    careMode,
+    selectedPatient,
+]);
+
+
+/*
+ * Changing Family / Self clears
+ * the current recording option.
+ *
+ * Family:
+ *   patient must be selected.
+ *
+ * Self:
+ *   no Patient record is required.
+ */
+const handleCareModeChange =
         (
             mode: MobileCareMode
         ) => {
@@ -935,53 +966,58 @@ const checkPendingMedicationValidation =
 )}
 
 {medicationDetail !== "" &&
-            !hasPendingMedicationValidation && (
+    !hasPendingMedicationValidation && (
 
-            <PrescriptionWorkspace
+    <PrescriptionWorkspace
 
-                method={
-                    medicationDetail
-                }
+        method={
+            medicationDetail
+        }
 
-                userId={
-                    user.id
-                }
+        userId={
+            user.id
+        }
 
-                recordContext={
-                    careMode === "FAMILY"
-                        ? "FAMILY"
-                        : "SELF"
-                }
+        recordContext={
+            careMode === "FAMILY"
+                ? "FAMILY"
+                : "SELF"
+        }
 
-                patientId={
-                    careMode === "FAMILY"
-                        ? selectedPatient?.id ??
-                          null
-                        : null
-                }
+        patientId={
+            careMode === "FAMILY"
+                ? selectedPatient?.id ??
+                  null
+                : null
+        }
 
-                patientName={
-                    careMode === "SELF"
-                        ? user.fullName
-                        : selectedPatient?.fullName ??
-                          ""
-                }
+        patientName={
+            careMode === "SELF"
+                ? user.fullName
+                : selectedPatient?.fullName ??
+                  ""
+        }
 
-                familyId={
-                    null
-                }
+        familyId={
+            null
+        }
 
-                onCancelReview={() => {
+        onCancelReview={() => {
 
-                    setMedicationDetail(
-                        ""
-                    );
+            setMedicationDetail("");
 
-                }}
+        }}
 
-            />
+onSaveComplete={async () => {
 
-        )}
+    await checkPendingMedicationValidation();
+
+    setMedicationDetail("");
+
+}}
+    />
+
+)}
 
         {medicationDetail ===
             "CONTINUE_VALIDATION" && (

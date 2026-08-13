@@ -15,6 +15,14 @@ import type {
     PrescriptionRecordContext,
 } from "@/lib/prescription/prescriptionTypes";
 
+import {
+    ClinicalEventBuilder,
+} from "@/lib/builders/clinicalEventBuilder";
+
+import {
+    ClinicalEventStorage,
+} from "@/lib/storage/clinicalEventStorage";
+
 
 //------------------------------------------------------------
 // Save Context
@@ -274,14 +282,33 @@ export const prescriptionStorage = {
             );
 
 
-        //----------------------------------------------------
-        // Save Structured Data
-        //----------------------------------------------------
+//----------------------------------------------------
+// Save Structured Data
+//----------------------------------------------------
 
-        return prescriptionRepository
-            .create(
-                saveInput
-            );
+const savedPrescription =
+    await prescriptionRepository.create(
+        saveInput
+    );
+
+//----------------------------------------------------
+// Create Common Clinical Event
+//----------------------------------------------------
+
+const clinicalEvent =
+    ClinicalEventBuilder.fromPrescription(
+        savedPrescription
+    );
+
+await ClinicalEventStorage.create(
+    clinicalEvent
+);
+
+//----------------------------------------------------
+// Return Saved Prescription
+//----------------------------------------------------
+
+return savedPrescription;
 
     },
 

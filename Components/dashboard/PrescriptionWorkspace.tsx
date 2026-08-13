@@ -28,14 +28,6 @@ import {
 
 
 import {
-    DuplicatePrescriptionEngine,
-} from "@/lib/prescription/duplicate/DuplicatePrescriptionEngine";
-
-import {
-    DuplicatePrescriptionMapper,
-} from "@/lib/prescription/duplicate/mapper/DuplicatePrescriptionMapper";
-
-import {
     generateValidationCards,
 } from "@/lib/prescription-ai/validation/gatekeeperGenerator";
 
@@ -85,6 +77,7 @@ interface PrescriptionWorkspaceProps {
 
     onCancelReview: () => void;
 
+    onSaveComplete?: () => void;
 }
 
 //------------------------------------------------------------
@@ -100,6 +93,7 @@ export default function PrescriptionWorkspace({
     patientName,
     familyId,
     onCancelReview,
+    onSaveComplete,
 }: PrescriptionWorkspaceProps) {
 
 
@@ -798,57 +792,7 @@ if (
     return;
 }
 
-//------------------------------------------------------
-// DUPLICATE CHECK
-//------------------------------------------------------
 
-const previousPrescriptions =
-    await prescriptionStorage
-        .getPatientPrescriptions({
-
-            userId,
-
-            patientId,
-
-            familyId,
-
-            recordContext,
-
-        });
-
-for (const previousPrescription of previousPrescriptions) {
-
-const current =
-    DuplicatePrescriptionMapper.fromOCR(
-        result.data
-    );
-
-const previous =
-    DuplicatePrescriptionMapper.fromDatabase(
-        previousPrescription
-    );
-
-const comparison =
-    DuplicatePrescriptionEngine.compare(
-        current,
-        previous
-    );
-
-
-const duplicate =
-    DuplicatePrescriptionEngine.check(
-        result.data,
-        previousPrescription
-    );
-
-if (duplicate.status === "EXACT_DUPLICATE") {
-
-    alert("Duplicate Prescription Found");
-
-    return;
-
-}
-}
 
 setExtractedPrescription(
     result.data
@@ -910,47 +854,6 @@ async function savePrescription(
 
     try {
 
-//------------------------------------------------------------
-// TEMPORARY DEVELOPER VALIDATION
-//------------------------------------------------------------
-
-console.log("");
-console.log("======================================================");
-console.log("CAREVR MEDICINE VALIDATION");
-console.log("======================================================");
-
-reviewedPrescription.medicines.forEach(
-    (medicine, index) => {
-
-        console.log(`Medicine ${index + 1}`);
-
-        console.log(
-            "OCR      :",
-            medicine.ocrMedicineName ?? medicine.name
-        );
-
-        console.log(
-            "USER     :",
-            medicine.name
-        );
-
-        console.log(
-            "MASTER   :",
-            medicine.resolvedMedicineName ?? "NOT FOUND"
-        );
-
-        console.log(
-            "MASTER ID:",
-            medicine.resolvedMedicineId ?? "NULL"
-        );
-
-        console.log("--------------------------------------");
-    }
-);
-
-console.log("======================================================");
-console.log("END OF VALIDATION");
-console.log("======================================================");
 
 //------------------------------------------------------------
 // SAVE PRESCRIPTION
@@ -972,6 +875,8 @@ removeAllSelectedFiles();
 setSaveSuccess(
     t("medication.saveSuccess")
 );
+
+onSaveComplete?.();
 
     }
     catch (error) {

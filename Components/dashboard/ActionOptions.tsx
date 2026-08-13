@@ -412,7 +412,15 @@ style={optionButton}
                     );
 
                 }}
-style={optionButton}
+    style={{
+        ...optionButton,
+
+        ...(
+            selectedOption === "UPLOAD"
+                ? selectedOptionButton
+                : {}
+        ),
+    }}
             >
 
                 <span style={optionIcon}>
@@ -442,7 +450,15 @@ style={optionButton}
                     );
 
                 }}
-style={optionButton}
+    style={{
+        ...optionButton,
+
+        ...(
+            selectedOption === "MANUAL"
+                ? selectedOptionButton
+                : {}
+        ),
+    }}
             >
 
                 <span style={optionIcon}>
@@ -626,48 +642,56 @@ style={optionButton}
                 }}
             >
 
-                <button
-                    type="button"
-                    onClick={() => {
+<button
+    type="button"
+    onClick={() => {
 
-                        if (
-                            hasPendingMedicationValidation
-                        ) {
+        if (
+            hasPendingMedicationValidation
+        ) {
 
-                            setSelectedOption(
-                                "ADD_PRESCRIPTION"
-                            );
+            setSelectedOption(
+                "ADD_PRESCRIPTION"
+            );
 
-                            setMedicationDetailOption(
-                                "CONTINUE_VALIDATION"
-                            );
+            setMedicationDetailOption(
+                "CONTINUE_VALIDATION"
+            );
 
-                            onMedicationDetailChange?.(
-                                "CONTINUE_VALIDATION"
-                            );
+            onMedicationDetailChange?.(
+                "CONTINUE_VALIDATION"
+            );
 
-                            return;
-                        }
+            return;
+        }
 
-                        setSelectedOption(
-                            "ADD_PRESCRIPTION"
-                        );
+        setSelectedOption(
+            "ADD_PRESCRIPTION"
+        );
 
-                        setMedicationDetailOption(
-                            ""
-                        );
+        setMedicationDetailOption(
+            ""
+        );
 
-                        onMedicationDetailChange?.(
-                            ""
-                        );
+        onMedicationDetailChange?.(
+            ""
+        );
 
-                        onDoctorNotesOptionChange?.(
-                            ""
-                        );
+        onDoctorNotesOptionChange?.(
+            ""
+        );
 
-                    }}
-style={optionButton}
-                >
+    }}
+    style={{
+        ...optionButton,
+
+        ...(
+            selectedOption === "ADD_PRESCRIPTION"
+                ? selectedOptionButton
+                : {}
+        ),
+    }}
+>
 
                     <span style={optionIcon}>
                         {
@@ -709,7 +733,15 @@ style={optionButton}
                         );
 
                     }}
-style={optionButton}
+    style={{
+        ...optionButton,
+
+        ...(
+            selectedOption === "VIEW_PRESCRIPTIONS"
+                ? selectedOptionButton
+                : {}
+        ),
+    }}
                 >
 
                     <span style={optionIcon}>
@@ -774,7 +806,15 @@ style={optionButton}
                     );
 
                 }}
-style={optionButton}
+    style={{
+        ...optionButton,
+
+        ...(
+            selectedOption === "VOICE"
+                ? selectedOptionButton
+                : {}
+        ),
+    }}
             >
 
                 <span style={optionIcon}>
@@ -805,7 +845,15 @@ style={optionButton}
                     );
 
                 }}
-style={optionButton}
+    style={{
+        ...optionButton,
+
+        ...(
+            selectedOption === "UPLOAD"
+                ? selectedOptionButton
+                : {}
+        ),
+    }}
             >
 
                 <span style={optionIcon}>
@@ -840,7 +888,15 @@ style={optionButton}
                     );
 
                 }}
-style={optionButton}
+    style={{
+        ...optionButton,
+
+        ...(
+            selectedOption === "MANUAL"
+                ? selectedOptionButton
+                : {}
+        ),
+    }}
             >
 
                 <span style={optionIcon}>
@@ -1057,8 +1113,8 @@ style={optionButton}
 )}
 
 {selectedAction === "MEDICATION_MANAGEMENT" &&
-    selectedOption === "ADD_PRESCRIPTION" && (
-
+    selectedOption === "ADD_PRESCRIPTION" &&
+    !hasPendingMedicationValidation && (
     <div style={detailSection}>
 
         <label style={label}>
@@ -1141,55 +1197,66 @@ style={optionButton}
     </button>
 
 
-    <button
-        type="button"
-        onClick={() => {
+<button
+    type="button"
+    onClick={() => {
 
-            setMedicationDetailOption(
-                "CHOOSE_PHOTOS"
-            );
+        setMedicationDetailOption(
+            "CHOOSE_PHOTOS"
+        );
 
-            onMedicationDetailChange?.(
-                "CHOOSE_PHOTOS"
-            );
+        onMedicationDetailChange?.(
+            "CHOOSE_PHOTOS"
+        );
+
+    }}
+    style={{
+        ...optionButton,
+
+        ...(selectedMedicationDetail === "CHOOSE_PHOTOS"
+            ? selectedOptionButton
+            : {}),
+    }}
+>
+    <span style={optionIcon}>
+        🖼️
+    </span>
+
+    <span style={optionLabel}>
+        {t("medication.choosePhotos")}
+    </span>
+</button>
 
 
-        }}
-style={optionButton}
-    >
-        <span style={optionIcon}>
-            🖼️
-        </span>
+<button
+    type="button"
+    onClick={() => {
 
-        <span style={optionLabel}>
-            {t("medication.choosePhotos")}
-        </span>
-    </button>
+        setMedicationDetailOption(
+            "UPLOAD_PDF"
+        );
 
+        onMedicationDetailChange?.(
+            "UPLOAD_PDF"
+        );
 
-    <button
-        type="button"
-        onClick={() => {
+    }}
+    style={{
+        ...optionButton,
 
-            setMedicationDetailOption(
-                "UPLOAD_PDF"
-            );
+        ...(selectedMedicationDetail === "UPLOAD_PDF"
+            ? selectedOptionButton
+            : {}),
+    }}
+>
+    <span style={optionIcon}>
+        📄
+    </span>
 
-            onMedicationDetailChange?.(
-                "UPLOAD_PDF"
-            );
-
-        }}
-style={optionButton}
-    >
-        <span style={optionIcon}>
-            📄
-        </span>
-
-        <span style={optionLabel}>
-            {t("medication.uploadPdf")}
-        </span>
-    </button>
+    <span style={optionLabel}>
+        {t("medication.uploadPdf")}
+    </span>
+</button>
 
 </div>        
 

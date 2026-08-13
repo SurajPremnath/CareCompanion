@@ -5,6 +5,10 @@ import {
   CreateClinicalEventRequest,
 } from "@/lib/types/clinicalEvent";
 
+import type {
+  CompletePrescriptionRecord,
+} from "@/lib/prescription/prescriptionTypes";
+
 export class ClinicalEventBuilder {
 
   //------------------------------------------------------------
@@ -71,6 +75,76 @@ export class ClinicalEventBuilder {
         summary.length > 0
           ? summary.join(" • ")
           : "Daily care recorded"
+
+    };
+
+  }
+
+  //------------------------------------------------------------
+  // Prescription -> Clinical Event
+  //------------------------------------------------------------
+
+  static fromPrescription(
+    record: CompletePrescriptionRecord
+  ): CreateClinicalEventRequest {
+
+    const prescription =
+      record.prescription;
+
+    const summary: string[] = [];
+
+    if (prescription.doctorName) {
+      summary.push(
+        `Doctor: ${prescription.doctorName}`
+      );
+    }
+
+    if (prescription.hospitalOrClinic) {
+      summary.push(
+        `Hospital/Clinic: ${prescription.hospitalOrClinic}`
+      );
+    }
+
+    if (prescription.diagnosisOrAssessment) {
+      summary.push(
+        prescription.diagnosisOrAssessment
+      );
+    }
+
+    if (record.medicines.length > 0) {
+      summary.push(
+        `${record.medicines.length} medicine(s)`
+      );
+    }
+
+    return {
+
+      userId:
+        prescription.userId,
+
+      patientId:
+        prescription.patientId,
+
+      eventType:
+        ClinicalEventType.PRESCRIPTION,
+
+      sourceTable:
+        "prescriptions",
+
+      sourceId:
+        prescription.id,
+
+      eventDate:
+        prescription.consultationDate ??
+        prescription.createdAt,
+
+      title:
+        "Prescription / Consultation",
+
+      summary:
+        summary.length > 0
+          ? summary.join(" • ")
+          : "Prescription recorded",
 
     };
 
