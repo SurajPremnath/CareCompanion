@@ -5,15 +5,28 @@ export default function AboutPage() {
         <>
             <HelpBackButton />
 
-            <h2
-                style={{
-                    fontSize: "30px",
-                    marginBottom: "24px",
-                    color: "#111827",
-                }}
-            >
-                ℹ️ About CareVR
-            </h2>
+<div
+    style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: "clamp(18px, 5vw, 24px)",
+        width: "100%",
+        padding: "0 8px",
+        boxSizing: "border-box",
+    }}
+>
+    <img
+        src="/images/CareVR v1.0.png"
+        alt="CareVR"
+        style={{
+            display: "block",
+            width: "clamp(140px, 45vw, 180px)",
+            height: "auto",
+            maxWidth: "100%",
+        }}
+    />
+</div>
 
             {/* What is CareVR */}
 
@@ -40,47 +53,88 @@ export default function AboutPage() {
                 </p>
             </section>
 
-            {/* Vision */}
+{/* Vision */}
 
-            <section style={sectionStyle}>
-                <h3 style={headingStyle}>Our Vision</h3>
+<section style={sectionStyle}>
+    <h3 style={headingStyle}>Our Vision</h3>
 
-                <p style={paragraphStyle}>
-                    To make healthcare information simple, accessible and
-                    meaningful for every patient, caregiver and family through
-                    intelligent digital healthcare solutions.
-                </p>
-            </section>
+    <p style={paragraphStyle}>
+        A world where every patient has an intelligent, continuous
+        understanding of their health journey — from everyday
+        observations to consultation, diagnosis, treatment and follow-up.
+    </p>
+</section>
 
-            {/* Mission */}
+{/* Mission */}
 
-            <section style={sectionStyle}>
-                <h3 style={headingStyle}>Our Mission</h3>
+<section style={sectionStyle}>
+    <h3 style={headingStyle}>Our Mission</h3>
 
-                <p style={paragraphStyle}>
-                    We aim to simplify everyday healthcare by providing secure,
-                    intelligent and easy-to-use tools that help users record,
-                    understand and share important health information with
-                    confidence.
-                </p>
-            </section>
+    <p style={paragraphStyle}>
+        To build the simplest and most intelligent personal healthcare
+        companion that helps patients, caregivers and doctors understand
+        and act on a continuous health journey.
+    </p>
+</section>
 
-            {/* Core Principles */}
+{/* What Makes CareVR Different */}
 
-            <section style={sectionStyle}>
-                <h3 style={headingStyle}>Our Principles</h3>
+<section style={sectionStyle}>
+    <h3 style={headingStyle}>What Makes CareVR Different</h3>
 
-                <ul style={listStyle}>
-                    <li>Simplicity First</li>
-                    <li>Privacy by Design</li>
-                    <li>AI with Human Oversight</li>
-                    <li>Accessibility for Everyone</li>
-                    <li>Mobile-First Experience</li>
-                    <li>Localization First</li>
-                    <li>Continuity of Care</li>
-                    <li>Security and Trust</li>
-                </ul>
-            </section>
+    <p
+        style={{
+            ...paragraphStyle,
+            fontSize: "20px",
+            fontWeight: 600,
+            color: "#111827",
+        }}
+    >
+        Others store your health records. CareVR understands your health
+        journey.
+    </p>
+
+    <p style={paragraphStyle}>
+        CareVR is designed to understand how each new piece of health
+        information relates to what came before — connecting observations,
+        symptoms, consultations, doctors, investigations, diagnoses,
+        medications, treatment and follow-up into an evolving clinical
+        journey.
+    </p>
+</section>
+
+{/* Five Pillars */}
+
+<section style={sectionStyle}>
+    <h3 style={headingStyle}>Our 5 Pillars</h3>
+
+    <ul style={listStyle}>
+        <li>
+            <strong>Effortless Capture</strong> — Make recording health
+            information simple and natural.
+        </li>
+
+        <li>
+            <strong>Intelligent Understanding</strong> — Understand what
+            health information means, not just store it.
+        </li>
+
+        <li>
+            <strong>Clinical Continuity</strong> — Connect every new event
+            to the patient's evolving clinical journey.
+        </li>
+
+        <li>
+            <strong>Trusted &amp; Private Care</strong> — Protect health
+            information through privacy, security and traceability.
+        </li>
+
+        <li>
+            <strong>Simple, Fast &amp; Adaptive Experience</strong> —
+            Adapt CareVR to the patient, not the other way around.
+        </li>
+    </ul>
+</section>
 
             {/* Core Features */}
 
@@ -101,25 +155,39 @@ export default function AboutPage() {
                 </ul>
             </section>
 
-            {/* AI */}
+{/* AI */}
 
-            <section style={sectionStyle}>
-                <h3 style={headingStyle}>Artificial Intelligence</h3>
+<section style={sectionStyle}>
+    <h3 style={headingStyle}>Clinical Journey Intelligence</h3>
 
-                <p style={paragraphStyle}>
-                    CareVR uses Artificial Intelligence to help simplify health
-                    record management. AI capabilities assist users in
-                    organizing information, understanding prescriptions,
-                    generating summaries and improving access to healthcare
-                    information.
-                </p>
+    <p style={paragraphStyle}>
+        CareVR is designed to go beyond storing and summarizing health
+        information. Its intelligence is built to understand how new
+        health information fits into the patient's evolving clinical
+        journey.
+    </p>
 
-                <p style={paragraphStyle}>
-                    AI recommendations are intended to assist users and should
-                    always be interpreted alongside advice from qualified
-                    healthcare professionals.
-                </p>
-            </section>
+    <p style={paragraphStyle}>
+        As information is recorded, CareVR can connect relevant
+        observations, symptoms, consultations, doctors, investigations,
+        diagnoses, medications, treatment and follow-up information.
+        Where clarification is genuinely needed, CareVR can ask focused
+        questions rather than making the user repeatedly enter information
+        that is already known.
+    </p>
+
+    <p style={paragraphStyle}>
+        Over time, this creates a more connected understanding of the
+        patient's health journey and supports meaningful timelines,
+        summaries and reports.
+    </p>
+
+    <p style={paragraphStyle}>
+        CareVR's intelligence is intended to assist patients, caregivers
+        and healthcare professionals. It does not replace medical
+        diagnosis, clinical judgment or professional medical advice.
+    </p>
+</section>
 
             {/* Privacy */}
 
@@ -144,7 +212,7 @@ export default function AboutPage() {
                 </p>
 
                 <p style={paragraphStyle}>
-                    <strong>Version:</strong> 1.0
+                    <strong>Version:</strong> 1.1
                 </p>
 
                 <p style={paragraphStyle}>
@@ -202,27 +270,32 @@ const sectionStyle: React.CSSProperties = {
     background: "#ffffff",
     border: "1px solid #e5e7eb",
     borderRadius: "12px",
-    padding: "24px",
-    marginBottom: "24px",
+    padding: "clamp(16px, 4vw, 24px)",
+    marginBottom: "16px",
     boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+    width: "100%",
+    boxSizing: "border-box",
 };
 
 const headingStyle: React.CSSProperties = {
     marginTop: 0,
-    marginBottom: "14px",
+    marginBottom: "12px",
     color: "#111827",
-    fontSize: "22px",
+    fontSize: "clamp(19px, 5vw, 22px)",
+    lineHeight: 1.3,
 };
 
 const paragraphStyle: React.CSSProperties = {
     color: "#4b5563",
-    lineHeight: 1.8,
-    marginBottom: "16px",
+    lineHeight: 1.65,
+    marginBottom: "14px",
+    fontSize: "clamp(15px, 3.8vw, 16px)",
 };
 
 const listStyle: React.CSSProperties = {
     color: "#4b5563",
-    lineHeight: 2,
-    paddingLeft: "24px",
+    lineHeight: 1.7,
+    paddingLeft: "20px",
     marginBottom: 0,
+    fontSize: "clamp(15px, 3.8vw, 16px)",
 };

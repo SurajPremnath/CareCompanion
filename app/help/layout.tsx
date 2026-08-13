@@ -12,13 +12,15 @@ export default function HelpLayout({
         background: "#f9fafb",
       }}
     >
-      <main
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-          padding: "32px 20px",
-        }}
-      >
+<main
+    style={{
+        width: "100%",
+        maxWidth: "900px",
+        margin: "0 auto",
+        padding: "clamp(20px, 5vw, 32px) clamp(16px, 4vw, 20px)",
+        boxSizing: "border-box",
+    }}
+>
         {/* Header */}
 
         <header
@@ -26,21 +28,22 @@ export default function HelpLayout({
             marginBottom: "32px",
           }}
         >
-          <h1
-            style={{
-              margin: 0,
-              fontSize: "36px",
-              color: "#111827",
-            }}
-          >
-            📖 CareVR Help Centre
-          </h1>
+<h1
+    style={{
+        margin: 0,
+        fontSize: "clamp(26px, 7vw, 36px)",
+        lineHeight: 1.2,
+        color: "#111827",
+    }}
+>
+    📖 CareVR Help Centre
+</h1>
 
           <p
             style={{
               marginTop: "10px",
               marginBottom: "4px",
-              fontSize: "18px",
+              fontSize: "clamp(16px, 4.5vw, 18px)",
               fontWeight: 600,
               color: "#374151",
             }}
@@ -53,7 +56,8 @@ export default function HelpLayout({
     marginTop: "8px",
     color: "#2563eb",
     fontWeight: 600,
-    fontSize: "16px",
+fontSize: "clamp(15px, 4vw, 16px)",
+lineHeight: 1.5,
   }}
 >
   AI-powered healthcare companion for patients, families and caregivers.
