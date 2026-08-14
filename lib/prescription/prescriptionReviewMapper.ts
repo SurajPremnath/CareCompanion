@@ -19,21 +19,33 @@ return {
     // Patient Identity
     //--------------------------------------------------------
 
-    patientIdentity: {
+patientIdentity: {
 
-        patientName: null,
+    patientName: null,
 
-        patientDateOfBirth: null,
+    patientDateOfBirth: null,
 
-        patientAge: null,
+    patientAge: null,
 
-        patientGender: null,
+    patientGender: null,
 
-        patientUHID: null,
+    patientUHID: null,
 
-        patientNameVariations: [],
+    patientNameVariations: [],
 
-    },
+    //--------------------------------------------------------
+    // Demographic Extraction Provenance
+    //--------------------------------------------------------
+
+    ageFlag: false,
+
+    sexFlag: false,
+
+    ageSource: null,
+
+    sexSource: null,
+
+},
 
 
     //--------------------------------------------------------

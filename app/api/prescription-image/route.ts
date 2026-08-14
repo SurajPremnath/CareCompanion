@@ -359,39 +359,71 @@ return {
   // Patient Identity
   //----------------------------------------------------------
 
-  patientIdentity: {
+patientIdentity: {
 
-    patientName:
-      toNullableString(
-        patientIdentity.patientName
-      ),
+  patientName:
+    toNullableString(
+      patientIdentity.patientName
+    ),
 
-    patientDateOfBirth:
-      toNullableString(
-        patientIdentity.patientDateOfBirth
-      ),
+  patientDateOfBirth:
+    toNullableString(
+      patientIdentity.patientDateOfBirth
+    ),
 
-    patientAge:
+  patientAge:
+    toNullableString(
+      patientIdentity.patientAge
+    ),
+
+  patientGender:
+    toNullableString(
+      patientIdentity.patientGender
+    ),
+
+  patientUHID:
+    toNullableString(
+      patientIdentity.patientUHID
+    ),
+
+  patientNameVariations:
+    toStringArray(
+      patientIdentity.patientNameVariations
+    ),
+
+  //----------------------------------------------------------
+  // Demographic Extraction Provenance
+  //----------------------------------------------------------
+
+  ageFlag:
+    Boolean(
       toNullableString(
         patientIdentity.patientAge
-      ),
+      )
+    ),
 
-    patientGender:
+  sexFlag:
+    Boolean(
       toNullableString(
         patientIdentity.patientGender
-      ),
+      )
+    ),
 
-    patientUHID:
-      toNullableString(
-        patientIdentity.patientUHID
-      ),
+  ageSource:
+    toNullableString(
+      patientIdentity.patientAge
+    )
+      ? "DOCUMENT"
+      : null,
 
-    patientNameVariations:
-      toStringArray(
-        patientIdentity.patientNameVariations
-      ),
+  sexSource:
+    toNullableString(
+      patientIdentity.patientGender
+    )
+      ? "DOCUMENT"
+      : null,
 
-  },
+},
 
 
   //----------------------------------------------------------

@@ -1,3 +1,8 @@
+import type {
+  PatientInformationSource,
+} from "@/lib/prescription/prescriptionTypes";
+
+
 //------------------------------------------------------------
 // Consultation Mode
 //------------------------------------------------------------
@@ -170,6 +175,20 @@ export interface ExtractedPatientIdentity {
   patientUHID: string | null;
 
   patientNameVariations: string[];
+
+  //----------------------------------------------------------
+  // Demographic Extraction Provenance
+  //----------------------------------------------------------
+
+  ageFlag: boolean;
+
+  sexFlag: boolean;
+
+  ageSource:
+    PatientInformationSource | null;
+
+  sexSource:
+    PatientInformationSource | null;
 }
 
 

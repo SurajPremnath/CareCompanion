@@ -470,9 +470,6 @@ export default function PatientCard({
               </div>
             </div>
 
-            <span className="patient-panel-badge patient-primary-badge">
-              Visible
-            </span>
           </div>
 
           <div className="patient-primary-grid">
@@ -482,21 +479,29 @@ export default function PatientCard({
               value={patientDisplayName}
             />
 
-            {prescription.patientIdentity.patientAge && (
-              <InformationItem
-                className="patient-primary-age"
-                label="Age"
-                value={prescription.patientIdentity.patientAge}
-              />
-            )}
+<InformationItem
+  className="patient-primary-age"
+  label="Age"
+  value={
+    prescription.patientIdentity.patientAge ||
+    "-"
+  }
+  unavailable={
+    !prescription.patientIdentity.patientAge
+  }
+/>
 
-            {prescription.patientIdentity.patientGender && (
-              <InformationItem
-                className="patient-primary-sex"
-                label="Sex"
-                value={prescription.patientIdentity.patientGender}
-              />
-            )}
+<InformationItem
+  className="patient-primary-sex"
+  label="Sex"
+  value={
+    prescription.patientIdentity.patientGender ||
+    "-"
+  }
+  unavailable={
+    !prescription.patientIdentity.patientGender
+  }
+/>
 
             <InformationItem
               className="patient-primary-half"
@@ -504,13 +509,17 @@ export default function PatientCard({
               value={hospitalName}
             />
 
-            {prescription.patientIdentity.patientUHID && (
-              <InformationItem
-                className="patient-primary-half"
-                label="UHID"
-                value={prescription.patientIdentity.patientUHID}
-              />
-            )}
+<InformationItem
+  className="patient-primary-half"
+  label="UHID"
+  value={
+    prescription.patientIdentity.patientUHID ||
+    "-"
+  }
+  unavailable={
+    !prescription.patientIdentity.patientUHID
+  }
+/>
 
             <InformationItem
               className="patient-primary-half"
@@ -657,6 +666,7 @@ export default function PatientCard({
                 <h3 className="patient-panel-title">
                   Hidden / Storage Information
                 </h3>
+
                 <p className="patient-panel-subtitle">
                   Temporarily visible for testing. These fields will eventually
                   be stored without being displayed.
@@ -670,39 +680,115 @@ export default function PatientCard({
           </div>
 
           <div className="patient-secondary-grid">
+
+            {/* ==================================================
+                DEMOGRAPHIC EXTRACTION / FALLBACK
+                ================================================== */}
+
+            <InformationItem
+              label="Age Flag"
+              value={
+                prescription.patientIdentity.ageFlag
+                  ? "TRUE"
+                  : "FALSE"
+              }
+            />
+
+            <InformationItem
+              label="Age Source"
+              value={
+                prescription.patientIdentity.ageSource ||
+                "-"
+              }
+            />
+
+            <InformationItem
+              label="Resolved Age"
+              value={
+                prescription.patientIdentity.patientAge ||
+                "-"
+              }
+              unavailable={
+                !prescription.patientIdentity.patientAge
+              }
+            />
+
+            <InformationItem
+              label="Sex Flag"
+              value={
+                prescription.patientIdentity.sexFlag
+                  ? "TRUE"
+                  : "FALSE"
+              }
+            />
+
+            <InformationItem
+              label="Sex Source"
+              value={
+                prescription.patientIdentity.sexSource ||
+                "-"
+              }
+            />
+
+            <InformationItem
+              label="Resolved Sex"
+              value={
+                prescription.patientIdentity.patientGender ||
+                "-"
+              }
+              unavailable={
+                !prescription.patientIdentity.patientGender
+              }
+            />
+
+            {/* ==================================================
+                DOCUMENT METADATA
+                ================================================== */}
+
             {prescription.documentMetadata.studyDateTime && (
               <InformationItem
                 label="Report Study Date & Time"
-                value={prescription.documentMetadata.studyDateTime}
+                value={
+                  prescription.documentMetadata.studyDateTime
+                }
               />
             )}
 
             {prescription.documentMetadata.reportDateTime && (
               <InformationItem
                 label="Report Date & Time"
-                value={prescription.documentMetadata.reportDateTime}
+                value={
+                  prescription.documentMetadata.reportDateTime
+                }
               />
             )}
 
             {prescription.documentMetadata.originalPatientName && (
               <InformationItem
                 label="Original Patient Name"
-                value={prescription.documentMetadata.originalPatientName}
+                value={
+                  prescription.documentMetadata.originalPatientName
+                }
               />
             )}
 
             {prescription.documentMetadata.originalHospitalName && (
               <InformationItem
                 label="Original Hospital Name"
-                value={prescription.documentMetadata.originalHospitalName}
+                value={
+                  prescription.documentMetadata.originalHospitalName
+                }
               />
             )}
 
             <InformationItem
               className="patient-secondary-full"
               label="Source Document Type"
-              value={prescription.documentMetadata.documentType}
+              value={
+                prescription.documentMetadata.documentType
+              }
             />
+
           </div>
         </section>
       )}

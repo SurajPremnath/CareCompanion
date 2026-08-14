@@ -8,6 +8,15 @@ export type PrescriptionRecordContext =
 
 
 //------------------------------------------------------------
+// Patient Information Source
+//------------------------------------------------------------
+
+export type PatientInformationSource =
+    | "DOCUMENT"
+    | "PATIENT_PROFILE";
+
+
+//------------------------------------------------------------
 // Consultation Mode
 //------------------------------------------------------------
 
@@ -55,7 +64,7 @@ export interface PrescriptionMedicineInput {
 
     validationStatus:
 
-PrescriptionValidationStatus
+    PrescriptionValidationStatus
 
     validatedBy: string | null;
 

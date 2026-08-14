@@ -10,6 +10,10 @@ import {
     prescriptionRepository,
 } from "@/lib/prescription/prescriptionRepository";
 
+import {
+    patientStorage,
+} from "@/lib/storage/patientStorage";
+
 import type {
     CompletePrescriptionRecord,
     PrescriptionRecordContext,
@@ -170,6 +174,72 @@ if (dayFirstMatch) {
 
 }
 
+//------------------------------------------------------------
+// Calculate Age From Date Of Birth
+//------------------------------------------------------------
+
+function calculateAgeFromDateOfBirth(
+    dateOfBirth: string | null,
+    referenceDate: string | null
+): string | null {
+
+    if (
+        !dateOfBirth ||
+        !referenceDate
+    ) {
+        return null;
+    }
+
+    const dob =
+        new Date(
+            `${dateOfBirth}T00:00:00Z`
+        );
+
+    const reference =
+        new Date(
+            `${referenceDate}T00:00:00Z`
+        );
+
+    if (
+        Number.isNaN(
+            dob.getTime()
+        ) ||
+        Number.isNaN(
+            reference.getTime()
+        )
+    ) {
+        return null;
+    }
+
+    let age =
+        reference.getUTCFullYear() -
+        dob.getUTCFullYear();
+
+    const referenceMonth =
+        reference.getUTCMonth();
+
+    const dobMonth =
+        dob.getUTCMonth();
+
+    const birthdayNotReached =
+        referenceMonth < dobMonth ||
+        (
+            referenceMonth === dobMonth &&
+            reference.getUTCDate() <
+                dob.getUTCDate()
+        );
+
+    if (birthdayNotReached) {
+        age -= 1;
+    }
+
+    if (age < 0) {
+        return null;
+    }
+
+    return `${age} Yrs`;
+}
+
 
 //------------------------------------------------------------
 // Validate Context
@@ -244,29 +314,155 @@ export const prescriptionStorage = {
         );
 
 
-        //----------------------------------------------------
-        // Prepare Reviewed Copy
-        //----------------------------------------------------
+//----------------------------------------------------
+// Prepare Reviewed Copy
+//----------------------------------------------------
+
+const normalisedConsultationDate =
+    normaliseConsultationDate(
+        prescription
+            .encounterIdentity
+            .consultationDate
+    );
+
+
+let resolvedPatientAge =
+    prescription
+        .patientIdentity
+        .patientAge;
+
+let resolvedPatientGender =
+    prescription
+        .patientIdentity
+        .patientGender;
+
+let resolvedAgeSource =
+    prescription
+        .patientIdentity
+        .ageSource;
+
+let resolvedSexSource =
+    prescription
+        .patientIdentity
+        .sexSource;
+
+
+//----------------------------------------------------
+// Patient Profile Fallback
+//----------------------------------------------------
+
+if (
+    context.patientId &&
+    (
+        !prescription
+            .patientIdentity
+            .ageFlag ||
+        !prescription
+            .patientIdentity
+            .sexFlag
+    )
+) {
+
+    const patientResult =
+        await patientStorage.getPatient(
+            context.patientId
+        );
+
+    if (
+        patientResult.success &&
+        patientResult.data
+    ) {
+
+        const patient =
+            patientResult.data;
+
+        //------------------------------------------------
+        // Age fallback
+        //------------------------------------------------
+
+        if (
+            !prescription
+                .patientIdentity
+                .ageFlag
+        ) {
+
+            const profileAge =
+                calculateAgeFromDateOfBirth(
+                    patient.dateOfBirth,
+                    normalisedConsultationDate
+                );
+
+            if (profileAge) {
+
+                resolvedPatientAge =
+                    profileAge;
+
+                resolvedAgeSource =
+                    "PATIENT_PROFILE";
+
+            }
+
+        }
+
+        //------------------------------------------------
+        // Sex fallback
+        //------------------------------------------------
+
+        if (
+            !prescription
+                .patientIdentity
+                .sexFlag
+        ) {
+
+            if (patient.gender) {
+
+                resolvedPatientGender =
+                    patient.gender;
+
+                resolvedSexSource =
+                    "PATIENT_PROFILE";
+
+            }
+
+        }
+
+    }
+
+}
 
 const preparedPrescription:
     ExtractedPrescription = {
 
         ...prescription,
 
+        patientIdentity: {
+
+            ...prescription.patientIdentity,
+
+            patientAge:
+                resolvedPatientAge,
+
+            patientGender:
+                resolvedPatientGender,
+
+            ageSource:
+                resolvedAgeSource,
+
+            sexSource:
+                resolvedSexSource,
+
+        },
+
         encounterIdentity: {
 
             ...prescription.encounterIdentity,
 
             consultationDate:
-                normaliseConsultationDate(
-                    prescription
-                        .encounterIdentity
-                        .consultationDate
-                ),
+                normalisedConsultationDate,
 
         },
 
-};
+    };
 
 
         //----------------------------------------------------

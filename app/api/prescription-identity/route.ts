@@ -327,51 +327,78 @@ return {
   // Patient Identity
   //----------------------------------------------------------
 
-  patientIdentity: {
+patientIdentity: {
 
-    patientName:
+  patientName:
+    toNullableString(
+      parsed.patientName
+    ),
+
+  patientDateOfBirth:
+    toNullableString(
+      parsed.patientDateOfBirth
+    ),
+
+  patientAge:
+    toNullableString(
+      parsed.patientAge
+    ),
+
+  patientGender:
+    toNullableString(
+      parsed.patientGender
+    ),
+
+  patientUHID:
+    toNullableString(
+      parsed.patientUHID
+    ),
+
+patientNameVariations:
+  Array.isArray(parsed.patientNameVariations)
+    ? parsed.patientNameVariations
+        .map((value) =>
+          toNullableString(value)
+        )
+        .filter(
+          (value): value is string =>
+            value !== null
+        )
+    : [],
+
+  //----------------------------------------------------------
+  // Demographic Extraction Provenance
+  //----------------------------------------------------------
+
+  ageFlag:
+    Boolean(
       toNullableString(
-        (
-          parsed.patientIdentity as any
-        )?.patientName
-      ),
+        parsed.patientAge
+      )
+    ),
 
-    patientDateOfBirth:
+  sexFlag:
+    Boolean(
       toNullableString(
-        (
-          parsed.patientIdentity as any
-        )?.patientDateOfBirth
-      ),
+        parsed.patientGender
+      )
+    ),
 
-    patientAge:
-      toNullableString(
-        (
-          parsed.patientIdentity as any
-        )?.patientAge
-      ),
+  ageSource:
+    toNullableString(
+      parsed.patientAge
+    )
+      ? "DOCUMENT"
+      : null,
 
-    patientGender:
-      toNullableString(
-        (
-          parsed.patientIdentity as any
-        )?.patientGender
-      ),
+  sexSource:
+    toNullableString(
+      parsed.patientGender
+    )
+      ? "DOCUMENT"
+      : null,
 
-    patientUHID:
-      toNullableString(
-        (
-          parsed.patientIdentity as any
-        )?.patientUHID
-      ),
-
-    patientNameVariations:
-      toStringArray(
-        (
-          parsed.patientIdentity as any
-        )?.patientNameVariations
-      ),
-
-  },
+},
 
 
   //----------------------------------------------------------
