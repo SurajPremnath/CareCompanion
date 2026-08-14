@@ -1071,6 +1071,62 @@ setReadingStatus(
 let resolvedPrescription =
     result.data;
 
+//------------------------------------------------------
+// CONSULTATION DATE FALLBACK
+//
+// OCR remains the primary source.
+//
+// If OCR successfully reads a consultation date,
+// keep that value.
+//
+// If OCR does not return a date,
+// use today's date.
+//
+// The date remains editable in PatientCard.
+//------------------------------------------------------
+
+if (
+    !resolvedPrescription
+        .encounterIdentity
+        .consultationDate
+) {
+
+    const today =
+        new Date();
+
+    const todayDate =
+        [
+            today.getFullYear(),
+            String(
+                today.getMonth() + 1
+            ).padStart(2, "0"),
+            String(
+                today.getDate()
+            ).padStart(2, "0"),
+        ].join("-");
+
+    resolvedPrescription = {
+
+        ...resolvedPrescription,
+
+        encounterIdentity: {
+
+            ...resolvedPrescription
+                .encounterIdentity,
+
+            consultationDate:
+                todayDate,
+
+        },
+
+    };
+
+    console.log(
+        "CONSULTATION DATE FALLBACK:",
+        todayDate
+    );
+}
+
 const ageMissing =
     !resolvedPrescription
         .patientIdentity
@@ -1257,19 +1313,74 @@ console.log(
         .hospitalOrClinic
 );
 
+//------------------------------------------------------
+// Check whether this document already exists
+//------------------------------------------------------
+
 const duplicateResult =
     await checkExistingPrescription(
         resolvedPrescription
     );
 
-setPrescriptionReviewMode(
-    duplicateResult.mode
-);
+//------------------------------------------------------
+// IMPORTANT
+//
+// If OCR has failed to read important editable
+// information, keep this as an UPLOAD review.
+//
+// The user must still be able to correct:
+// - Age
+// - Sex
+// - Consultation Date
+// - Consultation Mode
+// - other editable fields
+//
+// A partially-read prescription must NEVER become
+// read-only simply because the duplicate checker
+// found an existing prescription.
+//------------------------------------------------------
+
+const ageUnavailable =
+    !resolvedPrescription
+        .patientIdentity
+        .patientAge;
+
+const sexUnavailable =
+    !resolvedPrescription
+        .patientIdentity
+        .patientGender;
+
+const doctorTypeUnavailable =
+    !resolvedPrescription
+        .encounterIdentity
+        .doctorType;
+
+const consultationDateUnavailable =
+    !resolvedPrescription
+        .encounterIdentity
+        .consultationDate;
+
+//------------------------------------------------------
+// If important OCR information is missing,
+// keep the review editable.
+//------------------------------------------------------
+
+const requiresEditableReview =
+    ageUnavailable ||
+    sexUnavailable ||
+    doctorTypeUnavailable ||
+    consultationDateUnavailable;
 
 if (
     duplicateResult.mode === "VIEW" &&
-    duplicateResult.prescription
+    duplicateResult.prescription &&
+    !requiresEditableReview
 ) {
+
+    setPrescriptionReviewMode(
+        "VIEW"
+    );
+
     setExtractedPrescription(
         mapPrescriptionToReview(
             duplicateResult.prescription
@@ -1278,6 +1389,17 @@ if (
 
     return;
 }
+
+//------------------------------------------------------
+// Otherwise this remains a normal upload review.
+//
+// This preserves the OCR result plus any patient
+// database fallback values.
+//------------------------------------------------------
+
+setPrescriptionReviewMode(
+    "UPLOAD"
+);
 
 setExtractedPrescription(
     resolvedPrescription

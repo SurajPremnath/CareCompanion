@@ -51,6 +51,36 @@ function formatDate(value?: string | null) {
   ].join("-");
 }
 
+//------------------------------------------------------------
+// Age Display
+//------------------------------------------------------------
+
+function formatAge(
+  value?: string | null
+): string {
+
+  if (!value) {
+    return "-";
+  }
+
+  const trimmed =
+    value.trim();
+
+  // Handles:
+  // 77
+  // 77Y
+  // 77Y-4M-12D
+  // 77 Y
+  const match =
+    trimmed.match(/^(\d+)/);
+
+  if (!match) {
+    return trimmed;
+  }
+
+  return `${match[1]} y`;
+}
+
 function toTitleCase(value?: string | null) {
   if (!value) return "-";
 
@@ -93,6 +123,87 @@ function InformationItem({
       </div>
     </div>
   );
+}
+
+//------------------------------------------------------------
+// Consultation Date → HTML date input format
+//------------------------------------------------------------
+
+function toDateInputValue(
+  value: string | null | undefined
+): string {
+
+  if (!value) {
+    return "";
+  }
+
+  const trimmed =
+    value.trim();
+
+  // Already in YYYY-MM-DD format
+  if (
+    /^\d{4}-\d{2}-\d{2}$/.test(trimmed)
+  ) {
+    return trimmed;
+  }
+
+  // DD-MM-YYYY
+  const ddmmyyyy =
+    trimmed.match(
+      /^(\d{2})-(\d{2})-(\d{4})$/
+    );
+
+  if (ddmmyyyy) {
+
+    const [
+      ,
+      day,
+      month,
+      year,
+    ] = ddmmyyyy;
+
+    return `${year}-${month}-${day}`;
+  }
+
+  // DD/MM/YYYY
+  const ddmmyyyySlash =
+    trimmed.match(
+      /^(\d{2})\/(\d{2})\/(\d{4})$/
+    );
+
+  if (ddmmyyyySlash) {
+
+    const [
+      ,
+      day,
+      month,
+      year,
+    ] = ddmmyyyySlash;
+
+    return `${year}-${month}-${day}`;
+  }
+
+  // Final fallback for an already parseable date
+  const parsed =
+    new Date(trimmed);
+
+  if (
+    Number.isNaN(
+      parsed.getTime()
+    )
+  ) {
+    return "";
+  }
+
+  return [
+    parsed.getFullYear(),
+    String(
+      parsed.getMonth() + 1
+    ).padStart(2, "0"),
+    String(
+      parsed.getDate()
+    ).padStart(2, "0"),
+  ].join("-");
 }
 
 const styles = `
@@ -419,6 +530,8 @@ export default function PatientCard({
   const consultationDate =
     prescription.encounterIdentity.consultationDate;
 
+
+
   return (
     <section className="patient-information-panels">
       <style>{styles}</style>
@@ -483,8 +596,9 @@ export default function PatientCard({
   className="patient-primary-age"
   label="Age*"
   value={
-    prescription.patientIdentity.patientAge ||
-    "-"
+    formatAge(
+      prescription.patientIdentity.patientAge
+    )
   }
   unavailable={
     !prescription.patientIdentity.patientAge
@@ -547,6 +661,8 @@ export default function PatientCard({
               unavailable={!doctorType}
             />
 
+
+
 <div className="patient-info-item patient-primary-full">
   <div className="patient-info-label">
     Consultation Date*
@@ -558,17 +674,16 @@ export default function PatientCard({
     </div>
   ) : (
     <div className="patient-date-editor">
+
       <input
         type="date"
-        value={
+        value={toDateInputValue(
           consultationDate
-            ? new Date(consultationDate)
-                .toISOString()
-                .split("T")[0]
-            : ""
-        }
+        )}
         onChange={(event) =>
-          onConsultationDateChange(event.target.value)
+          onConsultationDateChange(
+            event.target.value
+          )
         }
       />
 
@@ -576,9 +691,12 @@ export default function PatientCard({
         * AI may not always read handwritten details correctly.
         Please verify and correct if required.
       </div>
+
     </div>
   )}
 </div>
+
+
           </div>
         </section>
       )}
