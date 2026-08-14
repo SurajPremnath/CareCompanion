@@ -27,6 +27,10 @@ import {
 } from "@/lib/prescription/prescriptionStorage";
 
 import {
+    patientStorage,
+} from "@/lib/storage/patientStorage";
+
+import {
     prescriptionRepository,
 } from "@/lib/prescription/prescriptionRepository";
 
@@ -90,6 +94,58 @@ interface PrescriptionWorkspaceProps {
     onCancelReview: () => void;
 
     onSaveComplete?: () => void;
+}
+
+//------------------------------------------------------------
+// Patient Age Fallback
+//------------------------------------------------------------
+
+function calculatePatientAge(
+    dateOfBirth: string | null
+): string | null {
+
+    if (!dateOfBirth) {
+        return null;
+    }
+
+    const birthDate =
+        new Date(dateOfBirth);
+
+    if (
+        Number.isNaN(
+            birthDate.getTime()
+        )
+    ) {
+        return null;
+    }
+
+    const today =
+        new Date();
+
+    if (birthDate > today) {
+        return null;
+    }
+
+    let age =
+        today.getFullYear() -
+        birthDate.getFullYear();
+
+    const monthDifference =
+        today.getMonth() -
+        birthDate.getMonth();
+
+    if (
+        monthDifference < 0 ||
+        (
+            monthDifference === 0 &&
+            today.getDate() <
+                birthDate.getDate()
+        )
+    ) {
+        age--;
+    }
+
+    return String(age);
 }
 
 //------------------------------------------------------------
@@ -976,21 +1032,21 @@ try {
 
             }
 
-            if (
-                !result.success ||
-                !result.data
-            ) {
+if (
+    !result.success ||
+    !result.data
+) {
 
-                setValidationError(
+    setValidationError(
 
-                    result.error ??
-                    t("medication.readFailed")
+        result.error ??
+        t("medication.readFailed")
 
-                );
+    );
 
-                return;
+    return;
 
-            }
+}
 
 setReadingProgress(
     100
@@ -1001,12 +1057,130 @@ setReadingStatus(
 );
 
 //------------------------------------------------------
+// PATIENT DATABASE FALLBACK
+//
+// OCR remains the primary source.
+//
+// Only when Age or Sex was not extracted,
+// use the already-selected patient's registered data.
+//
+// Never overwrite a value successfully extracted
+// from the prescription.
+//------------------------------------------------------
+
+let resolvedPrescription =
+    result.data;
+
+const ageMissing =
+    !resolvedPrescription
+        .patientIdentity
+        .patientAge;
+
+const sexMissing =
+    !resolvedPrescription
+        .patientIdentity
+        .patientGender;
+
+if (
+    patientId &&
+    (
+        ageMissing ||
+        sexMissing
+    )
+) {
+
+    try {
+
+        const patientResult =
+            await patientStorage.getPatient(
+                patientId
+            );
+
+        if (
+            patientResult.success &&
+            patientResult.data
+        ) {
+
+            const patient =
+                patientResult.data;
+
+            const resolvedAge =
+                ageMissing
+                    ? calculatePatientAge(
+                        patient.dateOfBirth
+                    )
+                    : null;
+
+            const resolvedSex =
+                sexMissing
+                    ? patient.gender
+                    : null;
+
+            resolvedPrescription = {
+
+                ...resolvedPrescription,
+
+                patientIdentity: {
+
+                    ...resolvedPrescription
+                        .patientIdentity,
+
+                    patientAge:
+                        ageMissing &&
+                        resolvedAge
+                            ? resolvedAge
+                            : resolvedPrescription
+                                .patientIdentity
+                                .patientAge,
+
+                    patientGender:
+                        sexMissing &&
+                        resolvedSex
+                            ? resolvedSex
+                            : resolvedPrescription
+                                .patientIdentity
+                                .patientGender,
+
+                },
+
+            };
+
+            console.log(
+                "PATIENT FALLBACK:",
+                {
+                    patientId,
+                    age:
+                        ageMissing
+                            ? resolvedAge
+                            : "OCR",
+                    sex:
+                        sexMissing
+                            ? resolvedSex
+                            : "OCR",
+                }
+            );
+
+        }
+
+    }
+    catch (patientError) {
+
+        console.error(
+            "Patient fallback failed:",
+            patientError
+        );
+
+    }
+
+}
+
+//------------------------------------------------------
 // CAREVR GATEKEEPER
 //------------------------------------------------------
 
 const validationCards =
     generateValidationCards(
-        result.data
+        resolvedPrescription
     );
 
 const response = await fetch(
@@ -1017,7 +1191,10 @@ const response = await fetch(
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            originalPrescription: JSON.stringify(result.data),
+            originalPrescription:
+                JSON.stringify(
+                    resolvedPrescription
+                ),
             validationCards,
         }),
     }
@@ -1082,7 +1259,7 @@ console.log(
 
 const duplicateResult =
     await checkExistingPrescription(
-        result.data
+        resolvedPrescription
     );
 
 setPrescriptionReviewMode(
@@ -1103,7 +1280,7 @@ if (
 }
 
 setExtractedPrescription(
-    result.data
+    resolvedPrescription
 );
 
         }
