@@ -481,7 +481,7 @@ export default function PatientCard({
 
 <InformationItem
   className="patient-primary-age"
-  label="Age"
+  label="Age*"
   value={
     prescription.patientIdentity.patientAge ||
     "-"
@@ -493,7 +493,7 @@ export default function PatientCard({
 
 <InformationItem
   className="patient-primary-sex"
-  label="Sex"
+  label="Sex*"
   value={
     prescription.patientIdentity.patientGender ||
     "-"
@@ -503,11 +503,24 @@ export default function PatientCard({
   }
 />
 
-            <InformationItem
-              className="patient-primary-half"
-              label="Hospital"
-              value={hospitalName}
-            />
+<div
+  className="patient-primary-full"
+  style={{
+    fontSize: "11px",
+    lineHeight: 1.4,
+    color: "#64748b",
+    marginTop: "-2px",
+  }}
+>
+  * AI may not always read handwritten details correctly.
+  Please verify and correct if required.
+</div>
+
+<InformationItem
+  className="patient-primary-half"
+  label="Hospital"
+  value={hospitalName}
+/>
 
 <InformationItem
   className="patient-primary-half"
@@ -534,41 +547,38 @@ export default function PatientCard({
               unavailable={!doctorType}
             />
 
-            <div className="patient-info-item patient-primary-full">
-              <div className="patient-info-label">
-                Consultation Date
-              </div>
+<div className="patient-info-item patient-primary-full">
+  <div className="patient-info-label">
+    Consultation Date*
+  </div>
 
-              {readOnly ? (
-                <div className="patient-info-value">
-                  {formatDate(consultationDate)}
-                </div>
-              ) : (
-                <div className="patient-date-editor">
-                  <div className="patient-date-helper">
-                    🤖 AI Extracted Date
-                  </div>
+  {readOnly ? (
+    <div className="patient-info-value">
+      {formatDate(consultationDate)}
+    </div>
+  ) : (
+    <div className="patient-date-editor">
+      <input
+        type="date"
+        value={
+          consultationDate
+            ? new Date(consultationDate)
+                .toISOString()
+                .split("T")[0]
+            : ""
+        }
+        onChange={(event) =>
+          onConsultationDateChange(event.target.value)
+        }
+      />
 
-                  <input
-                    type="date"
-                    value={
-                      consultationDate
-                        ? new Date(consultationDate)
-                            .toISOString()
-                            .split("T")[0]
-                        : ""
-                    }
-                    onChange={(event) =>
-                      onConsultationDateChange(event.target.value)
-                    }
-                  />
-
-                  <div className="patient-date-warning">
-                    ⚠️ If incorrect, select the correct consultation date.
-                  </div>
-                </div>
-              )}
-            </div>
+      <div className="patient-date-warning">
+        * AI may not always read handwritten details correctly.
+        Please verify and correct if required.
+      </div>
+    </div>
+  )}
+</div>
           </div>
         </section>
       )}
