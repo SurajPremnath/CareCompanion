@@ -1,47 +1,178 @@
 "use client";
 
-import { expandMedicalText } from "@/lib/medicalFormatter";
-
 import type {
-ExtractedPrescription,
+    ExtractedPrescription,
 } from "@/lib/prescription-image/prescriptionImageTypes";
 
 import {
-  useLanguage,
+    useLanguage,
 } from "@/Components/language/LanguageProvider";
 
 interface Props {
 
-    prescription: ExtractedPrescription;
+    prescription:
+        ExtractedPrescription;
 
-    readOnly: boolean;
+    readOnly:
+        boolean;
 
-    onWeightChange: (weight: string) => void;
+    onWeightChange:
+        (weight: string) => void;
 
 }
 
-const section={
-marginBottom:"24px",
-padding:"18px",
-background:"#fff",
-border:"1px solid #e2e8f0",
-borderRadius:"10px",
+//------------------------------------------------------------
+// Container
+//------------------------------------------------------------
+
+const section = {
+    marginBottom: "24px",
+    padding: "18px",
+    background: "#fff",
+    border: "1px solid #e2e8f0",
+    borderRadius: "10px",
+    boxSizing: "border-box",
 } satisfies React.CSSProperties;
 
-const table={
-width:"100%",
-borderCollapse:"collapse",
-} satisfies React.CSSProperties;
+//------------------------------------------------------------
+// Helpers
+//------------------------------------------------------------
 
-const label={
-width:180,
-fontWeight:700,
-padding:"12px",
-} satisfies React.CSSProperties;
+function numericValue(
+    value:
+        string |
+        number |
+        null |
+        undefined
+): number | null {
 
-const cell={
-padding:"12px",
-} satisfies React.CSSProperties;
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return null;
+    }
+
+    const parsed =
+        Number(
+            String(value)
+                .replace(/[^0-9.]/g, "")
+        );
+
+    return Number.isFinite(parsed)
+        ? parsed
+        : null;
+}
+
+function calculateBmi(
+    weight:
+        string |
+        number |
+        null |
+        undefined,
+
+    height:
+        string |
+        number |
+        null |
+        undefined
+): string | null {
+
+    const weightValue =
+        numericValue(weight);
+
+    const heightValue =
+        numericValue(height);
+
+    if (
+        weightValue === null ||
+        heightValue === null ||
+        weightValue <= 0 ||
+        heightValue <= 0
+    ) {
+        return null;
+    }
+
+    const heightInMetres =
+        heightValue / 100;
+
+    const bmi =
+        weightValue /
+        (
+            heightInMetres *
+            heightInMetres
+        );
+
+    if (!Number.isFinite(bmi)) {
+        return null;
+    }
+
+    return bmi.toFixed(2);
+}
+
+function calculateBsa(
+    weight:
+        string |
+        number |
+        null |
+        undefined,
+
+    height:
+        string |
+        number |
+        null |
+        undefined
+): string | null {
+
+    const weightValue =
+        numericValue(weight);
+
+    const heightValue =
+        numericValue(height);
+
+    if (
+        weightValue === null ||
+        heightValue === null ||
+        weightValue <= 0 ||
+        heightValue <= 0
+    ) {
+        return null;
+    }
+
+    // Mosteller formula
+    const bsa =
+        Math.sqrt(
+            (
+                heightValue *
+                weightValue
+            ) / 3600
+        );
+
+    if (!Number.isFinite(bsa)) {
+        return null;
+    }
+
+    return bsa.toFixed(2);
+}
+
+function hasValue(
+    value:
+        string |
+        number |
+        null |
+        undefined
+): boolean {
+
+    return (
+        value !== null &&
+        value !== undefined &&
+        String(value).trim() !== ""
+    );
+}
+
+//------------------------------------------------------------
+// Component
+//------------------------------------------------------------
 
 export default function VitalsCard({
 
@@ -51,221 +182,438 @@ export default function VitalsCard({
 
     onWeightChange,
 
-}: Props){
+}: Props) {
 
-const {
-    t,
-} = useLanguage();
+    const {
+        t,
+    } = useLanguage();
 
-const vitals=
+    const vitals =
+        prescription.consultationVitals;
 
-prescription.consultationVitals;
+    //--------------------------------------------------------
+    // No consultation vitals object
+    //--------------------------------------------------------
 
-if(!vitals){
+    if (!vitals) {
 
-return null;
+        return (
 
-}
-
-return(
-
-<section style={section} className="vitals-card-section">
-
-
-<style>{`
-@media (max-width: 700px) {
-    .vitals-card-section {
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        padding: 12px !important;
-        margin-bottom: 16px !important;
-        box-sizing: border-box !important;
-        overflow: hidden !important;
-    }
-
-    .vitals-card-section h3 {
-        margin: 0 0 12px 0 !important;
-        font-size: 16px !important;
-        line-height: 1.3 !important;
-    }
-
-    .vitals-details-table,
-    .vitals-details-table tbody {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    .vitals-details-table tr {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        margin-bottom: 10px !important;
-        padding-bottom: 10px !important;
-        border-bottom: 1px solid #e2e8f0 !important;
-        box-sizing: border-box !important;
-    }
-
-    .vitals-details-table tr:last-child {
-        margin-bottom: 0 !important;
-        padding-bottom: 0 !important;
-        border-bottom: 0 !important;
-    }
-
-    .vitals-details-table td {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        box-sizing: border-box !important;
-        padding: 5px 0 !important;
-        border: 0 !important;
-        overflow-wrap: anywhere !important;
-        word-break: break-word !important;
-    }
-
-    .vitals-details-table td:first-child {
-        padding-bottom: 2px !important;
-        font-size: 11px !important;
-        line-height: 1.3 !important;
-        color: #64748b !important;
-        font-weight: 700 !important;
-    }
-
-    .vitals-details-table td:nth-child(2) {
-        padding-top: 2px !important;
-        font-size: 13px !important;
-        line-height: 1.45 !important;
-        color: #1f2937 !important;
-    }
-
-    .vitals-details-table input[type="text"] {
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        box-sizing: border-box !important;
-        min-height: 42px !important;
-        font-size: 14px !important;
-    }
-
-    .vitals-details-table td > div {
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        overflow-wrap: anywhere !important;
-    }
-}
-
-@media (max-width: 420px) {
-    .vitals-card-section {
-        padding: 10px !important;
-    }
-
-    .vitals-card-section h3 {
-        font-size: 15px !important;
-    }
-
-    .vitals-details-table td:first-child {
-        font-size: 10.5px !important;
-    }
-
-    .vitals-details-table td:nth-child(2) {
-        font-size: 12.5px !important;
-    }
-}
-`}</style>
-
-<h3>
-
-❤️ {t("medication.consultationVitals")}
-
-</h3>
-
-<table style={table} className="vitals-details-table">
-
-<tbody>
-
-<tr>
-
-<td style={label}>{t("medication.weight")}</td>
-
-<td style={cell}>
-    {readOnly ? (
-        vitals.weight ?? "-"
-    ) : (
-        <>
-            <div
-                style={{
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    color: "#64748b",
-                    marginBottom: "6px",
-                }}
+            <section
+                style={section}
+                className="vitals-card-section"
             >
-                🤖 AI extracted this value. Please verify and correct if needed.
+
+                <h3
+                    style={{
+                        margin:
+                            "0 0 12px 0",
+                        fontSize: "18px",
+                    }}
+                >
+                    ❤️{" "}
+                    {t(
+                        "medication.consultationVitals"
+                    )}
+                </h3>
+
+                <div
+                    className="vitals-empty-message"
+                >
+                    Vitals not recorded in document.
+                </div>
+
+                <style>{`
+
+                    .vitals-empty-message {
+                        padding: 12px;
+                        border-radius: 8px;
+                        background: #f8fafc;
+                        border: 1px solid #e2e8f0;
+                        color: #64748b;
+                        font-size: 13px;
+                        font-weight: 600;
+                    }
+
+                `}</style>
+
+            </section>
+
+        );
+    }
+
+    //--------------------------------------------------------
+    // Determine whether the document contained ANY vital
+    // information.
+    //--------------------------------------------------------
+
+    const hasRecordedVitals =
+        hasValue(vitals.weight) ||
+        hasValue(vitals.height) ||
+        hasValue(vitals.bmi) ||
+        hasValue(vitals.bloodPressure) ||
+        hasValue(vitals.pulse) ||
+        hasValue(vitals.respiratoryRate) ||
+        hasValue(vitals.spo2) ||
+        hasValue(vitals.temperature);
+
+    //--------------------------------------------------------
+    // BMI
+    //
+    // Prefer the BMI explicitly extracted from the document.
+    // If unavailable, calculate it from weight + height.
+    //--------------------------------------------------------
+
+    const bmi =
+        hasValue(vitals.bmi)
+            ? String(vitals.bmi)
+            : calculateBmi(
+                vitals.weight,
+                vitals.height
+            );
+
+    //--------------------------------------------------------
+    // BSA
+    //
+    // Calculated only.
+    // Not persisted as a separate database value.
+    //--------------------------------------------------------
+
+    const bsa =
+        calculateBsa(
+            vitals.weight,
+            vitals.height
+        );
+
+    //--------------------------------------------------------
+    // Reusable display component
+    //--------------------------------------------------------
+
+    const VitalItem = ({
+        label,
+        value,
+        editable = false,
+    }: {
+        label: string;
+        value:
+            string |
+            number |
+            null |
+            undefined;
+        editable?: boolean;
+    }) => {
+
+        return (
+
+            <div
+                className={
+                    editable
+                        ? "vital-item vital-item-editable"
+                        : "vital-item"
+                }
+            >
+
+                <div className="vital-label">
+                    {label}
+                </div>
+
+                <div className="vital-value">
+                    {hasValue(value)
+                        ? String(value)
+                        : "-"}
+                </div>
+
             </div>
 
-            <input
-                type="text"
-                value={vitals.weight ?? ""}
-                onChange={(e) =>
-                    onWeightChange(e.target.value)
+        );
+
+    };
+
+    return (
+
+        <section
+            style={section}
+            className="vitals-card-section"
+        >
+
+            <style>{`
+
+                .vitals-grid {
+                    display: grid;
+                    grid-template-columns:
+                        repeat(2, minmax(0, 1fr));
+                    gap: 10px;
+                    width: 100%;
                 }
-                placeholder="Enter weight"
-                disabled={readOnly}
+
+                .vital-item {
+                    min-width: 0;
+                    padding: 12px;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    background: #f8fafc;
+                    box-sizing: border-box;
+                }
+
+                .vital-item-editable {
+                    background: #ffffff;
+                }
+
+                .vital-label {
+                    margin-bottom: 5px;
+                    font-size: 11px;
+                    line-height: 1.3;
+                    font-weight: 700;
+                    color: #64748b;
+                }
+
+                .vital-value {
+                    min-width: 0;
+                    font-size: 14px;
+                    line-height: 1.4;
+                    font-weight: 600;
+                    color: #1f2937;
+                    overflow-wrap: anywhere;
+                    word-break: break-word;
+                }
+
+                .vital-weight-note {
+                    margin-bottom: 6px;
+                    font-size: 10px;
+                    line-height: 1.35;
+                    font-weight: 700;
+                    color: #64748b;
+                }
+
+                .vital-weight-input {
+                    width: 100%;
+                    max-width: 140px;
+                    min-height: 38px;
+                    padding: 6px 8px;
+                    box-sizing: border-box;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 6px;
+                    background: #ffffff;
+                    font-size: 14px;
+                }
+
+                .vitals-empty-message {
+                    padding: 12px;
+                    border-radius: 8px;
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    color: #64748b;
+                    font-size: 13px;
+                    font-weight: 600;
+                }
+
+                @media (max-width: 420px) {
+
+                    .vitals-grid {
+                        gap: 8px;
+                    }
+
+                    .vital-item {
+                        padding: 10px;
+                    }
+
+                    .vital-label {
+                        font-size: 10.5px;
+                    }
+
+                    .vital-value {
+                        font-size: 13px;
+                    }
+
+                    .vital-weight-input {
+                        max-width: 100%;
+                    }
+
+                }
+
+            `}</style>
+
+            <h3
                 style={{
-                    width: "140px",
-                    padding: "6px 8px",
-                    border: "1px solid #CBD5E1",
-                    borderRadius: "6px",
-                    fontSize: "14px",
+                    margin:
+                        "0 0 12px 0",
+                    fontSize: "18px",
                 }}
-            />
-        </>
-    )}
-</td>
-</tr>
+            >
+                ❤️{" "}
+                {t(
+                    "medication.consultationVitals"
+                )}
+            </h3>
 
-<tr>
+            {!hasRecordedVitals ? (
 
-<td style={label}>{t("medication.bloodPressure")}</td>
+                <div className="vitals-empty-message">
+                    Vitals not recorded in document.
+                </div>
 
-<td style={cell}>{vitals.bloodPressure ?? "-"}</td>
+            ) : (
 
-</tr>
+                <div className="vitals-grid">
 
-<tr>
+                    {/* Blood Pressure */}
 
-<td style={label}>{t("medication.pulse")}</td>
+                    <VitalItem
+                        label={
+                            t(
+                                "medication.bloodPressure"
+                            )
+                        }
+                        value={
+                            vitals.bloodPressure
+                        }
+                    />
 
-<td style={cell}>{vitals.pulse ?? "-"}</td>
+                    {/* Pulse */}
 
-</tr>
+                    <VitalItem
+                        label={
+                            t(
+                                "medication.pulse"
+                            )
+                        }
+                        value={
+                            vitals.pulse
+                        }
+                    />
 
-<tr>
+                    {/* SpO2 */}
 
-<td style={label}>{t("medication.spo2")}</td>
+                    <VitalItem
+                        label={
+                            t(
+                                "medication.spo2"
+                            )
+                        }
+                        value={
+                            vitals.spo2
+                        }
+                    />
 
-<td style={cell}>{vitals.spo2 ?? "-"}</td>
+                    {/* Temperature */}
 
-</tr>
+                    <VitalItem
+                        label={
+                            t(
+                                "medication.temperature"
+                            )
+                        }
+                        value={
+                            vitals.temperature
+                        }
+                    />
 
-<tr>
+                    {/* Weight */}
 
-<td style={label}>{t("medication.temperature")}</td>
+                    <div
+                        className={
+                            "vital-item " +
+                            "vital-item-editable"
+                        }
+                    >
 
-<td style={cell}>{vitals.temperature ?? "-"}</td>
+                        <div className="vital-label">
+                            {t(
+                                "medication.weight"
+                            )}
+                        </div>
 
-</tr>
+                        {readOnly ? (
 
-</tbody>
+                            <div className="vital-value">
+                                {hasValue(
+                                    vitals.weight
+                                )
+                                    ? String(
+                                        vitals.weight
+                                    )
+                                    : "-"}
+                            </div>
 
-</table>
+                        ) : (
 
-</section>
+                            <>
 
-);
+                                <div className="vital-weight-note">
+                                    🤖 AI extracted this value.
+                                    Please verify and correct if needed.
+                                </div>
+
+                                <input
+                                    type="text"
+                                    value={
+                                        vitals.weight ??
+                                        ""
+                                    }
+                                    onChange={(event) =>
+                                        onWeightChange(
+                                            event.target.value
+                                        )
+                                    }
+                                    placeholder="Enter weight"
+                                    disabled={
+                                        readOnly
+                                    }
+                                    className={
+                                        "vital-weight-input"
+                                    }
+                                />
+
+                            </>
+
+                        )}
+
+                    </div>
+
+                    {/* Height */}
+
+                    <VitalItem
+                        label="Height"
+                        value={
+                            vitals.height
+                        }
+                    />
+
+                    {/* BMI */}
+
+                    <VitalItem
+                        label="BMI"
+                        value={
+                            bmi
+                        }
+                    />
+
+                    {/* BSA */}
+
+                    <VitalItem
+                        label="BSA"
+                        value={
+                            bsa
+                                ? `${bsa} m²`
+                                : null
+                        }
+                    />
+
+                    {/* Respiratory Rate */}
+
+                    <VitalItem
+                        label="Respiratory Rate"
+                        value={
+                            vitals.respiratoryRate
+                        }
+                    />
+
+                </div>
+
+            )}
+
+        </section>
+
+    );
 
 }
