@@ -20,25 +20,60 @@ export function generateValidationCards(
 
     return [
 
-        {
-            card: "Patient Information",
-            fields: [
-                field("Patient Name", extraction.patientName),
-                field("Age", extraction.patientAge),
-                field("Gender", extraction.patientGender),
-                field("UHID", extraction.patientUHID),
-            ],
-        },
+{
+    card: "Patient Information",
+    fields: [
+        field(
+            "Patient Name",
+            extraction.patientIdentity.patientName
+        ),
 
-        {
-            card: "Consultation",
-            fields: [
-                field("Doctor Name", extraction.doctorName),
-                field("Hospital", extraction.hospitalOrClinic),
-                field("Consultation Date", extraction.consultationDate),
-                field("Consultation Mode", extraction.consultationMode),
-            ],
-        },
+        field(
+            "Age",
+            extraction.patientIdentity.patientAge
+        ),
+
+        field(
+            "Gender",
+            extraction.patientIdentity.patientGender
+        ),
+
+        field(
+            "UHID",
+            extraction.patientIdentity.patientUHID
+        ),
+    ],
+},
+
+{
+    card: "Consultation",
+    fields: [
+        field(
+            "Doctor Name",
+            extraction.encounterIdentity.doctorName
+        ),
+
+        field(
+            "Doctor Type",
+            extraction.encounterIdentity.doctorType
+        ),
+
+        field(
+            "Hospital",
+            extraction.encounterIdentity.hospitalOrClinic
+        ),
+
+        field(
+            "Consultation Date",
+            extraction.encounterIdentity.consultationDate
+        ),
+
+        field(
+            "Consultation Mode",
+            extraction.encounterIdentity.consultationMode
+        ),
+    ],
+},
 
         {
             card: "Presenting Complaints",

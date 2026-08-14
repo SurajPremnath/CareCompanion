@@ -279,6 +279,7 @@ const administrationTimingLabels: Record<string, string> = {
             }
         `}</style>
 
+{!readOnly && (
     <div
         style={informationBox}
         className="medication-information-box"
@@ -289,7 +290,8 @@ const administrationTimingLabels: Record<string, string> = {
         </div>
 
         <p style={informationText}>
-            <strong> {t("medication.administrationTimingInfo1")}
+            <strong>
+                {t("medication.administrationTimingInfo1")}
             </strong>
         </p>
 
@@ -304,6 +306,33 @@ const administrationTimingLabels: Record<string, string> = {
         </p>
 
     </div>
+)}
+
+{readOnly && (
+    <div
+        style={informationBox}
+        className="medication-information-box"
+    >
+
+        <div style={informationTitle}>
+            ✓ Prescription Already Validated
+        </div>
+
+        <p style={informationText}>
+            <strong>
+                All medicines have been validated and the same
+                prescription has been uploaded again.
+            </strong>
+        </p>
+
+        <p style={informationText}>
+            Please upload a new prescription.
+        </p>
+
+    </div>
+)}
+
+
 
     {prescription.medicines.length > 0 && (
 

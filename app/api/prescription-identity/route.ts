@@ -323,150 +323,328 @@ function parsePrescription(
 
 return {
 
-  patientName:
-    toNullableString(
-      parsed.patientName
-    ),
+  //----------------------------------------------------------
+  // Patient Identity
+  //----------------------------------------------------------
 
-  patientDateOfBirth:
-    toNullableString(
-      parsed.patientDateOfBirth
-    ),
+  patientIdentity: {
 
-patientAge:
-    null,
+    patientName:
+      toNullableString(
+        (
+          parsed.patientIdentity as any
+        )?.patientName
+      ),
 
-patientGender:
-    null,
+    patientDateOfBirth:
+      toNullableString(
+        (
+          parsed.patientIdentity as any
+        )?.patientDateOfBirth
+      ),
 
-patientUHID:
-    null,
+    patientAge:
+      toNullableString(
+        (
+          parsed.patientIdentity as any
+        )?.patientAge
+      ),
 
-  doctorName:
-    toNullableString(
-      parsed.doctorName
-    ),
+    patientGender:
+      toNullableString(
+        (
+          parsed.patientIdentity as any
+        )?.patientGender
+      ),
 
-  consultationDate:
-    toNullableString(
-      parsed.consultationDate
-    ),
+    patientUHID:
+      toNullableString(
+        (
+          parsed.patientIdentity as any
+        )?.patientUHID
+      ),
 
-  consultationMode:
-    toConsultationMode(
-      parsed.consultationMode
-    ),
+    patientNameVariations:
+      toStringArray(
+        (
+          parsed.patientIdentity as any
+        )?.patientNameVariations
+      ),
 
-consultationVitals: parsed.consultationVitals &&
-typeof parsed.consultationVitals === "object"
-    ? {
-          weight: toNullableString((parsed.consultationVitals as any).weight),
-          height: toNullableString((parsed.consultationVitals as any).height),
-          bmi: toNullableString((parsed.consultationVitals as any).bmi),
-          bloodPressure: toNullableString((parsed.consultationVitals as any).bloodPressure),
-          pulse: toNullableString((parsed.consultationVitals as any).pulse),
-          respiratoryRate: toNullableString((parsed.consultationVitals as any).respiratoryRate),
-          spo2: toNullableString((parsed.consultationVitals as any).spo2),
-          temperature: toNullableString((parsed.consultationVitals as any).temperature),
-      }
-    : null,
+  },
 
-  hospitalOrClinic:
-    toNullableString(
-      parsed.hospitalOrClinic
-    ),
+
+  //----------------------------------------------------------
+  // Encounter Identity
+  //----------------------------------------------------------
+
+  encounterIdentity: {
+
+    doctorName:
+      toNullableString(
+        (
+          parsed.encounterIdentity as any
+        )?.doctorName
+      ),
+
+    doctorType:
+      toNullableString(
+        (
+          parsed.encounterIdentity as any
+        )?.doctorType
+      ),
+
+    hospitalOrClinic:
+      toNullableString(
+        (
+          parsed.encounterIdentity as any
+        )?.hospitalOrClinic
+      ),
+
+    hospitalNameVariations:
+      toStringArray(
+        (
+          parsed.encounterIdentity as any
+        )?.hospitalNameVariations
+      ),
+
+    consultationDate:
+      toNullableString(
+        (
+          parsed.encounterIdentity as any
+        )?.consultationDate
+      ),
+
+    consultationMode:
+      toConsultationMode(
+        (
+          parsed.encounterIdentity as any
+        )?.consultationMode
+      ),
+
+  },
+
+
+  //----------------------------------------------------------
+  // Document Metadata
+  //----------------------------------------------------------
+
+  documentMetadata: {
+
+    studyDateTime:
+      toNullableString(
+        (
+          parsed.documentMetadata as any
+        )?.studyDateTime
+      ),
+
+    reportDateTime:
+      toNullableString(
+        (
+          parsed.documentMetadata as any
+        )?.reportDateTime
+      ),
+
+    originalPatientName:
+      toNullableString(
+        (
+          parsed.documentMetadata as any
+        )?.originalPatientName
+      ),
+
+    originalHospitalName:
+      toNullableString(
+        (
+          parsed.documentMetadata as any
+        )?.originalHospitalName
+      ),
+
+    documentType:
+      toDocumentType(
+        (
+          parsed.documentMetadata as any
+        )?.documentType
+      ),
+
+  },
+
+
+  //----------------------------------------------------------
+  // Clinical Data
+  //----------------------------------------------------------
+
+  consultationVitals:
+    parsed.consultationVitals &&
+    typeof parsed.consultationVitals === "object"
+      ? {
+          weight:
+            toNullableString(
+              (
+                parsed.consultationVitals as any
+              ).weight
+            ),
+
+          height:
+            toNullableString(
+              (
+                parsed.consultationVitals as any
+              ).height
+            ),
+
+          bmi:
+            toNullableString(
+              (
+                parsed.consultationVitals as any
+              ).bmi
+            ),
+
+          bloodPressure:
+            toNullableString(
+              (
+                parsed.consultationVitals as any
+              ).bloodPressure
+            ),
+
+          pulse:
+            toNullableString(
+              (
+                parsed.consultationVitals as any
+              ).pulse
+            ),
+
+          respiratoryRate:
+            toNullableString(
+              (
+                parsed.consultationVitals as any
+              ).respiratoryRate
+            ),
+
+          spo2:
+            toNullableString(
+              (
+                parsed.consultationVitals as any
+              ).spo2
+            ),
+
+          temperature:
+            toNullableString(
+              (
+                parsed.consultationVitals as any
+              ).temperature
+            ),
+        }
+      : null,
+
 
   diagnosisOrAssessment:
     toNullableString(
       parsed.diagnosisOrAssessment
     ),
 
-clinicalAssessments:
+
+  clinicalAssessments:
     toStringArray(
-        parsed.clinicalAssessments
+      parsed.clinicalAssessments
     ),
 
-symptoms:
+
+  symptoms:
     toStringArray(
-        parsed.symptoms
+      parsed.symptoms
     ),
 
-presentingComplaints:
-    Array.isArray(parsed.presentingComplaints)
-        ? parsed.presentingComplaints.map((item: any) => ({
-              complaint:
-                  typeof item?.complaint === "string"
-                      ? item.complaint.trim()
-                      : "",
 
-              duration:
-                  typeof item?.duration === "string"
-                      ? item.duration.trim()
-                      : null,
-          }))
-        : [],
+  presentingComplaints:
+    Array.isArray(
+      parsed.presentingComplaints
+    )
+      ? parsed.presentingComplaints.map(
+          (item: any) => ({
+            complaint:
+              typeof item?.complaint === "string"
+                ? item.complaint.trim()
+                : "",
 
-pastMedicalHistory:
+            duration:
+              typeof item?.duration === "string"
+                ? item.duration.trim()
+                : null,
+          })
+        )
+      : [],
+
+
+  pastMedicalHistory:
     toStringArray(
-        parsed.pastMedicalHistory
+      parsed.pastMedicalHistory
     ),
 
-history:
-    Array.isArray(parsed.history)
-        ? parsed.history.map((item: any) => ({
-              category:
-                  item.category ?? "OTHER",
-              value:
-                  typeof item.value === "string"
-                      ? item.value.trim()
-                      : "",
-          }))
-        : [],
 
-examinationFindings:
-    Array.isArray(parsed.examinationFindings)
-        ? parsed.examinationFindings.map((item: any) => ({
+  history:
+    Array.isArray(
+      parsed.history
+    )
+      ? parsed.history.map(
+          (item: any) => ({
+            category:
+              item.category ?? "OTHER",
 
-              finding:
-                  typeof item?.finding === "string"
-                      ? item.finding.trim()
-                      : typeof item === "string"
-                          ? item.trim()
-                          : "",
+            value:
+              typeof item.value === "string"
+                ? item.value.trim()
+                : "",
+          })
+        )
+      : [],
 
-          }))
-        : [],
 
-doctorInstructions:
+  examinationFindings:
+    Array.isArray(
+      parsed.examinationFindings
+    )
+      ? parsed.examinationFindings.map(
+          (item: any) => ({
+            finding:
+              typeof item?.finding === "string"
+                ? item.finding.trim()
+                : typeof item === "string"
+                  ? item.trim()
+                  : "",
+          })
+        )
+      : [],
+
+
+  doctorInstructions:
     toStringArray(
-        parsed.doctorInstructions
+      parsed.doctorInstructions
     ),
 
-followUpPlan:
+
+  followUpPlan:
     toStringArray(
-        parsed.followUpPlan
+      parsed.followUpPlan
     ),
+
 
   medicines,
 
-additionalNotes:
+
+  additionalNotes:
     toStringArray(
-        parsed.additionalNotes
+      parsed.additionalNotes
     ),
 
-documentType:
-  toDocumentType(
-    parsed.documentType
-  ),
 
   investigations:
     toStringArray(
       parsed.investigations
     ),
 
-clinicalPlan:
+
+  clinicalPlan:
     toStringArray(
-        parsed.clinicalPlan
+      parsed.clinicalPlan
     ),
 
 };
@@ -954,21 +1132,27 @@ export async function POST(
 
 const hasUsefulPrescriptionData =
 
-  prescription.patientName !== null ||
+  prescription.patientIdentity.patientName !== null ||
 
-  prescription.doctorName !== null ||
+  prescription.patientIdentity.patientUHID !== null ||
+
+  prescription.encounterIdentity.doctorName !== null ||
+
+  prescription.encounterIdentity.hospitalOrClinic !== null ||
+
+  prescription.encounterIdentity.consultationDate !== null ||
 
   prescription.diagnosisOrAssessment !== null ||
 
-prescription.symptoms.length > 0 ||
+  prescription.symptoms.length > 0 ||
 
-prescription.pastMedicalHistory.length > 0 ||
+  prescription.pastMedicalHistory.length > 0 ||
 
-prescription.doctorInstructions.length > 0 ||
+  prescription.doctorInstructions.length > 0 ||
 
-prescription.followUpPlan.length > 0 ||
+  prescription.followUpPlan.length > 0 ||
 
-prescription.examinationFindings.length > 0 ||
+  prescription.examinationFindings.length > 0 ||
 
   prescription.medicines.length > 0 ||
 

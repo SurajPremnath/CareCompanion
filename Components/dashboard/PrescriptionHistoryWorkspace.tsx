@@ -971,7 +971,10 @@ onChange={(event) => {
                             <button
                                 type="button"
                                 style={primaryButton}
-onClick={async () => {
+onClick={async (event) => {
+
+    event.preventDefault();
+    event.stopPropagation();
 
     if (!latestPrescription) {
 
@@ -979,16 +982,13 @@ onClick={async () => {
 
     }
 
-const record =
-    await prescriptionRepository.getPrescriptionDetails(
-        latestPrescription.id
-    );
+    const record =
+        await prescriptionRepository.getPrescriptionDetails(
+            latestPrescription.id
+        );
 
-
-const review =
-    mapPrescriptionToReview(record);
-
-setReviewPrescription(review);
+    const review =
+        mapPrescriptionToReview(record);
 
     setReviewPrescription(
         review
@@ -1081,7 +1081,10 @@ setReviewPrescription(review);
                     <button
                         type="button"
                         style={secondaryButton}
-onClick={async () => {
+onClick={async (event) => {
+
+    event.preventDefault();
+    event.stopPropagation();
 
     const record =
         await prescriptionRepository.getPrescriptionDetails(

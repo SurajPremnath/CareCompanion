@@ -19,13 +19,16 @@ static fromOCR(
     return {
 
         consultationDate:
-            prescription.consultationDate ?? "",
+            prescription.encounterIdentity
+                .consultationDate ?? "",
 
         doctorName:
-            prescription.doctorName ?? "",
+            prescription.encounterIdentity
+                .doctorName ?? "",
 
         hospitalName:
-            prescription.hospitalOrClinic ?? "",
+            prescription.encounterIdentity
+                .hospitalOrClinic ?? "",
 
         diagnosis:
             prescription.diagnosisOrAssessment ?? "",
@@ -35,7 +38,7 @@ static fromOCR(
                 medicine => ({
 
                     name:
-    medicine.name ?? "",
+                        medicine.name ?? "",
 
                     strength:
                         medicine.strength ?? "",
@@ -53,7 +56,6 @@ static fromOCR(
             ),
 
     };
-
 }
 
 static fromDatabase(

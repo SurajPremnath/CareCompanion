@@ -7,17 +7,19 @@ import { ClinicalEventRepository } from "@/lib/repositories/clinicalEventReposit
 
 export class ClinicalEventStorage {
 
-  //------------------------------------------------------------
-  // Create Clinical Event
-  //------------------------------------------------------------
+//------------------------------------------------------------
+// Create Clinical Event
+//------------------------------------------------------------
 
-  static async create(
+static async create(
     event: CreateClinicalEventRequest
-  ): Promise<void> {
+): Promise<ClinicalEvent> {
 
-    await ClinicalEventRepository.create(event);
+    return ClinicalEventRepository.create(
+        event
+    );
 
-  }
+}
 
   //------------------------------------------------------------
   // Get Event By Id

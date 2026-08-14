@@ -197,21 +197,24 @@ return(
     ) : (
         <>
             <div
-    style={{
-        fontSize: "12px",
-        fontWeight: 700,
-        color: "#64748b",
-        marginBottom: "6px",
-    }}
->
-    🤖 AI extracted this value. Please verify and correct if needed.
-</div>
+                style={{
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    color: "#64748b",
+                    marginBottom: "6px",
+                }}
+            >
+                🤖 AI extracted this value. Please verify and correct if needed.
+            </div>
 
             <input
                 type="text"
                 value={vitals.weight ?? ""}
-                onChange={(e) => onWeightChange(e.target.value)}
+                onChange={(e) =>
+                    onWeightChange(e.target.value)
+                }
                 placeholder="Enter weight"
+                disabled={readOnly}
                 style={{
                     width: "140px",
                     padding: "6px 8px",

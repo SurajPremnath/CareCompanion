@@ -17,17 +17,29 @@ export class ClinicalEventRepository {
 
 static async create(
   event: CreateClinicalEventRequest
-): Promise<void> {
+): Promise<ClinicalEvent> {
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("clinical_events")
     .insert(
       ClinicalEventMapper.toInsert(event)
-    );
+    )
+    .select("*")
+    .single();
 
   if (error) {
     throw new Error(error.message);
   }
+
+  if (!data) {
+    throw new Error(
+      "Clinical Event was created but could not be retrieved."
+    );
+  }
+
+  return ClinicalEventMapper.toDomain(
+    data as ClinicalEventRow
+  );
 
 }
 

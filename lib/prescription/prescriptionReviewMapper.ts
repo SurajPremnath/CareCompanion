@@ -15,247 +15,260 @@ export function mapPrescriptionToReview(
 
 return {
 
-    patientName: null,
+    //--------------------------------------------------------
+    // Patient Identity
+    //--------------------------------------------------------
 
-    patientAge: null,
+    patientIdentity: {
 
-    patientGender: null,
+        patientName: null,
 
-    patientUHID: null,
+        patientDateOfBirth: null,
 
-    patientDateOfBirth: null,
+        patientAge: null,
 
-    doctorName:
-        record.prescription.doctorName,
+        patientGender: null,
 
-    consultationDate:
-        record.prescription.consultationDate,
+        patientUHID: null,
 
-    consultationMode:
-        record.prescription.consultationMode,
+        patientNameVariations: [],
 
-consultationVitals:
+    },
 
-    record.vitals
-        ? {
 
-            weight:
-                record.vitals.weight,
+    //--------------------------------------------------------
+    // Encounter Identity
+    //--------------------------------------------------------
 
-            height:
-                record.vitals.height,
+    encounterIdentity: {
 
-            bmi:
-                record.vitals.bmi,
+        doctorName:
+            record.prescription.doctorName,
 
-            bloodPressure:
-                record.vitals.bloodPressure,
+        doctorType:
+            null,
 
-            pulse:
-                record.vitals.pulse,
+        hospitalOrClinic:
+            record.prescription.hospitalOrClinic,
 
-            respiratoryRate:
-                record.vitals.respiratoryRate,
+        hospitalNameVariations: [],
 
-            spo2:
-                record.vitals.spo2,
+        consultationDate:
+            record.prescription.consultationDate,
 
-            temperature:
-                record.vitals.temperature,
+        consultationMode:
+            record.prescription.consultationMode,
 
-        }
+    },
 
-        : null,
 
-    hospitalOrClinic:
-        record.prescription.hospitalOrClinic,
+    //--------------------------------------------------------
+    // Document Metadata
+    //--------------------------------------------------------
+
+    documentMetadata: {
+
+        studyDateTime:
+            null,
+
+        reportDateTime:
+            null,
+
+        originalPatientName:
+            null,
+
+        originalHospitalName:
+            null,
+
+        documentType:
+            "PRESCRIPTION",
+
+    },
+
+
+    //--------------------------------------------------------
+    // Existing Clinical Data
+    //--------------------------------------------------------
+
+    consultationVitals:
+
+        record.vitals
+            ? {
+                weight:
+                    record.vitals.weight,
+
+                height:
+                    record.vitals.height,
+
+                bmi:
+                    record.vitals.bmi,
+
+                bloodPressure:
+                    record.vitals.bloodPressure,
+
+                pulse:
+                    record.vitals.pulse,
+
+                respiratoryRate:
+                    record.vitals.respiratoryRate,
+
+                spo2:
+                    record.vitals.spo2,
+
+                temperature:
+                    record.vitals.temperature,
+
+            }
+            : null,
 
     diagnosisOrAssessment:
         record.prescription.diagnosisOrAssessment,
 
-clinicalAssessments:
+    clinicalAssessments:
 
-    record.assessments
+        record.assessments
+            .filter(
+                item =>
+                    item.assessmentType ===
+                    "CLINICAL_ASSESSMENT"
+            )
+            .map(
+                item =>
+                    item.value
+            ),
 
-        .filter(
+    symptoms:
 
+        record.symptoms.map(
             item =>
-
-                item.assessmentType ===
-                "CLINICAL_ASSESSMENT"
-
-        )
-
-        .map(
-
-            item =>
-
-                item.value
-
+                item.symptom
         ),
 
-symptoms:
+    presentingComplaints:
 
-    record.symptoms.map(
+        record.symptoms.map(
+            item => ({
 
-        item =>
+                complaint:
+                    item.symptom,
 
-            item.symptom
+                duration:
+                    item.duration,
 
-    ),
-
-presentingComplaints:
-
-    record.symptoms.map(
-
-        item => ({
-
-            complaint:
-                item.symptom,
-
-            duration:
-                item.duration,
-
-        })
-
-    ),
+            })
+        ),
 
     pastMedicalHistory: [],
 
-history:
+    history:
 
-    record.history.map(
+        record.history.map(
+            item => ({
 
-        item => ({
+                category:
+                    item.category as
+                    | "MEDICAL"
+                    | "SURGICAL"
+                    | "MEDICATION"
+                    | "ALLERGY"
+                    | "LIFESTYLE"
+                    | "SOCIAL"
+                    | "OTHER",
 
-            category:
+                value:
+                    item.value,
 
-                item.category as
-                | "MEDICAL"
-                | "SURGICAL"
-                | "MEDICATION"
-                | "ALLERGY"
-                | "LIFESTYLE"
-                | "SOCIAL"
-                | "OTHER",
-
-            value:
-                item.value,
-
-        })
-
-    ),
+            })
+        ),
 
     examinationFindings: [],
 
-doctorInstructions:
+    doctorInstructions:
 
-    record.instructions.map(
-
-        item =>
-
-            item.instruction
-
-    ),
+        record.instructions.map(
+            item =>
+                item.instruction
+        ),
 
     followUpPlan: [],
 
-medicines:
+    medicines:
 
-    record.medicines.map(
+        record.medicines
+            .filter(
+                medicine =>
+                    medicine.validationStatus ===
+                    "VALIDATED"
+            )
+            .map(
+                medicine => ({
 
-        medicine => ({
+                    name:
+                        medicine.medicineName,
 
-            name:
-                medicine.medicineName,
+                    strength:
+                        medicine.strength,
 
-            strength:
-                medicine.strength,
+                    form:
+                        medicine.form,
 
-            form:
-                medicine.form,
+                    dose:
+                        medicine.dose,
 
-            dose:
-                medicine.dose,
+                    frequency:
+                        medicine.frequency,
 
-            frequency:
-                medicine.frequency,
+                    timings:
+                        medicine.timings,
 
-            timings:
-                medicine.timings,
+                    duration:
+                        medicine.duration,
 
-            duration:
-                medicine.duration,
+                    instructions:
+                        medicine.instructions,
 
-            instructions:
-                medicine.instructions,
+                    reviewStatus:
+                        "VERIFIED",
 
-            reviewStatus:
-                medicine.validationStatus === "VALIDATED"
-                    ? "VERIFIED"
-                    : "REVIEW",
+                })
+            ),
 
-        })
-    ),
+    additionalNotes:
 
-additionalNotes:
+        [
 
-    [
+            ...(record.prescription.additionalNotes
+                ? [
+                    record.prescription.additionalNotes,
+                ]
+                : []),
 
-        ...(record.prescription.additionalNotes
+            ...record.notes.map(
+                item =>
+                    item.note
+            ),
 
-            ? [
+        ],
 
-                record.prescription.additionalNotes,
+    investigations:
 
-            ]
-
-            : []),
-
-        ...record.notes.map(
-
+        record.investigations.map(
             item =>
-
-                item.note
-
+                item.investigation
         ),
-
-    ],
-
-    documentType:
-        "PRESCRIPTION",
-
-investigations:
-
-    record.investigations.map(
-
-        item =>
-
-            item.investigation
-
-    ),
 
     clinicalPlan:
 
-    record.assessments
-
-        .filter(
-
-            item =>
-
-                item.assessmentType ===
-
-                "PLAN"
-
-        )
-
-        .map(
-
-            item =>
-
-                item.value
-
-        ),
+        record.assessments
+            .filter(
+                item =>
+                    item.assessmentType ===
+                    "PLAN"
+            )
+            .map(
+                item =>
+                    item.value
+            ),
 
 };
 

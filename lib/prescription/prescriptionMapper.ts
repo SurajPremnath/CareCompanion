@@ -187,23 +187,31 @@ return {
     recordContext:
         context.recordContext,
 
-    doctorName:
-        normaliseOptionalText(
-            reviewedPrescription.doctorName
-        ),
+doctorName:
+    normaliseOptionalText(
+        reviewedPrescription
+            .encounterIdentity
+            .doctorName
+    ),
 
-    consultationDate:
-        normaliseOptionalText(
-            reviewedPrescription.consultationDate
-        ),
+consultationDate:
+    normaliseOptionalText(
+        reviewedPrescription
+            .encounterIdentity
+            .consultationDate
+    ),
 
-    consultationMode:
-        reviewedPrescription.consultationMode,
+consultationMode:
+    reviewedPrescription
+        .encounterIdentity
+        .consultationMode,
 
-    hospitalOrClinic:
-        normaliseOptionalText(
-            reviewedPrescription.hospitalOrClinic
-        ),
+hospitalOrClinic:
+    normaliseOptionalText(
+        reviewedPrescription
+            .encounterIdentity
+            .hospitalOrClinic
+    ),
 
     diagnosisOrAssessment:
         normaliseOptionalText(

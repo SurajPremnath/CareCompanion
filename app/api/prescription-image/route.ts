@@ -142,6 +142,24 @@ function toStringArray(
 
 }
 
+//------------------------------------------------------------
+// Plain Object
+//------------------------------------------------------------
+
+function toPlainObject(
+  value: unknown
+): Record<string, unknown> {
+
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    Array.isArray(value)
+  ) {
+    return {};
+  }
+
+  return value as Record<string, unknown>;
+}
 
 //------------------------------------------------------------
 // Consultation Mode
@@ -303,6 +321,20 @@ function parsePrescription(
       unknown
     >;
 
+const patientIdentity =
+  toPlainObject(
+    parsed.patientIdentity
+  );
+
+const encounterIdentity =
+  toPlainObject(
+    parsed.encounterIdentity
+  );
+
+const documentMetadata =
+  toPlainObject(
+    parsed.documentMetadata
+  );
 
   const medicines =
     Array.isArray(
@@ -323,155 +355,285 @@ function parsePrescription(
 
 return {
 
-  patientName:
-    toNullableString(
-      parsed.patientName
-    ),
+  //----------------------------------------------------------
+  // Patient Identity
+  //----------------------------------------------------------
 
-  patientDateOfBirth:
-    toNullableString(
-      parsed.patientDateOfBirth
-    ),
+  patientIdentity: {
 
-patientAge:
-    null,
+    patientName:
+      toNullableString(
+        patientIdentity.patientName
+      ),
 
-patientGender:
-    null,
+    patientDateOfBirth:
+      toNullableString(
+        patientIdentity.patientDateOfBirth
+      ),
 
-patientUHID:
-    null,
+    patientAge:
+      toNullableString(
+        patientIdentity.patientAge
+      ),
 
-  doctorName:
-    toNullableString(
-      parsed.doctorName
-    ),
+    patientGender:
+      toNullableString(
+        patientIdentity.patientGender
+      ),
 
-  consultationDate:
-    toNullableString(
-      parsed.consultationDate
-    ),
+    patientUHID:
+      toNullableString(
+        patientIdentity.patientUHID
+      ),
 
-  consultationMode:
-    toConsultationMode(
-      parsed.consultationMode
-    ),
+    patientNameVariations:
+      toStringArray(
+        patientIdentity.patientNameVariations
+      ),
 
-consultationVitals: parsed.consultationVitals &&
-typeof parsed.consultationVitals === "object"
-    ? {
-          weight: toNullableString((parsed.consultationVitals as any).weight),
-          height: toNullableString((parsed.consultationVitals as any).height),
-          bmi: toNullableString((parsed.consultationVitals as any).bmi),
-          bloodPressure: toNullableString((parsed.consultationVitals as any).bloodPressure),
-          pulse: toNullableString((parsed.consultationVitals as any).pulse),
-          respiratoryRate: toNullableString((parsed.consultationVitals as any).respiratoryRate),
-          spo2: toNullableString((parsed.consultationVitals as any).spo2),
-          temperature: toNullableString((parsed.consultationVitals as any).temperature),
-      }
-    : null,
+  },
 
-  hospitalOrClinic:
-    toNullableString(
-      parsed.hospitalOrClinic
-    ),
+
+  //----------------------------------------------------------
+  // Encounter Identity
+  //----------------------------------------------------------
+
+  encounterIdentity: {
+
+    doctorName:
+      toNullableString(
+        encounterIdentity.doctorName
+      ),
+
+    doctorType:
+      toNullableString(
+        encounterIdentity.doctorType
+      ),
+
+    hospitalOrClinic:
+      toNullableString(
+        encounterIdentity.hospitalOrClinic
+      ),
+
+    hospitalNameVariations:
+      toStringArray(
+        encounterIdentity.hospitalNameVariations
+      ),
+
+    consultationDate:
+      toNullableString(
+        encounterIdentity.consultationDate
+      ),
+
+    consultationMode:
+      toConsultationMode(
+        encounterIdentity.consultationMode
+      ),
+
+  },
+
+
+  //----------------------------------------------------------
+  // Document Metadata
+  //----------------------------------------------------------
+
+  documentMetadata: {
+
+    studyDateTime:
+      toNullableString(
+        documentMetadata.studyDateTime
+      ),
+
+    reportDateTime:
+      toNullableString(
+        documentMetadata.reportDateTime
+      ),
+
+    originalPatientName:
+      toNullableString(
+        documentMetadata.originalPatientName
+      ),
+
+    originalHospitalName:
+      toNullableString(
+        documentMetadata.originalHospitalName
+      ),
+
+    documentType:
+      toDocumentType(
+        documentMetadata.documentType
+      ),
+
+  },
+
+
+  //----------------------------------------------------------
+  // Existing Clinical Data
+  //----------------------------------------------------------
+
+  consultationVitals:
+    parsed.consultationVitals &&
+    typeof parsed.consultationVitals === "object"
+      ? {
+          weight:
+            toNullableString(
+              (parsed.consultationVitals as any).weight
+            ),
+
+          height:
+            toNullableString(
+              (parsed.consultationVitals as any).height
+            ),
+
+          bmi:
+            toNullableString(
+              (parsed.consultationVitals as any).bmi
+            ),
+
+          bloodPressure:
+            toNullableString(
+              (parsed.consultationVitals as any).bloodPressure
+            ),
+
+          pulse:
+            toNullableString(
+              (parsed.consultationVitals as any).pulse
+            ),
+
+          respiratoryRate:
+            toNullableString(
+              (parsed.consultationVitals as any).respiratoryRate
+            ),
+
+          spo2:
+            toNullableString(
+              (parsed.consultationVitals as any).spo2
+            ),
+
+          temperature:
+            toNullableString(
+              (parsed.consultationVitals as any).temperature
+            ),
+        }
+      : null,
+
 
   diagnosisOrAssessment:
     toNullableString(
       parsed.diagnosisOrAssessment
     ),
 
-clinicalAssessments:
+
+  clinicalAssessments:
     toStringArray(
-        parsed.clinicalAssessments
+      parsed.clinicalAssessments
     ),
 
-symptoms:
+
+  symptoms:
     toStringArray(
-        parsed.symptoms
+      parsed.symptoms
     ),
 
-presentingComplaints:
-    Array.isArray(parsed.presentingComplaints)
-        ? parsed.presentingComplaints.map((item: any) => ({
-              complaint:
-                  typeof item?.complaint === "string"
-                      ? item.complaint.trim()
-                      : "",
 
-              duration:
-                  typeof item?.duration === "string"
-                      ? item.duration.trim()
-                      : null,
-          }))
-        : [],
+  presentingComplaints:
+    Array.isArray(
+      parsed.presentingComplaints
+    )
+      ? parsed.presentingComplaints.map(
+          (item: any) => ({
+            complaint:
+              typeof item?.complaint === "string"
+                ? item.complaint.trim()
+                : "",
 
-pastMedicalHistory:
+            duration:
+              typeof item?.duration === "string"
+                ? item.duration.trim()
+                : null,
+          })
+        )
+      : [],
+
+
+  pastMedicalHistory:
     toStringArray(
-        parsed.pastMedicalHistory
+      parsed.pastMedicalHistory
     ),
 
-history:
-    Array.isArray(parsed.history)
-        ? parsed.history.map((item: any) => ({
-              category:
-                  item.category ?? "OTHER",
-              value:
-                  typeof item.value === "string"
-                      ? item.value.trim()
-                      : "",
-          }))
-        : [],
 
-examinationFindings:
-    Array.isArray(parsed.examinationFindings)
-        ? parsed.examinationFindings.map((item: any) => ({
+  history:
+    Array.isArray(
+      parsed.history
+    )
+      ? parsed.history.map(
+          (item: any) => ({
+            category:
+              item.category ?? "OTHER",
 
-              finding:
-                  typeof item?.finding === "string"
-                      ? item.finding.trim()
-                      : typeof item === "string"
-                          ? item.trim()
-                          : "",
+            value:
+              typeof item.value === "string"
+                ? item.value.trim()
+                : "",
+          })
+        )
+      : [],
 
-          }))
-        : [],
 
-doctorInstructions:
+  examinationFindings:
+    Array.isArray(
+      parsed.examinationFindings
+    )
+      ? parsed.examinationFindings.map(
+          (item: any) => ({
+            finding:
+              typeof item?.finding === "string"
+                ? item.finding.trim()
+                : typeof item === "string"
+                  ? item.trim()
+                  : "",
+          })
+        )
+      : [],
+
+
+  doctorInstructions:
     toStringArray(
-        parsed.doctorInstructions
+      parsed.doctorInstructions
     ),
 
-followUpPlan:
+
+  followUpPlan:
     toStringArray(
-        parsed.followUpPlan
+      parsed.followUpPlan
     ),
+
 
   medicines,
 
-additionalNotes:
+
+  additionalNotes:
     toStringArray(
-        parsed.additionalNotes
+      parsed.additionalNotes
     ),
 
-documentType:
-  toDocumentType(
-    parsed.documentType
-  ),
 
   investigations:
     toStringArray(
       parsed.investigations
     ),
 
-clinicalPlan:
+
+  clinicalPlan:
     toStringArray(
-        parsed.clinicalPlan
+      parsed.clinicalPlan
     ),
 
 };
 
 }
+
+
 
 
 //------------------------------------------------------------
@@ -1011,8 +1173,6 @@ if (
     return [...map.values()];
 }
 
-prescription = parsePrescription(outputText);
-
 prescription.medicines =
     mergeDuplicateMedicines(
         prescription.medicines
@@ -1072,27 +1232,33 @@ for (const medicine of prescription.medicines) {
 }
 
 
-    //--------------------------------------------------------
-    // Minimum Validation
-    //--------------------------------------------------------
+//--------------------------------------------------------
+// Minimum Validation
+//--------------------------------------------------------
 
 const hasUsefulPrescriptionData =
 
-  prescription.patientName !== null ||
+  prescription.patientIdentity.patientName !== null ||
 
-  prescription.doctorName !== null ||
+  prescription.patientIdentity.patientUHID !== null ||
+
+  prescription.encounterIdentity.doctorName !== null ||
+
+  prescription.encounterIdentity.hospitalOrClinic !== null ||
+
+  prescription.encounterIdentity.consultationDate !== null ||
 
   prescription.diagnosisOrAssessment !== null ||
 
-prescription.symptoms.length > 0 ||
+  prescription.symptoms.length > 0 ||
 
-prescription.pastMedicalHistory.length > 0 ||
+  prescription.pastMedicalHistory.length > 0 ||
 
-prescription.doctorInstructions.length > 0 ||
+  prescription.doctorInstructions.length > 0 ||
 
-prescription.followUpPlan.length > 0 ||
+  prescription.followUpPlan.length > 0 ||
 
-prescription.examinationFindings.length > 0 ||
+  prescription.examinationFindings.length > 0 ||
 
   prescription.medicines.length > 0 ||
 

@@ -966,6 +966,8 @@ const handleCareModeChange =
 )}
 
 {medicationDetail !== "" &&
+    medicationDetail !== "VIEW_PRESCRIPTIONS" &&
+    medicationDetail !== "CONTINUE_VALIDATION" &&
     !hasPendingMedicationValidation && (
 
     <PrescriptionWorkspace

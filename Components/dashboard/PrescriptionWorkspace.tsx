@@ -26,6 +26,10 @@ import {
     prescriptionStorage,
 } from "@/lib/prescription/prescriptionStorage";
 
+import {
+    prescriptionRepository,
+} from "@/lib/prescription/prescriptionRepository";
+
 
 import {
     generateValidationCards,
@@ -56,6 +60,14 @@ import {
 import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
+
+import type {
+    CompletePrescriptionRecord,
+} from "@/lib/prescription/prescriptionTypes";
+
+import {
+    mapPrescriptionToReview,
+} from "@/lib/prescription/prescriptionReviewMapper";
 
 //------------------------------------------------------------
 // Types
@@ -191,13 +203,21 @@ const {
             null
         );
 
-    const [
-        extractedPrescription,
-        setExtractedPrescription,
-    ] =
-        useState<ExtractedPrescription | null>(
-            null
-        );
+const [
+    extractedPrescription,
+    setExtractedPrescription,
+] =
+    useState<ExtractedPrescription | null>(
+        null
+    );
+
+const [
+    prescriptionReviewMode,
+    setPrescriptionReviewMode,
+] =
+    useState<"UPLOAD" | "VIEW">(
+        "UPLOAD"
+    );
 
 const [
     patientValidationError,
@@ -340,9 +360,13 @@ setPatientValidationError(
             null
         );
 
-        setExtractedPrescription(
-            null
-        );
+setExtractedPrescription(
+    null
+);
+
+setPrescriptionReviewMode(
+    "UPLOAD"
+);
 
 setSelectedFiles(files);
 
@@ -589,6 +613,245 @@ function cancelReview() {
 
 }
 
+//--------------------------------------------------------
+// Check Existing Prescription
+//--------------------------------------------------------
+
+async function checkExistingPrescription(
+    extracted:
+        ExtractedPrescription
+): Promise<{
+    mode: "UPLOAD" | "VIEW";
+    prescription: CompletePrescriptionRecord | null;
+}> {
+
+    try {
+
+        //----------------------------------------------------
+        // Read existing prescriptions for this patient.
+        //----------------------------------------------------
+
+        const existingPrescriptions =
+            await prescriptionStorage
+                .getPatientPrescriptions({
+                    userId,
+                    patientId,
+                    familyId,
+                    recordContext,
+                });
+
+        //----------------------------------------------------
+        // We only treat the upload as the same prescription
+        // when this patient has exactly ONE saved prescription.
+        //----------------------------------------------------
+
+        if (
+            existingPrescriptions.length !== 1
+        ) {
+
+            return {
+                mode: "UPLOAD",
+                prescription: null,
+            };
+
+        }
+
+        //----------------------------------------------------
+        // There is exactly one saved prescription.
+        //----------------------------------------------------
+
+        const existingPrescription =
+            existingPrescriptions[0];
+
+        const saved =
+            existingPrescription.prescription;
+
+        //----------------------------------------------------
+        // Normalise doctor / hospital names.
+        //----------------------------------------------------
+
+        const normalise =
+            (
+                value:
+                    string | null | undefined
+            ) =>
+                value
+                    ?.trim()
+                    .toLowerCase()
+                    .replace(
+                        /\s+/g,
+                        " "
+                    )
+                    .replace(
+                        /[.,]/g,
+                        ""
+                    ) ?? "";
+
+const incomingDoctor =
+    normalise(
+        extracted.encounterIdentity
+            .doctorName
+    );
+
+        const savedDoctor =
+            normalise(
+                saved.doctorName
+            );
+
+const incomingHospital =
+    normalise(
+        extracted.encounterIdentity
+            .hospitalOrClinic
+    );
+
+        const savedHospital =
+            normalise(
+                saved.hospitalOrClinic
+            );
+
+        //----------------------------------------------------
+        // Doctor must match.
+        //----------------------------------------------------
+
+        const sameDoctor =
+            Boolean(
+                incomingDoctor &&
+                savedDoctor &&
+                incomingDoctor ===
+                    savedDoctor
+            );
+
+        //----------------------------------------------------
+        // Hospital must match.
+        //----------------------------------------------------
+
+        const sameHospital =
+            Boolean(
+                incomingHospital &&
+                savedHospital &&
+                incomingHospital ===
+                    savedHospital
+            );
+
+        //----------------------------------------------------
+        // If doctor or hospital does not match,
+        // this is treated as a new prescription.
+        //----------------------------------------------------
+
+        if (
+            !sameDoctor ||
+            !sameHospital
+        ) {
+
+            console.log(
+                "PRESCRIPTION MATCH: NO"
+            );
+
+            console.log(
+                "Doctor:",
+                incomingDoctor,
+                "vs",
+                savedDoctor
+            );
+
+            console.log(
+                "Hospital:",
+                incomingHospital,
+                "vs",
+                savedHospital
+            );
+
+            return {
+                mode: "UPLOAD",
+                prescription: null,
+            };
+
+        }
+
+        //----------------------------------------------------
+        // Same patient + same doctor + same hospital.
+        //
+        // Now check whether all SAVED medicines have been
+        // validated.
+        //
+        // We deliberately DO NOT compare them with OCR.
+        //----------------------------------------------------
+
+        const medicines =
+            existingPrescription.medicines;
+
+        const allMedicinesValidated =
+            medicines.length > 0 &&
+            medicines.every(
+                medicine =>
+                    medicine.validationStatus ===
+                    "VALIDATED"
+            );
+
+        //----------------------------------------------------
+        // If any saved medicine is still pending,
+        // do not enter VIEW mode.
+        //----------------------------------------------------
+
+        if (
+            !allMedicinesValidated
+        ) {
+
+            console.log(
+                "PRESCRIPTION MATCH: FOUND"
+            );
+
+            console.log(
+                "PRESCRIPTION STATUS: PENDING VALIDATION"
+            );
+
+            return {
+                mode: "UPLOAD",
+                prescription: null,
+            };
+
+        }
+
+        //----------------------------------------------------
+        // SAME PRESCRIPTION
+        //
+        // Return the complete saved database record.
+        //
+        // Nothing from the new OCR medicine extraction
+        // is used for VIEW mode.
+        //----------------------------------------------------
+
+        console.log(
+            "PRESCRIPTION MATCH: SAME PRESCRIPTION"
+        );
+
+        console.log(
+            "Using saved prescription from database."
+        );
+
+        return {
+            mode: "VIEW",
+            prescription:
+                existingPrescription,
+        };
+
+    }
+    catch (error) {
+
+        console.error(
+            "Prescription duplicate check failed:",
+            error
+        );
+
+        return {
+            mode: "UPLOAD",
+            prescription: null,
+        };
+
+    }
+
+}
+
     //--------------------------------------------------------
     // Read Prescription
     //--------------------------------------------------------
@@ -765,7 +1028,8 @@ const response = await fetch(
 //------------------------------------------------------
 
 const extractedName =
-    result.data.patientName
+    result.data.patientIdentity
+        .patientName
         ?.replace(/^MR\.?/i, "")
         ?.replace(/^MRS\.?/i, "")
         ?.replace(/^MS\.?/i, "")
@@ -793,6 +1057,50 @@ if (
 }
 
 
+
+//------------------------------------------------------
+// Check whether this document already exists
+//------------------------------------------------------
+
+console.log(
+    "OCR CONSULTATION DATE:",
+    result.data.encounterIdentity
+        .consultationDate
+);
+
+console.log(
+    "OCR DOCTOR:",
+    result.data.encounterIdentity
+        .doctorName
+);
+
+console.log(
+    "OCR HOSPITAL:",
+    result.data.encounterIdentity
+        .hospitalOrClinic
+);
+
+const duplicateResult =
+    await checkExistingPrescription(
+        result.data
+    );
+
+setPrescriptionReviewMode(
+    duplicateResult.mode
+);
+
+if (
+    duplicateResult.mode === "VIEW" &&
+    duplicateResult.prescription
+) {
+    setExtractedPrescription(
+        mapPrescriptionToReview(
+            duplicateResult.prescription
+        )
+    );
+
+    return;
+}
 
 setExtractedPrescription(
     result.data
@@ -1215,7 +1523,7 @@ return (
 
                 extractedPrescription && (
 
-                    <PrescriptionReview
+<PrescriptionReview
 
     prescription={extractedPrescription}
 
@@ -1223,7 +1531,7 @@ return (
 
     recordContext={recordContext}
 
-    mode="UPLOAD"
+    mode={prescriptionReviewMode}
 
     saving={saving}
 

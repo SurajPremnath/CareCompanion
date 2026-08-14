@@ -12,7 +12,10 @@ const CONSULTATION_OPTIONS = [
     "OTHER",
 ] as const;
 
-import { useState } from "react";
+import {
+    useEffect,
+    useState,
+} from "react";
 
 import type {
     ExtractedPrescription,
@@ -232,29 +235,47 @@ return "NOT_SPECIFIED";
 );
 
 const [
-    consultationMode,
-    setConsultationMode,
+  consultationMode,
+  setConsultationMode,
 ] = useState(
-
-    prescription.consultationMode ??
-
-    "IN_PERSON"
-
+  prescription.encounterIdentity
+    .consultationMode ??
+  "IN_PERSON"
 );
 
 
 const [
-    reviewPrescription,
-    setReviewPrescription,
+  reviewPrescription,
+  setReviewPrescription,
 ] = useState<ExtractedPrescription>({
+  ...prescription,
 
-    ...prescription,
+  encounterIdentity: {
+    ...prescription.encounterIdentity,
 
     consultationMode:
-        prescription.consultationMode ??
-        "IN_PERSON",
-
+      prescription.encounterIdentity
+        .consultationMode ??
+      "IN_PERSON",
+  },
 });
+
+useEffect(() => {
+
+  setReviewPrescription({
+    ...prescription,
+
+    encounterIdentity: {
+      ...prescription.encounterIdentity,
+
+      consultationMode:
+        prescription.encounterIdentity
+          .consultationMode ??
+        "IN_PERSON",
+    },
+  });
+
+}, [prescription]);
 
 const [
     reviewMode,
@@ -423,15 +444,25 @@ const handleSave = async () => {
                 {t("medication.prescriptionDetails")}
             </h2>
 
-            <p
-                style={reviewDescription}
-                className="prescription-review-description"
-            >
-Note: {t("medication.reviewNoteDescription")}                
-<strong> {t("medication.reviewInstruction")} </strong>
-		
- 
-            </p>
+<p
+    style={reviewDescription}
+    className="prescription-review-description"
+>
+{mode === "VIEW" ? (
+    <strong>
+        All medicines have been validated and the same prescription has been uploaded.
+        Please upload a new prescription.
+    </strong>
+) : (
+    <>
+        Note: {t("medication.reviewNoteDescription")}
+        <strong>
+            {" "}
+            {t("medication.reviewInstruction")}
+        </strong>
+    </>
+)}
+</p>
 
 <PrescriptionTabs
     activeTab={activeTab}
@@ -451,31 +482,43 @@ readOnly={
     mode === "VIEW"
 }
 
-    onConsultationModeChange={(value) => {
+onConsultationModeChange={(value) => {
 
-        setConsultationMode(value);
+  setConsultationMode(value);
 
-        setReviewPrescription(previous => ({
+  setReviewPrescription(previous => ({
 
-            ...previous,
+    ...previous,
 
-            consultationMode: value,
+    encounterIdentity: {
 
-        }));
+      ...previous.encounterIdentity,
 
-    }}
+      consultationMode: value,
 
-    onConsultationDateChange={(value) => {
+    },
 
-        setReviewPrescription(previous => ({
+  }));
 
-            ...previous,
+}}
 
-            consultationDate: value,
+onConsultationDateChange={(value) => {
 
-        }));
+  setReviewPrescription(previous => ({
 
-    }}
+    ...previous,
+
+    encounterIdentity: {
+
+      ...previous.encounterIdentity,
+
+      consultationDate: value,
+
+    },
+
+  }));
+
+}}
 />
 
 </>

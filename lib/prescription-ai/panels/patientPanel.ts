@@ -168,10 +168,46 @@ ANTI-HALLUCINATION
 • Return only the institution name.
 
 4. CONSULTATION DATE:
-   - Search the document for any calendar date representation (e.g., "5/6/26", "05-06-2026", "05/06/2026").
-   - Locate dates near labels like "Date:", "Dt:", "Dated:", or adjacent to doctor signatures/stamps.
-   - Parse using DD/MM/YYYY standard for medical prescriptions and output strictly in ISO format "YYYY-MM-DD".
-   - If a valid consultation date is visually present on the page, it MUST be extracted.
+
+   - Search the ENTIRE document for the consultation/prescription date.
+   - Prioritize dates explicitly associated with:
+     "Date:", "Dt:", "Dated:", "Consultation Date:", or the prescription header.
+   - A date written near the doctor's signature/stamp may also represent the consultation date.
+
+   - Medical prescriptions in this application use DD/MM/YYYY interpretation.
+   - Output the final date strictly as ISO format:
+     "YYYY-MM-DD".
+
+   - IMPORTANT: Read the DATE DIGITS visually from the document.
+     Do NOT infer, estimate, reconstruct, or substitute digits.
+
+   - For handwritten dates, inspect EACH digit individually.
+     Pay particular attention to visually similar handwritten digits such as:
+     1 vs 4 vs 5 vs 7,
+     0 vs 6,
+     3 vs 8,
+     5 vs 6.
+
+   - If the day appears to be "05", it MUST be returned as day 05.
+     Do not convert or reinterpret it as 01.
+
+   - Before returning the date, perform a SECOND visual verification
+     of the complete date against the original document.
+
+   - The date must be internally valid:
+     valid day + valid month + valid year.
+
+   - If multiple dates are visible:
+       1. Prefer the date explicitly labelled as the prescription/
+          consultation date.
+       2. Do NOT use patient DOB, report date, admission date,
+          discharge date, investigation date, or medication date.
+       3. If the consultation date cannot be determined with confidence,
+          return null rather than guessing.
+
+   - If a consultation date is clearly visible, extract it.
+   - If the handwriting is genuinely ambiguous after visual verification,
+     return null rather than choosing a digit by inference.
 
 5. ANTI-HALLUCINATION & REPEATABILITY DIRECTIVE:
    - Rely strictly on visual evidence visible on the document.

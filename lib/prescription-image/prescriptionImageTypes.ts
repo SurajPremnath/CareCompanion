@@ -153,62 +153,119 @@ export type MedicalDocumentType =
   | "OTHER";
 
 
+//------------------------------------------------------------
+// Patient Identity
+//------------------------------------------------------------
+
+export interface ExtractedPatientIdentity {
+
+  patientName: string | null;
+
+  patientDateOfBirth: string | null;
+
+  patientAge: string | null;
+
+  patientGender: string | null;
+
+  patientUHID: string | null;
+
+  patientNameVariations: string[];
+}
+
+
+//------------------------------------------------------------
+// Encounter Identity
+//------------------------------------------------------------
+
+export interface ExtractedEncounterIdentity {
+
+  doctorName: string | null;
+
+  doctorType: string | null;
+
+  hospitalOrClinic: string | null;
+
+  hospitalNameVariations: string[];
+
+  consultationDate: string | null;
+
+  consultationMode: ConsultationMode | null;
+}
+
+
+//------------------------------------------------------------
+// Document Metadata
+//------------------------------------------------------------
+
+export interface ExtractedDocumentMetadata {
+
+  studyDateTime: string | null;
+
+  reportDateTime: string | null;
+
+  originalPatientName: string | null;
+
+  originalHospitalName: string | null;
+
+  documentType: MedicalDocumentType;
+}
+
+//------------------------------------------------------------
+// Extracted Prescription / Clinical Document
+//------------------------------------------------------------
+
 export interface ExtractedPrescription {
 
-    patientName: string | null;
+  patientIdentity:
+    ExtractedPatientIdentity;
 
-patientAge: string | null;
+  encounterIdentity:
+    ExtractedEncounterIdentity;
 
-patientGender: string | null;
+  documentMetadata:
+    ExtractedDocumentMetadata;
 
-patientUHID: string | null;
+  consultationVitals:
+    ExtractedConsultationVital | null;
 
-    patientDateOfBirth: string | null;
+  diagnosisOrAssessment:
+    string | null;
 
-    doctorName: string | null;
+  clinicalAssessments:
+    string[];
 
-    consultationDate: string | null;
+  symptoms:
+    string[];
 
-    consultationMode: ConsultationMode | null;
+  presentingComplaints:
+    ExtractedComplaint[];
 
-    consultationVitals: ExtractedConsultationVital | null;
+  pastMedicalHistory:
+    string[];
 
-    hospitalOrClinic: string | null;
+  history:
+    ExtractedHistory[];
 
-    diagnosisOrAssessment: string | null;
+  examinationFindings:
+    ExtractedExaminationFinding[];
 
-clinicalAssessments: string[];
+  doctorInstructions:
+    string[];
 
-//------------------------------------------------------------
-// Clinical Understanding
-//------------------------------------------------------------
+  followUpPlan:
+    string[];
 
-symptoms: string[];
+  medicines:
+    ExtractedPrescriptionMedicine[];
 
-presentingComplaints: ExtractedComplaint[];
+  additionalNotes:
+    string[];
 
-pastMedicalHistory: string[];
+  investigations:
+    string[];
 
-history: ExtractedHistory[];
-
-examinationFindings: ExtractedExaminationFinding[];
-
-doctorInstructions: string[];
-
-followUpPlan: string[];
-
-    medicines: ExtractedPrescriptionMedicine[];
-
-    additionalNotes: string[];
-
-    // New fields (Phase 1)
-
-    documentType: MedicalDocumentType;
-
-    investigations: string[];
-
-clinicalPlan: string[];
-
+  clinicalPlan:
+    string[];
 }
 
 //------------------------------------------------------------

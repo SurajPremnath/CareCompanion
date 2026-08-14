@@ -23,6 +23,14 @@ import {
     ClinicalEventStorage,
 } from "@/lib/storage/clinicalEventStorage";
 
+import {
+    ClinicalEventDetailBuilder,
+} from "@/lib/builders/clinicalEventDetailBuilder";
+
+import {
+    ClinicalEventDetailStorage,
+} from "@/lib/storage/clinicalEventDetailStorage";
+
 
 //------------------------------------------------------------
 // Save Context
@@ -240,18 +248,25 @@ export const prescriptionStorage = {
         // Prepare Reviewed Copy
         //----------------------------------------------------
 
-        const preparedPrescription:
-            ExtractedPrescription = {
+const preparedPrescription:
+    ExtractedPrescription = {
 
-                ...prescription,
+        ...prescription,
 
-                consultationDate:
-                    normaliseConsultationDate(
-                        prescription
-                            .consultationDate
-                    ),
+        encounterIdentity: {
 
-            };
+            ...prescription.encounterIdentity,
+
+            consultationDate:
+                normaliseConsultationDate(
+                    prescription
+                        .encounterIdentity
+                        .consultationDate
+                ),
+
+        },
+
+};
 
 
         //----------------------------------------------------
@@ -291,6 +306,7 @@ const savedPrescription =
         saveInput
     );
 
+
 //----------------------------------------------------
 // Create Common Clinical Event
 //----------------------------------------------------
@@ -300,9 +316,26 @@ const clinicalEvent =
         savedPrescription
     );
 
-await ClinicalEventStorage.create(
-    clinicalEvent
+const savedClinicalEvent =
+    await ClinicalEventStorage.create(
+        clinicalEvent
+    );
+
+
+//----------------------------------------------------
+// Create Clinical Event Detail
+//----------------------------------------------------
+
+const clinicalEventDetail =
+    ClinicalEventDetailBuilder.fromPrescription(
+        savedPrescription,
+        savedClinicalEvent.id
+    );
+
+await ClinicalEventDetailStorage.create(
+    clinicalEventDetail
 );
+
 
 //----------------------------------------------------
 // Return Saved Prescription

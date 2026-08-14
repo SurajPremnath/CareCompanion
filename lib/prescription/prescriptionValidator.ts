@@ -40,13 +40,17 @@ export function validatePrescriptionBeforeSave(
 
 if (
     recordContext === "SELF" &&
-    prescription.patientName &&
+    prescription.patientIdentity.patientName &&
     selectedPatientName &&
-    prescription.patientName.trim().toLowerCase() !==
-    selectedPatientName.trim().toLowerCase()
+    prescription.patientIdentity.patientName
+        .trim()
+        .toLowerCase() !==
+    selectedPatientName
+        .trim()
+        .toLowerCase()
 ) {
     errors.push(
-        `This prescription appears to belong to ${prescription.patientName}.`
+        `This prescription appears to belong to ${prescription.patientIdentity.patientName}.`
     );
 }
 
@@ -54,19 +58,24 @@ if (
     // Consultation Date
     //--------------------------------------------------
 
-    if (!prescription.consultationDate?.trim()) {
+if (
+    !prescription.encounterIdentity
+        .consultationDate
+        ?.trim()
+) {
 
-        errors.push(
-            "Consultation date is required."
+    errors.push(
+        "Consultation date is required."
+    );
+
+}
+else {
+
+    const consultationDate =
+        new Date(
+            prescription.encounterIdentity
+                .consultationDate
         );
-
-    }
-    else {
-
-        const consultationDate =
-            new Date(
-                prescription.consultationDate
-            );
 
         if (
 
@@ -118,18 +127,19 @@ if (
     // Consultation Mode
     //--------------------------------------------------
 
-    if (
+if (
+    !prescription.encounterIdentity
+        .consultationMode ||
+    !prescription.encounterIdentity
+        .consultationMode
+        .trim()
+) {
 
-        !prescription.consultationMode ||
-        !prescription.consultationMode.trim()
+    errors.push(
+        "Please select the consultation type."
+    );
 
-    ) {
-
-        errors.push(
-            "Please select the consultation type."
-        );
-
-    }
+}
 
     //--------------------------------------------------
     // Medicines
@@ -153,34 +163,30 @@ if (
     // Doctor
     //--------------------------------------------------
 
-    if (
+if (
+    !prescription.encounterIdentity
+        .doctorName
+        ?.trim()
+) {
 
-        !prescription.doctorName?.trim()
+    warnings.push(
+        "Doctor name was not detected."
+    );
 
-    ) {
-
-        warnings.push(
-
-            "Doctor name was not detected."
-
-        );
-
-    }
+}
 
 //--------------------------------------------------
 // Hospital / Clinic
 //--------------------------------------------------
 
 if (
-
-    !prescription.hospitalOrClinic?.trim()
-
+    !prescription.encounterIdentity
+        .hospitalOrClinic
+        ?.trim()
 ) {
 
     warnings.push(
-
         "Hospital or clinic was not detected."
-
     );
 
 }

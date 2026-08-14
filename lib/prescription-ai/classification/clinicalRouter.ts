@@ -81,32 +81,56 @@ export function routeClinicalInformation(
 
     return {
 
-        identity: {
+identity: {
 
-            patientName:
-                clean(prescription.patientName),
+    patientName:
+        clean(
+            prescription.patientIdentity
+                .patientName
+        ),
 
-            age:
-                clean(prescription.patientAge),
+    age:
+        clean(
+            prescription.patientIdentity
+                .patientAge
+        ),
 
-            gender:
-                clean(prescription.patientGender),
+    gender:
+        clean(
+            prescription.patientIdentity
+                .patientGender
+        ),
 
-            doctor:
-                clean(prescription.doctorName),
+    doctor:
+        clean(
+            prescription.encounterIdentity
+                .doctorName
+        ),
 
-            hospital:
-                clean(prescription.hospitalOrClinic),
+    hospital:
+        clean(
+            prescription.encounterIdentity
+                .hospitalOrClinic
+        ),
 
-            consultationDate:
-                clean(prescription.consultationDate),
+    consultationDate:
+        clean(
+            prescription.encounterIdentity
+                .consultationDate
+        ),
 
-            consultationType:
-                clean(prescription.consultationMode),
+    consultationType:
+        clean(
+            prescription.encounterIdentity
+                .consultationMode
+        ),
 
-            uhid:
-                clean(prescription.patientUHID),
-        },
+    uhid:
+        clean(
+            prescription.patientIdentity
+                .patientUHID
+        ),
+},
 
         vitals: {
 

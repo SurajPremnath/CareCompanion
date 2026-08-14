@@ -13,7 +13,6 @@ import {
 } from "./prescriptionKnowledge";
 
 import {
-  PATIENT_PANEL_RULES,
   VITALS_PANEL_RULES,
   SYMPTOMS_PANEL_RULES,
   ASSESSMENT_PANEL_RULES,
@@ -57,17 +56,31 @@ Do NOT return comments.
 The property names below are mandatory.
 
 {
-  "patientName": null,
-  "patientDateOfBirth": null,
-  "patientAge": null,
-  "patientGender": null,
-  "patientUHID": null,
+  "patientIdentity": {
+    "patientName": null,
+    "patientDateOfBirth": null,
+    "patientAge": null,
+    "patientGender": null,
+    "patientUHID": null,
+    "patientNameVariations": []
+  },
 
-  "doctorName": null,
+  "encounterIdentity": {
+    "doctorName": null,
+    "doctorType": null,
+    "hospitalOrClinic": null,
+    "hospitalNameVariations": [],
+    "consultationDate": null,
+    "consultationMode": null
+  },
 
-  "consultationDate": null,
-
-  "consultationMode": null,
+  "documentMetadata": {
+    "studyDateTime": null,
+    "reportDateTime": null,
+    "originalPatientName": null,
+    "originalHospitalName": null,
+    "documentType": "PRESCRIPTION"
+  },
 
   "consultationVitals": {
     "weight": null,
@@ -79,8 +92,6 @@ The property names below are mandatory.
     "spo2": null,
     "temperature": null
   },
-
-  "hospitalOrClinic": null,
 
   "diagnosisOrAssessment": null,
 
@@ -106,38 +117,66 @@ The property names below are mandatory.
 
   "clinicalPlan": [],
 
-  "additionalNotes": [],
-
-  "documentType": "PRESCRIPTION"
+  "additionalNotes": []
 }
 
 Never rename fields.
 
-Never use:
+The top-level JSON groups are mandatory:
 
-- vitals
-- medications
-- medication
-- assessment
-- pastHistory
-- instructions
-- notesFollowUp
-- age
-- gender
-- UHID
+- patientIdentity
+- encounterIdentity
+- documentMetadata
 
-Always use:
+Patient identity fields MUST remain inside patientIdentity:
 
-- consultationVitals
-- medicines
-- diagnosisOrAssessment
-- clinicalAssessments
-- doctorInstructions
-- followUpPlan
-- pastMedicalHistory
+- patientName
+- patientDateOfBirth
 - patientAge
 - patientGender
 - patientUHID
+- patientNameVariations
+
+Encounter identity fields MUST remain inside encounterIdentity:
+
+- doctorName
+- doctorType
+- hospitalOrClinic
+- hospitalNameVariations
+- consultationDate
+- consultationMode
+
+Document metadata fields MUST remain inside documentMetadata:
+
+- studyDateTime
+- reportDateTime
+- originalPatientName
+- originalHospitalName
+- documentType
+
+Clinical fields remain at the top level:
+
+- consultationVitals
+- diagnosisOrAssessment
+- clinicalAssessments
+- symptoms
+- presentingComplaints
+- pastMedicalHistory
+- history
+- examinationFindings
+- doctorInstructions
+- followUpPlan
+- medicines
+- investigations
+- clinicalPlan
+- additionalNotes
+
+If a value is not visible:
+
+- use null for single values
+- use [] for arrays
+
+Never hallucinate values.
 
 If a value is not visible:
 
@@ -147,6 +186,458 @@ If a value is not visible:
 Never hallucinate values.
 `;
 
+export const PATIENT_IDENTITY_RULES = `
+============================================================
+PATIENT IDENTITY — TARGETED EXTRACTION
+============================================================
+
+Identify ONLY the patient represented by the document.
+
+Scan the ENTIRE document:
+- Header
+- Demographic section
+- Margins
+- Footer
+- Stamps
+- Handwritten annotations
+- Every page
+
+Do NOT extract doctor, hospital, diagnosis, medication,
+investigation or other clinical information here.
+
+------------------------------------------------------------
+1. PATIENT NAME
+------------------------------------------------------------
+
+Find the patient's name wherever it appears.
+
+Look for:
+- Name
+- Patient Name
+- Pt Name
+- Pt.
+- Patient
+- demographic blocks
+- UHID-linked demographic information
+
+Read the name exactly as written.
+
+Preserve:
+- initials
+- spacing
+- capitalization
+- prefixes such as Mr., Mrs., Ms.
+
+Do NOT mistake doctor, hospital, clinic or pharmacy names
+for the patient name.
+
+If unavailable:
+return null.
+
+------------------------------------------------------------
+2. DATE OF BIRTH
+------------------------------------------------------------
+
+Search the entire document for an explicitly stated DOB.
+
+Look for:
+- DOB
+- Date of Birth
+- D.O.B.
+- Birth Date
+
+Only extract when explicitly visible.
+
+Do NOT derive DOB from age.
+
+If unavailable:
+return null.
+
+------------------------------------------------------------
+3. AGE
+------------------------------------------------------------
+
+Search for an explicitly stated patient age.
+
+Look for:
+- Age
+- demographic fields
+- combinations such as 77/M
+
+Read the age exactly as written.
+
+Do NOT calculate age here.
+
+If unavailable:
+return null.
+
+------------------------------------------------------------
+4. SEX / GENDER
+------------------------------------------------------------
+
+Search for:
+- Sex
+- Gender
+- M / F
+- Male / Female
+
+Return only the patient's sex/gender.
+
+Do NOT infer gender from the patient's name.
+
+If unavailable:
+return null.
+
+------------------------------------------------------------
+5. UHID / PATIENT IDENTIFIER
+------------------------------------------------------------
+
+Search the entire document for a patient-specific identifier.
+
+Look for:
+- UHID
+- Patient ID
+- MRN
+- Medical Record Number
+- Hospital ID
+
+Preserve it exactly as written.
+
+Do NOT capture:
+- Lab ID
+- Sample ID
+- Accession number
+- Admission number
+- IP number
+- Ward
+- Bed
+
+If unavailable:
+return null.
+
+------------------------------------------------------------
+6. PATIENT NAME VARIATIONS
+------------------------------------------------------------
+
+Capture additional representations of the patient's name
+ONLY when they are actually visible.
+
+Examples:
+
+K V Premnath
+Keecheri V Premnath
+Keecheri Veetil Premnath
+Keecheri Veettil Premnath
+
+Do NOT create variations yourself.
+
+If none:
+return [].
+
+------------------------------------------------------------
+ANTI-HALLUCINATION
+------------------------------------------------------------
+
+Use ONLY information visibly present.
+
+Never infer:
+- DOB from age
+- gender from name
+- UHID from another identifier
+- aliases that are not visible
+
+Return null for unavailable scalar values.
+Return [] when no aliases are visible.
+`;
+
+export const ENCOUNTER_IDENTITY_RULES = `
+============================================================
+ENCOUNTER IDENTITY — TARGETED EXTRACTION
+============================================================
+
+Identify ONLY:
+- Doctor
+- Doctor Type / Specialty
+- Hospital / Clinic
+- Hospital name variations
+- Consultation Date
+- Consultation Mode
+
+Do NOT extract patient demographics or clinical information.
+
+Scan the ENTIRE document.
+
+------------------------------------------------------------
+1. DOCTOR
+------------------------------------------------------------
+
+Identify the doctor associated with the encounter.
+
+Search:
+- Header
+- Credentials
+- Signature
+- Stamp
+- Referral section
+- Footer
+
+Return the doctor's full visible name.
+
+If multiple doctors exist, preserve their roles when visible.
+
+------------------------------------------------------------
+2. DOCTOR TYPE / SPECIALTY
+------------------------------------------------------------
+
+Identify the doctor's specialty or department when explicitly
+available.
+
+Examples:
+- Pulmonology
+- Oncology
+- Cardiology
+- Radiology
+- General Medicine
+
+Look for:
+- Specialty below doctor's name
+- Department heading
+- Consultant designation
+- Hospital department
+
+Do NOT infer specialty from diagnosis.
+
+If unavailable:
+return null.
+
+------------------------------------------------------------
+3. HOSPITAL / CLINIC
+------------------------------------------------------------
+
+Identify the institution that issued the document.
+
+Scan:
+- Header
+- Footer
+- Logo
+- Letterhead
+- Watermark
+- Stamp
+- Website
+- Email
+- Address block
+
+Return the institution name only.
+
+Do NOT return:
+- address
+- phone number
+- city
+- PIN
+- registration number
+
+Ignore referral hospitals, diagnostic centres, pharmacies
+and insurance companies unless they are clearly the issuing
+institution.
+
+------------------------------------------------------------
+4. HOSPITAL NAME VARIATIONS
+------------------------------------------------------------
+
+Capture additional institution names ONLY when visibly present
+and clearly referring to the same issuing institution.
+
+Do NOT invent normalized variations.
+
+If none:
+return [].
+
+------------------------------------------------------------
+5. CONSULTATION DATE
+------------------------------------------------------------
+
+Search the ENTIRE document.
+
+Prioritize dates associated with:
+- Date
+- Dt
+- Dated
+- Consultation Date
+- Prescription Date
+- Encounter Date
+
+Read the actual digits visually.
+
+Do NOT infer or reconstruct unclear digits.
+
+For handwritten dates inspect each digit individually.
+
+Pay particular attention to:
+- 1 vs 4 vs 5 vs 7
+- 0 vs 6
+- 3 vs 8
+- 5 vs 6
+
+Interpret prescription dates as DD/MM/YYYY.
+
+Return:
+YYYY-MM-DD
+
+If genuinely uncertain:
+return null.
+
+Do NOT use:
+- DOB
+- admission date
+- discharge date
+- study date
+- report date
+- medication date
+
+unless explicitly identified as the consultation date.
+
+------------------------------------------------------------
+6. CONSULTATION MODE
+------------------------------------------------------------
+
+Extract only when explicitly available.
+
+Allowed values:
+
+IN_PERSON
+VIDEO
+PHONE
+WHATSAPP
+EMAIL
+HOME_VISIT
+HOSPITAL_ADMISSION
+HOSPITAL_DISCHARGE
+OTHER
+
+If unavailable:
+return null.
+
+------------------------------------------------------------
+ANTI-HALLUCINATION
+------------------------------------------------------------
+
+Use ONLY information visibly supported by the document.
+
+Never infer:
+- specialty from diagnosis
+- hospital from doctor name
+- consultation date from unrelated dates
+- consultation mode from document type
+`;
+
+export const DOCUMENT_METADATA_RULES = `
+============================================================
+DOCUMENT METADATA — TARGETED EXTRACTION
+============================================================
+
+Capture ONLY information required for document storage,
+chronology and auditability.
+
+These fields are NOT Patient Panel display fields.
+
+------------------------------------------------------------
+1. STUDY DATE & TIME
+------------------------------------------------------------
+
+Search the ENTIRE document for the date and time when a test,
+scan, procedure or investigation was actually performed.
+
+Look for:
+- Study Date
+- Study Time
+- Exam Date
+- Examination Date
+- Performed
+- Scan Date
+- Procedure Date
+
+Capture date and time when available.
+
+Do NOT substitute:
+- consultation date
+- report date
+- admission date
+- discharge date
+- DOB
+
+If unavailable:
+return null.
+
+------------------------------------------------------------
+2. REPORT DATE & TIME
+------------------------------------------------------------
+
+Search for the date/time when the report was generated,
+validated, signed or released.
+
+Look for:
+- Report Date
+- Report Time
+- Signed
+- Verified
+- Validated
+- Released
+
+Do NOT substitute study date/time.
+
+If unavailable:
+return null.
+
+------------------------------------------------------------
+3. ORIGINAL PATIENT NAME
+------------------------------------------------------------
+
+Preserve the exact patient name appearing on the document.
+
+This is for source/audit purposes.
+
+------------------------------------------------------------
+4. ORIGINAL HOSPITAL NAME
+------------------------------------------------------------
+
+Preserve the exact institution name appearing on the document.
+
+Do NOT normalize or shorten it.
+
+------------------------------------------------------------
+5. DOCUMENT TYPE
+------------------------------------------------------------
+
+Identify the actual document type.
+
+Allowed values:
+
+PRESCRIPTION
+DISCHARGE_SUMMARY
+ADMISSION_NOTE
+LAB_REPORT
+MRI
+CT
+PET_CT
+HISTOPATHOLOGY
+IHC
+NGS
+ECHO
+ECG
+OTHER
+
+Do NOT classify a document as PRESCRIPTION merely because
+the upload endpoint is called prescription-image.
+
+------------------------------------------------------------
+ANTI-HALLUCINATION
+------------------------------------------------------------
+
+Only capture information visibly supported by the document.
+
+Never infer missing dates or times.
+`;
+
 export const CLINICAL_UNDERSTANDING = `
 You are CareVR's clinical prescription extraction engine.
 
@@ -154,15 +645,27 @@ Your responsibility is to extract every clinically relevant piece of information
 
 ${KNOWLEDGE}
 
-------------------------------------------------------------
-PATIENT
-------------------------------------------------------------
+//------------------------------------------------------------
+// PATIENT IDENTITY
+//------------------------------------------------------------
 
-${PATIENT_PANEL_RULES}
+${PATIENT_IDENTITY_RULES}
 
-------------------------------------------------------------
-VITALS
-------------------------------------------------------------
+//------------------------------------------------------------
+// ENCOUNTER IDENTITY
+//------------------------------------------------------------
+
+${ENCOUNTER_IDENTITY_RULES}
+
+//------------------------------------------------------------
+// DOCUMENT METADATA
+//------------------------------------------------------------
+
+${DOCUMENT_METADATA_RULES}
+
+//------------------------------------------------------------
+// VITALS
+//------------------------------------------------------------
 
 ${VITALS_PANEL_RULES}
 
