@@ -1,4 +1,3 @@
-
 import OpenAI, {
   toFile,
 } from "openai";
@@ -25,6 +24,16 @@ import {
 
 import { resolveMedicine } from "@/lib/medication/medicineResolver";
 
+// ============================================================
+// DOCTOR NOTES QA TEST LOGGING
+// Temporary QA instrumentation.
+// Remove this import when Doctor's Notes QA is complete.
+// ============================================================
+
+import {
+    appendDoctorNotesTestRun,
+} from "@/lib/prescription-ai/panels/testLogger";
+
 //------------------------------------------------------------
 // Route Configuration
 //------------------------------------------------------------
@@ -41,8 +50,8 @@ const MAX_FILE_SIZE_BYTES =
   10 * 1024 * 1024;
 
 
-const MAX_IMAGE_FILES =
-  10;
+const MAX_IMAGE_FILES = 5;
+const MAX_PDF_FILES = 5;
 
 
 const SUPPORTED_IMAGE_TYPES =
@@ -503,51 +512,88 @@ patientIdentity: {
   // Existing Clinical Data
   //----------------------------------------------------------
 
-  consultationVitals:
-    parsed.consultationVitals &&
-    typeof parsed.consultationVitals === "object"
+consultationVitals:
+  parsed.consultationVitals &&
+  typeof parsed.consultationVitals === "object"
+    ? {
+        weight:
+          toNullableString(
+            (parsed.consultationVitals as any).weight
+          ),
+
+        height:
+          toNullableString(
+            (parsed.consultationVitals as any).height
+          ),
+
+        bmi:
+          toNullableString(
+            (parsed.consultationVitals as any).bmi
+          ),
+
+        bloodPressure:
+          (parsed.consultationVitals as any).bloodPressure ??
+          null,
+
+        pulse:
+          (parsed.consultationVitals as any).pulse ??
+          null,
+
+        respiratoryRate:
+          (parsed.consultationVitals as any).respiratoryRate ??
+          null,
+
+        spo2:
+          (parsed.consultationVitals as any).spo2 ??
+          null,
+
+        temperature:
+          (parsed.consultationVitals as any).temperature ??
+          null,
+      }
+    : null,
+
+
+  //----------------------------------------------------------
+  // Current State of Health
+  //----------------------------------------------------------
+
+  currentStateOfHealth:
+    parsed.currentStateOfHealth &&
+    typeof parsed.currentStateOfHealth === "object"
       ? {
-          weight:
-            toNullableString(
-              (parsed.consultationVitals as any).weight
+          conditions:
+            toStringArray(
+              (parsed.currentStateOfHealth as any).conditions
             ),
 
-          height:
-            toNullableString(
-              (parsed.consultationVitals as any).height
+          diseaseStatus:
+            toStringArray(
+              (parsed.currentStateOfHealth as any).diseaseStatus
             ),
 
-          bmi:
+          stage:
             toNullableString(
-              (parsed.consultationVitals as any).bmi
+              (parsed.currentStateOfHealth as any).stage
             ),
 
-          bloodPressure:
-            toNullableString(
-              (parsed.consultationVitals as any).bloodPressure
+          clinicalAssessment:
+            toStringArray(
+              (parsed.currentStateOfHealth as any).clinicalAssessment
             ),
 
-          pulse:
-            toNullableString(
-              (parsed.consultationVitals as any).pulse
-            ),
-
-          respiratoryRate:
-            toNullableString(
-              (parsed.consultationVitals as any).respiratoryRate
-            ),
-
-          spo2:
-            toNullableString(
-              (parsed.consultationVitals as any).spo2
-            ),
-
-          temperature:
-            toNullableString(
-              (parsed.consultationVitals as any).temperature
+          importantFindings:
+            toStringArray(
+              (parsed.currentStateOfHealth as any).importantFindings
             ),
         }
-      : null,
+      : {
+          conditions: [],
+          diseaseStatus: [],
+          stage: null,
+          clinicalAssessment: [],
+          importantFindings: [],
+        },
 
 
   diagnosisOrAssessment:
@@ -563,9 +609,33 @@ patientIdentity: {
 
 
   symptoms:
-    toStringArray(
+    Array.isArray(
       parsed.symptoms
-    ),
+    )
+      ? parsed.symptoms.map(
+          (item: any) => ({
+            symptom:
+              typeof item?.symptom === "string"
+                ? item.symptom.trim()
+                : "",
+
+            duration:
+              typeof item?.duration === "string"
+                ? item.duration.trim()
+                : null,
+
+            severity:
+              typeof item?.severity === "string"
+                ? item.severity.trim()
+                : null,
+
+            qualifiers:
+              typeof item?.qualifiers === "string"
+                ? item.qualifiers.trim()
+                : null,
+          })
+        )
+      : [],
 
 
   presentingComplaints:
@@ -582,6 +652,16 @@ patientIdentity: {
             duration:
               typeof item?.duration === "string"
                 ? item.duration.trim()
+                : null,
+
+            severity:
+              typeof item?.severity === "string"
+                ? item.severity.trim()
+                : null,
+
+            qualifiers:
+              typeof item?.qualifiers === "string"
+                ? item.qualifiers.trim()
                 : null,
           })
         )
@@ -651,12 +731,52 @@ patientIdentity: {
 
 
   investigations:
+
     toStringArray(
       parsed.investigations
     ),
 
 
+  testsAdvised:
+
+    Array.isArray(
+      parsed.testsAdvised
+    )
+      ? parsed.testsAdvised
+          .map(
+            (item: any) => ({
+
+              test:
+                typeof item?.test === "string"
+                  ? item.test.trim()
+                  : "",
+
+              action:
+                typeof item?.action === "string"
+                  ? item.action.trim()
+                  : null,
+
+              timing:
+                typeof item?.timing === "string"
+                  ? item.timing.trim()
+                  : null,
+
+              condition:
+                typeof item?.condition === "string"
+                  ? item.condition.trim()
+                  : null,
+
+            })
+          )
+          .filter(
+            item =>
+              item.test.length > 0
+          )
+      : [],
+
+
   clinicalPlan:
+
     toStringArray(
       parsed.clinicalPlan
     ),
@@ -678,9 +798,17 @@ export async function POST(
 
   const totalStart = performance.now();
 
-  let uploadedPdfFileId:
-    string | null =
-      null;
+  // ============================================================
+  // DOCTOR NOTES QA TEST LOGGING
+  // Capture every Doctor's Notes extraction attempt.
+  // Human QA assessment is performed separately.
+  // ============================================================
+  let doctorNotesQaLogged = false;
+  let doctorNotesQaMode = false;
+  let doctorNotesQaDocuments: string[] = [];
+
+const uploadedPdfFileIds:
+    string[] = [];
 
   try {
 
@@ -760,6 +888,8 @@ const extractionMode =
         ? "DOCTOR_NOTES"
         : "PRESCRIPTION";
 
+    doctorNotesQaMode = extractionMode === "DOCTOR_NOTES";
+
     const documentEntries =
       formData.getAll(
         "documents"
@@ -772,6 +902,10 @@ const extractionMode =
         ): item is File =>
           item instanceof File
       );
+
+    doctorNotesQaDocuments = documents.map(
+      document => document.name
+    );
 
 
     if (
@@ -888,25 +1022,24 @@ const extractionMode =
     }
 
 
-    //--------------------------------------------------------
-    // Validate PDF Count
-    //--------------------------------------------------------
+//--------------------------------------------------------
+// Validate PDF Count
+//--------------------------------------------------------
 
-    if (
-      pdfDocuments.length > 1
-    ) {
-
-      return NextResponse.json(
+if (
+    pdfDocuments.length >
+    MAX_PDF_FILES
+) {
+    return NextResponse.json(
         {
-          error:
-            "Please upload one PDF at a time.",
+            error:
+                `You can upload up to ${MAX_PDF_FILES} PDF documents at a time.`,
         },
         {
-          status: 400,
+            status: 400,
         }
-      );
-
-    }
+    );
+}
 
 
     //--------------------------------------------------------
@@ -1012,54 +1145,39 @@ text:
     // Add PDF Input
     //--------------------------------------------------------
 
-    if (
-      pdfDocuments.length === 1
-    ) {
-
-      const pdf =
-        pdfDocuments[0];
-
-
-      const pdfBuffer =
+for (
+    const pdf of pdfDocuments
+) {
+    const pdfBuffer =
         Buffer.from(
-          await pdf.arrayBuffer()
+            await pdf.arrayBuffer()
         );
 
-
-      const uploadedPdf =
+    const uploadedPdf =
         await openai.files.create({
-
-          file:
-            await toFile(
-              pdfBuffer,
-              pdf.name,
-              {
-                type:
-                  PDF_TYPE,
-              }
-            ),
-
-          purpose:
-            "user_data",
-
+            file:
+                await toFile(
+                    pdfBuffer,
+                    pdf.name,
+                    {
+                        type: PDF_TYPE,
+                    }
+                ),
+            purpose:
+                "user_data",
         });
 
+    uploadedPdfFileIds.push(
+        uploadedPdf.id
+    );
 
-      uploadedPdfFileId =
-        uploadedPdf.id;
-
-
-      content.push({
-
+    content.push({
         type:
-          "input_file",
-
+            "input_file",
         file_id:
-          uploadedPdf.id,
-
-      });
-
-    }
+            uploadedPdf.id,
+    });
+}
 
 
     //--------------------------------------------------------
@@ -1094,7 +1212,24 @@ const response =
 
 const outputText = response.output_text?.trim();
 
-    if (!outputText) {
+console.log(
+    "DOCTOR NOTES RAW AI OUTPUT:",
+    outputText
+);
+
+if (!outputText) {
+
+      if (doctorNotesQaMode && !doctorNotesQaLogged) {
+        appendDoctorNotesTestRun({
+          documentsUploaded: doctorNotesQaDocuments,
+          readingTimeMs: Math.round(performance.now() - totalStart),
+          rawAiOutput: "",
+          aiExtractionSuccessful: false,
+          extractionStatus: "NO_AI_OUTPUT",
+          overallResult: "FAILED",
+        });
+        doctorNotesQaLogged = true;
+      }
 
       return NextResponse.json(
         {
@@ -1130,6 +1265,18 @@ prescription =
 
     }
     catch (error) {
+
+      if (doctorNotesQaMode && !doctorNotesQaLogged) {
+        appendDoctorNotesTestRun({
+          documentsUploaded: doctorNotesQaDocuments,
+          readingTimeMs: Math.round(performance.now() - totalStart),
+          rawAiOutput: outputText,
+          aiExtractionSuccessful: false,
+          extractionStatus: "PARSE_ERROR",
+          overallResult: "FAILED",
+        });
+        doctorNotesQaLogged = true;
+      }
 
       console.error(
     "Prescription Parse Error:",
@@ -1302,6 +1449,18 @@ const hasUsefulPrescriptionData =
 
 if (!hasUsefulPrescriptionData) {
 
+  if (doctorNotesQaMode && !doctorNotesQaLogged) {
+    appendDoctorNotesTestRun({
+      documentsUploaded: doctorNotesQaDocuments,
+      readingTimeMs: Math.round(performance.now() - totalStart),
+      rawAiOutput: outputText,
+      aiExtractionSuccessful: true,
+      extractionStatus: "NO_USEFUL_DATA",
+      overallResult: "FAILED",
+    });
+    doctorNotesQaLogged = true;
+  }
+
   return NextResponse.json(
     {
       error:
@@ -1321,19 +1480,46 @@ console.log(
     ).toFixed(0)} ms`
 );
 
-    //--------------------------------------------------------
-    // Success
-    //--------------------------------------------------------
+// ============================================================
+// DOCTOR NOTES QA TEST LOGGING
+// Record the exact raw AI output and reading time.
+// Human QA assessment is performed separately.
+// ============================================================
 
-    return NextResponse.json({
-
-      data:
-        prescription,
-
+if (doctorNotesQaMode && !doctorNotesQaLogged) {
+    appendDoctorNotesTestRun({
+        documentsUploaded: doctorNotesQaDocuments,
+        readingTimeMs: Math.round(performance.now() - totalStart),
+        rawAiOutput: outputText,
+        aiExtractionSuccessful: true,
+        extractionStatus: "SUCCESS",
+        overallResult: "PENDING_QA",
     });
+    doctorNotesQaLogged = true;
+}
+
+//--------------------------------------------------------
+// Success
+//--------------------------------------------------------
+
+return NextResponse.json({
+    data: prescription,
+});
 
   }
   catch (error: unknown) {
+
+    if (doctorNotesQaMode && !doctorNotesQaLogged) {
+      appendDoctorNotesTestRun({
+        documentsUploaded: doctorNotesQaDocuments,
+        readingTimeMs: Math.round(performance.now() - totalStart),
+        rawAiOutput: "",
+        aiExtractionSuccessful: false,
+        extractionStatus: "ROUTE_ERROR",
+        overallResult: "FAILED",
+      });
+      doctorNotesQaLogged = true;
+    }
 
 console.error("Prescription Document Route Error");
 
@@ -1401,38 +1587,37 @@ if (error instanceof Error) {
     );
 
   }
-  finally {
+finally {
 
     //--------------------------------------------------------
-    // Delete Temporary OpenAI PDF
+    // Delete Temporary OpenAI PDFs
     //--------------------------------------------------------
 
-    if (
-      uploadedPdfFileId
+    for (
+        const fileId of uploadedPdfFileIds
     ) {
 
-      try {
+        try {
 
-        const openai =
-          getOpenAIClient();
+            const openai =
+                getOpenAIClient();
 
+            await openai.files.delete(
+                fileId
+            );
 
-        await openai.files.delete(
-          uploadedPdfFileId
-        );
+        }
+        catch (cleanupError) {
 
-      }
-      catch (cleanupError) {
+            console.error(
+                "Temporary PDF Cleanup Error:",
+                cleanupError
+            );
 
-        console.error(
-          "Temporary PDF Cleanup Error:",
-          cleanupError
-        );
-
-      }
+        }
 
     }
 
-  }
+}
 
 }

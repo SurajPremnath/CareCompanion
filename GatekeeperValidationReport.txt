@@ -2,13 +2,13 @@
 CAREVR GATEKEEPER VALIDATION REPORT
 ============================================================
 
-Generated : 13/8/2026, 7:40:56 pm
+Generated : 15/8/2026, 3:26:43 am
 
 ============================================================
 ORIGINAL PRESCRIPTION
 ============================================================
 
-{"patientName":"MR. K.V Premnath","patientDateOfBirth":null,"patientAge":null,"patientGender":null,"patientUHID":null,"doctorName":"Dr. Swathi Rachabattula","consultationDate":"2026-06-05","consultationMode":null,"consultationVitals":{"weight":"72.2 kg","height":null,"bmi":null,"bloodPressure":"114/78 mmHg","pulse":"115 bpm","respiratoryRate":null,"spo2":"95%","temperature":"35.4 C"},"hospitalOrClinic":"Motherhood","diagnosisOrAssessment":"Likely viral URTI","clinicalAssessments":["Nutritional Deficiency","? BPH"],"symptoms":["Tiredness","Leg pain","Wheezing","Chest congestion","RT ear blocked","Giddiness","Headache","Dry cough","Mild chest tightness","Congestion","Fever","Pain"],"presentingComplaints":[{"complaint":"Tiredness","duration":"1 wk"},{"complaint":"Leg pain","duration":null},{"complaint":"Wheezing","duration":null},{"complaint":"Chest congestion","duration":"1 wk"},{"complaint":"RT ear blocked","duration":null},{"complaint":"Giddiness","duration":null},{"complaint":"Headache","duration":null},{"complaint":"Dry cough","duration":null},{"complaint":"Mild chest tightness","duration":null},{"complaint":"Congestion","duration":null},{"complaint":"Fever","duration":"5 days"},{"complaint":"Pain","duration":"5 days"}],"pastMedicalHistory":["HTN x20 yrs","ADL impair Hemnia"],"history":[],"examinationFindings":[],"doctorInstructions":["Mix in 1/2 litre warm water","Steam Inhalation (Easibreathe capsules)","Betadine gargle"],"followUpPlan":[],"medicines":[{"name":"Olmeset","strength":"20 mg","form":"Tablet","dose":"1","frequency":null,"timings":[],"duration":null,"instructions":null,"matchStatus":"SUGGESTIONS","suggestedMedicines":[{"id":"556c4b78-30be-4162-90e5-640636f0b1d9","brandName":"Olmeset","genericName":"Olmesartan","strength":"20 mg","formulation":"Tablet"},{"id":"d738bf2b-1db9-4333-ae4f-f771f9fddd51","brandName":"Olmeset","genericName":"Olmesartan","strength":"40 mg","formulation":"Tablet"}],"reviewStatus":"REVIEW"},{"name":"Foracort","strength":null,"form":null,"dose":"1 puff","frequency":"BD","timings":[],"duration":null,"instructions":null,"matchStatus":"FOUND","resolvedMedicineId":"750d4a98-406a-4512-84b7-c5d29982d40b","resolvedMedicineName":"Foracort 200","reviewStatus":"REVIEW"},{"name":"Mucinac","strength":"600 mg","form":"effervescent","dose":"1","frequency":null,"timings":[],"duration":"5 days","instructions":"mix in 1/2 litre warm water","matchStatus":"FOUND","resolvedMedicineId":"d32843e1-43ee-444d-901c-4916833a0d2e","resolvedMedicineName":"Mucinac","reviewStatus":"REVIEW"},{"name":"Sompraz-D","strength":null,"form":null,"dose":"1","frequency":null,"timings":["BEFORE_BREAKFAST"],"duration":"5 days","instructions":null,"matchStatus":"FOUND","resolvedMedicineId":"60ba1665-7509-40a7-839e-b9624e3c465d","resolvedMedicineName":"Sompraz D","reviewStatus":"REVIEW"},{"name":"Nexpro-RP","strength":null,"form":null,"dose":"1","frequency":null,"timings":["BEFORE_BREAKFAST"],"duration":"5 days","instructions":null,"matchStatus":"FOUND","resolvedMedicineId":"6a172b12-ae87-40f0-a609-94d9b11d7cf7","resolvedMedicineName":"Nexpro-RP","reviewStatus":"REVIEW"},{"name":"Paracetamol","strength":"650 mg","form":null,"dose":"1","frequency":"TDS","timings":[],"duration":null,"instructions":null,"matchStatus":"FOUND","resolvedMedicineId":"d663e3fb-f1d6-4ff0-bf99-3b7f6c04bff7","resolvedMedicineName":"Paracetamol","reviewStatus":"REVIEW"}],"additionalNotes":["Mostly veg (Mixed diet) Line caret"],"documentType":"PRESCRIPTION","investigations":["Blood CRP + PSA","Ultrasound Abdomen & pelvis"],"clinicalPlan":["Iron B12 supplementation","Check PSA"]}
+{"patientIdentity":{"patientName":"Mr. Keecheri Veettil Premnath","patientDateOfBirth":null,"patientAge":"78","patientGender":"M","patientUHID":"279705","patientNameVariations":["Keecheri V Premnath","Keecheri Veettil Premnath","Premnath"],"ageFlag":true,"sexFlag":true,"ageSource":"DOCUMENT","sexSource":"DOCUMENT"},"encounterIdentity":{"doctorName":"S. Pattil","doctorType":null,"hospitalOrClinic":"HCG Towers","hospitalNameVariations":["HCG Towers","Triesta Sciences","HCG NCHRI Oncology LLP"],"consultationDate":"2026-06-23","consultationMode":null},"documentMetadata":{"studyDateTime":null,"reportDateTime":null,"originalPatientName":"Mr. Keecheri Veettil Premnath","originalHospitalName":"HCG Towers","documentType":"PRESCRIPTION"},"consultationVitals":{"weight":null,"height":null,"bmi":null,"bloodPressure":null,"pulse":null,"respiratoryRate":null,"spo2":null,"temperature":null},"diagnosisOrAssessment":"ca lung","clinicalAssessments":["IHC 6-10 markers"],"symptoms":[],"presentingComplaints":[],"pastMedicalHistory":[],"history":[],"examinationFindings":[],"doctorInstructions":[],"followUpPlan":[],"medicines":[],"additionalNotes":["Block","Signature of referring doctor: Premnath"],"investigations":["MRI brain contrast","Complete Blood Count (CBC)"],"clinicalPlan":[]}
 
 ============================================================
 VALIDATION CARDS
@@ -20,19 +20,19 @@ CARD : Patient Information
 
 FIELD : Patient Name
 
-"MR. K.V Premnath"
+"Mr. Keecheri Veettil Premnath"
 
 FIELD : Age
 
-null
+"78"
 
 FIELD : Gender
 
-null
+"M"
 
 FIELD : UHID
 
-null
+"279705"
 
 
 ------------------------------------------------------------
@@ -41,15 +41,19 @@ CARD : Consultation
 
 FIELD : Doctor Name
 
-"Dr. Swathi Rachabattula"
+"S. Pattil"
+
+FIELD : Doctor Type
+
+null
 
 FIELD : Hospital
 
-"Motherhood"
+"HCG Towers"
 
 FIELD : Consultation Date
 
-"2026-06-05"
+"2026-06-23"
 
 FIELD : Consultation Mode
 
@@ -62,56 +66,7 @@ CARD : Presenting Complaints
 
 FIELD : Presenting Complaints
 
-[
-  {
-    "complaint": "Tiredness",
-    "duration": "1 wk"
-  },
-  {
-    "complaint": "Leg pain",
-    "duration": null
-  },
-  {
-    "complaint": "Wheezing",
-    "duration": null
-  },
-  {
-    "complaint": "Chest congestion",
-    "duration": "1 wk"
-  },
-  {
-    "complaint": "RT ear blocked",
-    "duration": null
-  },
-  {
-    "complaint": "Giddiness",
-    "duration": null
-  },
-  {
-    "complaint": "Headache",
-    "duration": null
-  },
-  {
-    "complaint": "Dry cough",
-    "duration": null
-  },
-  {
-    "complaint": "Mild chest tightness",
-    "duration": null
-  },
-  {
-    "complaint": "Congestion",
-    "duration": null
-  },
-  {
-    "complaint": "Fever",
-    "duration": "5 days"
-  },
-  {
-    "complaint": "Pain",
-    "duration": "5 days"
-  }
-]
+[]
 
 
 ------------------------------------------------------------
@@ -120,20 +75,7 @@ CARD : Symptoms
 
 FIELD : Symptoms
 
-[
-  "Tiredness",
-  "Leg pain",
-  "Wheezing",
-  "Chest congestion",
-  "RT ear blocked",
-  "Giddiness",
-  "Headache",
-  "Dry cough",
-  "Mild chest tightness",
-  "Congestion",
-  "Fever",
-  "Pain"
-]
+[]
 
 
 ------------------------------------------------------------
@@ -161,14 +103,14 @@ CARD : Consultation Vitals
 FIELD : Vitals
 
 {
-  "weight": "72.2 kg",
+  "weight": null,
   "height": null,
   "bmi": null,
-  "bloodPressure": "114/78 mmHg",
-  "pulse": "115 bpm",
+  "bloodPressure": null,
+  "pulse": null,
   "respiratoryRate": null,
-  "spo2": "95%",
-  "temperature": "35.4 C"
+  "spo2": null,
+  "temperature": null
 }
 
 
@@ -178,7 +120,7 @@ CARD : Diagnosis
 
 FIELD : Diagnosis
 
-"Likely viral URTI"
+"ca lung"
 
 
 ------------------------------------------------------------
@@ -188,8 +130,7 @@ CARD : Clinical Assessments
 FIELD : Clinical Assessments
 
 [
-  "Nutritional Deficiency",
-  "? BPH"
+  "IHC 6-10 markers"
 ]
 
 
@@ -199,110 +140,7 @@ CARD : Medicines
 
 FIELD : Medicines
 
-[
-  {
-    "name": "Olmeset",
-    "strength": "20 mg",
-    "form": "Tablet",
-    "dose": "1",
-    "frequency": null,
-    "timings": [],
-    "duration": null,
-    "instructions": null,
-    "matchStatus": "SUGGESTIONS",
-    "suggestedMedicines": [
-      {
-        "id": "556c4b78-30be-4162-90e5-640636f0b1d9",
-        "brandName": "Olmeset",
-        "genericName": "Olmesartan",
-        "strength": "20 mg",
-        "formulation": "Tablet"
-      },
-      {
-        "id": "d738bf2b-1db9-4333-ae4f-f771f9fddd51",
-        "brandName": "Olmeset",
-        "genericName": "Olmesartan",
-        "strength": "40 mg",
-        "formulation": "Tablet"
-      }
-    ],
-    "reviewStatus": "REVIEW"
-  },
-  {
-    "name": "Foracort",
-    "strength": null,
-    "form": null,
-    "dose": "1 puff",
-    "frequency": "BD",
-    "timings": [],
-    "duration": null,
-    "instructions": null,
-    "matchStatus": "FOUND",
-    "resolvedMedicineId": "750d4a98-406a-4512-84b7-c5d29982d40b",
-    "resolvedMedicineName": "Foracort 200",
-    "reviewStatus": "REVIEW"
-  },
-  {
-    "name": "Mucinac",
-    "strength": "600 mg",
-    "form": "effervescent",
-    "dose": "1",
-    "frequency": null,
-    "timings": [],
-    "duration": "5 days",
-    "instructions": "mix in 1/2 litre warm water",
-    "matchStatus": "FOUND",
-    "resolvedMedicineId": "d32843e1-43ee-444d-901c-4916833a0d2e",
-    "resolvedMedicineName": "Mucinac",
-    "reviewStatus": "REVIEW"
-  },
-  {
-    "name": "Sompraz-D",
-    "strength": null,
-    "form": null,
-    "dose": "1",
-    "frequency": null,
-    "timings": [
-      "BEFORE_BREAKFAST"
-    ],
-    "duration": "5 days",
-    "instructions": null,
-    "matchStatus": "FOUND",
-    "resolvedMedicineId": "60ba1665-7509-40a7-839e-b9624e3c465d",
-    "resolvedMedicineName": "Sompraz D",
-    "reviewStatus": "REVIEW"
-  },
-  {
-    "name": "Nexpro-RP",
-    "strength": null,
-    "form": null,
-    "dose": "1",
-    "frequency": null,
-    "timings": [
-      "BEFORE_BREAKFAST"
-    ],
-    "duration": "5 days",
-    "instructions": null,
-    "matchStatus": "FOUND",
-    "resolvedMedicineId": "6a172b12-ae87-40f0-a609-94d9b11d7cf7",
-    "resolvedMedicineName": "Nexpro-RP",
-    "reviewStatus": "REVIEW"
-  },
-  {
-    "name": "Paracetamol",
-    "strength": "650 mg",
-    "form": null,
-    "dose": "1",
-    "frequency": "TDS",
-    "timings": [],
-    "duration": null,
-    "instructions": null,
-    "matchStatus": "FOUND",
-    "resolvedMedicineId": "d663e3fb-f1d6-4ff0-bf99-3b7f6c04bff7",
-    "resolvedMedicineName": "Paracetamol",
-    "reviewStatus": "REVIEW"
-  }
-]
+[]
 
 
 ------------------------------------------------------------
@@ -312,8 +150,8 @@ CARD : Investigations
 FIELD : Investigations
 
 [
-  "Blood CRP + PSA",
-  "Ultrasound Abdomen & pelvis"
+  "MRI brain contrast",
+  "Complete Blood Count (CBC)"
 ]
 
 
@@ -323,11 +161,7 @@ CARD : Doctor Instructions
 
 FIELD : Doctor Instructions
 
-[
-  "Mix in 1/2 litre warm water",
-  "Steam Inhalation (Easibreathe capsules)",
-  "Betadine gargle"
-]
+[]
 
 
 ------------------------------------------------------------
@@ -345,10 +179,7 @@ CARD : Clinical Plan
 
 FIELD : Clinical Plan
 
-[
-  "Iron B12 supplementation",
-  "Check PSA"
-]
+[]
 
 
 ------------------------------------------------------------
@@ -358,5 +189,6 @@ CARD : Additional Notes
 FIELD : Additional Notes
 
 [
-  "Mostly veg (Mixed diet) Line caret"
+  "Block",
+  "Signature of referring doctor: Premnath"
 ]

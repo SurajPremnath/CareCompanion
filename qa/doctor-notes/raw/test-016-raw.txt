@@ -1,0 +1,224 @@
+{
+  "patientIdentity": {
+    "patientName": "MR. K.V Premnath",
+    "patientDateOfBirth": null,
+    "patientAge": "73Y",
+    "patientGender": "Male",
+    "patientUHID": "262500910",
+    "patientNameVariations": []
+  },
+  "encounterIdentity": {
+    "doctorName": "Dr. Swathi Rachabattula",
+    "doctorType": "Consultant-Internal Medicine",
+    "hospitalOrClinic": "motherhood",
+    "hospitalNameVariations": [],
+    "consultationDate": "2026-06-02",
+    "consultationMode": null
+  },
+  "documentMetadata": {
+    "studyDateTime": null,
+    "reportDateTime": null,
+    "originalPatientName": "MR. K.V Premnath",
+    "originalHospitalName": "motherhood",
+    "documentType": "OTHER"
+  },
+  "consultationVitals": {
+    "weight": "79.2 kg",
+    "height": null,
+    "bmi": null,
+    "bloodPressure": {
+      "systolic": 114,
+      "diastolic": 78,
+      "unit": "mmHg"
+    },
+    "pulse": "115 bpm",
+    "respiratoryRate": null,
+    "spo2": "95%",
+    "temperature": "35.4 C"
+  },
+  "currentStateOfHealth": {
+    "conditions": [
+      "Likely viral URTI",
+      "Nutritional deficiency"
+    ],
+    "diseaseStatus": [],
+    "stage": null,
+    "clinicalAssessment": [
+      "Tiredness 1 week",
+      "Wheezing - foracort 2 BD",
+      "Cough 1 week chest congestion",
+      "Right ear blocked",
+      "Dizziness stopped and vertigo",
+      "Headache settled",
+      "Feverishness evening no temp"
+    ],
+    "importantFindings": []
+  },
+  "diagnosisOrAssessment": null,
+  "clinicalAssessments": [],
+  "symptoms": [
+    {
+      "symptom": "Tiredness",
+      "duration": "1 week",
+      "severity": null,
+      "qualifiers": null
+    },
+    {
+      "symptom": "Wheezing",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "foracort 2 BD"
+    },
+    {
+      "symptom": "Cough",
+      "duration": "1 week",
+      "severity": null,
+      "qualifiers": "chest congestion"
+    },
+    {
+      "symptom": "Blocked ear",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "Right ear"
+    },
+    {
+      "symptom": "Dizziness",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "stopped; vertigo"
+    },
+    {
+      "symptom": "Headache",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "settled"
+    },
+    {
+      "symptom": "Feverishness",
+      "duration": "evening",
+      "severity": null,
+      "qualifiers": "no temp"
+    },
+    {
+      "symptom": "Mild chest tightness on exertion",
+      "duration": null,
+      "severity": "mild",
+      "qualifiers": "on exertion"
+    }
+  ],
+  "presentingComplaints": [],
+  "pastMedicalHistory": [
+    "HTN x 20 years",
+    "Add. Imp. Hemia"
+  ],
+  "history": [],
+  "examinationFindings": [],
+  "doctorInstructions": [
+    {
+      "instruction": "Take iron (B12/folate)",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": null
+    },
+    {
+      "instruction": "Check PSA",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": "? BPH stat"
+    },
+    {
+      "instruction": "Steam Inhalation (easibreathe capsules)",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": null
+    },
+    {
+      "instruction": "Betadine gargle",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": null
+    }
+  ],
+  "followUpPlan": [],
+  "medicines": [
+    {
+      "name": "Tab Olmezest",
+      "genericName": null,
+      "brandName": null,
+      "strength": "20 mg",
+      "dose": "1",
+      "frequency": "Once daily",
+      "timing": null,
+      "route": "oral",
+      "duration": null,
+      "action": null,
+      "instruction": "For ACE/MI"
+    },
+    {
+      "name": "Mucinac",
+      "genericName": null,
+      "brandName": null,
+      "strength": "600 mg",
+      "dose": "1",
+      "frequency": "Once daily",
+      "timing": null,
+      "route": null,
+      "duration": "5 days",
+      "action": null,
+      "instruction": "Effervescent, mix in 1/2 glass warm water"
+    },
+    {
+      "name": "Sompraz-D",
+      "genericName": null,
+      "brandName": null,
+      "strength": null,
+      "dose": null,
+      "frequency": null,
+      "timing": "before breakfast",
+      "route": null,
+      "duration": "5 days",
+      "action": null,
+      "instruction": null
+    },
+    {
+      "name": "Paracetamol",
+      "genericName": null,
+      "brandName": null,
+      "strength": "650 mg",
+      "dose": "1",
+      "frequency": "SOS",
+      "timing": null,
+      "route": null,
+      "duration": null,
+      "action": null,
+      "instruction": "for fever / pain"
+    }
+  ],
+  "additionalNotes": [],
+  "investigations": [
+    {
+      "name": "Blood pressure",
+      "result": null,
+      "status": null,
+      "date": null
+    },
+    {
+      "name": "PSA",
+      "result": null,
+      "status": null,
+      "date": null
+    },
+    {
+      "name": "Ultrasound Abdomen Pelvis",
+      "result": null,
+      "status": null,
+      "date": null
+    }
+  ],
+  "testsAdvised": [],
+  "clinicalPlan": []
+}

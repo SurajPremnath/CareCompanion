@@ -247,15 +247,15 @@ export default function VitalsCard({
     // information.
     //--------------------------------------------------------
 
-    const hasRecordedVitals =
-        hasValue(vitals.weight) ||
-        hasValue(vitals.height) ||
-        hasValue(vitals.bmi) ||
-        hasValue(vitals.bloodPressure) ||
-        hasValue(vitals.pulse) ||
-        hasValue(vitals.respiratoryRate) ||
-        hasValue(vitals.spo2) ||
-        hasValue(vitals.temperature);
+const hasRecordedVitals =
+    hasValue(vitals.weight) ||
+    hasValue(vitals.height) ||
+    hasValue(vitals.bmi) ||
+    hasValue(vitals.bloodPressure) ||
+    hasValue(vitals.pulse) ||
+    hasValue(vitals.respiratoryRate) ||
+    hasValue(vitals.spo2) ||
+    hasValue(vitals.temperature);
 
     //--------------------------------------------------------
     // BMI
@@ -464,9 +464,9 @@ export default function VitalsCard({
                                 "medication.bloodPressure"
                             )
                         }
-                        value={
-                            vitals.bloodPressure
-                        }
+value={
+    vitals.bloodPressure
+}
                     />
 
                     {/* Pulse */}

@@ -28,6 +28,17 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import SymptomsCard
+    from "@/app/daily-care/components/SymptomsCard";
+
+import type {
+    DailyCareSymptom,
+    PainLocation,
+} from "@/lib/types/dailyCare";
+
+import PainLocationCard
+    from "@/app/daily-care/components/PainLocationCard";
+
 
 type ImageSource =
     | "camera"
@@ -81,6 +92,18 @@ interface UploadReadingState {
     spo2:
         string;
 
+    symptoms:
+        DailyCareSymptom[];
+
+    otherSymptom:
+        string;
+
+    painLocations:
+        PainLocation[];
+
+    otherPainLocation:
+        string;
+
 }
 
 
@@ -124,6 +147,18 @@ function createEmptyReading():
         spo2:
             "",
 
+        symptoms:
+            [],
+
+        otherSymptom:
+            "",
+
+        painLocations:
+            [],
+
+        otherPainLocation:
+            "",
+
     };
 
 }
@@ -160,6 +195,23 @@ const {
     ] =
         useState(false);
 
+const [
+    pulseOptions,
+    setPulseOptions,
+] =
+    useState<number[]>([]);
+
+const [
+    spo2Options,
+    setSpo2Options,
+] =
+    useState<number[]>([]);
+
+const [
+    showSymptoms,
+    setShowSymptoms,
+] =
+    useState(false);
 
     const [
         saving,
@@ -234,41 +286,155 @@ const {
     }
 
 
+//--------------------------------------------------------
+// Toggle Symptom
+//--------------------------------------------------------
+
+function toggleSymptom(
+    symptom:
+        DailyCareSymptom
+) {
+
+    const exists =
+        reading.symptoms.includes(
+            symptom
+        );
+
+    if (exists) {
+
+        const updatedSymptoms =
+            reading.symptoms.filter(
+                item =>
+                    item !== symptom
+            );
+
+        setReading(previous => ({
+
+            ...previous,
+
+            symptoms:
+                updatedSymptoms,
+
+            painLocations:
+                symptom === "BODY_PAIN"
+                    ? []
+                    : previous.painLocations,
+
+            otherPainLocation:
+                symptom === "BODY_PAIN"
+                    ? ""
+                    : previous.otherPainLocation,
+
+            otherSymptom:
+                symptom === "OTHER"
+                    ? ""
+                    : previous.otherSymptom,
+
+        }));
+
+        return;
+    }
+
+    updateField(
+        "symptoms",
+        [
+            ...reading.symptoms,
+            symptom,
+        ]
+    );
+}
+
+//--------------------------------------------------------
+// Toggle Pain Location
+//--------------------------------------------------------
+
+function togglePainLocation(
+    location:
+        PainLocation
+) {
+
+    const exists =
+        reading.painLocations.includes(
+            location
+        );
+
+    if (exists) {
+
+        const updatedLocations =
+            reading.painLocations.filter(
+                item =>
+                    item !== location
+            );
+
+        setReading(previous => ({
+
+            ...previous,
+
+            painLocations:
+                updatedLocations,
+
+            otherPainLocation:
+                location === "OTHER"
+                    ? ""
+                    : previous.otherPainLocation,
+
+        }));
+
+        return;
+    }
+
+    updateField(
+        "painLocations",
+        [
+            ...reading.painLocations,
+            location,
+        ]
+    );
+}
+
     //--------------------------------------------------------
     // Reset
     //--------------------------------------------------------
 
-    function resetUploadSession() {
+function resetUploadSession() {
 
-        setReading(
-            createEmptyReading()
-        );
+    setReading(
+        createEmptyReading()
+    );
 
-        setProcessingImage(
-            false
-        );
+    setPulseOptions([]);
 
-        setSaving(
-            false
-        );
+    setSpo2Options([]);
 
-        setActiveImageSource(
-            null
-        );
+    setShowSymptoms(
+        false
+    );
 
-        setImageReadSuccessful(
-            false
-        );
+    setProcessingImage(
+        false
+    );
 
-        setError(
-            null
-        );
+    setSaving(
+        false
+    );
 
-        setSuccessMessage(
-            null
-        );
+    setActiveImageSource(
+        null
+    );
 
-    }
+    setImageReadSuccessful(
+        false
+    );
+
+    setError(
+        null
+    );
+
+    setSuccessMessage(
+        null
+    );
+
+}
 
 
     //--------------------------------------------------------
@@ -310,68 +476,143 @@ async function handleMedicalImages(
 
     }
 
-    setError(
-        null
-    );
+setError(
+    null
+);
 
-    setSuccessMessage(
-        null
-    );
+setSuccessMessage(
+    null
+);
 
-    setActiveImageSource(
-        source
-    );
+//--------------------------------------------------------
+// New Upload - Clear Previous Multiple Reading Options
+//--------------------------------------------------------
 
-    setProcessingImage(
-        true
-    );
+setPulseOptions([]);
+
+setSpo2Options([]);
+
+setActiveImageSource(
+    source
+);
+
+setProcessingImage(
+    true
+);
 
     try {
 
-        const result =
-            await medicalImageService
-                .processImages(
-                    files
-                );
+let readings;
 
-        if (
-            !result.success ||
-            !result.data
-        ) {
+let pulseValues: number[] = [];
 
-            setError(
-                result.error ??
-                t(
-                    "dailyCare.unableToReadImage"
-                )
+let spo2Values: number[] = [];
+
+if (files.length > 1) {
+
+    // --------------------------------------------------------
+    // Record Health - Multiple Image Reading Selection
+    // Keep the existing multi-image processing path.
+    // --------------------------------------------------------
+
+const result =
+    await medicalImageService
+        .processImages(
+            files
+        );
+
+if (
+    !result.success ||
+    !result.data
+) {
+
+    setError(
+        result.error ??
+        t(
+            "dailyCare.unableToReadImage"
+        )
+    );
+
+    return;
+}
+
+readings =
+    result.data;
+
+pulseValues =
+    result.data.pulseValues ?? [];
+
+spo2Values =
+    result.data.spo2Values ?? [];
+
+setPulseOptions(pulseValues);
+setSpo2Options(spo2Values);
+
+
+} else {
+
+    // --------------------------------------------------------
+    // Existing single-image flow.
+    // Do not change existing behaviour.
+    // --------------------------------------------------------
+
+    const result =
+        await medicalImageService
+            .processImages(
+                files
             );
 
-            return;
+    if (
+        !result.success ||
+        !result.data
+    ) {
 
-        }
+        setError(
+            result.error ??
+            t(
+                "dailyCare.unableToReadImage"
+            )
+        );
 
-        const readings =
-            result.data;
+        return;
+    }
 
-        const hasReading =
+    readings =
+        result.data;
 
-            readings.temperature !==
-                null ||
 
-            readings.weightKg !==
-                null ||
+    setPulseOptions([]);
 
-            readings.systolic !==
-                null ||
+    setSpo2Options([]);
+}
 
-            readings.diastolic !==
-                null ||
+const hasReading =
 
-            readings.pulse !==
-                null ||
+    readings.temperature !==
+        null ||
 
-            readings.spo2 !==
-                null;
+    readings.weightKg !==
+        null ||
+
+    readings.systolic !==
+        null ||
+
+    readings.diastolic !==
+        null ||
+
+    readings.pulse !==
+        null ||
+
+    readings.spo2 !==
+        null ||
+
+    // --------------------------------------------------------
+    // Record Health - Multiple Image Reading Selection
+    // Use the values returned by this upload immediately.
+    // --------------------------------------------------------
+    pulseValues.length > 0 ||
+
+    spo2Values.length > 0;
 
         if (!hasReading) {
 
@@ -426,21 +667,35 @@ async function handleMedicalImages(
                         )
                         : previous.diastolic,
 
-                pulse:
-                    readings.pulse !==
-                        null
-                        ? String(
-                            readings.pulse
-                        )
-                        : previous.pulse,
+// --------------------------------------------------------
+// Record Health - Pulse
+// If multiple Pulse readings were detected, wait for the
+// user to choose one instead of using the singular value.
+// --------------------------------------------------------
+pulse:
+    pulseValues.length > 1
+        ? ""
+        : readings.pulse !==
+            null
+            ? String(
+                readings.pulse
+            )
+            : previous.pulse,
 
-                spo2:
-                    readings.spo2 !==
-                        null
-                        ? String(
-                            readings.spo2
-                        )
-                        : previous.spo2,
+// --------------------------------------------------------
+// Record Health - SpO₂
+// If multiple SpO₂ readings were detected, wait for the
+// user to choose one instead of using the singular value.
+// --------------------------------------------------------
+spo2:
+    spo2Values.length > 1
+        ? ""
+        : readings.spo2 !==
+            null
+            ? String(
+                readings.spo2
+            )
+            : previous.spo2,
 
             })
         );
@@ -481,6 +736,8 @@ async function handleMedicalImages(
     }
 
 }
+
+
 
 
     //--------------------------------------------------------
@@ -668,16 +925,20 @@ weightKg:
                         : null,
 
                 symptoms:
-                    [],
+                    reading.symptoms,
 
                 otherSymptom:
-                    null,
+                    reading.otherSymptom.trim()
+                        ? reading.otherSymptom.trim()
+                        : null,
 
-                painLocations:
-                    [],
+painLocations:
+    reading.painLocations,
 
-                otherPainLocation:
-                    null,
+otherPainLocation:
+    reading.otherPainLocation.trim()
+        ? reading.otherPainLocation.trim()
+        : null,
 
             };
 
@@ -1256,64 +1517,267 @@ className="upload-review-input"
                         </div>
 
 
-                        <div>
+<div>
 
-                            <label style={fieldLabel}>
-                                {t("medication.pulse")}
-                            </label>
+    <label style={fieldLabel}>
+        {t("medication.pulse")}
+    </label>
 
-                            <input
-className="upload-review-input"
-                                type="number"
+    {pulseOptions.length > 1 && (
+        <div style={multipleReadingBox}>
 
-                                value={
-                                    reading.pulse
-                                }
+            <p style={multipleReadingMessage}>
+                Multiple Pulse readings found. Select one or use the average.
+            </p>
 
-                                onChange={
-                                    event =>
-                                        updateField(
-                                            "pulse",
-                                            event.target.value
-                                        )
-                                }
+            <div style={readingOptionRow}>
 
-                                style={inputStyle}
+                {pulseOptions.map(
+                    (value, index) => (
+                        <button
+                            key={`pulse-${value}-${index}`}
+                            type="button"
+                            onClick={() => {
+                                updateField(
+                                    "pulse",
+                                    String(value)
+                                );
 
-                            />
+                                setPulseOptions([]);
+                            }}
+                            style={readingOptionButton}
+                        >
+                            {value} 
+                        </button>
+                    )
+                )}
 
-                        </div>
+                <button
+                    type="button"
+                    onClick={() => {
+
+                        const average =
+                            Math.round(
+                                pulseOptions.reduce(
+                                    (sum, value) =>
+                                        sum + value,
+                                    0
+                                ) /
+                                    pulseOptions.length
+                            );
+
+                        updateField(
+                            "pulse",
+                            String(average)
+                        );
+
+                        setPulseOptions([]);
+                    }}
+                    style={readingOptionButton}
+                >
+                    Avg{" "}
+                    {Math.round(
+                        pulseOptions.reduce(
+                            (sum, value) =>
+                                sum + value,
+                            0
+                        ) /
+                            pulseOptions.length
+                    )}{" "}
+                </button>
+
+            </div>
+
+        </div>
+    )}
+
+    <input
+        className="upload-review-input"
+        type="number"
+        value={reading.pulse}
+        onChange={
+            event =>
+                updateField(
+                    "pulse",
+                    event.target.value
+                )
+        }
+        style={inputStyle}
+    />
+
+</div>
 
 
-                        <div>
+<div>
 
-                            <label style={fieldLabel}>
-                                {t("medication.spo2")}
-                            </label>
+    <label style={fieldLabel}>
+        {t("medication.spo2")}
+    </label>
 
-                            <input
-className="upload-review-input"
-                                type="number"
+    {spo2Options.length > 1 && (
+        <div style={multipleReadingBox}>
 
-                                value={
-                                    reading.spo2
-                                }
+            <p style={multipleReadingMessage}>
+                It has been noticed that SpO₂ is coming
+                from multiple sources. Which one is correct?
+            </p>
 
-                                onChange={
-                                    event =>
-                                        updateField(
-                                            "spo2",
-                                            event.target.value
-                                        )
-                                }
+            <div style={readingOptionRow}>
 
-                                style={inputStyle}
+                {spo2Options.map(
+                    (value, index) => (
+                        <button
+                            key={`spo2-${value}-${index}`}
+                            type="button"
+                            onClick={() => {
+                                updateField(
+                                    "spo2",
+                                    String(value)
+                                );
 
-                            />
+                                setSpo2Options([]);
+                            }}
+                            style={readingOptionButton}
+                        >
+                            {value}%
+                        </button>
+                    )
+                )}
 
-                        </div>
+                <button
+                    type="button"
+                    onClick={() => {
+
+                        const average =
+                            Math.round(
+                                spo2Options.reduce(
+                                    (sum, value) =>
+                                        sum + value,
+                                    0
+                                ) /
+                                    spo2Options.length
+                            );
+
+                        updateField(
+                            "spo2",
+                            String(average)
+                        );
+
+                        setSpo2Options([]);
+                    }}
+                    style={readingOptionButton}
+                >
+                    Average{" "}
+                    {Math.round(
+                        spo2Options.reduce(
+                            (sum, value) =>
+                                sum + value,
+                            0
+                        ) /
+                            spo2Options.length
+                    )}%
+                </button>
+
+            </div>
+
+        </div>
+    )}
+
+    <input
+        className="upload-review-input"
+        type="number"
+
+        value={
+            reading.spo2
+        }
+
+        onChange={
+            event =>
+                updateField(
+                    "spo2",
+                    event.target.value
+                )
+        }
+
+        style={inputStyle}
+
+    />
+
+</div>
 
                     </div>
+
+
+{/*------------------------------------------------
+  Symptoms
+------------------------------------------------*/}
+
+<SymptomsCard
+    expanded={
+        showSymptoms
+    }
+    disabled={
+        saving
+    }
+    symptoms={
+        reading.symptoms
+    }
+    otherSymptom={
+        reading.otherSymptom
+    }
+    onToggle={
+        () =>
+            setShowSymptoms(
+                previous =>
+                    !previous
+            )
+    }
+    onSymptomToggle={
+        toggleSymptom
+    }
+    onOtherSymptomChange={
+        value =>
+            updateField(
+                "otherSymptom",
+                value
+            )
+    }
+/>
+
+
+{/*------------------------------------------------
+  Pain Location
+------------------------------------------------*/}
+
+{
+    reading.symptoms.includes(
+        "BODY_PAIN"
+    ) && (
+
+        <PainLocationCard
+            painLocations={
+                reading.painLocations
+            }
+            otherPainLocation={
+                reading.otherPainLocation
+            }
+            disabled={
+                saving
+            }
+            onPainLocationToggle={
+                togglePainLocation
+            }
+            onOtherPainLocationChange={
+                value =>
+                    updateField(
+                        "otherPainLocation",
+                        value
+                    )
+            }
+        />
+
+    )
+}
 
 
 <div
@@ -1839,6 +2303,92 @@ const actionRow:
 
 };
 
+
+const multipleReadingBox:
+    React.CSSProperties = {
+
+    marginBottom:
+        "8px",
+
+    padding:
+        "10px",
+
+    border:
+        "1px solid #f59e0b",
+
+    borderRadius:
+        "8px",
+
+    background:
+        "#fffbeb",
+
+};
+
+
+const multipleReadingMessage:
+    React.CSSProperties = {
+
+    margin:
+        "0 0 8px 0",
+
+    fontSize:
+        "13px",
+
+    lineHeight:
+        1.4,
+
+    fontWeight:
+        600,
+
+    color:
+        "#92400e",
+
+};
+
+
+const readingOptionRow:
+    React.CSSProperties = {
+
+    display:
+        "flex",
+
+    flexWrap:
+        "wrap",
+
+    gap:
+        "7px",
+
+};
+
+
+const readingOptionButton:
+    React.CSSProperties = {
+
+    padding:
+        "8px 10px",
+
+    border:
+        "1px solid #cbd5e1",
+
+    borderRadius:
+        "8px",
+
+    background:
+        "#ffffff",
+
+    color:
+        "#374151",
+
+    fontSize:
+        "13px",
+
+    fontWeight:
+        600,
+
+    cursor:
+        "pointer",
+
+};
 
 const primaryButton:
     React.CSSProperties = {

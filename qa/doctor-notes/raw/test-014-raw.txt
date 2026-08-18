@@ -1,0 +1,224 @@
+{
+  "patientIdentity": {
+    "patientName": "MR. K.V Premnath",
+    "patientDateOfBirth": null,
+    "patientAge": "73Y",
+    "patientGender": "Male",
+    "patientUHID": "262500910",
+    "patientNameVariations": []
+  },
+  "encounterIdentity": {
+    "doctorName": "Dr. Swathi Rachabattula",
+    "doctorType": "Consultant-Internal Medicine",
+    "hospitalOrClinic": "Motherhood",
+    "hospitalNameVariations": [],
+    "consultationDate": "26/06/26",
+    "consultationMode": null
+  },
+  "documentMetadata": {
+    "studyDateTime": null,
+    "reportDateTime": null,
+    "originalPatientName": "MR. K.V Premnath",
+    "originalHospitalName": "Motherhood",
+    "documentType": "OTHER"
+  },
+  "consultationVitals": {
+    "weight": "79.2 kg",
+    "height": null,
+    "bmi": null,
+    "bloodPressure": {
+      "systolic": 114,
+      "diastolic": 78,
+      "unit": "mmHg"
+    },
+    "pulse": "115 bpm",
+    "respiratoryRate": null,
+    "spo2": "95%",
+    "temperature": "35.4 C"
+  },
+  "currentStateOfHealth": {
+    "conditions": [
+      "Tiredness 1 week",
+      "Leg pain",
+      "Wheezing",
+      "Chest congestion 1 week",
+      "Right ear blocked",
+      "Giddiness stopped & vertiginous",
+      "Headache settled"
+    ],
+    "diseaseStatus": [],
+    "stage": null,
+    "clinicalAssessment": [
+      "Likely viral URTI",
+      "Nutritional deficiency"
+    ],
+    "importantFindings": []
+  },
+  "diagnosisOrAssessment": null,
+  "clinicalAssessments": [],
+  "symptoms": [
+    {
+      "symptom": "Tiredness",
+      "duration": "1 week",
+      "severity": null,
+      "qualifiers": null
+    },
+    {
+      "symptom": "Leg pain",
+      "duration": null,
+      "severity": null,
+      "qualifiers": null
+    },
+    {
+      "symptom": "Wheezing",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "for a couple 2 BD"
+    },
+    {
+      "symptom": "Chest congestion",
+      "duration": "1 week",
+      "severity": "mild",
+      "qualifiers": null
+    },
+    {
+      "symptom": "Blocked ear (right)",
+      "duration": null,
+      "severity": null,
+      "qualifiers": null
+    },
+    {
+      "symptom": "Giddiness",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "stopped"
+    },
+    {
+      "symptom": "Headache",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "settled"
+    }
+  ],
+  "presentingComplaints": [],
+  "pastMedicalHistory": [
+    "HTN x 20 years",
+    "ADL impair Hemina"
+  ],
+  "history": [],
+  "examinationFindings": [],
+  "doctorInstructions": [
+    {
+      "instruction": "Take medication after food",
+      "timing": "after food",
+      "frequency": null,
+      "duration": null,
+      "condition": null
+    },
+    {
+      "instruction": "Steam inhalation",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": null
+    },
+    {
+      "instruction": "Betadine gargle",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": null
+    }
+  ],
+  "followUpPlan": [],
+  "medicines": [
+    {
+      "name": "Tab. Olmesart 20 mg",
+      "genericName": null,
+      "brandName": null,
+      "strength": "20 mg",
+      "dose": "1",
+      "frequency": "Once daily",
+      "timing": null,
+      "route": "Oral",
+      "duration": null,
+      "action": null,
+      "instruction": null
+    },
+    {
+      "name": "Mucinac 600 mg effervescent",
+      "genericName": null,
+      "brandName": null,
+      "strength": "600 mg",
+      "dose": "1",
+      "frequency": "Once daily",
+      "timing": null,
+      "route": null,
+      "duration": "5 days",
+      "action": null,
+      "instruction": "Mix in half glass warm water"
+    },
+    {
+      "name": "Sompraz-D / Nexpro-RP",
+      "genericName": null,
+      "brandName": null,
+      "strength": null,
+      "dose": "1",
+      "frequency": "Once daily",
+      "timing": "before breakfast",
+      "route": null,
+      "duration": "5 days",
+      "action": null,
+      "instruction": null
+    },
+    {
+      "name": "Paracetamol 650 mg",
+      "genericName": null,
+      "brandName": null,
+      "strength": "650 mg",
+      "dose": "1",
+      "frequency": "Once daily",
+      "timing": null,
+      "route": null,
+      "duration": null,
+      "action": null,
+      "instruction": "for fever / pain"
+    }
+  ],
+  "additionalNotes": [],
+  "investigations": [
+    {
+      "name": "Blood CRP + PSA",
+      "result": null,
+      "status": null,
+      "date": null
+    },
+    {
+      "name": "Ultrasound abdomen pelvis",
+      "result": null,
+      "status": null,
+      "date": null
+    },
+    {
+      "name": "Iron studies",
+      "result": "Low iron",
+      "status": null,
+      "date": null
+    }
+  ],
+  "testsAdvised": [
+    {
+      "test": "BPHT",
+      "action": "Start",
+      "timing": null,
+      "condition": null
+    },
+    {
+      "test": "PSA",
+      "action": "Check",
+      "timing": null,
+      "condition": null
+    }
+  ],
+  "clinicalPlan": []
+}

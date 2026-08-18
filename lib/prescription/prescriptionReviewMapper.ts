@@ -133,6 +133,26 @@ patientIdentity: {
             }
             : null,
 
+
+    //--------------------------------------------------------
+    // Current State of Health
+    //--------------------------------------------------------
+
+    currentStateOfHealth: {
+
+        conditions: [],
+
+        diseaseStatus: [],
+
+        stage: null,
+
+        clinicalAssessment: [],
+
+        importantFindings: [],
+
+    },
+
+
     diagnosisOrAssessment:
         record.prescription.diagnosisOrAssessment,
 
@@ -152,8 +172,21 @@ patientIdentity: {
     symptoms:
 
         record.symptoms.map(
-            item =>
-                item.symptom
+            item => ({
+
+                symptom:
+                    item.symptom,
+
+                duration:
+                    item.duration,
+
+                severity:
+                    null,
+
+                qualifiers:
+                    null,
+
+            })
         ),
 
     presentingComplaints:
@@ -166,6 +199,12 @@ patientIdentity: {
 
                 duration:
                     item.duration,
+
+                severity:
+                    null,
+
+                qualifiers:
+                    null,
 
             })
         ),
@@ -268,6 +307,8 @@ patientIdentity: {
             item =>
                 item.investigation
         ),
+
+testsAdvised: [],
 
     clinicalPlan:
 

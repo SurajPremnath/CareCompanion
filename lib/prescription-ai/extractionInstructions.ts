@@ -13,47 +13,132 @@ import {
 } from "./prescriptionKnowledge";
 
 import {
-  VITALS_PANEL_RULES,
-  SYMPTOMS_PANEL_RULES,
-  ASSESSMENT_PANEL_RULES,
-  MEDICATION_PANEL_RULES,
-  TESTS_PANEL_RULES,
-  INSTRUCTIONS_PANEL_RULES,
-  NOTES_PANEL_RULES,
-} from "./panels";
+  PRESCRIPTION_READING_RULES,
+} from "./prescriptionReadingRules";
 
 import {
-  DOCTOR_NOTES_EXTRACTION_INSTRUCTIONS,
-} from "./doctorNotesExtractionInstructions";
+  PRESCRIPTION_RECOGNITION_RULES,
+} from "./prescriptionRecognitionRules";
+
+import {
+  PATIENT_PANEL_RULES,
+  DOCTOR_PANEL_RULES,
+  HOSPITAL_PANEL_RULES,
+  DOCUMENT_PANEL_RULES,
+  VITALS_PANEL_RULES,
+  CURRENT_STATE_OF_HEALTH_PANEL_RULES,
+  CLINICAL_HISTORY_PANEL_RULES,
+  SYMPTOMS_PANEL_RULES,
+  INVESTIGATIONS_PANEL_RULES,
+  TESTS_ADVISED_PANEL_RULES,
+  INSTRUCTIONS_PANEL_RULES,
+  MEDICATION_PANEL_RULES,
+  FOLLOW_UP_PLAN_PANEL_RULES,
+} from "./panels";
+
+/**
+ * ============================================================
+ * CAREVR — MASTER EXTRACTION INSTRUCTIONS
+ * ============================================================
+ *
+ * ONE extraction intelligence layer for:
+ *
+ * 1. Prescription
+ * 2. Doctor's Notes
+ *
+ * The UI is NOT responsible for extraction logic.
+ *
+ * Individual panels own their own semantic rules.
+ * This file owns:
+ *
+ * - shared medical knowledge
+ * - shared extraction principles
+ * - panel orchestration
+ * - document-mode rules
+ * - canonical output contract
+ *
+ * Do not create another extraction instruction file for
+ * Prescription or Doctor's Notes.
+ * ============================================================
+ */
+
+
+/**
+ * ============================================================
+ * 1. SHARED MEDICAL KNOWLEDGE
+ * ============================================================
+ */
 
 export const KNOWLEDGE = `
-MEDICINE PREFIXES: ${MEDICINE_PREFIXES.join(", ")}
-DOSAGE PATTERNS: ${DOSAGE_PATTERNS.join(", ")}
-DURATIONS: ${DURATION_PATTERNS.join(", ")}
-INVESTIGATIONS: ${INVESTIGATION_KEYWORDS.join(", ")}
-INSTRUCTIONS: ${INSTRUCTION_KEYWORDS.join(", ")}
-DEVICES: ${DEVICE_KEYWORDS.join(", ")}
-SYMPTOMS: ${SYMPTOM_KEYWORDS.join(", ")}
-PAST HISTORY: ${PAST_HISTORY_KEYWORDS.join(", ")}
-EXAMINATION: ${EXAMINATION_KEYWORDS.join(", ")}
-CONSULTATION: ${CONSULTATION_KEYWORDS.join(", ")}
-ABBREVIATIONS: ${COMMON_MEDICAL_ABBREVIATIONS.join(", ")}
+============================================================
+CAREVR MEDICAL EXTRACTION KNOWLEDGE
+============================================================
+
+MEDICINE PREFIXES:
+${MEDICINE_PREFIXES.join(", ")}
+
+DOSAGE PATTERNS:
+${DOSAGE_PATTERNS.join(", ")}
+
+DURATION PATTERNS:
+${DURATION_PATTERNS.join(", ")}
+
+INVESTIGATION KEYWORDS:
+${INVESTIGATION_KEYWORDS.join(", ")}
+
+INSTRUCTION KEYWORDS:
+${INSTRUCTION_KEYWORDS.join(", ")}
+
+DEVICE KEYWORDS:
+${DEVICE_KEYWORDS.join(", ")}
+
+SYMPTOM KEYWORDS:
+${SYMPTOM_KEYWORDS.join(", ")}
+
+PAST HISTORY KEYWORDS:
+${PAST_HISTORY_KEYWORDS.join(", ")}
+
+EXAMINATION KEYWORDS:
+${EXAMINATION_KEYWORDS.join(", ")}
+
+CONSULTATION KEYWORDS:
+${CONSULTATION_KEYWORDS.join(", ")}
+
+COMMON MEDICAL ABBREVIATIONS:
+${COMMON_MEDICAL_ABBREVIATIONS.join(", ")}
 `;
+
+
+/**
+ * ============================================================
+ * 2. CANONICAL OUTPUT CONTRACT
+ * ============================================================
+ *
+ * This matches the application's ExtractedPrescription
+ * structure.
+ *
+ * Do NOT flatten the identity objects.
+ * Do NOT rename fields.
+ * ============================================================
+ */
 
 export const OUTPUT_CONTRACT = `
 ============================================================
-OUTPUT CONTRACT
+CAREVR CANONICAL OUTPUT CONTRACT
 ============================================================
 
 Return ONLY ONE valid JSON object.
 
-Do NOT return markdown.
+Do NOT return:
 
-Do NOT return explanations.
+- Markdown
+- Explanations
+- Comments
+- Conversational text
+- Multiple JSON objects
 
-Do NOT return comments.
-
-The property names below are mandatory.
+The JSON object MUST contain exactly the supported
+application-level fields below.
 
 {
   "patientIdentity": {
@@ -93,11 +178,19 @@ The property names below are mandatory.
     "temperature": null
   },
 
-  "diagnosisOrAssessment": null,
+"currentStateOfHealth": {
+  "conditions": [],
+  "diseaseStatus": [],
+  "stage": null,
+  "clinicalAssessment": [],
+  "importantFindings": []
+},
 
-  "clinicalAssessments": [],
+"diagnosisOrAssessment": null,
 
-  "symptoms": [],
+"clinicalAssessments": [],
+
+"symptoms": [],
 
   "presentingComplaints": [],
 
@@ -113,22 +206,24 @@ The property names below are mandatory.
 
   "medicines": [],
 
+  "additionalNotes": [],
+
   "investigations": [],
 
-  "clinicalPlan": [],
+  "testsAdvised": [],
 
-  "additionalNotes": []
+  "clinicalPlan": []
 }
 
-Never rename fields.
+============================================================
+IDENTITY STRUCTURE
+============================================================
 
-The top-level JSON groups are mandatory:
+Patient identity MUST remain inside:
 
-- patientIdentity
-- encounterIdentity
-- documentMetadata
+"patientIdentity"
 
-Patient identity fields MUST remain inside patientIdentity:
+Supported fields:
 
 - patientName
 - patientDateOfBirth
@@ -137,7 +232,11 @@ Patient identity fields MUST remain inside patientIdentity:
 - patientUHID
 - patientNameVariations
 
-Encounter identity fields MUST remain inside encounterIdentity:
+Encounter identity MUST remain inside:
+
+"encounterIdentity"
+
+Supported fields:
 
 - doctorName
 - doctorType
@@ -146,7 +245,11 @@ Encounter identity fields MUST remain inside encounterIdentity:
 - consultationDate
 - consultationMode
 
-Document metadata fields MUST remain inside documentMetadata:
+Document metadata MUST remain inside:
+
+"documentMetadata"
+
+Supported fields:
 
 - studyDateTime
 - reportDateTime
@@ -154,670 +257,890 @@ Document metadata fields MUST remain inside documentMetadata:
 - originalHospitalName
 - documentType
 
-Clinical fields remain at the top level:
+Clinical information remains at the top level.
 
-- consultationVitals
-- diagnosisOrAssessment
-- clinicalAssessments
-- symptoms
-- presentingComplaints
-- pastMedicalHistory
-- history
-- examinationFindings
-- doctorInstructions
-- followUpPlan
-- medicines
-- investigations
-- clinicalPlan
-- additionalNotes
+============================================================
+MISSING VALUES
+============================================================
 
-If a value is not visible:
+For a missing scalar:
 
-- use null for single values
-- use [] for arrays
+null
 
-Never hallucinate values.
+For a missing collection:
 
-If a value is not visible:
+[]
 
-- use null for single values
-- use [] for arrays
+Never use:
 
-Never hallucinate values.
+- Unknown
+- N/A
+- -
+- Not available
+- today's date
+- upload date
+- filename date
+
+as substitutes for missing information.
+
+============================================================
+NO SCHEMA DRIFT
+============================================================
+
+Never create alternative field names such as:
+
+- age
+- gender
+- UHID
+- vitals
+- medication
+- medications
+- assessment
+- instructions
+- pastHistory
+- notesFollowUp
+
+Use only the canonical fields defined above.
+
+Never add unsupported top-level fields.
 `;
 
-export const PATIENT_IDENTITY_RULES = `
+
+/**
+ * ============================================================
+ * 3. SHARED EXTRACTION PRINCIPLES
+ * ============================================================
+ */
+
+export const GLOBAL_EXTRACTION_RULES = `
 ============================================================
-PATIENT IDENTITY — TARGETED EXTRACTION
+GLOBAL EXTRACTION PRINCIPLES
 ============================================================
 
-Identify ONLY the patient represented by the document.
+1. SOURCE AUTHORITY
 
-Scan the ENTIRE document:
-- Header
-- Demographic section
-- Margins
-- Footer
-- Stamps
-- Handwritten annotations
-- Every page
+The uploaded document is the only source of truth.
 
-Do NOT extract doctor, hospital, diagnosis, medication,
-investigation or other clinical information here.
+Do not use:
+
+- previous consultations
+- selected application context
+- patient memory
+- doctor memory
+- hospital memory
+- external medical knowledge
+
+to fill missing document information.
 
 ------------------------------------------------------------
-1. PATIENT NAME
+
+2. COMPLETE DOCUMENT
+
+Read the entire document before producing the result.
+
+Review:
+
+- every page
+- header
+- footer
+- body
+- tables
+- margins
+- handwritten notes
+- stamps
+- signatures
+- continuation pages
+- side annotations
+
+Do not stop after reading the demographic header.
+
 ------------------------------------------------------------
 
-Find the patient's name wherever it appears.
+3. HANDWRITING
 
-Look for:
-- Name
-- Patient Name
-- Pt Name
-- Pt.
-- Patient
-- demographic blocks
-- UHID-linked demographic information
+Handwriting may be difficult.
 
-Read the name exactly as written.
+Use visual/document context to interpret handwriting.
+
+However, if a value remains genuinely unclear:
+
+- scalar → null
+- collection item → omit
+
+Never invent:
+
+- patient name
+- doctor name
+- medicine
+- dose
+- frequency
+- diagnosis
+- investigation
+- date
+
+------------------------------------------------------------
+
+4. PRESERVE SOURCE MEANING
 
 Preserve:
-- initials
-- spacing
-- capitalization
-- prefixes such as Mr., Mrs., Ms.
 
-Do NOT mistake doctor, hospital, clinic or pharmacy names
-for the patient name.
+- units
+- clinically meaningful qualifiers
+- medical abbreviations
+- dosage
+- frequency
+- timing
+- duration
+- route
+- status
+- explicit findings
 
-If unavailable:
-return null.
-
-------------------------------------------------------------
-2. DATE OF BIRTH
-------------------------------------------------------------
-
-Search the entire document for an explicitly stated DOB.
-
-Look for:
-- DOB
-- Date of Birth
-- D.O.B.
-- Birth Date
-
-Only extract when explicitly visible.
-
-Do NOT derive DOB from age.
-
-If unavailable:
-return null.
+Do not silently change the meaning of the source.
 
 ------------------------------------------------------------
-3. AGE
-------------------------------------------------------------
 
-Search for an explicitly stated patient age.
+5. NO CLINICAL INFERENCE
 
-Look for:
-- Age
-- demographic fields
-- combinations such as 77/M
+Extraction is not diagnosis.
 
-Read the age exactly as written.
+Do not infer:
 
-Do NOT calculate age here.
+- diagnosis from medicine
+- medicine from diagnosis
+- symptom from diagnosis
+- diagnosis from symptom
+- investigation result from test name
+- treatment response from treatment
+- follow-up from medication
+- consultation date from upload date
 
-If unavailable:
-return null.
-
-------------------------------------------------------------
-4. SEX / GENDER
-------------------------------------------------------------
-
-Search for:
-- Sex
-- Gender
-- M / F
-- Male / Female
-
-Return only the patient's sex/gender.
-
-Do NOT infer gender from the patient's name.
-
-If unavailable:
-return null.
+Only extract what the document supports.
 
 ------------------------------------------------------------
-5. UHID / PATIENT IDENTIFIER
+
+6. CATEGORY DISCIPLINE
+
+Each fact must go to its appropriate panel.
+
+PATIENT
+→ patient identity.
+
+DOCTOR
+→ doctor identity and doctor type.
+
+HOSPITAL
+→ hospital/clinic identity and hospital variations.
+
+DOCUMENT
+→ document metadata and document classification.
+
+VITALS
+→ explicitly documented consultation vital measurements.
+
+CURRENT STATE OF HEALTH
+→ current clinical status explicitly documented.
+
+CLINICAL HISTORY
+→ historical clinical information.
+
+SYMPTOMS
+→ symptoms, complaints and patient-reported problems.
+
+INVESTIGATIONS
+→ investigations and documented investigation findings.
+
+TESTS ADVISED
+→ tests explicitly advised, ordered, recommended or planned.
+
+INSTRUCTIONS
+→ explicit doctor advice, instructions, monitoring or actions.
+
+MEDICATION
+→ medicines prescribed, started, stopped, continued or changed.
+
+FOLLOW-UP
+→ explicit future review/reassessment/follow-up.
+
+Do not move information between categories merely because
+categories are medically related.
+
 ------------------------------------------------------------
 
-Search the entire document for a patient-specific identifier.
+7. DUPLICATION CONTROL
 
-Look for:
-- UHID
-- Patient ID
-- MRN
-- Medical Record Number
-- Hospital ID
+If the same fact appears multiple times:
 
-Preserve it exactly as written.
+- header
+- body
+- plan
+- advice
+- summary
+- footer
+- continuation page
 
-Do NOT capture:
-- Lab ID
-- Sample ID
-- Accession number
-- Admission number
-- IP number
-- Ward
-- Bed
+do not create unnecessary duplicate entries.
 
-If unavailable:
-return null.
+Preserve the most complete supported representation.
 
 ------------------------------------------------------------
-6. PATIENT NAME VARIATIONS
-------------------------------------------------------------
 
-Capture additional representations of the patient's name
-ONLY when they are actually visible.
+8. EXTRACTION ONLY
 
-Examples:
+Do not create downstream domain objects.
 
-K V Premnath
-Keecheri V Premnath
-Keecheri Veetil Premnath
-Keecheri Veettil Premnath
+Do NOT create:
 
-Do NOT create variations yourself.
+- timeline events
+- appointments
+- reminders
+- monitoring schedules
+- tasks
+- bookings
 
-If none:
-return [].
+Those are application/domain responsibilities.
 
 ------------------------------------------------------------
-ANTI-HALLUCINATION
-------------------------------------------------------------
 
-Use ONLY information visibly present.
+9. JSON ONLY
 
-Never infer:
-- DOB from age
-- gender from name
-- UHID from another identifier
-- aliases that are not visible
+Return exactly one valid JSON object.
 
-Return null for unavailable scalar values.
-Return [] when no aliases are visible.
+No Markdown.
+No prose.
+No explanation.
 `;
 
-export const ENCOUNTER_IDENTITY_RULES = `
+
+/**
+ * ============================================================
+ * 4. SHARED PANEL INTELLIGENCE
+ * ============================================================
+ *
+ * These are the canonical semantic building blocks.
+ *
+ * Both Prescription and Doctor's Notes use the same panels.
+ * The document mode determines which panels are relevant.
+ * ============================================================
+ */
+
+export const PANEL_INTELLIGENCE = `
 ============================================================
-ENCOUNTER IDENTITY — TARGETED EXTRACTION
-============================================================
-
-Identify ONLY:
-- Doctor
-- Doctor Type / Specialty
-- Hospital / Clinic
-- Hospital name variations
-- Consultation Date
-- Consultation Mode
-
-Do NOT extract patient demographics or clinical information.
-
-Scan the ENTIRE document.
-
-------------------------------------------------------------
-1. DOCTOR
-------------------------------------------------------------
-
-Identify the doctor associated with the encounter.
-
-Search:
-- Header
-- Credentials
-- Signature
-- Stamp
-- Referral section
-- Footer
-
-Return the doctor's full visible name.
-
-If multiple doctors exist, preserve their roles when visible.
-
-------------------------------------------------------------
-2. DOCTOR TYPE / SPECIALTY
-------------------------------------------------------------
-
-Identify the doctor's specialty or department when explicitly
-available.
-
-Examples:
-- Pulmonology
-- Oncology
-- Cardiology
-- Radiology
-- General Medicine
-
-Look for:
-- Specialty below doctor's name
-- Department heading
-- Consultant designation
-- Hospital department
-
-Do NOT infer specialty from diagnosis.
-
-If unavailable:
-return null.
-
-------------------------------------------------------------
-3. HOSPITAL / CLINIC
-------------------------------------------------------------
-
-Identify the institution that issued the document.
-
-Scan:
-- Header
-- Footer
-- Logo
-- Letterhead
-- Watermark
-- Stamp
-- Website
-- Email
-- Address block
-
-Return the institution name only.
-
-Do NOT return:
-- address
-- phone number
-- city
-- PIN
-- registration number
-
-Ignore referral hospitals, diagnostic centres, pharmacies
-and insurance companies unless they are clearly the issuing
-institution.
-
-------------------------------------------------------------
-4. HOSPITAL NAME VARIATIONS
-------------------------------------------------------------
-
-Capture additional institution names ONLY when visibly present
-and clearly referring to the same issuing institution.
-
-Do NOT invent normalized variations.
-
-If none:
-return [].
-
-------------------------------------------------------------
-5. CONSULTATION DATE
-------------------------------------------------------------
-
-Search the ENTIRE document.
-
-Prioritize dates associated with:
-- Date
-- Dt
-- Dated
-- Consultation Date
-- Prescription Date
-- Encounter Date
-
-Read the actual digits visually.
-
-Do NOT infer or reconstruct unclear digits.
-
-For handwritten dates inspect each digit individually.
-
-Pay particular attention to:
-- 1 vs 4 vs 5 vs 7
-- 0 vs 6
-- 3 vs 8
-- 5 vs 6
-
-Interpret prescription dates as DD/MM/YYYY.
-
-Return:
-YYYY-MM-DD
-
-If genuinely uncertain:
-return null.
-
-Do NOT use:
-- DOB
-- admission date
-- discharge date
-- study date
-- report date
-- medication date
-
-unless explicitly identified as the consultation date.
-
-------------------------------------------------------------
-6. CONSULTATION MODE
-------------------------------------------------------------
-
-Extract only when explicitly available.
-
-Allowed values:
-
-IN_PERSON
-VIDEO
-PHONE
-WHATSAPP
-EMAIL
-HOME_VISIT
-HOSPITAL_ADMISSION
-HOSPITAL_DISCHARGE
-OTHER
-
-If unavailable:
-return null.
-
-------------------------------------------------------------
-ANTI-HALLUCINATION
-------------------------------------------------------------
-
-Use ONLY information visibly supported by the document.
-
-Never infer:
-- specialty from diagnosis
-- hospital from doctor name
-- consultation date from unrelated dates
-- consultation mode from document type
-`;
-
-export const DOCUMENT_METADATA_RULES = `
-============================================================
-DOCUMENT METADATA — TARGETED EXTRACTION
+CAREVR CANONICAL PANELS
 ============================================================
 
-Capture ONLY information required for document storage,
-chronology and auditability.
+-------------------------
+PATIENT PANEL
+-------------------------
 
-These fields are NOT Patient Panel display fields.
+${PATIENT_PANEL_RULES}
 
-------------------------------------------------------------
-1. STUDY DATE & TIME
-------------------------------------------------------------
+-------------------------
+DOCTOR PANEL
+-------------------------
 
-Search the ENTIRE document for the date and time when a test,
-scan, procedure or investigation was actually performed.
+${DOCTOR_PANEL_RULES}
 
-Look for:
-- Study Date
-- Study Time
-- Exam Date
-- Examination Date
-- Performed
-- Scan Date
-- Procedure Date
+-------------------------
+HOSPITAL PANEL
+-------------------------
 
-Capture date and time when available.
+${HOSPITAL_PANEL_RULES}
 
-Do NOT substitute:
-- consultation date
-- report date
-- admission date
-- discharge date
-- DOB
+-------------------------
+DOCUMENT PANEL
+-------------------------
 
-If unavailable:
-return null.
+${DOCUMENT_PANEL_RULES}
 
-------------------------------------------------------------
-2. REPORT DATE & TIME
-------------------------------------------------------------
-
-Search for the date/time when the report was generated,
-validated, signed or released.
-
-Look for:
-- Report Date
-- Report Time
-- Signed
-- Verified
-- Validated
-- Released
-
-Do NOT substitute study date/time.
-
-If unavailable:
-return null.
-
-------------------------------------------------------------
-3. ORIGINAL PATIENT NAME
-------------------------------------------------------------
-
-Preserve the exact patient name appearing on the document.
-
-This is for source/audit purposes.
-
-------------------------------------------------------------
-4. ORIGINAL HOSPITAL NAME
-------------------------------------------------------------
-
-Preserve the exact institution name appearing on the document.
-
-Do NOT normalize or shorten it.
-
-------------------------------------------------------------
-5. DOCUMENT TYPE
-------------------------------------------------------------
-
-Identify the actual document type.
-
-Allowed values:
-
-PRESCRIPTION
-DISCHARGE_SUMMARY
-ADMISSION_NOTE
-LAB_REPORT
-MRI
-CT
-PET_CT
-HISTOPATHOLOGY
-IHC
-NGS
-ECHO
-ECG
-OTHER
-
-Do NOT classify a document as PRESCRIPTION merely because
-the upload endpoint is called prescription-image.
-
-------------------------------------------------------------
-ANTI-HALLUCINATION
-------------------------------------------------------------
-
-Only capture information visibly supported by the document.
-
-Never infer missing dates or times.
-`;
-
-export const CLINICAL_UNDERSTANDING = `
-You are CareVR's clinical prescription extraction engine.
-
-Your responsibility is to extract every clinically relevant piece of information from the supplied prescription.
-
-${KNOWLEDGE}
-
-//------------------------------------------------------------
-// PATIENT IDENTITY
-//------------------------------------------------------------
-
-${PATIENT_IDENTITY_RULES}
-
-//------------------------------------------------------------
-// ENCOUNTER IDENTITY
-//------------------------------------------------------------
-
-${ENCOUNTER_IDENTITY_RULES}
-
-//------------------------------------------------------------
-// DOCUMENT METADATA
-//------------------------------------------------------------
-
-${DOCUMENT_METADATA_RULES}
-
-//------------------------------------------------------------
-// VITALS
-//------------------------------------------------------------
+-------------------------
+VITALS PANEL
+-------------------------
 
 ${VITALS_PANEL_RULES}
 
-------------------------------------------------------------
-SYMPTOMS
-------------------------------------------------------------
+-------------------------
+CURRENT STATE OF HEALTH PANEL
+-------------------------
+
+${CURRENT_STATE_OF_HEALTH_PANEL_RULES}
+
+-------------------------
+CLINICAL HISTORY PANEL
+-------------------------
+
+${CLINICAL_HISTORY_PANEL_RULES}
+
+-------------------------
+SYMPTOMS PANEL
+-------------------------
 
 ${SYMPTOMS_PANEL_RULES}
 
-------------------------------------------------------------
-ASSESSMENT
-------------------------------------------------------------
+-------------------------
+INVESTIGATIONS PANEL
+-------------------------
 
-${ASSESSMENT_PANEL_RULES}
+${INVESTIGATIONS_PANEL_RULES}
 
-------------------------------------------------------------
-MEDICATIONS
-------------------------------------------------------------
+-------------------------
+TESTS ADVISED PANEL
+-------------------------
 
-${MEDICATION_PANEL_RULES}
+${TESTS_ADVISED_PANEL_RULES}
 
-------------------------------------------------------------
-TESTS
-------------------------------------------------------------
-
-${TESTS_PANEL_RULES}
-
-------------------------------------------------------------
-INSTRUCTIONS
-------------------------------------------------------------
+-------------------------
+INSTRUCTIONS PANEL
+-------------------------
 
 ${INSTRUCTIONS_PANEL_RULES}
 
+-------------------------
+MEDICATION PANEL
+-------------------------
+
+${MEDICATION_PANEL_RULES}
+
+-------------------------
+FOLLOW-UP PLAN PANEL
+-------------------------
+
+${FOLLOW_UP_PLAN_PANEL_RULES}
+`;
+
+
+/**
+ * ============================================================
+ * 5. PRESCRIPTION MODE
+ * ============================================================
+ */
+
+export const EXTRACTION_INSTRUCTIONS = `
+============================================================
+CAREVR DOCUMENT EXTRACTION
+MODE: PRESCRIPTION
+============================================================
+
+You are CareVR's clinical document extraction engine.
+
+Read the complete supplied prescription/document and extract
+all reliably documented information using the canonical
+CareVR panel architecture.
+
+${KNOWLEDGE}
+
+${PRESCRIPTION_READING_RULES}
+
+${PRESCRIPTION_RECOGNITION_RULES}
+
+${GLOBAL_EXTRACTION_RULES}
+
+${PANEL_INTELLIGENCE}
+
+============================================================
+PRESCRIPTION MODE RULES
+============================================================
+
+1. DOCUMENT TYPE
+
+The document metadata must identify the actual supported
+document type.
+
+For a prescription:
+
+"documentType": "PRESCRIPTION"
+
+Do not classify a document as a prescription merely because
+a medicine appears in it.
+
 ------------------------------------------------------------
-NOTES
+
+2. PATIENT
+
+Extract patient identity only when supported by the document.
+
+Preserve:
+
+- exact patient name
+- age
+- sex/gender
+- DOB
+- UHID
+- reliable name variations
+
 ------------------------------------------------------------
 
-${NOTES_PANEL_RULES}
+3. DOCTOR
+
+Extract:
+
+- doctor name
+- doctor type/specialty
+
+only when supported by the document.
+
+Do not infer doctor identity from:
+
+- hospital
+- medicine
+- diagnosis
+- application context
 
 ------------------------------------------------------------
-GLOBAL RULES
+
+4. HOSPITAL
+
+Extract the hospital/clinic exactly as supported by the
+document.
+
+Preserve reliable hospital name variations.
+
 ------------------------------------------------------------
 
-1. Scan the complete prescription from top to bottom.
+5. CONSULTATION DATE
 
-2. Read printed text, handwriting, stamps, side notes and margins.
+Use only a date supported by the document as the consultation
+date.
 
-3. Never stop after patient demographics.
+Never substitute:
 
-4. Extract every medicine.
+- current date
+- upload date
+- file creation date
+- filename date
+- follow-up date
+- unrelated investigation date
 
-5. Extract every vital.
+------------------------------------------------------------
 
-6. Extract every diagnosis.
+6. CONSULTATION MODE
 
-7. Extract every symptom.
+Extract only when the document supports it.
 
-8. Extract every investigation.
+Supported application values include:
 
-9. Extract every instruction.
+- IN_PERSON
+- VIDEO
+- PHONE
+- WHATSAPP
+- EMAIL
+- HOME_VISIT
+- HOSPITAL_ADMISSION
+- HOSPITAL_DISCHARGE
+- OTHER
 
-10. Preserve units exactly as written.
+If not reliably documented:
 
-11. Preserve medical abbreviations.
+null
 
-12. Never invent missing information.
+------------------------------------------------------------
 
-13. Return null for missing scalar values.
+7. VITALS
 
-14. Return [] only when nothing exists.
+Extract explicitly documented consultation vitals through
+the Vitals Panel.
 
-15. Return ONLY valid JSON.
+Do not infer vitals.
 
-16. The "symptoms" array MUST contain every symptom, complaint, sign or patient-reported problem mentioned anywhere in the prescription.
+Do not convert monitoring instructions into current vitals.
 
-17. The "presentingComplaints" array MUST contain the COMPLETE list of those same symptoms. Do NOT include only the chief complaint or primary complaint.
+Example:
 
-18. Every symptom in "symptoms" MUST have one corresponding object in "presentingComplaints".
+"Monitor BP once every 3 days"
 
-19. Populate "duration" ONLY when an explicit temporal expression is written in the prescription.
+is an instruction, not a blood-pressure reading.
 
-Examples of VALID duration:
+------------------------------------------------------------
+
+8. CLINICAL CONTENT
+
+Use the relevant canonical panels for:
+
+- current state
+- clinical history
+- symptoms
+- investigations
+- tests advised
+- instructions
+- medicines
+- follow-up
+
+------------------------------------------------------------
+
+9. MEDICATIONS
+
+Extract every explicitly documented medicine.
+
+Preserve, where available:
+
+- medicine name
+- strength
+- dosage
+- frequency
+- timing
+- duration
+- route
+- status
+- explicit instructions
+
+Do not invent missing medication details.
+
+------------------------------------------------------------
+
+10. SYMPTOMS
+
+Do not discard contextual symptoms.
+
+Examples:
+
+- SOB on exertion
+- chest pain on exertion
+- cough at night
+- pain while walking
+
+These remain symptoms when explicitly documented.
+
+A contextual phrase is not automatically a duration.
+
+------------------------------------------------------------
+
+11. DURATION
+
+Populate symptom duration only when an explicit temporal
+expression is documented.
+
+Examples:
+
 - 2 days
-- 5 days
 - 1 week
-- 3 months
-- Since yesterday
-- Since childhood
-- Chronic
-- Acute
+- since yesterday
+- chronic
+- acute
 
-20. Do NOT treat clinical qualifiers as duration.
+Do not use:
 
-The following are NOT durations:
-- on exertion
-- at rest
-- while walking
-- while climbing stairs
-- after food
-- before food
-- at night
-- in the evening
-- intermittent
 - mild
 - moderate
 - severe
-- right
-- left
-- bilateral
+- on exertion
+- at night
+- after food
+- before food
 
-21. Do NOT discard activity-related, positional, or contextual symptoms.
+as duration.
 
-The following are independent symptoms and MUST be extracted exactly as written whenever they appear:
+------------------------------------------------------------
 
-- SOB on exertion
-- Shortness of breath on exertion
-- Breathlessness on exertion
-- Dyspnea on exertion
-- Chest pain on exertion
-- Pain while walking
-- Pain while climbing stairs
-- Cough at night
-- Wheeze at night
+12. TESTS VS INVESTIGATIONS
 
-22. These are clinical symptoms, NOT durations and NOT modifiers to another symptom unless the prescription explicitly combines them.
+Keep the distinction:
 
-Correct examples:
+TEST ADVISED
+→ what the doctor ordered/advised/planned.
 
-Symptom:
-"SOB on exertion"
-Duration:
-null
+INVESTIGATION
+→ an investigation or documented finding/result.
 
-Symptom:
-"Mild chest tightness"
-Duration:
-null
-
-These should be returned as TWO separate presenting complaints if both are written.
-
-23. Never merge two different complaints into one complaint simply because they occur on the same line.
-
-24. If duration is unknown, always return null.
-
-25. The number of items in "symptoms" and "presentingComplaints" should normally be identical unless a symptom truly cannot be represented as a presenting complaint.
+Do not collapse both into one category.
 
 ${OUTPUT_CONTRACT}
 `;
 
-export const EXTRACTION_INSTRUCTIONS =
-  CLINICAL_UNDERSTANDING;
 
-export {
-  DOCTOR_NOTES_EXTRACTION_INSTRUCTIONS,
-};
+/**
+ * ============================================================
+ * 6. DOCTOR'S NOTES MODE
+ * ============================================================
+ *
+ * Same panels.
+ * Same canonical schema.
+ * Only genuine Doctor's Notes-specific rules differ.
+ * ============================================================
+ */
+
+export const DOCTOR_NOTES_EXTRACTION_INSTRUCTIONS = `
+============================================================
+CAREVR DOCUMENT EXTRACTION
+MODE: DOCTOR'S NOTES
+============================================================
+
+You are CareVR's clinical document extraction engine.
+
+Read the complete doctor's note and extract all reliably
+documented information using the SAME canonical CareVR
+panel architecture used by Prescription.
+
+${KNOWLEDGE}
+
+${GLOBAL_EXTRACTION_RULES}
+
+${PANEL_INTELLIGENCE}
+
+============================================================
+DOCTOR'S NOTES MODE RULES
+============================================================
+
+1. SAME PANEL MODEL
+
+Doctor's Notes does NOT have a separate extraction model.
+
+Use the same:
+
+- Patient Panel
+- Doctor Panel
+- Hospital Panel
+- Document Panel
+- Vitals Panel
+- Current State of Health Panel
+- Clinical History Panel
+- Symptoms Panel
+- Investigations Panel
+- Tests Advised Panel
+- Instructions Panel
+- Medication Panel
+- Follow-up Plan Panel
+
+The Doctor's Notes UI decides how those extracted values
+are displayed.
+
+------------------------------------------------------------
+
+2. DOCUMENT TYPE
+
+For Doctor's Notes mode:
+
+"documentType": "OTHER"
+
+Do not infer another document type.
+
+------------------------------------------------------------
+
+3. PATIENT
+
+Extract only document-supported:
+
+- patient name
+- age
+- sex/gender
+- DOB
+- UHID
+- name variations
+
+Do not use application state or previous consultations.
+
+------------------------------------------------------------
+
+4. DOCTOR
+
+Extract:
+
+- doctor name
+- doctor type/specialty
+
+only when supported by the uploaded document.
+
+If doctor identity cannot be reliably determined:
+
+"doctorName": null
+
+Do not use:
+
+- selected doctor
+- previous doctor
+- hospital inference
+- medicine inference
+- application context
+
+------------------------------------------------------------
+
+5. HOSPITAL
+
+Extract the hospital/clinic from the document.
+
+Do not infer it from:
+
+- doctor
+- patient
+- previous consultation
+- application context
+
+------------------------------------------------------------
+
+6. CONSULTATION DATE
+
+Use only the date supported by the doctor's note as the
+consultation date.
+
+Never substitute:
+
+- today's date
+- upload date
+- file creation date
+- filename date
+- follow-up date
+- report date
+- investigation date
+
+------------------------------------------------------------
+
+7. CONSULTATION MODE
+
+Extract only if supported by the document.
+
+Otherwise:
+
+null
+
+------------------------------------------------------------
+
+8. CURRENT STATE OF HEALTH
+
+Extract explicitly documented current clinical status,
+diagnosis/assessment and current condition.
+
+Do not infer disease status from:
+
+- medication
+- investigation
+- symptoms
+- treatment
+
+------------------------------------------------------------
+
+9. CLINICAL HISTORY
+
+Extract historical clinical information explicitly documented
+in the note.
+
+Do not convert current symptoms into history.
+
+------------------------------------------------------------
+
+10. SYMPTOMS
+
+Extract explicitly documented symptoms and complaints.
+
+Do not infer symptoms from:
+
+- medication
+- diagnosis
+- investigation
+- treatment plan
+
+------------------------------------------------------------
+
+11. INVESTIGATIONS
+
+Extract investigations and documented findings supported by
+the note.
+
+Do not invent investigation results.
+
+------------------------------------------------------------
+
+12. TESTS ADVISED
+
+Tests explicitly ordered, advised, recommended or planned
+belong to Tests Advised.
+
+Do not infer tests merely because a diagnosis normally requires
+them.
+
+------------------------------------------------------------
+
+13. INSTRUCTIONS
+
+Extract actual doctor instructions, recommendations,
+monitoring requests and actions.
+
+Do not convert observations into instructions.
+
+------------------------------------------------------------
+
+14. MEDICATIONS
+
+Extract medicines explicitly:
+
+- prescribed
+- started
+- stopped
+- continued
+- changed
+
+Do not infer medication from diagnosis.
+
+------------------------------------------------------------
+
+15. FOLLOW-UP
+
+Extract explicit future review/reassessment instructions.
+
+For example:
+
+"Review after 15 days"
+
+belongs in:
+
+"followUpPlan"
+
+It does NOT create:
+
+- an appointment
+- booking
+- reminder
+- timeline event
+
+------------------------------------------------------------
+
+16. OTHER CLINICAL INFORMATION
+
+Use:
+
+- presentingComplaints
+- pastMedicalHistory
+- history
+- examinationFindings
+- clinicalPlan
+- additionalNotes
+
+only when the source information genuinely belongs there.
+
+Do not use additionalNotes as a dumping ground.
+
+------------------------------------------------------------
+
+17. DUPLICATES
+
+If the same fact appears in multiple locations:
+
+- preserve the most complete supported representation
+- do not create unnecessary duplicates
+
+------------------------------------------------------------
+
+18. SOURCE AUTHORITY
+
+The uploaded doctor's note is authoritative.
+
+When uncertain:
+
+scalar → null
+collection → []
+
+Never guess.
+
+${OUTPUT_CONTRACT}
+`;
+
+
+/**
+ * ============================================================
+ * EXPORTS
+ * ============================================================
+ *
+ * These two exports are intentionally preserved because the
+ * existing API route already selects between them based on
+ * extraction mode.
+ *
+ * The route does NOT need to know about individual panels.
+ * ============================================================
+ */

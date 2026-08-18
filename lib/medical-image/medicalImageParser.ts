@@ -153,44 +153,75 @@ const weightKg =
       ]
     );
 
-  const pulse =
-    extractNumberAfterLabel(
-      text,
-      [
-        "PULSE",
-        "PUL",
-        "PR",
-      ]
-    );
+ const pulse =
+  extractNumberAfterLabel(
+    text,
+    [
+      "PULSE",
+      "PUL",
+      "PR",
+    ]
+  );
 
-  const spo2 =
-    extractNumberAfterLabel(
-      text,
-      [
-        "SPO2",
-        "SPO₂",
-      ]
-    );
+const spo2 =
+  extractNumberAfterLabel(
+    text,
+    [
+      "SPO2",
+      "SPO₂",
+    ]
+  );
 
-  return {
+// --------------------------------------------------------
+// Record Health - Multiple Image Reading Selection
+// Preserve all Pulse / SpO₂ values detected in the OCR text.
+// UploadCareWorkspace decides which reading the user wants.
+// --------------------------------------------------------
+const pulseValues =
+  pulse !== null
+    ? [pulse]
+    : [];
 
-    temperature:
-      temperatureResult.temperature,
+const spo2Values =
+  spo2 !== null
+    ? [spo2]
+    : [];
 
-    temperatureUnit:
-      temperatureResult.temperatureUnit,
+return {
+  temperature:
+    temperatureResult.temperature,
 
-weightKg,
+  temperatureUnit:
+    temperatureResult.temperatureUnit,
 
+  weightKg:
+    weightKg,
+
+  systolic:
     systolic,
 
+  diastolic:
     diastolic,
 
+  pulse:
     pulse,
 
+  spo2:
     spo2,
 
-  };
+  // --------------------------------------------------------
+  // Record Health - Multiple Image Reading Selection
+  // Preserve all Pulse / SpO₂ values detected in this OCR text.
+  // UploadCareWorkspace decides whether the user needs to
+  // choose between multiple readings.
+  // --------------------------------------------------------
+  pulseValues:
+    pulseValues,
+
+  spo2Values:
+    spo2Values,
+};
+
 
 }
 

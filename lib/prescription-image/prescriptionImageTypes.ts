@@ -107,11 +107,27 @@ export interface ExtractedConsultationVital {
 
 }
 
+export interface ExtractedSymptom {
+
+  symptom: string;
+
+  duration: string | null;
+
+  severity: string | null;
+
+  qualifiers: string | null;
+
+}
+
 export interface ExtractedComplaint {
 
   complaint: string;
 
   duration: string | null;
+
+  severity: string | null;
+
+  qualifiers: string | null;
 
 }
 
@@ -135,6 +151,18 @@ export interface ExtractedHistory {
 export interface ExtractedExaminationFinding {
 
     finding: string;
+
+}
+
+export interface ExtractedTestAdvised {
+
+    test: string;
+
+    action: string | null;
+
+    timing: string | null;
+
+    condition: string | null;
 
 }
 
@@ -233,6 +261,24 @@ export interface ExtractedDocumentMetadata {
 // Extracted Prescription / Clinical Document
 //------------------------------------------------------------
 
+export interface ExtractedCurrentStateOfHealth {
+
+  conditions:
+    string[];
+
+  diseaseStatus:
+    string[];
+
+  stage:
+    string | null;
+
+  clinicalAssessment:
+    string[];
+
+  importantFindings:
+    string[];
+}
+
 export interface ExtractedPrescription {
 
   patientIdentity:
@@ -247,6 +293,9 @@ export interface ExtractedPrescription {
   consultationVitals:
     ExtractedConsultationVital | null;
 
+  currentStateOfHealth:
+    ExtractedCurrentStateOfHealth;
+
   diagnosisOrAssessment:
     string | null;
 
@@ -254,7 +303,7 @@ export interface ExtractedPrescription {
     string[];
 
   symptoms:
-    string[];
+    ExtractedSymptom[];
 
   presentingComplaints:
     ExtractedComplaint[];
@@ -282,6 +331,9 @@ export interface ExtractedPrescription {
 
   investigations:
     string[];
+
+  testsAdvised:
+    ExtractedTestAdvised[];
 
   clinicalPlan:
     string[];

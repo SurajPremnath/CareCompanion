@@ -14,7 +14,7 @@ export interface MedicalImageReadings {
 
   temperatureUnit: TemperatureUnit | null;
 
-weightKg: number | null;
+  weightKg: number | null;
 
   systolic: number | null;
 
@@ -23,6 +23,16 @@ weightKg: number | null;
   pulse: number | null;
 
   spo2: number | null;
+
+  // --------------------------------------------------------
+  // Record Health - Multiple Image Reading Selection
+  // Preserve all detected Pulse / SpO₂ values when multiple
+  // uploaded images contain different readings.
+  // The user chooses the value in UploadCareWorkspace.
+  // --------------------------------------------------------
+  pulseValues: number[];
+
+  spo2Values: number[];
 
 }
 

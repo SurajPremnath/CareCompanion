@@ -1,0 +1,100 @@
+{
+  "patientIdentity": {
+    "patientName": "MR. K.V Premnath",
+    "patientDateOfBirth": null,
+    "patientAge": "73y",
+    "patientGender": "M",
+    "patientUHID": "262500910",
+    "patientNameVariations": [],
+    "ageFlag": false,
+    "sexFlag": false,
+    "ageSource": null,
+    "sexSource": null
+  },
+  "encounterIdentity": {
+    "doctorName": "Dr. Swathi Rachabattula",
+    "doctorType": "Consultant-Internal Medicine",
+    "hospitalOrClinic": "motherhood",
+    "hospitalNameVariations": ["Motherhood"],
+    "consultationDate": null,
+    "consultationMode": null
+  },
+  "documentMetadata": {
+    "studyDateTime": null,
+    "reportDateTime": null,
+    "originalPatientName": "MR. K.V Premnath",
+    "originalHospitalName": "motherhood",
+    "documentType": "OTHER"
+  },
+  "consultationVitals": {
+    "weight": null,
+    "height": null,
+    "bmi": null,
+    "bloodPressure": null,
+    "pulse": null,
+    "respiratoryRate": null,
+    "spo2": null,
+    "temperature": null
+  },
+  "diagnosisOrAssessment": "Likely viral URTI Nutritional deficiency",
+  "clinicalAssessments": [],
+  "symptoms": [
+    "Tiredness",
+    "Leg pain",
+    "Wheezing",
+    "Chest congestion",
+    "Right ear blocked",
+    "Headache",
+    "Feverishness evening No temp",
+    "Dry cough",
+    "SOB on exertion",
+    "Mild chest tightness"
+  ],
+  "presentingComplaints": [],
+  "pastMedicalHistory": [
+    "HTN x 20 yrs",
+    "Added supply Hernia"
+  ],
+  "history": [],
+  "examinationFindings": [
+    "clear chest",
+    "soft abdomen",
+    "no menstrual pain"
+  ],
+  "doctorInstructions": [
+    "Foracort 2 B.D.",
+    "Stopped giddiness and vertigo",
+    "Taking uctin / zincomet / le",
+    "No travel 4x",
+    "Mostly veg (mixed diet, live separately)"
+  ],
+  "followUpPlan": [],
+  "medicines": [
+    {
+      "name": "Oleezest",
+      "strength": "20 mg",
+      "form": "Tab",
+      "dose": "1",
+      "frequency": "daily",
+      "timings": [],
+      "duration": null,
+      "instructions": null
+    },
+    {
+      "name": "Foracort",
+      "strength": null,
+      "form": null,
+      "dose": "1 puff",
+      "frequency": "B.D.",
+      "timings": [],
+      "duration": null,
+      "instructions": null
+    }
+  ],
+  "additionalNotes": [],
+  "investigations": [
+    "Blood kit + CRP + PSA",
+    "Ultrasound abdomen pelvis"
+  ],
+  "clinicalPlan": []
+}

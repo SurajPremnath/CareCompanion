@@ -1,216 +1,326 @@
+/**
+ * Patient Panel
+ *
+ * Single responsibility:
+ * Identify the patient from the supplied medical document.
+ *
+ * Reusable by:
+ * - Doctor's Notes
+ * - Prescription
+ * - Other clinical-document extraction workflows
+ *
+ * This panel MUST NOT extract:
+ * - Doctor information
+ * - Hospital information
+ * - UHID
+ * - Consultation information
+ * - Clinical information
+ * - Medicines
+ * - Investigations
+ * - Instructions
+ * - Follow-up
+ * - Vitals
+ */
+
 export const PATIENT_PANEL_RULES = `
-------------------------------------------------------------
-PANEL: PATIENT & CONSULTATION (GENERALIZED INTELLIGENCE)
-------------------------------------------------------------
-• FULL-CANVAS DISCOVERY:
-  Scan all areas of the image (top headers, margins, central body, and footer logos/stamps) without assuming a fixed layout or specific ink color.
+============================================================
+PATIENT PANEL
+============================================================
 
-1. PATIENT NAME & DEMOGRAPHICS:
-   - Search for patient name identifiers across the entire document.
-   - Look near labels like "Name:", "Pt Name:", "Patient:", "Pt.", or demographic clusters (Age/Gender/UHID).
-   - Read handwritten or printed names character-by-character. Preserve exact capitalization, initials, and spacing (e.g., "MR. K.V. Premnath").
-   - If no patient name is present on the page, return null. Do NOT map doctor names, clinic names, or general text into patientName.
+PURPOSE
+Identify the patient described in the supplied medical document.
 
-2. DOCTOR DETAILS:
-   - Search for medical provider credentials across headers, stamps, side notes, or bottom signatures.
-   - Look for prefixes ("Dr.", "Prof."), degrees ("MBBS", "MD", "MRCGP"), or registration numbers ("KMC", "Reg No").
-   - Extract full doctor name with title (e.g., "Dr. Swathi Rachabattula").
+This panel is responsible ONLY for:
 
-3. HOSPITAL / CLINIC DISCOVERY
+1. Patient Name
+2. Patient Age
+3. Patient Sex
+4. Patient Name Variations
 
-OBJECTIVE
+Do not extract information belonging to any other clinical panel.
 
-Identify the healthcare institution that issued this document.
+============================================================
+1. PATIENT NAME
+============================================================
 
-This is a dedicated task and MUST be completed before returning JSON.
+Identify the person who is the subject/patient of the document.
 
-------------------------------------------------------------
+Search the complete document, including:
 
-SEARCH PASS
+- Patient headers
+- Demographic sections
+- Registration sections
+- Name fields
+- "Patient Name"
+- "Patient"
+- "Pt Name"
+- "Pt."
+- "Name"
+- Other clearly identified patient fields
 
-Perform a complete page scan looking ONLY for the healthcare institution.
+Read both printed and handwritten information.
 
-Search ALL of the following locations.
+Preserve the patient's documented name faithfully.
 
-✓ Top Header
-✓ Bottom Footer
-✓ Left Margin
-✓ Right Margin
-✓ Letterhead
-✓ Printed Logo
-✓ Watermark
-✓ Rubber Stamp
-✓ Footer Branding
-✓ Website
-✓ Email Address
-✓ Address Block
+Do not:
 
-Do NOT stop searching after finding the patient or doctor.
+- invent missing portions of the name
+- correct spelling using outside knowledge
+- infer a name from the application context
+- use the doctor's name
+- use a referral doctor's name
+- use a hospital or clinic name
+- use a report author's name
+- use a pharmacist's name
+- use another person's name
 
-------------------------------------------------------------
+If the patient name cannot be identified reliably:
 
-WHAT TO LOOK FOR
+patientName = null
 
-Look for:
 
-• Hospital Name
-• Clinic Name
-• Institution Brand
-• Healthcare Logo
-• Hospital Website
-• Hospital Email
-• Hospital Stamp
+============================================================
+2. PATIENT AGE
+============================================================
 
-Examples
+Extract the patient's age only when it is explicitly documented.
 
-motherhood
-www.motherhoodindia.com
+Examples:
 
-↓
+- 78 Years
+- 78 Years Old
+- 78 Y
+- 78Y
+- Age: 78
+- Age 78
 
-Motherhood
+Do not calculate age.
 
---------------------------------
+Do not derive age from:
 
-Apollo Hospitals
-www.apollohospitals.com
+- Date of birth
+- Consultation date
+- Admission date
+- Discharge date
+- Current date
+- Previous documents
+- External patient records
 
-↓
+If age is not explicitly and reliably documented:
 
-Apollo Hospitals
+patientAge = null
 
---------------------------------
 
-Aster CMI Hospital
+============================================================
+3. PATIENT SEX
+============================================================
 
-↓
+Extract the patient's explicitly documented sex.
 
-Aster CMI Hospital
+Examples:
 
---------------------------------
+- Male
+- Female
+- M
+- F
 
-HCG
-www.hcgoncology.com
+Normalize only unambiguous abbreviations:
 
-↓
+M → Male
+F → Female
 
-HCG
+Do not infer sex from:
 
-------------------------------------------------------------
+- Patient name
+- Diagnosis
+- Medicines
+- Doctor specialty
+- Medical history
+- Pronouns unless they clearly identify the patient
 
-ADDRESS RULE
+If sex is not explicitly and reliably documented:
 
-If the hospital name appears inside an address block:
+patientSex = null
 
-Motherhood
-No.34 ...
-Whitefield
-Bangalore
 
-Return ONLY
+============================================================
+4. PATIENT NAME VARIATIONS
+============================================================
 
-Motherhood
+Capture alternative forms of the SAME patient's name when they
+actually appear in the supplied document.
 
-Never return:
+Example:
 
-• Address
-• Landmark
-• City
-• PIN Code
-• Phone Number
-• Registration Number
+Primary patient name:
+"Keecheri Veettil Premnath"
 
-------------------------------------------------------------
+Documented variation:
+"Keecheri V Premnath"
 
-MULTIPLE NAMES
+Documented variation:
+"K V Premnath"
 
-If multiple institution names exist,
+Rules:
 
-return ONLY the institution that issued the prescription.
+- Include only variations visibly present in the document.
+- Include only variations that clearly refer to the same patient.
+- Preserve the documented spelling/form.
+- Do not invent normalized variations.
+- Do not create initials that are not present.
+- Do not include the primary patientName again.
+- Do not include names belonging to doctors or other people.
+- Remove exact duplicates.
 
-Ignore
+If there are no meaningful documented variations:
 
-• Referral hospitals
-• Diagnostic centres
-• Pharmacy names
-• Insurance companies
-• Advertisements
+patientNameVariations = []
 
-------------------------------------------------------------
 
-FINAL VALIDATION
+============================================================
+5. MULTIPLE PEOPLE IN THE DOCUMENT
+============================================================
 
-Before returning hospitalOrClinic = null
+Medical documents may mention several people.
 
-perform one FINAL hospital-only scan.
+Examples:
 
-Verify:
+- Consulting doctor
+- Referral doctor
+- Previous doctor
+- Specialist
+- Family member
+- Report author
+- Pathologist
+- Radiologist
 
-✓ Logo
-✓ Footer
-✓ Website
-✓ Watermark
-✓ Stamp
-✓ Letterhead
-✓ Address Block
+Do not confuse these people with the patient.
 
-If any healthcare institution can be identified,
+Identify the patient using explicit patient context.
 
-hospitalOrClinic MUST NOT be null.
+If the document contains multiple possible patient identities and
+the correct patient cannot be determined reliably:
 
-------------------------------------------------------------
+patientName = null
+patientNameVariations = []
 
-ANTI-HALLUCINATION
 
-• Use only text visible on the document.
-• Never invent hospital names.
-• Never infer missing words.
-• Return only the institution name.
+============================================================
+6. SOURCE OF TRUTH
+============================================================
 
-4. CONSULTATION DATE:
+Use ONLY information visibly supported by the supplied document.
 
-   - Search the ENTIRE document for the consultation/prescription date.
-   - Prioritize dates explicitly associated with:
-     "Date:", "Dt:", "Dated:", "Consultation Date:", or the prescription header.
-   - A date written near the doctor's signature/stamp may also represent the consultation date.
+Do not use:
 
-   - Medical prescriptions in this application use DD/MM/YYYY interpretation.
-   - Output the final date strictly as ISO format:
-     "YYYY-MM-DD".
+- Application context
+- Logged-in user
+- Selected patient from the application
+- Database information
+- Previous uploads
+- Other patients
+- External medical knowledge
 
-   - IMPORTANT: Read the DATE DIGITS visually from the document.
-     Do NOT infer, estimate, reconstruct, or substitute digits.
+The document is the source of truth for this panel.
 
-   - For handwritten dates, inspect EACH digit individually.
-     Pay particular attention to visually similar handwritten digits such as:
-     1 vs 4 vs 5 vs 7,
-     0 vs 6,
-     3 vs 8,
-     5 vs 6.
 
-   - If the day appears to be "05", it MUST be returned as day 05.
-     Do not convert or reinterpret it as 01.
+============================================================
+7. ANTI-HALLUCINATION
+============================================================
 
-   - Before returning the date, perform a SECOND visual verification
-     of the complete date against the original document.
+NEVER:
 
-   - The date must be internally valid:
-     valid day + valid month + valid year.
+- Guess a missing name
+- Guess an age
+- Calculate an age
+- Guess sex
+- Infer identity from diagnosis
+- Infer identity from medicines
+- Infer identity from doctor information
+- Merge names from different people
+- Create a name variation that is not documented
 
-   - If multiple dates are visible:
-       1. Prefer the date explicitly labelled as the prescription/
-          consultation date.
-       2. Do NOT use patient DOB, report date, admission date,
-          discharge date, investigation date, or medication date.
-       3. If the consultation date cannot be determined with confidence,
-          return null rather than guessing.
 
-   - If a consultation date is clearly visible, extract it.
-   - If the handwriting is genuinely ambiguous after visual verification,
-     return null rather than choosing a digit by inference.
+============================================================
+8. STRICT SCOPE
+============================================================
 
-5. ANTI-HALLUCINATION & REPEATABILITY DIRECTIVE:
-   - Rely strictly on visual evidence visible on the document.
-   - Never synthesize names, dates, or clinics that do not exist on the image.
-   - If handwritten text is legible to a human reader, transcribe it accurately rather than returning null.
+THIS PANEL MUST NOT EXTRACT:
+
+Doctor:
+- Doctor Name
+- Doctor Type
+- Consulting Doctor
+- Referral Doctor
+
+Hospital:
+- Hospital
+- Clinic
+- Hospital Location
+- UHID
+
+Encounter:
+- Consultation Date
+- Consultation Mode
+
+Documents:
+- Document Type
+- Uploaded Document Categories
+
+Clinical:
+- Current State of Health
+- Diagnosis
+- Clinical History
+- Symptoms
+- Investigations
+- Tests Advised
+- Medicines
+- Instructions
+- Follow-up
+
+Vitals:
+- Weight
+- Height
+- BMI
+- Blood Pressure
+- Pulse
+- Respiratory Rate
+- SpO2
+- Temperature
+
+These belong to other panels.
+
+
+============================================================
+9. OUTPUT FIELDS
+============================================================
+
+This panel contributes ONLY these fields:
+
+{
+  "patientName": string | null,
+  "patientAge": string | null,
+  "patientSex": string | null,
+  "patientNameVariations": string[]
+}
+
+Do not add additional patient fields.
+
+
+============================================================
+10. FINAL VALIDATION
+============================================================
+
+Before returning the patient information:
+
+1. Confirm the name belongs to the patient.
+2. Confirm age is explicitly documented.
+3. Confirm sex is explicitly documented.
+4. Confirm every name variation is actually present.
+5. Confirm variations refer to the same patient.
+6. Confirm no doctor or other person's name was included.
+7. Confirm no information belonging to another panel was extracted.
+8. If uncertain, return null or [] rather than guessing.
+
+END PATIENT PANEL
 `;

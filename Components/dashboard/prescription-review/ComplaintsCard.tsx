@@ -33,17 +33,7 @@ const {
     t,
 } = useLanguage();
 
-const durationLookup = new Map(
 
-    prescription.presentingComplaints.map(item => [
-
-        item.complaint.toLowerCase(),
-
-        item.duration,
-
-    ])
-
-);
 
     if(
         prescription.symptoms.length===0
@@ -123,24 +113,32 @@ const durationLookup = new Map(
 
 {
 
-prescription.symptoms.map((symptom, index) => {
+prescription.symptoms.map(
+    (symptom, index) => {
 
-    const duration =
-        durationLookup.get(symptom.toLowerCase());
+        return (
 
-    return (
+            <li key={index}>
 
-        <li key={index}>
+                {expandMedicalText(
+                    symptom.symptom
+                )}
 
-            {expandMedicalText(symptom)}
+                {symptom.duration &&
+                    ` (${symptom.duration})`}
 
-            {duration && ` (${duration})`}
+                {symptom.severity &&
+                    ` — Severity: ${symptom.severity}`}
 
-        </li>
+                {symptom.qualifiers &&
+                    ` — ${symptom.qualifiers}`}
 
-    );
+            </li>
 
-})
+        );
+
+    }
+)
 
 }
 </ul>

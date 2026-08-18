@@ -1,0 +1,146 @@
+{
+  "patientIdentity": {
+    "patientName": "MR. K.V Premnath",
+    "patientDateOfBirth": null,
+    "patientAge": "73Y",
+    "patientGender": "Male",
+    "patientUHID": "262500910",
+    "patientNameVariations": []
+  },
+  "encounterIdentity": {
+    "doctorName": "Dr. Swathi Rachabattula",
+    "doctorType": "Consultant-Internal Medicine",
+    "hospitalOrClinic": "Motherhood",
+    "hospitalNameVariations": [],
+    "consultationDate": "26/06/26",
+    "consultationMode": null
+  },
+  "documentMetadata": {
+    "studyDateTime": null,
+    "reportDateTime": null,
+    "originalPatientName": null,
+    "originalHospitalName": null,
+    "documentType": "OTHER"
+  },
+  "consultationVitals": {
+    "weight": "79.2 kg",
+    "height": null,
+    "bmi": null,
+    "bloodPressure": {
+      "systolic": 114,
+      "diastolic": 75,
+      "unit": "mmHg"
+    },
+    "pulse": {
+      "value": 115,
+      "unit": "bpm"
+    },
+    "respiratoryRate": null,
+    "spo2": {
+      "value": 95,
+      "unit": "%"
+    },
+    "temperature": {
+      "value": 35.4,
+      "unit": "C"
+    }
+  },
+  "currentStateOfHealth": {
+    "conditions": [
+      "Likely viral URTI",
+      "Nutritional deficiency"
+    ],
+    "diseaseStatus": [],
+    "stage": null,
+    "clinicalAssessment": [
+      "Tiredness for 1 week",
+      "Wheezing - for 2 bd",
+      "Chest congestion",
+      "Right ear blocked",
+      "Giddiness stopped and vertigo",
+      "Headache settled",
+      "Dry cough s.o.b on exertion mild chest tightness"
+    ],
+    "importantFindings": []
+  },
+  "diagnosisOrAssessment": null,
+  "clinicalAssessments": [],
+  "symptoms": [],
+  "presentingComplaints": [],
+  "pastMedicalHistory": [
+    "HTN x 20 years",
+    "Add. Ismphy Hernia"
+  ],
+  "history": [],
+  "examinationFindings": [],
+  "doctorInstructions": [
+    {
+      "instruction": "Take Mucinac 600 mg effervescent mixed in 1/2 glass warm water",
+      "timing": null,
+      "frequency": "1-1-1",
+      "duration": "5 days",
+      "condition": "congestion"
+    },
+    {
+      "instruction": "Steam inhalation (easibreathe capsules)",
+      "timing": null,
+      "frequency": "1-1-1",
+      "duration": null,
+      "condition": null
+    },
+    {
+      "instruction": "Betadine gargle",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": null
+    },
+    {
+      "instruction": "Take Sompraz-D/Nexpro-RP before bifar",
+      "timing": null,
+      "frequency": "1-0-1",
+      "duration": "5 days",
+      "condition": null
+    },
+    {
+      "instruction": "Take paracetamol 650 mg for fever/pain SOS",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": "fever/pain"
+    }
+  ],
+  "followUpPlan": [],
+  "medicines": [
+    {
+      "name": "Olmeset 20 mg",
+      "genericName": null,
+      "brandName": null,
+      "strength": "20 mg",
+      "dose": "1",
+      "frequency": "Once daily",
+      "timing": null,
+      "route": null,
+      "duration": null,
+      "action": null,
+      "instruction": null
+    }
+  ],
+  "additionalNotes": [],
+  "investigations": [
+    {
+      "name": "Blood CRP + PSA + Ultrasound Abdomen Pelvis",
+      "result": null,
+      "status": null,
+      "date": null
+    },
+    {
+      "name": "Iron Studies",
+      "result": null,
+      "status": null,
+      "date": null
+    }
+  ],
+  "testsAdvised": [],
+  "clinicalPlan": []
+}

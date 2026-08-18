@@ -1,0 +1,58 @@
+{
+  "patientIdentity": {
+    "patientName": "Mr. Keecheri V Premnath",
+    "patientDateOfBirth": null,
+    "patientAge": "77Y-4M-12D",
+    "patientGender": "Male",
+    "patientUHID": "900224918",
+    "patientNameVariations": [],
+    "ageFlag": false,
+    "sexFlag": false,
+    "ageSource": null,
+    "sexSource": null
+  },
+  "encounterIdentity": {
+    "doctorName": "Dr. Shivaraj A L",
+    "doctorType": null,
+    "hospitalOrClinic": "Aster Whitefield Hospital",
+    "hospitalNameVariations": [],
+    "consultationDate": "2026-06-08",
+    "consultationMode": null
+  },
+  "documentMetadata": {
+    "studyDateTime": null,
+    "reportDateTime": "2026-06-12T13:22:00",
+    "originalPatientName": "Mr. Keecheri V Premnath",
+    "originalHospitalName": "Aster Whitefield Hospital",
+    "documentType": "OTHER"
+  },
+  "consultationVitals": {
+    "weight": null,
+    "height": null,
+    "bmi": null,
+    "bloodPressure": null,
+    "pulse": null,
+    "respiratoryRate": null,
+    "spo2": null,
+    "temperature": null
+  },
+  "diagnosisOrAssessment": "Non small cell carcinoma, Favor Poorly differentiated carcinoma; Metastatic carcinoma",
+  "clinicalAssessments": [
+    "Non small cell carcinoma, Favor Poorly differentiated carcinoma",
+    "Metastatic carcinoma"
+  ],
+  "symptoms": [],
+  "presentingComplaints": [],
+  "pastMedicalHistory": [],
+  "history": [],
+  "examinationFindings": [],
+  "doctorInstructions": [],
+  "followUpPlan": [],
+  "medicines": [],
+  "additionalNotes": [],
+  "investigations": [
+    "Endobronchial biopsy (H-8143/26): lung tissue with atypical cells",
+    "Lymph node core biopsy (H-8144/26): metastatic carcinoma"
+  ],
+  "clinicalPlan": []
+}

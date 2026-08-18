@@ -1,0 +1,233 @@
+{
+  "patientIdentity": {
+    "patientName": "MR. K V Premnath",
+    "patientDateOfBirth": null,
+    "patientAge": "73Y",
+    "patientGender": "Male",
+    "patientUHID": "262500910",
+    "patientNameVariations": []
+  },
+  "encounterIdentity": {
+    "doctorName": "Dr. Swathi Rachabattula",
+    "doctorType": "Consultant-Internal Medicine",
+    "hospitalOrClinic": "Motherhood",
+    "hospitalNameVariations": [],
+    "consultationDate": "26/06/26",
+    "consultationMode": null
+  },
+  "documentMetadata": {
+    "studyDateTime": null,
+    "reportDateTime": null,
+    "originalPatientName": "MR. K V Premnath",
+    "originalHospitalName": "Motherhood",
+    "documentType": "OTHER"
+  },
+  "consultationVitals": {
+    "weight": null,
+    "height": null,
+    "bmi": null,
+    "bloodPressure": null,
+    "pulse": null,
+    "respiratoryRate": null,
+    "spo2": null,
+    "temperature": null
+  },
+  "currentStateOfHealth": {
+    "conditions": [],
+    "diseaseStatus": [],
+    "stage": null,
+    "clinicalAssessment": [],
+    "importantFindings": []
+  },
+  "diagnosisOrAssessment": null,
+  "clinicalAssessments": [],
+  "symptoms": [
+    {
+      "symptom": "Tiredness",
+      "duration": "1 week",
+      "severity": null,
+      "qualifiers": null
+    },
+    {
+      "symptom": "Leg pain",
+      "duration": "1 week",
+      "severity": null,
+      "qualifiers": null
+    },
+    {
+      "symptom": "Wheezing",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "foracort 2 BD"
+    },
+    {
+      "symptom": "Chest congestion",
+      "duration": "1 week",
+      "severity": null,
+      "qualifiers": "right ear blocked"
+    },
+    {
+      "symptom": "Giddiness",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "stopped and returning"
+    },
+    {
+      "symptom": "Headache",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "settled"
+    },
+    {
+      "symptom": "Feverishness",
+      "duration": "evening",
+      "severity": null,
+      "qualifiers": "no temperature"
+    },
+    {
+      "symptom": "Dry cough",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "SOB on exertion mild chest tightness"
+    }
+  ],
+  "presentingComplaints": [],
+  "pastMedicalHistory": [
+    "HTN x 20 years",
+    "Addl. surgery Hernia"
+  ],
+  "history": [],
+  "examinationFindings": [],
+  "doctorInstructions": [
+    {
+      "instruction": "Take medication with/after food",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": null
+    },
+    {
+      "instruction": "Steam inhalation",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": null
+    },
+    {
+      "instruction": "Betadine gargle",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": null
+    }
+  ],
+  "followUpPlan": [],
+  "medicines": [
+    {
+      "name": "Mucinac",
+      "genericName": null,
+      "brandName": null,
+      "strength": "600 mg",
+      "dose": null,
+      "frequency": null,
+      "timing": null,
+      "route": "effervescent",
+      "duration": "5 days",
+      "action": null,
+      "instruction": "mix in half glass warm water"
+    },
+    {
+      "name": "Sompraz-D",
+      "genericName": null,
+      "brandName": null,
+      "strength": null,
+      "dose": "1",
+      "frequency": null,
+      "timing": "before breakfast",
+      "route": null,
+      "duration": "5 days",
+      "action": null,
+      "instruction": null
+    },
+    {
+      "name": "Nexpro-RP",
+      "genericName": null,
+      "brandName": null,
+      "strength": null,
+      "dose": "1",
+      "frequency": null,
+      "timing": "before breakfast",
+      "route": null,
+      "duration": "5 days",
+      "action": null,
+      "instruction": null
+    },
+    {
+      "name": "Paracetamol",
+      "genericName": null,
+      "brandName": null,
+      "strength": "650 mg",
+      "dose": "1",
+      "frequency": null,
+      "timing": null,
+      "route": null,
+      "duration": null,
+      "action": null,
+      "instruction": null
+    },
+    {
+      "name": "Olmeset",
+      "genericName": null,
+      "brandName": null,
+      "strength": "20 mg",
+      "dose": "1",
+      "frequency": "OD",
+      "timing": null,
+      "route": null,
+      "duration": null,
+      "action": "Continue",
+      "instruction": null
+    },
+    {
+      "name": "Foracort",
+      "genericName": null,
+      "brandName": null,
+      "strength": null,
+      "dose": "1 puff",
+      "frequency": "BD",
+      "timing": null,
+      "route": "inhaler",
+      "duration": null,
+      "action": "Continue",
+      "instruction": null
+    }
+  ],
+  "additionalNotes": [
+    "Likely viral URTI",
+    "Nutritional deficiency",
+    "Iron deficiency",
+    "?BP HTN statin check PSA"
+  ],
+  "investigations": [
+    {
+      "name": "Blood CRP",
+      "result": null,
+      "status": null,
+      "date": null
+    },
+    {
+      "name": "PSA",
+      "result": null,
+      "status": null,
+      "date": null
+    },
+    {
+      "name": "Ultrasound Abdomen Pelvis",
+      "result": null,
+      "status": null,
+      "date": null
+    }
+  ],
+  "testsAdvised": [],
+  "clinicalPlan": []
+}

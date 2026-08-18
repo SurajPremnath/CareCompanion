@@ -1,0 +1,140 @@
+{
+  "patientIdentity": {
+    "patientName": "MR. K V Padmanath",
+    "patientDateOfBirth": null,
+    "patientAge": "73y",
+    "patientGender": "M",
+    "patientUHID": "262500910",
+    "patientNameVariations": [],
+    "ageFlag": false,
+    "sexFlag": false,
+    "ageSource": null,
+    "sexSource": null
+  },
+  "encounterIdentity": {
+    "doctorName": "Dr. Swathi Rachabattula",
+    "doctorType": "Consultant-Internal Medicine",
+    "hospitalOrClinic": "motherhood",
+    "hospitalNameVariations": [
+      "Motherhood",
+      "motherhood India"
+    ],
+    "consultationDate": "2026-06-26",
+    "consultationMode": null
+  },
+  "documentMetadata": {
+    "studyDateTime": null,
+    "reportDateTime": null,
+    "originalPatientName": null,
+    "originalHospitalName": null,
+    "documentType": "OTHER"
+  },
+  "consultationVitals": {
+    "weight": null,
+    "height": null,
+    "bmi": null,
+    "bloodPressure": null,
+    "pulse": null,
+    "respiratoryRate": null,
+    "spo2": null,
+    "temperature": null
+  },
+  "diagnosisOrAssessment": null,
+  "clinicalAssessments": [],
+  "symptoms": [
+    "Tiredness 1 wk",
+    "Leg pain",
+    "Wheezing",
+    "Chest congestion",
+    "Right ear blocked",
+    "Headache settled",
+    "Mild chest tightness"
+  ],
+  "presentingComplaints": [],
+  "pastMedicalHistory": [
+    "HTN x 20 yrs",
+    "ADL insufficiency"
+  ],
+  "history": [],
+  "examinationFindings": [],
+  "doctorInstructions": [
+    "taking medication / Zincomet / C.",
+    "No travel rx",
+    "Stockings to lower limbs",
+    "Monitor BP and pulse once in 3 days",
+    "Review after 15 days with blood test",
+    "Drink plenty of fluids",
+    "Rest adequately",
+    "Low salt diet",
+    "Congestion",
+    "Mix in 1/2 glass warm water",
+    "Steam inhalation (easebreathe capsules)",
+    "Betadine gargle",
+    "Take some medications before bifair"
+  ],
+  "followUpPlan": [
+    "Review after 15 days with blood test"
+  ],
+  "medicines": [
+    {
+      "name": "Olmesert",
+      "strength": "20 mg",
+      "form": null,
+      "dose": "0-0-1",
+      "frequency": null,
+      "timings": [],
+      "duration": null,
+      "instructions": null
+    },
+    {
+      "name": "Foracort",
+      "strength": "1 puff",
+      "form": null,
+      "dose": null,
+      "frequency": "B.D.",
+      "timings": [],
+      "duration": null,
+      "instructions": null
+    },
+    {
+      "name": "Mucinac",
+      "strength": "600 mg",
+      "form": "effervescent",
+      "dose": null,
+      "frequency": "1-0-1",
+      "timings": [],
+      "duration": "5 days",
+      "instructions": "mix in 1/2 glass warm water"
+    },
+    {
+      "name": "Sompraz-D",
+      "strength": null,
+      "form": null,
+      "dose": null,
+      "frequency": null,
+      "timings": [],
+      "duration": "5 days",
+      "instructions": "before bifair"
+    },
+    {
+      "name": "Paracetamol",
+      "strength": "650 mg",
+      "form": null,
+      "dose": "1-0-1",
+      "frequency": null,
+      "timings": [],
+      "duration": null,
+      "instructions": "for fever/pain"
+    }
+  ],
+  "additionalNotes": [
+    "Possible likely viral URTI",
+    "Nutritional deficiency - Iron deficiency"
+  ],
+  "investigations": [
+    "Blood CRP & PSA",
+    "Ultrasound Abdomen & pelvis",
+    "PSA check"
+  ],
+  "clinicalPlan": []
+}

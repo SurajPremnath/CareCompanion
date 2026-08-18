@@ -500,67 +500,118 @@ patientNameVariations:
   // Clinical Data
   //----------------------------------------------------------
 
-  consultationVitals:
-    parsed.consultationVitals &&
-    typeof parsed.consultationVitals === "object"
+consultationVitals:
+  parsed.consultationVitals &&
+  typeof parsed.consultationVitals === "object"
+    ? {
+        weight:
+          toNullableString(
+            (
+              parsed.consultationVitals as any
+            ).weight
+          ),
+
+        height:
+          toNullableString(
+            (
+              parsed.consultationVitals as any
+            ).height
+          ),
+
+        bmi:
+          toNullableString(
+            (
+              parsed.consultationVitals as any
+            ).bmi
+          ),
+
+        bloodPressure:
+          toNullableString(
+            (
+              parsed.consultationVitals as any
+            ).bloodPressure
+          ),
+
+        pulse:
+          toNullableString(
+            (
+              parsed.consultationVitals as any
+            ).pulse
+          ),
+
+        respiratoryRate:
+          toNullableString(
+            (
+              parsed.consultationVitals as any
+            ).respiratoryRate
+          ),
+
+        spo2:
+          toNullableString(
+            (
+              parsed.consultationVitals as any
+            ).spo2
+          ),
+
+        temperature:
+          toNullableString(
+            (
+              parsed.consultationVitals as any
+            ).temperature
+          ),
+      }
+    : null,
+
+  //----------------------------------------------------------
+  // Current State of Health
+  //----------------------------------------------------------
+
+  currentStateOfHealth:
+    parsed.currentStateOfHealth &&
+    typeof parsed.currentStateOfHealth === "object"
       ? {
-          weight:
-            toNullableString(
+          conditions:
+            toStringArray(
               (
-                parsed.consultationVitals as any
-              ).weight
+                parsed.currentStateOfHealth as any
+              ).conditions
             ),
 
-          height:
-            toNullableString(
+          diseaseStatus:
+            toStringArray(
               (
-                parsed.consultationVitals as any
-              ).height
+                parsed.currentStateOfHealth as any
+              ).diseaseStatus
             ),
 
-          bmi:
+          stage:
             toNullableString(
               (
-                parsed.consultationVitals as any
-              ).bmi
+                parsed.currentStateOfHealth as any
+              ).stage
             ),
 
-          bloodPressure:
-            toNullableString(
+          clinicalAssessment:
+            toStringArray(
               (
-                parsed.consultationVitals as any
-              ).bloodPressure
+                parsed.currentStateOfHealth as any
+              ).clinicalAssessment
             ),
 
-          pulse:
-            toNullableString(
+          importantFindings:
+            toStringArray(
               (
-                parsed.consultationVitals as any
-              ).pulse
-            ),
-
-          respiratoryRate:
-            toNullableString(
-              (
-                parsed.consultationVitals as any
-              ).respiratoryRate
-            ),
-
-          spo2:
-            toNullableString(
-              (
-                parsed.consultationVitals as any
-              ).spo2
-            ),
-
-          temperature:
-            toNullableString(
-              (
-                parsed.consultationVitals as any
-              ).temperature
+                parsed.currentStateOfHealth as any
+              ).importantFindings
             ),
         }
-      : null,
+      : {
+          conditions: [],
+          diseaseStatus: [],
+          stage: null,
+          clinicalAssessment: [],
+          importantFindings: [],
+        },
 
 
   diagnosisOrAssessment:
@@ -576,9 +627,33 @@ patientNameVariations:
 
 
   symptoms:
-    toStringArray(
+    Array.isArray(
       parsed.symptoms
-    ),
+    )
+      ? parsed.symptoms.map(
+          (item: any) => ({
+            symptom:
+              typeof item?.symptom === "string"
+                ? item.symptom.trim()
+                : "",
+
+            duration:
+              typeof item?.duration === "string"
+                ? item.duration.trim()
+                : null,
+
+            severity:
+              typeof item?.severity === "string"
+                ? item.severity.trim()
+                : null,
+
+            qualifiers:
+              typeof item?.qualifiers === "string"
+                ? item.qualifiers.trim()
+                : null,
+          })
+        )
+      : [],
 
 
   presentingComplaints:
@@ -595,6 +670,16 @@ patientNameVariations:
             duration:
               typeof item?.duration === "string"
                 ? item.duration.trim()
+                : null,
+
+            severity:
+              typeof item?.severity === "string"
+                ? item.severity.trim()
+                : null,
+
+            qualifiers:
+              typeof item?.qualifiers === "string"
+                ? item.qualifiers.trim()
                 : null,
           })
         )
@@ -664,12 +749,52 @@ patientNameVariations:
 
 
   investigations:
+
     toStringArray(
       parsed.investigations
     ),
 
 
+  testsAdvised:
+
+    Array.isArray(
+      parsed.testsAdvised
+    )
+      ? parsed.testsAdvised
+          .map(
+            (item: any) => ({
+
+              test:
+                typeof item?.test === "string"
+                  ? item.test.trim()
+                  : "",
+
+              action:
+                typeof item?.action === "string"
+                  ? item.action.trim()
+                  : null,
+
+              timing:
+                typeof item?.timing === "string"
+                  ? item.timing.trim()
+                  : null,
+
+              condition:
+                typeof item?.condition === "string"
+                  ? item.condition.trim()
+                  : null,
+
+            })
+          )
+          .filter(
+            item =>
+              item.test.length > 0
+          )
+      : [],
+
+
   clinicalPlan:
+
     toStringArray(
       parsed.clinicalPlan
     ),

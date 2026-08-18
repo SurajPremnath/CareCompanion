@@ -1,0 +1,203 @@
+{
+  "patientIdentity": {
+    "patientName": "MR. K V Premnath",
+    "patientDateOfBirth": null,
+    "patientAge": "73Y",
+    "patientGender": "Male",
+    "patientUHID": "262500910",
+    "patientNameVariations": []
+  },
+  "encounterIdentity": {
+    "doctorName": "Dr. Swathi Rachabattula",
+    "doctorType": "Consultant-Internal Medicine",
+    "hospitalOrClinic": "Motherhood",
+    "hospitalNameVariations": [],
+    "consultationDate": "26/06/26",
+    "consultationMode": null
+  },
+  "documentMetadata": {
+    "studyDateTime": null,
+    "reportDateTime": null,
+    "originalPatientName": "MR. K V Premnath",
+    "originalHospitalName": "Motherhood",
+    "documentType": "OTHER"
+  },
+  "consultationVitals": {
+    "weight": "79.2 kg",
+    "height": null,
+    "bmi": null,
+    "bloodPressure": {
+      "systolic": 114,
+      "diastolic": 78,
+      "unit": "mmHg"
+    },
+    "pulse": {
+      "value": 115,
+      "unit": "/min"
+    },
+    "respiratoryRate": null,
+    "spo2": {
+      "value": 95,
+      "unit": "%"
+    },
+    "temperature": "35.4 C"
+  },
+  "currentStateOfHealth": {
+    "conditions": ["Likely viral URTI", "Nutritional deficiency"],
+    "diseaseStatus": [],
+    "stage": null,
+    "clinicalAssessment": [],
+    "importantFindings": []
+  },
+  "diagnosisOrAssessment": null,
+  "clinicalAssessments": [],
+  "symptoms": [
+    {
+      "symptom": "Tiredness",
+      "duration": "1 week",
+      "severity": null,
+      "qualifiers": null
+    },
+    {
+      "symptom": "Leg pain",
+      "duration": "1 week",
+      "severity": null,
+      "qualifiers": null
+    },
+    {
+      "symptom": "Wheezing",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "for 2 BD"
+    },
+    {
+      "symptom": "Chest congestion",
+      "duration": "1 week",
+      "severity": null,
+      "qualifiers": "right ear blocked"
+    },
+    {
+      "symptom": "Headache",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "settled"
+    },
+    {
+      "symptom": "Feverishness",
+      "duration": "evening",
+      "severity": null,
+      "qualifiers": "no temp"
+    },
+    {
+      "symptom": "Dry cough",
+      "duration": null,
+      "severity": null,
+      "qualifiers": "on exertion, mild chest tightness"
+    }
+  ],
+  "presentingComplaints": [],
+  "pastMedicalHistory": ["HTN x 20 years", "ADL impair", "Hernia"],
+  "history": [],
+  "examinationFindings": [],
+  "doctorInstructions": [
+    {
+      "instruction": "Steam inhalation (Easibreathe capsules)",
+      "timing": null,
+      "frequency": null,
+      "duration": "5 days",
+      "condition": null
+    },
+    {
+      "instruction": "Betadine gargle",
+      "timing": null,
+      "frequency": null,
+      "duration": null,
+      "condition": null
+    },
+    {
+      "instruction": "Take before breakfast",
+      "timing": null,
+      "frequency": null,
+      "duration": "5 days",
+      "condition": null
+    }
+  ],
+  "followUpPlan": [],
+  "medicines": [
+    {
+      "name": "Olmeset 20 mg",
+      "genericName": null,
+      "brandName": null,
+      "strength": "20 mg",
+      "dose": "1",
+      "frequency": "Once daily",
+      "timing": null,
+      "route": null,
+      "duration": null,
+      "action": null,
+      "instruction": null
+    },
+    {
+      "name": "Mucinac 600 mg effervescent",
+      "genericName": null,
+      "brandName": null,
+      "strength": "600 mg",
+      "dose": null,
+      "frequency": null,
+      "timing": null,
+      "route": null,
+      "duration": "5 days",
+      "action": null,
+      "instruction": "Mix in 1/2 glass warm water"
+    },
+    {
+      "name": "Sompraz-D / Nexpro-RP",
+      "genericName": null,
+      "brandName": null,
+      "strength": null,
+      "dose": null,
+      "frequency": null,
+      "timing": "Before breakfast",
+      "route": null,
+      "duration": "5 days",
+      "action": null,
+      "instruction": "Bifair"
+    },
+    {
+      "name": "Paracetamol 650 mg",
+      "genericName": null,
+      "brandName": null,
+      "strength": "650 mg",
+      "dose": "1",
+      "frequency": null,
+      "timing": null,
+      "route": null,
+      "duration": null,
+      "action": null,
+      "instruction": "For fever/pain"
+    }
+  ],
+  "additionalNotes": [],
+  "investigations": [
+    {
+      "name": "Blood CRP + PSA",
+      "result": null,
+      "status": null,
+      "date": null
+    },
+    {
+      "name": "Ultrasound Abdomen and pelvis",
+      "result": null,
+      "status": null,
+      "date": null
+    },
+    {
+      "name": "Iron studies",
+      "result": null,
+      "status": null,
+      "date": null
+    }
+  ],
+  "testsAdvised": [],
+  "clinicalPlan": []
+}

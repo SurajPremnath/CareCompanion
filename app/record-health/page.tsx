@@ -898,22 +898,20 @@ const handleCareModeChange =
             }
         />
 
-        {doctorNotesOption === "MANUAL" && (
+{doctorNotesOption === "MANUAL" && (
 
     <div className="dashboard-workspace">
 
-        <ManualCareWorkspace
+        <DoctorNotesUploadWorkspace
             mode={
                 careMode === "SELF"
                     ? "self"
                     : "family"
             }
-            context="DOCTOR_NOTES"
             patientId={
                 careMode === "FAMILY"
-                    ? selectedPatient?.id ??
-                      undefined
-                    : undefined
+                    ? selectedPatient?.id ?? null
+                    : null
             }
             patientName={
                 careMode === "SELF"
@@ -924,6 +922,11 @@ const handleCareModeChange =
             currentUserName={
                 user.fullName
             }
+            captureMode="MANUAL"
+            onCancel={() => {
+                setDoctorNotesOption("");
+                setMedicationDetail("");
+            }}
         />
 
     </div>
@@ -956,13 +959,13 @@ const handleCareModeChange =
             currentUserName={
                 user.fullName
             }
+            captureMode="UPLOAD"
             onCancel={() => {
                 setMedicationDetail("");
             }}
         />
 
     </div>
-
 )}
 
 {medicationDetail !== "" &&

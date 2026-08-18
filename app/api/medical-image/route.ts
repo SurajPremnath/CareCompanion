@@ -219,19 +219,49 @@ function parseMedicalReadings(
           parsed.diastolic
         ),
 
-      pulse:
-        toNullableNumber(
-          parsed.pulse
-        ),
+pulse:
+  toNullableNumber(
+    parsed.pulse
+  ),
 
-      spo2:
-        toNullableNumber(
-          parsed.spo2
-        ),
+spo2:
+  toNullableNumber(
+    parsed.spo2
+  ),
+
+      // --------------------------------------------------------
+      // Record Health - Multiple Image Reading Selection
+      // Preserve every valid Pulse value returned by the model.
+      // UploadCareWorkspace lets the user choose the value.
+      // --------------------------------------------------------
+      pulseValues:
+        Array.isArray(parsed.pulseValues)
+          ? parsed.pulseValues
+              .map(toNullableNumber)
+              .filter(
+                (value): value is number =>
+                  value !== null
+              )
+          : [],
+
+      // --------------------------------------------------------
+      // Record Health - Multiple Image Reading Selection
+      // Preserve every valid SpO₂ value returned by the model.
+      // UploadCareWorkspace lets the user choose the value.
+      // --------------------------------------------------------
+      spo2Values:
+        Array.isArray(parsed.spo2Values)
+          ? parsed.spo2Values
+              .map(toNullableNumber)
+              .filter(
+                (value): value is number =>
+                  value !== null
+              )
+          : [],
 
     },
 
-  };
+};
 
 }
 
@@ -519,192 +549,316 @@ const imageDataUrls =
         )
     );
 
-    //--------------------------------------------------------
-    // OpenAI Vision Request
-    //--------------------------------------------------------
+//--------------------------------------------------------
+// OpenAI Vision Request
+//--------------------------------------------------------
 
-    const response =
-      await openai.responses.create({
+// --------------------------------------------------------
+// Record Health - Multiple Image Reading Selection
+//
+// One image:
+//   Existing behaviour remains the same.
+//
+// Multiple images:
+//   Read each image separately.
+//   Collect Pulse / SpO2 values into arrays.
+// --------------------------------------------------------
 
-        model:
-          "gpt-4.1-mini",
+let pulseValues: number[] = [];
 
-        input: [
+let spo2Values: number[] = [];
 
-          {
-            role:
-              "user",
+let parsedResponse:
+  ParsedMedicalImageResponse | null =
+    null;
 
-            content: [
+//--------------------------------------------------------
+// Process Each Image
+//--------------------------------------------------------
 
-              {
-                type:
-                  "input_text",
+for (
+  const imageDataUrl of imageDataUrls
+) {
 
-                text:
-                  "Identify every supported medical device that is clearly visible and has a clearly readable measurement display. " +
+  const response =
+    await openai.responses.create({
 
-                  "detectedDeviceTypes must be an array containing zero or more of: thermometer, blood_pressure_monitor, pulse_oximeter, weight_scale. " +
+      model:
+        "gpt-4.1-mini",
 
-                  "If the image contains more than one supported device with clearly readable measurements, include every applicable device type in detectedDeviceTypes and extract readings from all of them. " +
+      input: [
 
-                  "Multiple supported devices with different measurement types in the same image are valid and must not be treated as conflicting readings. " +
+        {
+          role:
+            "user",
 
-                  "Set hasConflictingReadings to true only when the image contains multiple competing or ambiguous values for the same measurement type and it is not possible to determine which value is the current reading. " +
+          content: [
 
-                  "For example, one blood pressure reading together with one temperature reading is not a conflict. Multiple blood pressure values or multiple temperature values are conflicting only when the current or latest reading cannot be determined reliably. " +
+            {
+              type:
+                "input_text",
 
-                  "If detectedDeviceTypes includes thermometer, a clearly visible temperature reading is required. " +
+text:
+  "Identify every supported medical device that is clearly visible and has a clearly readable measurement display. " +
 
-                  "If detectedDeviceTypes includes blood_pressure_monitor, both systolic and diastolic readings are required. " +
+  "detectedDeviceTypes must be an array containing zero or more of: thermometer, blood_pressure_monitor, pulse_oximeter, weight_scale. " +
 
-                  "If detectedDeviceTypes includes pulse_oximeter, an SpO2 reading is required. " +
+  "If this image contains more than one supported device with clearly readable measurements, include every applicable device type in detectedDeviceTypes and extract readings from all of them. " +
 
-                  "If detectedDeviceTypes includes weight_scale, a clearly readable weight in kilograms is required. " +
+  "Multiple supported devices with different measurement types in the same image are valid and must not be treated as conflicting readings. " +
 
-                  "Return the numeric value only in weightKg. " +
+  "Set hasConflictingReadings to true only when this image contains multiple competing or ambiguous values for the same measurement type and it is not possible to determine which value is the current reading. " +
 
-                  "Examples: 72 kg -> 72, 72.4 kg -> 72.4. " +
+  "For example, one blood pressure reading together with one temperature reading is not a conflict. Multiple blood pressure values or multiple temperature values are conflicting only when the current or latest reading cannot be determined reliably. " +
 
-                  "Do not include the unit in the value. " +
+  "If detectedDeviceTypes includes thermometer, a clearly visible temperature reading is required. " +
 
-                  "Do not infer weight. " +
+  "If detectedDeviceTypes includes blood_pressure_monitor, both systolic and diastolic readings are required. " +
 
-                  "If no readable weight is present, return null. " +
+  "If detectedDeviceTypes includes pulse_oximeter, an SpO2 reading is required. " +
 
-                  "If no supported medical device with a clearly readable measurement is visible, set isSupportedMedicalImage to false and return an empty detectedDeviceTypes array. " +
+  "If detectedDeviceTypes includes weight_scale, a clearly readable weight in kilograms is required. " +
 
-"Analyze all uploaded images together as one health-reading session. " +
+  "Return the numeric value only in weightKg. " +
 
-"Measurements may be distributed across different images. " +
+  "Examples: 72 kg -> 72, 72.4 kg -> 72.4. " +
 
-"Combine valid readings across all images into the single response. " +
+  "Do not include the unit in the value. " +
 
-"If one image contains temperature and another contains blood pressure or SpO2, return all of those readings together. " +
+  "Do not infer weight. " +
 
-"Do not treat different measurement types across different images as conflicting. " +
+  "If no readable weight is present, return null. " +
 
-"If the same measurement type appears multiple times, use the clearest/latest identifiable reading; if it cannot be determined reliably, set hasConflictingReadings to true. " +
+  "If no supported medical device with a clearly readable measurement is visible, set isSupportedMedicalImage to false and return an empty detectedDeviceTypes array. " +
 
-                  "Return JSON only with exactly these keys: " +
+"Read this image independently and return only the values clearly visible in this image. " +
 
-                  "isSupportedMedicalImage, hasConflictingReadings, detectedDeviceTypes, temperature, temperatureUnit, weightKg, systolic, diastolic, pulse, spo2. " +
+"Do not use, replace, infer, or reinterpret values from another image. " +
 
-                  "isSupportedMedicalImage and hasConflictingReadings must be true or false. " +
+"First identify the device shown in this image and then read the measurements using the labels displayed on that device. " +
 
-                  'temperatureUnit must be "F", "C", or null.',
+"For a blood pressure monitor, read Systolic, Diastolic, and Pulse only from the fields explicitly identified by those labels. " +
 
-              },
+"For a pulse oximeter, read SpO2 only from the field labelled SpO2 or oxygen saturation, and read Pulse only from the field labelled Pulse, PR, or heart rate. " +
 
-...imageDataUrls.map(
-    imageDataUrl => ({
-        type:
-            "input_image" as const,
+"On a pulse oximeter, Pulse/PR and SpO2 are two different measurements. Never assign the Pulse/PR number to SpO2, and never assign the SpO2 number to Pulse. " +
 
-        image_url:
-            imageDataUrl,
+"Do not determine Pulse or SpO2 based only on the size, position, or prominence of a number on the screen. Use the associated label. " +
 
-        detail:
-            "high" as const,
-    })
-),
+"If the same measurement type appears multiple times in this image, preserve all clearly readable values for that measurement type. " +
 
-            ],
+"For multiple Pulse readings, return all values in pulseValues. " +
 
-          },
+"For multiple SpO2 readings, return all values in spo2Values. " +
 
-        ],
+"If exactly one Pulse reading exists, return it in pulse and also include it in pulseValues. " +
 
-      });
+"If exactly one SpO2 reading exists, return it in spo2 and also include it in spo2Values. " +
 
-    //--------------------------------------------------------
-    // Validate Model Response
-    //--------------------------------------------------------
+"Do not swap Pulse and SpO2 values. Pulse must remain Pulse and SpO2 must remain SpO2. " +
 
-    const outputText =
-      response.output_text?.trim();
+"Multiple Pulse or SpO2 values are not an error. Preserve them for user selection. " +
+
+  "Return JSON only with exactly these keys: " +
+
+  "isSupportedMedicalImage, hasConflictingReadings, detectedDeviceTypes, temperature, temperatureUnit, weightKg, systolic, diastolic, pulse, spo2, pulseValues, spo2Values. " +
+
+  "isSupportedMedicalImage and hasConflictingReadings must be true or false. " +
+
+  'temperatureUnit must be "F", "C", or null.',
+},
+            {
+              type:
+                "input_image",
+
+              image_url:
+                imageDataUrl,
+
+              detail:
+                "high",
+            },
+
+          ],
+
+        },
+
+      ],
+
+    });
+
+  //--------------------------------------------------------
+  // Validate Model Response
+  //--------------------------------------------------------
+
+  const outputText =
+    response.output_text?.trim();
+
+  if (
+    !outputText
+  ) {
+
+    return NextResponse.json(
+      {
+        error:
+          "No readings could be extracted from the image.",
+      },
+      {
+        status: 422,
+      }
+    );
+
+  }
+
+  //--------------------------------------------------------
+  // Parse Current Image
+  //--------------------------------------------------------
+
+  let currentResponse:
+    ParsedMedicalImageResponse;
+
+  try {
+
+    currentResponse =
+      parseMedicalReadings(
+        outputText
+      );
+
+  }
+  catch (
+    error: unknown
+  ) {
+
+    console.error(
+      "Medical Image Route Error:",
+      error
+    );
+
+    const apiError =
+      error as {
+        status?: number;
+        code?: string;
+        type?: string;
+      };
 
     if (
-      !outputText
+      apiError.status ===
+        429 &&
+      (
+        apiError.code ===
+          "insufficient_quota" ||
+        apiError.type ===
+          "insufficient_quota"
+      )
     ) {
 
       return NextResponse.json(
         {
           error:
-            "No readings could be extracted from the image.",
+            "Credits over. Contact Admin.",
         },
         {
-          status: 422,
+          status: 503,
         }
       );
 
     }
 
-    //--------------------------------------------------------
-    // Parse Structured Readings
-    //--------------------------------------------------------
-
-    let parsedResponse:
-      ParsedMedicalImageResponse;
-
-    try {
-
-      parsedResponse =
-        parseMedicalReadings(
-          outputText
-        );
-
-    }
-    catch (
-      error: unknown
-    ) {
-
-      console.error(
-        "Medical Image Route Error:",
-        error
-      );
-
-      const apiError =
-        error as {
-          status?: number;
-          code?: string;
-          type?: string;
-        };
-
-      if (
-        apiError.status ===
-          429 &&
-        (
-          apiError.code ===
-            "insufficient_quota" ||
-          apiError.type ===
-            "insufficient_quota"
-        )
-      ) {
-
-        return NextResponse.json(
-          {
-            error:
-              "Credits over. Contact Admin.",
-          },
-          {
-            status: 503,
-          }
-        );
-
+    return NextResponse.json(
+      {
+        error:
+          "Unable to process the medical image. Please try again.",
+      },
+      {
+        status: 500,
       }
+    );
 
-      return NextResponse.json(
-        {
-          error:
-            "Unable to process the medical image. Please try again.",
-        },
-        {
-          status: 500,
-        }
-      );
+  }
 
+  //--------------------------------------------------------
+  // Keep First Image As Base Response
+  //--------------------------------------------------------
+
+  if (
+    parsedResponse ===
+    null
+  ) {
+
+    parsedResponse =
+      currentResponse;
+
+  }
+
+  //--------------------------------------------------------
+  // Append Pulse Values
+  //--------------------------------------------------------
+
+  pulseValues.push(
+    ...currentResponse.readings.pulseValues
+  );
+
+  //--------------------------------------------------------
+  // Append SpO2 Values
+  //--------------------------------------------------------
+
+  spo2Values.push(
+    ...currentResponse.readings.spo2Values
+  );
+
+}
+
+//--------------------------------------------------------
+// Ensure A Response Exists
+//--------------------------------------------------------
+
+if (
+  parsedResponse ===
+  null
+) {
+
+  return NextResponse.json(
+    {
+      error:
+        "No readings could be extracted from the image.",
+    },
+    {
+      status: 422,
     }
+  );
+
+}
+
+//--------------------------------------------------------
+// Pass Collected Multiple Values Forward
+//--------------------------------------------------------
+
+parsedResponse = {
+
+  ...parsedResponse,
+
+  readings: {
+
+    ...parsedResponse.readings,
+
+    pulse:
+      pulseValues.length > 0
+        ? pulseValues[0]
+        : null,
+
+    spo2:
+      spo2Values.length > 0
+        ? spo2Values[0]
+        : null,
+
+    pulseValues:
+      pulseValues,
+
+    spo2Values:
+      spo2Values,
+
+  },
+
+};
 
     if (
       !parsedResponse.isSupportedMedicalImage
@@ -760,12 +914,12 @@ const imageDataUrls =
       readings.diastolic !==
         null;
 
-    const hasValidPulseOximeterReading =
-      deviceTypes.includes(
-        "pulse_oximeter"
-      ) &&
-      readings.spo2 !==
-        null;
+const hasValidPulseOximeterReading =
+  deviceTypes.includes(
+    "pulse_oximeter"
+  ) &&
+  readings.spo2 !== null;
+
 
     const hasValidWeightScaleReading =
       deviceTypes.includes(
