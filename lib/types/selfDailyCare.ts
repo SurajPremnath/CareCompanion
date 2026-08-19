@@ -91,7 +91,7 @@ export type SelfDailyCareSymptom =
   | "LOOSE_MOTIONS"
   | "VOMITING"
   | "DRY_MOUTH"
-  | "Cold";
+  | "COLD"
   | "OTHER";
 
 export type SelfPainLocation =

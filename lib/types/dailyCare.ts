@@ -90,7 +90,7 @@ export type DailyCareSymptom =
     | "LOOSE_MOTIONS"
     | "VOMITING"
     | "DRY_MOUTH"
-    | "COLD";
+    | "COLD"
     | "OTHER";
 
 export type PainLocation =
