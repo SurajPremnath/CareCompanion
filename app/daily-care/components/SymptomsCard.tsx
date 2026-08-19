@@ -96,6 +96,11 @@ const symptomOptions: {
   },
 
   {
+    value: "COLD",
+    translationKey: "dailyCare.symptomCold",
+  },
+
+  {
     value: "OTHER",
     translationKey: "dailyCare.symptomOther",
   },

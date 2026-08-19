@@ -196,6 +196,30 @@ const {
         useState(false);
 
 const [
+    temperatureOptions,
+    setTemperatureOptions,
+] =
+    useState<number[]>([]);
+
+const [
+    weightOptions,
+    setWeightOptions,
+] =
+    useState<number[]>([]);
+
+const [
+    systolicOptions,
+    setSystolicOptions,
+] =
+    useState<number[]>([]);
+
+const [
+    diastolicOptions,
+    setDiastolicOptions,
+] =
+    useState<number[]>([]);
+
+const [
     pulseOptions,
     setPulseOptions,
 ] =
@@ -504,6 +528,14 @@ setProcessingImage(
 
 let readings;
 
+let temperatureValues: number[] = [];
+
+let weightValues: number[] = [];
+
+let systolicValues: number[] = [];
+
+let diastolicValues: number[] = [];
+
 let pulseValues: number[] = [];
 
 let spo2Values: number[] = [];
@@ -539,11 +571,39 @@ if (
 readings =
     result.data;
 
+temperatureValues =
+    result.data.temperatureValues ?? [];
+
+weightValues =
+    result.data.weightValues ?? [];
+
+systolicValues =
+    result.data.systolicValues ?? [];
+
+diastolicValues =
+    result.data.diastolicValues ?? [];
+
 pulseValues =
     result.data.pulseValues ?? [];
 
 spo2Values =
     result.data.spo2Values ?? [];
+
+setTemperatureOptions(
+    temperatureValues
+);
+
+setWeightOptions(
+    weightValues
+);
+
+setSystolicOptions(
+    systolicValues
+);
+
+setDiastolicOptions(
+    diastolicValues
+);
 
 setPulseOptions(pulseValues);
 setSpo2Options(spo2Values);
@@ -580,6 +640,13 @@ setSpo2Options(spo2Values);
     readings =
         result.data;
 
+setTemperatureOptions([]);
+
+setWeightOptions([]);
+
+setSystolicOptions([]);
+
+setDiastolicOptions([]);
 
     setPulseOptions([]);
 
@@ -631,41 +698,49 @@ const hasReading =
 
                 ...previous,
 
-                temperature:
-                    readings.temperature !==
-                        null
-                        ? String(
-                            readings.temperature
-                        )
-                        : previous.temperature,
+temperature:
+    temperatureValues.length > 1
+        ? ""
+        : readings.temperature !==
+            null
+            ? String(
+                readings.temperature
+            )
+            : previous.temperature,
 
                 temperatureUnit:
                     readings.temperatureUnit ??
                     previous.temperatureUnit,
 
-                weightKg:
-                    readings.weightKg !==
-                        null
-                        ? String(
-                            readings.weightKg
-                        )
-                        : previous.weightKg,
+weightKg:
+    weightValues.length > 1
+        ? ""
+        : readings.weightKg !==
+            null
+            ? String(
+                readings.weightKg
+            )
+            : previous.weightKg,
 
-                systolic:
-                    readings.systolic !==
-                        null
-                        ? String(
-                            readings.systolic
-                        )
-                        : previous.systolic,
+systolic:
+    systolicValues.length > 1
+        ? ""
+        : readings.systolic !==
+            null
+            ? String(
+                readings.systolic
+            )
+            : previous.systolic,
 
-                diastolic:
-                    readings.diastolic !==
-                        null
-                        ? String(
-                            readings.diastolic
-                        )
-                        : previous.diastolic,
+diastolic:
+    diastolicValues.length > 1
+        ? ""
+        : readings.diastolic !==
+            null
+            ? String(
+                readings.diastolic
+            )
+            : previous.diastolic,
 
 // --------------------------------------------------------
 // Record Health - Pulse
@@ -1375,27 +1450,93 @@ className="upload-review-input"
                                 {t("medication.temperature")}
                             </label>
 
-                            <input
-className="upload-review-input"
-                                type="number"
+{temperatureOptions.length > 1 && (
+    <div style={multipleReadingBox}>
 
-                                step="0.1"
+        <p style={multipleReadingMessage}>
+            Multiple Temperature readings found. Select one or use the average.
+        </p>
 
-                                value={
-                                    reading.temperature
-                                }
+        <div style={readingOptionRow}>
 
-                                onChange={
-                                    event =>
-                                        updateField(
-                                            "temperature",
-                                            event.target.value
-                                        )
-                                }
+            {temperatureOptions.map(
+                (value, index) => (
 
-                                style={inputStyle}
+                    <button
+                        key={`temperature-${value}-${index}`}
+                        type="button"
+                        onClick={() => {
 
-                            />
+                            updateField(
+                                "temperature",
+                                String(value)
+                            );
+
+                            setTemperatureOptions([]);
+
+                        }}
+                        style={readingOptionButton}
+                    >
+                        {value}°
+                        {reading.temperatureUnit}
+                    </button>
+
+                )
+            )}
+
+            <button
+                type="button"
+                onClick={() => {
+
+                    const average =
+                        temperatureOptions.reduce(
+                            (sum, value) =>
+                                sum + value,
+                            0
+                        ) /
+                        temperatureOptions.length;
+
+                    updateField(
+                        "temperature",
+                        average.toFixed(1)
+                    );
+
+                    setTemperatureOptions([]);
+
+                }}
+                style={readingOptionButton}
+            >
+                Average{" "}
+                {(
+                    temperatureOptions.reduce(
+                        (sum, value) =>
+                            sum + value,
+                        0
+                    ) /
+                    temperatureOptions.length
+                ).toFixed(1)}
+                °
+                {reading.temperatureUnit}
+            </button>
+
+        </div>
+
+    </div>
+)}
+
+<input
+    className="upload-review-input"
+    type="number"
+    step="0.1"
+    value={reading.temperature}
+    onChange={event =>
+        updateField(
+            "temperature",
+            event.target.value
+        )
+    }
+    style={inputStyle}
+/>
 
                         </div>
 
@@ -1405,19 +1546,90 @@ className="upload-review-input"
         Weight
     </label>
 
-    <input
-className="upload-review-input"
-        type="number"
-        step="0.1"
-        value={reading.weightKg}
-        onChange={event =>
-            updateField(
-                "weightKg",
-                event.target.value
-            )
-        }
-        style={inputStyle}
-    />
+{weightOptions.length > 1 && (
+    <div style={multipleReadingBox}>
+
+        <p style={multipleReadingMessage}>
+            Multiple Weight readings found. Select one or use the average.
+        </p>
+
+        <div style={readingOptionRow}>
+
+            {weightOptions.map(
+                (value, index) => (
+
+                    <button
+                        key={`weight-${value}-${index}`}
+                        type="button"
+                        onClick={() => {
+
+                            updateField(
+                                "weightKg",
+                                String(value)
+                            );
+
+                            setWeightOptions([]);
+
+                        }}
+                        style={readingOptionButton}
+                    >
+                        {value} kg
+                    </button>
+
+                )
+            )}
+
+            <button
+                type="button"
+                onClick={() => {
+
+                    const average =
+                        weightOptions.reduce(
+                            (sum, value) =>
+                                sum + value,
+                            0
+                        ) /
+                        weightOptions.length;
+
+                    updateField(
+                        "weightKg",
+                        average.toFixed(1)
+                    );
+
+                    setWeightOptions([]);
+
+                }}
+                style={readingOptionButton}
+            >
+                Average{" "}
+                {(
+                    weightOptions.reduce(
+                        (sum, value) =>
+                            sum + value,
+                        0
+                    ) /
+                    weightOptions.length
+                ).toFixed(1)} kg
+            </button>
+
+        </div>
+
+    </div>
+)}
+
+<input
+    className="upload-review-input"
+    type="number"
+    step="0.1"
+    value={reading.weightKg}
+    onChange={event =>
+        updateField(
+            "weightKg",
+            event.target.value
+        )
+    }
+    style={inputStyle}
+/>
 
 </div>
 
@@ -1465,25 +1677,89 @@ className="upload-review-input"
                                 Systolic
                             </label>
 
-                            <input
-className="upload-review-input"
-                                type="number"
+{systolicOptions.length > 1 && (
+    <div style={multipleReadingBox}>
 
-                                value={
-                                    reading.systolic
-                                }
+        <p style={multipleReadingMessage}>
+            Multiple Systolic readings found. Select one or use the average.
+        </p>
 
-                                onChange={
-                                    event =>
-                                        updateField(
-                                            "systolic",
-                                            event.target.value
-                                        )
-                                }
+        <div style={readingOptionRow}>
 
-                                style={inputStyle}
+            {systolicOptions.map(
+                (value, index) => (
 
-                            />
+                    <button
+                        key={`systolic-${value}-${index}`}
+                        type="button"
+                        onClick={() => {
+
+                            updateField(
+                                "systolic",
+                                String(value)
+                            );
+
+                            setSystolicOptions([]);
+
+                        }}
+                        style={readingOptionButton}
+                    >
+                        {value}
+                    </button>
+
+                )
+            )}
+
+<button
+    type="button"
+    onClick={() => {
+
+        const average =
+            systolicOptions.reduce(
+                (sum, value) =>
+                    sum + value,
+                0
+            ) /
+            systolicOptions.length;
+
+updateField(
+    "systolic",
+    average.toFixed(1)
+);
+
+        setSystolicOptions([]);
+
+    }}
+    style={readingOptionButton}
+>
+    Average{" "}
+    {(
+        systolicOptions.reduce(
+            (sum, value) =>
+                sum + value,
+            0
+        ) /
+        systolicOptions.length
+    ).toFixed(1)}
+</button>
+
+        </div>
+
+    </div>
+)}
+
+<input
+    className="upload-review-input"
+    type="number"
+    value={reading.systolic}
+    onChange={event =>
+        updateField(
+            "systolic",
+            event.target.value
+        )
+    }
+    style={inputStyle}
+/>
 
                         </div>
 
@@ -1494,25 +1770,89 @@ className="upload-review-input"
                                 {t("dailyCare.diastolic")}
                             </label>
 
-                            <input
-className="upload-review-input"
-                                type="number"
+{diastolicOptions.length > 1 && (
+    <div style={multipleReadingBox}>
 
-                                value={
-                                    reading.diastolic
-                                }
+        <p style={multipleReadingMessage}>
+            Multiple Diastolic readings found. Select one or use the average.
+        </p>
 
-                                onChange={
-                                    event =>
-                                        updateField(
-                                            "diastolic",
-                                            event.target.value
-                                        )
-                                }
+        <div style={readingOptionRow}>
 
-                                style={inputStyle}
+            {diastolicOptions.map(
+                (value, index) => (
 
-                            />
+                    <button
+                        key={`diastolic-${value}-${index}`}
+                        type="button"
+                        onClick={() => {
+
+                            updateField(
+                                "diastolic",
+                                String(value)
+                            );
+
+                            setDiastolicOptions([]);
+
+                        }}
+                        style={readingOptionButton}
+                    >
+                        {value}
+                    </button>
+
+                )
+            )}
+
+            <button
+                type="button"
+                onClick={() => {
+
+                    const average =
+                        diastolicOptions.reduce(
+                            (sum, value) =>
+                                sum + value,
+                            0
+                        ) /
+                        diastolicOptions.length;
+
+                    updateField(
+                        "diastolic",
+                        average.toFixed(1)
+                    );
+
+                    setDiastolicOptions([]);
+
+                }}
+                style={readingOptionButton}
+            >
+                Average{" "}
+                {(
+                    diastolicOptions.reduce(
+                        (sum, value) =>
+                            sum + value,
+                        0
+                    ) /
+                    diastolicOptions.length
+                ).toFixed(1)}
+            </button>
+
+        </div>
+
+    </div>
+)}
+
+<input
+    className="upload-review-input"
+    type="number"
+    value={reading.diastolic}
+    onChange={event =>
+        updateField(
+            "diastolic",
+            event.target.value
+        )
+    }
+    style={inputStyle}
+/>
 
                         </div>
 
@@ -1552,39 +1892,37 @@ className="upload-review-input"
                     )
                 )}
 
-                <button
-                    type="button"
-                    onClick={() => {
+<button
+    type="button"
+    onClick={() => {
 
-                        const average =
-                            Math.round(
-                                pulseOptions.reduce(
-                                    (sum, value) =>
-                                        sum + value,
-                                    0
-                                ) /
-                                    pulseOptions.length
-                            );
+        const average =
+            pulseOptions.reduce(
+                (sum, value) =>
+                    sum + value,
+                0
+            ) /
+            pulseOptions.length;
 
-                        updateField(
-                            "pulse",
-                            String(average)
-                        );
+        updateField(
+            "pulse",
+            average.toFixed(1)
+        );
 
-                        setPulseOptions([]);
-                    }}
-                    style={readingOptionButton}
-                >
-                    Avg{" "}
-                    {Math.round(
-                        pulseOptions.reduce(
-                            (sum, value) =>
-                                sum + value,
-                            0
-                        ) /
-                            pulseOptions.length
-                    )}{" "}
-                </button>
+        setPulseOptions([]);
+    }}
+    style={readingOptionButton}
+>
+    Avg{" "}
+    {(
+        pulseOptions.reduce(
+            (sum, value) =>
+                sum + value,
+            0
+        ) /
+        pulseOptions.length
+    ).toFixed(1)}{" "}
+</button>
 
             </div>
 
@@ -1644,39 +1982,37 @@ className="upload-review-input"
                     )
                 )}
 
-                <button
-                    type="button"
-                    onClick={() => {
+<button
+    type="button"
+    onClick={() => {
 
-                        const average =
-                            Math.round(
-                                spo2Options.reduce(
-                                    (sum, value) =>
-                                        sum + value,
-                                    0
-                                ) /
-                                    spo2Options.length
-                            );
+        const average =
+            spo2Options.reduce(
+                (sum, value) =>
+                    sum + value,
+                0
+            ) /
+            spo2Options.length;
 
-                        updateField(
-                            "spo2",
-                            String(average)
-                        );
+        updateField(
+            "spo2",
+            average.toFixed(1)
+        );
 
-                        setSpo2Options([]);
-                    }}
-                    style={readingOptionButton}
-                >
-                    Average{" "}
-                    {Math.round(
-                        spo2Options.reduce(
-                            (sum, value) =>
-                                sum + value,
-                            0
-                        ) /
-                            spo2Options.length
-                    )}%
-                </button>
+        setSpo2Options([]);
+    }}
+    style={readingOptionButton}
+>
+    Average{" "}
+    {(
+        spo2Options.reduce(
+            (sum, value) =>
+                sum + value,
+            0
+        ) /
+        spo2Options.length
+    ).toFixed(1)}%
+</button>
 
             </div>
 

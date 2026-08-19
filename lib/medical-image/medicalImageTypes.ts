@@ -26,10 +26,18 @@ export interface MedicalImageReadings {
 
   // --------------------------------------------------------
   // Record Health - Multiple Image Reading Selection
-  // Preserve all detected Pulse / SpO₂ values when multiple
-  // uploaded images contain different readings.
+  // Preserve all detected values when multiple uploaded
+  // images contain different readings.
   // The user chooses the value in UploadCareWorkspace.
   // --------------------------------------------------------
+  temperatureValues: number[];
+
+  weightValues: number[];
+
+  systolicValues: number[];
+
+  diastolicValues: number[];
+
   pulseValues: number[];
 
   spo2Values: number[];

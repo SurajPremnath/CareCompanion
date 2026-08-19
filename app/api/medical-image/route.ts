@@ -192,74 +192,130 @@ function parseMedicalReadings(
           )
         : [],
 
-    readings: {
+readings: {
 
-      temperature:
+    temperature:
         toNullableNumber(
-          parsed.temperature
+            parsed.temperature
         ),
 
-      temperatureUnit:
+    temperatureUnit:
         toTemperatureUnit(
-          parsed.temperatureUnit
+            parsed.temperatureUnit
         ),
 
-      weightKg:
+    weightKg:
         toNullableNumber(
-          parsed.weightKg
+            parsed.weightKg
         ),
 
-      systolic:
+    systolic:
         toNullableNumber(
-          parsed.systolic
+            parsed.systolic
         ),
 
-      diastolic:
+    diastolic:
         toNullableNumber(
-          parsed.diastolic
+            parsed.diastolic
         ),
 
-pulse:
-  toNullableNumber(
-    parsed.pulse
-  ),
+    pulse:
+        toNullableNumber(
+            parsed.pulse
+        ),
 
-spo2:
-  toNullableNumber(
-    parsed.spo2
-  ),
+    spo2:
+        toNullableNumber(
+            parsed.spo2
+        ),
 
-      // --------------------------------------------------------
-      // Record Health - Multiple Image Reading Selection
-      // Preserve every valid Pulse value returned by the model.
-      // UploadCareWorkspace lets the user choose the value.
-      // --------------------------------------------------------
-      pulseValues:
+    // --------------------------------------------------------
+    // Record Health - Multiple Image Reading Selection
+    // Preserve every valid Temperature value returned by model.
+    // --------------------------------------------------------
+    temperatureValues:
+        Array.isArray(parsed.temperatureValues)
+            ? parsed.temperatureValues
+                .map(toNullableNumber)
+                .filter(
+                    (value): value is number =>
+                        value !== null
+                )
+            : [],
+
+    // --------------------------------------------------------
+    // Record Health - Multiple Image Reading Selection
+    // Preserve every valid Weight value returned by model.
+    // --------------------------------------------------------
+    weightValues:
+        Array.isArray(parsed.weightValues)
+            ? parsed.weightValues
+                .map(toNullableNumber)
+                .filter(
+                    (value): value is number =>
+                        value !== null
+                )
+            : [],
+
+    // --------------------------------------------------------
+    // Record Health - Multiple Image Reading Selection
+    // Preserve every valid Systolic value returned by model.
+    // --------------------------------------------------------
+    systolicValues:
+        Array.isArray(parsed.systolicValues)
+            ? parsed.systolicValues
+                .map(toNullableNumber)
+                .filter(
+                    (value): value is number =>
+                        value !== null
+                )
+            : [],
+
+    // --------------------------------------------------------
+    // Record Health - Multiple Image Reading Selection
+    // Preserve every valid Diastolic value returned by model.
+    // --------------------------------------------------------
+    diastolicValues:
+        Array.isArray(parsed.diastolicValues)
+            ? parsed.diastolicValues
+                .map(toNullableNumber)
+                .filter(
+                    (value): value is number =>
+                        value !== null
+                )
+            : [],
+
+    // --------------------------------------------------------
+    // Record Health - Multiple Image Reading Selection
+    // Preserve every valid Pulse value returned by model.
+    // UploadCareWorkspace lets the user choose the value.
+    // --------------------------------------------------------
+    pulseValues:
         Array.isArray(parsed.pulseValues)
-          ? parsed.pulseValues
-              .map(toNullableNumber)
-              .filter(
-                (value): value is number =>
-                  value !== null
-              )
-          : [],
+            ? parsed.pulseValues
+                .map(toNullableNumber)
+                .filter(
+                    (value): value is number =>
+                        value !== null
+                )
+            : [],
 
-      // --------------------------------------------------------
-      // Record Health - Multiple Image Reading Selection
-      // Preserve every valid SpO₂ value returned by the model.
-      // UploadCareWorkspace lets the user choose the value.
-      // --------------------------------------------------------
-      spo2Values:
+    // --------------------------------------------------------
+    // Record Health - Multiple Image Reading Selection
+    // Preserve every valid SpO₂ value returned by model.
+    // UploadCareWorkspace lets the user choose the value.
+    // --------------------------------------------------------
+    spo2Values:
         Array.isArray(parsed.spo2Values)
-          ? parsed.spo2Values
-              .map(toNullableNumber)
-              .filter(
-                (value): value is number =>
-                  value !== null
-              )
-          : [],
+            ? parsed.spo2Values
+                .map(toNullableNumber)
+                .filter(
+                    (value): value is number =>
+                        value !== null
+                )
+            : [],
 
-    },
+},
 
 };
 
@@ -563,6 +619,13 @@ const imageDataUrls =
 //   Read each image separately.
 //   Collect Pulse / SpO2 values into arrays.
 // --------------------------------------------------------
+let temperatureValues: number[] = [];
+
+let weightValues: number[] = [];
+
+let systolicValues: number[] = [];
+
+let diastolicValues: number[] = [];
 
 let pulseValues: number[] = [];
 
@@ -647,9 +710,25 @@ text:
 
 "If the same measurement type appears multiple times in this image, preserve all clearly readable values for that measurement type. " +
 
+"For multiple Temperature readings, return all values in temperatureValues. " +
+
+"For multiple Weight readings, return all values in weightValues. " +
+
+"For multiple Systolic readings, return all values in systolicValues. " +
+
+"For multiple Diastolic readings, return all values in diastolicValues. " +
+
 "For multiple Pulse readings, return all values in pulseValues. " +
 
 "For multiple SpO2 readings, return all values in spo2Values. " +
+
+"If exactly one Temperature reading exists, return it in temperature and also include it in temperatureValues. " +
+
+"If exactly one Weight reading exists, return it in weightKg and also include it in weightValues. " +
+
+"If exactly one Systolic reading exists, return it in systolic and also include it in systolicValues. " +
+
+"If exactly one Diastolic reading exists, return it in diastolic and also include it in diastolicValues. " +
 
 "If exactly one Pulse reading exists, return it in pulse and also include it in pulseValues. " +
 
@@ -659,9 +738,10 @@ text:
 
 "Multiple Pulse or SpO2 values are not an error. Preserve them for user selection. " +
 
-  "Return JSON only with exactly these keys: " +
-
-  "isSupportedMedicalImage, hasConflictingReadings, detectedDeviceTypes, temperature, temperatureUnit, weightKg, systolic, diastolic, pulse, spo2, pulseValues, spo2Values. " +
+"Return JSON only with exactly these keys: isSupportedMedicalImage, hasConflictingReadings, detectedDeviceTypes, " +
+"temperature, temperatureUnit, weightKg, systolic, diastolic, pulse, spo2, " +
+"temperatureValues, weightValues, systolicValues, diastolicValues, " +
+"pulseValues, spo2Values. " +
 
   "isSupportedMedicalImage and hasConflictingReadings must be true or false. " +
 
@@ -789,6 +869,38 @@ text:
 
   }
 
+//--------------------------------------------------------
+// Append Temperature Values
+//--------------------------------------------------------
+
+temperatureValues.push(
+  ...currentResponse.readings.temperatureValues
+);
+
+//--------------------------------------------------------
+// Append Weight Values
+//--------------------------------------------------------
+
+weightValues.push(
+  ...currentResponse.readings.weightValues
+);
+
+//--------------------------------------------------------
+// Append Systolic Values
+//--------------------------------------------------------
+
+systolicValues.push(
+  ...currentResponse.readings.systolicValues
+);
+
+//--------------------------------------------------------
+// Append Diastolic Values
+//--------------------------------------------------------
+
+diastolicValues.push(
+  ...currentResponse.readings.diastolicValues
+);
+
   //--------------------------------------------------------
   // Append Pulse Values
   //--------------------------------------------------------
@@ -836,27 +948,57 @@ parsedResponse = {
 
   ...parsedResponse,
 
-  readings: {
+readings: {
+  ...parsedResponse.readings,
 
-    ...parsedResponse.readings,
+  temperature:
+    temperatureValues.length > 0
+      ? temperatureValues[0]
+      : null,
 
-    pulse:
-      pulseValues.length > 0
-        ? pulseValues[0]
-        : null,
+  weightKg:
+    weightValues.length > 0
+      ? weightValues[0]
+      : null,
 
-    spo2:
-      spo2Values.length > 0
-        ? spo2Values[0]
-        : null,
+  systolic:
+    systolicValues.length > 0
+      ? systolicValues[0]
+      : null,
 
-    pulseValues:
-      pulseValues,
+  diastolic:
+    diastolicValues.length > 0
+      ? diastolicValues[0]
+      : null,
 
-    spo2Values:
-      spo2Values,
+  pulse:
+    pulseValues.length > 0
+      ? pulseValues[0]
+      : null,
 
-  },
+  spo2:
+    spo2Values.length > 0
+      ? spo2Values[0]
+      : null,
+
+  temperatureValues:
+    temperatureValues,
+
+  weightValues:
+    weightValues,
+
+  systolicValues:
+    systolicValues,
+
+  diastolicValues:
+    diastolicValues,
+
+  pulseValues:
+    pulseValues,
+
+  spo2Values:
+    spo2Values,
+},
 
 };
 

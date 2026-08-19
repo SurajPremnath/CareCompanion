@@ -147,6 +147,8 @@ symptomVomiting: "Vomiting",
 
 symptomDryMouth: "Dry Mouth",
 
+symptomCold: "Cold",
+
 symptomOther: "Other",
 
 pleaseSpecify:

@@ -177,6 +177,26 @@ const spo2 =
 // Preserve all Pulse / SpO₂ values detected in the OCR text.
 // UploadCareWorkspace decides which reading the user wants.
 // --------------------------------------------------------
+const temperatureValues =
+  temperatureResult.temperature !== null
+    ? [temperatureResult.temperature]
+    : [];
+
+const weightValues =
+  weightKg !== null
+    ? [weightKg]
+    : [];
+
+const systolicValues =
+  systolic !== null
+    ? [systolic]
+    : [];
+
+const diastolicValues =
+  diastolic !== null
+    ? [diastolic]
+    : [];
+
 const pulseValues =
   pulse !== null
     ? [pulse]
@@ -215,6 +235,18 @@ return {
   // UploadCareWorkspace decides whether the user needs to
   // choose between multiple readings.
   // --------------------------------------------------------
+  temperatureValues:
+    temperatureValues,
+
+  weightValues:
+    weightValues,
+
+  systolicValues:
+    systolicValues,
+
+  diastolicValues:
+    diastolicValues,
+
   pulseValues:
     pulseValues,
 
