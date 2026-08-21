@@ -34,6 +34,7 @@ import {
   INSTRUCTIONS_PANEL_RULES,
   MEDICATION_PANEL_RULES,
   FOLLOW_UP_PLAN_PANEL_RULES,
+  DOCTOR_NOTES_IDENTITY_INSTRUCTIONS,
 } from "./panels";
 
 /**
@@ -873,6 +874,8 @@ ${KNOWLEDGE}
 
 ${GLOBAL_EXTRACTION_RULES}
 
+${DOCTOR_NOTES_IDENTITY_INSTRUCTIONS}
+
 ${PANEL_INTELLIGENCE}
 
 ============================================================
@@ -906,11 +909,39 @@ are displayed.
 
 2. DOCUMENT TYPE
 
-For Doctor's Notes mode:
+Determine the actual document type from the uploaded
+document itself.
 
-"documentType": "OTHER"
+Do NOT classify the document based on the application
+workflow or extraction mode.
 
-Do not infer another document type.
+For example:
+
+Prescription:
+"documentType": "PRESCRIPTION"
+
+Doctor's Notes:
+"documentType": "DOCTOR_NOTES"
+
+Lab report:
+"documentType": "LAB_REPORT"
+
+MRI:
+"documentType": "MRI"
+
+CT:
+"documentType": "CT"
+
+PET CT:
+"documentType": "PET_CT"
+
+Use the appropriate supported document type when the
+document can be reliably identified.
+
+If the document is not a Prescription or Doctor's Notes,
+it must NOT be treated as a Permanent consultation document.
+
+------------------------------------------------------------
 
 ------------------------------------------------------------
 

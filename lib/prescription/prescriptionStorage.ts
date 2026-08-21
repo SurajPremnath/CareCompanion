@@ -561,17 +561,7 @@ return savedPrescription;
 
     },
 
-async getPendingMedicationValidation(
-    context: PrescriptionSaveContext
-): Promise<CompletePrescriptionRecord | null> {
 
-    return prescriptionRepository.getPendingMedicationValidation(
-        context.userId,
-        context.recordContext,
-        context.patientId
-    );
-
-},
 
 //------------------------------------------------------------
 // Update Pending Medicines

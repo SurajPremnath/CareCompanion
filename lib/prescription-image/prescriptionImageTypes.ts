@@ -70,19 +70,20 @@ export interface ExtractedPrescriptionMedicine {
 
     matchStatus?: MedicineMatchStatus;
 
-resolvedMedicineId?: string;
+    resolvedMedicineId?: string;
 
-resolvedMedicineName?: string;
+    resolvedMedicineName?: string;
 
-/*
-What caregiver typed while correcting OCR.
-Used for audit.
-*/
+    /*
+    What caregiver typed while correcting OCR.
+    Used for audit.
+    */
 
-userUpdatedMedicineName?: string;
+    userUpdatedMedicineName?: string;
 
-suggestedMedicines?: SuggestedMedicine[];
+    suggestedMedicines?: SuggestedMedicine[];
 }
+
 //------------------------------------------------------------
 // Consultation Understanding
 //------------------------------------------------------------
@@ -171,19 +172,20 @@ export interface ExtractedTestAdvised {
 //------------------------------------------------------------
 
 export type MedicalDocumentType =
-  | "PRESCRIPTION"
-  | "DISCHARGE_SUMMARY"
-  | "ADMISSION_NOTE"
-  | "LAB_REPORT"
-  | "MRI"
-  | "CT"
-  | "PET_CT"
-  | "HISTOPATHOLOGY"
-  | "IHC"
-  | "NGS"
-  | "ECHO"
-  | "ECG"
-  | "OTHER";
+    | "PRESCRIPTION"
+    | "DOCTOR_NOTES"
+    | "OTHER"
+    | "DISCHARGE_SUMMARY"
+    | "ADMISSION_NOTE"
+    | "LAB_REPORT"
+    | "MRI"
+    | "CT"
+    | "PET_CT"
+    | "HISTOPATHOLOGY"
+    | "IHC"
+    | "NGS"
+    | "ECHO"
+    | "ECG";
 
 
 //------------------------------------------------------------

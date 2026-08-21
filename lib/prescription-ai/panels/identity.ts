@@ -213,97 +213,220 @@ document:
 4. CONSULTATION DATE
 ============================================================
 
-Extract the date associated with the doctor's consultation
-or clinical note.
+Extract the date that represents the doctor's clinical
+consultation, visit, encounter, prescription, or clinical note.
 
-Read the date carefully and character by character.
+IMPORTANT:
 
-Look for:
+Dates may appear ANYWHERE in the document.
 
-- date beside the consultation/note heading
-- consultation date
-- visit date
-- date/time beside the doctor's name
-- note header date
-- encounter date
-- printed clinical-note timestamp
-- handwritten consultation date
-- dated note sections
+Do NOT assume the consultation date is:
 
-The date may appear in formats such as:
+- beside the doctor's name
+- at the top of the page
+- the first date found
+- the most recent date
+- the earliest date
 
-- 10 July 2026
-- 10 Jul 2026
-- 10-07-2026
-- 10/07/2026
-- 2026-07-10
-- 10 July 2026 02:10:28 PM
+First identify what each date represents.
 
-Convert the identified consultation date to:
+Then select the date that represents the clinical encounter.
+
+============================================================
+5. DOCUMENT TYPE AND DATE MEANING
+============================================================
+
+Before selecting consultationDate, determine what type of
+document has been supplied and what each visible date
+represents.
+
+-------------------------
+PRESCRIPTION / DOCTOR NOTE
+-------------------------
+
+For a prescription or doctor's note, consider dates with
+these meanings as potential consultation dates:
+
+- CONSULTATION_DATE
+- VISIT_DATE
+- ENCOUNTER_DATE
+- PRESCRIPTION_DATE
+- NOTE_DATE
+
+Also consider an unlabeled date when its surrounding
+clinical context clearly associates it with the doctor's
+consultation or clinical note.
+
+If there is only ONE plausible clinical date in a
+prescription or doctor's note, use that date even if it has
+no explicit label.
+
+-------------------------
+LAB REPORT
+-------------------------
+
+If the document is a laboratory report, identify laboratory
+dates but do NOT treat them as consultation dates.
+
+Laboratory dates include:
+
+- LAB_REGISTRATION_DATE
+- LAB_COLLECTION_DATE
+- LAB_RECEIVED_DATE
+- LAB_REPORT_DATE
+- LAB_VERIFIED_DATE
+
+These dates describe the laboratory investigation.
+
+They must NOT become consultationDate merely because they
+are the only dates visible in the document.
+
+-------------------------
+DIAGNOSTIC / TEST REPORT
+-------------------------
+
+If the document is a diagnostic or test report, identify
+investigation dates but do NOT treat them as consultation
+dates.
+
+Investigation dates include:
+
+- STUDY_DATE
+- SCAN_DATE
+- TEST_DATE
+- EXAMINATION_DATE
+- LAB_REPORT_DATE
+
+These dates describe the diagnostic investigation.
+
+They must NOT become consultationDate merely because they
+are the only dates visible in the document.
+
+-------------------------
+OTHER DATES
+-------------------------
+
+Do not treat these as consultation dates merely because they
+contain a date or year:
+
+- PRINTED_DATE
+- document generation date
+- doctor qualification dates
+- registration identifiers
+- medication start/end dates
+- follow-up dates
+- dates belonging to another investigation
+- dates belonging to another doctor
+- historical dates
+
+Classify them according to what they actually represent.
+
+============================================================
+6. CONSULTATION DATE SELECTION PRIORITY
+============================================================
+
+For PRESCRIPTION_OR_DOCTOR_NOTE documents, select the
+consultation date using this priority:
+
+1. Explicit CONSULTATION_DATE
+
+2. Explicit VISIT_DATE
+
+3. Explicit ENCOUNTER_DATE
+
+4. Explicit PRESCRIPTION_DATE
+
+5. NOTE_DATE when it clearly represents the current
+   clinical consultation or clinical note
+
+6. An unlabeled date clearly associated with the current
+   clinical consultation or clinical note
+
+7. If only ONE plausible clinical date remains in the
+   prescription or doctor's note, use that date.
+
+When multiple dates are present, choose the date whose
+MEANING most directly represents the clinical encounter.
+
+Examples:
+
+Consultation Date + Printed Date
+→ use Consultation Date
+
+Visit Date + Vital Date + Printed Date
+→ use Visit Date
+
+Prescription Date + Follow-up Date
+→ use Prescription Date
+
+Visit Date + Prescription Date
+→ prefer Visit Date when both refer to the same encounter
+
+A date must NOT be selected merely because:
+
+- it is near the doctor's name
+- it is at the top of the page
+- it is the first date found
+- it is the latest date
+- it is the earliest date
+- it has the highest visual confidence
+
+The semantic meaning and clinical context of the date
+determine whether it is the consultation date.
+
+============================================================
+7. DATE READING
+============================================================
+
+After identifying which date represents the consultation,
+read that date directly from the supplied document.
+
+Read every visible digit and separator carefully.
+
+For handwritten dates:
+
+- inspect each digit individually
+- inspect each separator individually
+- do not guess unclear digits
+- do not reconstruct missing digits
+- do not replace a digit because another date seems more
+  plausible
+
+Normalize the selected consultation date to:
 
 YYYY-MM-DD
 
-Example:
-
-"10 July 2026 02:10:28 PM"
-
-must produce:
-
-"2026-07-10"
-
-============================================================
-5. DATE PRIORITY
-============================================================
-
-When multiple dates appear in the document, determine which
-date represents the doctor's consultation/note.
-
-PRIORITY ORDER:
-
-1. Explicit consultation/visit/encounter date
-2. Date in the clinical note header
-3. Date/time directly associated with the doctor/note
-4. Printed note date when it clearly represents the note
-5. Other supporting document metadata
-
-Do NOT use:
-
-- today's date
-- current system date
-- upload date
-- file creation date
-- filename date
-- patient's date of birth
-- prescription expiry date
-- medication start/end date
-- laboratory collection date
-- investigation report date
-- future follow-up date
-
-unless the document explicitly identifies that date as the
-consultation/note date.
-
-============================================================
-6. CRITICAL DATE RULE
-============================================================
-
-NEVER substitute today's date when consultationDate cannot
-be extracted.
-
-If the consultation date is not reliably visible:
+If the visible date cannot be reliably read:
 
 "consultationDate": null
 
-Do not guess.
+============================================================
+8. CRITICAL DATE RULE
+============================================================
 
-Do not calculate.
+NEVER substitute today's date.
 
-Do not use the date on which CareVR™ processed the document.
+NEVER use the upload date.
 
-Do not use the date on which the user uploaded the document.
+NEVER use the application processing date.
+
+NEVER use the filename date.
+
+NEVER use a laboratory investigation date as a
+consultation date.
+
+NEVER use a diagnostic/test investigation date as a
+consultation date.
+
+NEVER infer a date that is not visibly supported by the
+document.
+
+If no reliable consultation date exists:
+
+"consultationDate": null
 
 ============================================================
-7. CONSULTATION MODE
+9. CONSULTATION MODE
 ============================================================
 
 Extract consultationMode only when the document clearly
@@ -348,7 +471,7 @@ If not reliably determined:
 "consultationMode": null
 
 ============================================================
-8. HOSPITAL / CLINIC
+10. HOSPITAL / CLINIC
 ============================================================
 
 Extract hospitalOrClinic when clearly visible.
@@ -373,7 +496,7 @@ If not reliably determined:
 "hospitalOrClinic": null
 
 ============================================================
-9. CROSS-CHECK BEFORE RETURNING
+11. CROSS-CHECK BEFORE RETURNING
 ============================================================
 
 Before returning the identity fields, verify:

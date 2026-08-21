@@ -11,3 +11,4 @@ export * from "./testsAdvisedPanel";
 export * from "./instructionsPanel";
 export * from "./medicationPanel";
 export * from "./followUpPlanPanel";
+export * from "./identity";

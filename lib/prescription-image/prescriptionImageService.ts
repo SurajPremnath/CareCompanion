@@ -13,8 +13,8 @@ import {
 
 export const prescriptionImageService = {
 
-async processFiles(
-    files: File[],
+async processFile(
+    file: File,
     mode: "PRESCRIPTION" | "DOCTOR_NOTES" = "PRESCRIPTION"
 ): Promise<PrescriptionImageProcessingResult> {
 
@@ -25,20 +25,18 @@ async processFiles(
       // Validate Files
       //------------------------------------------------------
 
-      if (
-        files.length === 0
-      ) {
+if (!file) {
 
-        return {
+    return {
 
-          success: false,
+        success: false,
 
-          error:
-            "No prescription document was selected.",
+        error:
+            "No medical document was selected.",
 
-        };
+    };
 
-      }
+}
 
 
       //------------------------------------------------------
@@ -80,15 +78,10 @@ async processFiles(
 const formData =
     new FormData();
 
-
-for (const file of files) {
-
-    formData.append(
-        "documents",
-        file
-    );
-
-}
+formData.append(
+    "documents",
+    file
+);
 
 formData.append(
     "mode",

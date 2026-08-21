@@ -1793,31 +1793,6 @@ notes:
         return prescriptions;
     },
 
-async getPendingMedicationValidation(
-    userId: string,
-    recordContext: "SELF" | "FAMILY",
-    patientId: string | null
-): Promise<CompletePrescriptionRecord | null> {
-
-    const prescriptions =
-        await this.getPatientPrescriptions(
-            userId,
-            recordContext,
-            patientId
-        );
-
-    const pendingPrescription =
-        prescriptions.find(
-            prescription =>
-                prescription.medicines.some(
-                    medicine =>
-                        medicine.validationStatus === "PENDING"
-                )
-        );
-
-    return pendingPrescription ?? null;
-
-},
 
 //------------------------------------------------------------
 // Update Pending Medicines

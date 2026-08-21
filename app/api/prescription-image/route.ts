@@ -50,10 +50,6 @@ const MAX_FILE_SIZE_BYTES =
   10 * 1024 * 1024;
 
 
-const MAX_IMAGE_FILES = 5;
-const MAX_PDF_FILES = 5;
-
-
 const SUPPORTED_IMAGE_TYPES =
   new Set([
     "image/jpeg",
@@ -207,11 +203,26 @@ function toDocumentType(
   value: unknown
 ): MedicalDocumentType {
 
-  if (value === "PRESCRIPTION") {
-    return "PRESCRIPTION";
+  if (
+    value === "PRESCRIPTION" ||
+    value === "DOCTOR_NOTES" ||
+    value === "OTHER" ||
+    value === "DISCHARGE_SUMMARY" ||
+    value === "ADMISSION_NOTE" ||
+    value === "LAB_REPORT" ||
+    value === "MRI" ||
+    value === "CT" ||
+    value === "PET_CT" ||
+    value === "HISTOPATHOLOGY" ||
+    value === "IHC" ||
+    value === "NGS" ||
+    value === "ECHO" ||
+    value === "ECG"
+  ) {
+    return value;
   }
 
-  return "PRESCRIPTION";
+  return "OTHER";
 }
 
 //------------------------------------------------------------
@@ -252,46 +263,48 @@ function parseMedicine(
   }
 
 
-  return {
+return {
 
-    name,
+  name,
 
-    strength:
-      toNullableString(
-        medicine.strength
-      ),
+  strength:
+    toNullableString(
+      medicine.strength
+    ),
 
-    form:
-      toNullableString(
-        medicine.form
-      ),
+  form:
+    toNullableString(
+      medicine.form
+    ),
 
-    dose:
-      toNullableString(
-        medicine.dose
-      ),
+  dose:
+    toNullableString(
+      medicine.dose
+    ),
 
-    frequency:
-      toNullableString(
-        medicine.frequency
-      ),
+  frequency:
+    toNullableString(
+      medicine.frequency
+    ),
 
-    timings:
-      toStringArray(
-        medicine.timings
-      ),
+  timings:
+    toStringArray(
+      medicine.timings
+    ),
 
-    duration:
-      toNullableString(
-        medicine.duration
-      ),
+  duration:
+    toNullableString(
+      medicine.duration
+    ),
 
-    instructions:
-      toNullableString(
-        medicine.instructions
-      ),
+  instructions:
+    toNullableString(
+      medicine.instructions
+    ),
 
-  };
+  
+
+};
 
 }
 
@@ -710,9 +723,20 @@ consultationVitals:
 
 
   doctorInstructions:
-    toStringArray(
-      parsed.doctorInstructions
-    ),
+  Array.isArray(parsed.doctorInstructions)
+    ? parsed.doctorInstructions
+        .map(
+          item =>
+            typeof item === "string"
+              ? item.trim()
+              : item &&
+                typeof item === "object" &&
+                typeof (item as { instruction?: unknown }).instruction === "string"
+                ? (item as { instruction: string }).instruction.trim()
+                : ""
+        )
+        .filter(Boolean)
+    : [],
 
 
   followUpPlan:
@@ -890,180 +914,96 @@ const extractionMode =
 
     doctorNotesQaMode = extractionMode === "DOCTOR_NOTES";
 
-    const documentEntries =
-      formData.getAll(
-        "documents"
-      );
+const documentEntries =
+  formData.getAll(
+    "documents"
+  );
 
-    const documents =
-      documentEntries.filter(
-        (
-          item
-        ): item is File =>
-          item instanceof File
-      );
+const documents =
+  documentEntries.filter(
+    (
+      item
+    ): item is File =>
+      item instanceof File
+  );
 
-    doctorNotesQaDocuments = documents.map(
-      document => document.name
-    );
+doctorNotesQaDocuments = documents.map(
+  document => document.name
+);
 
+if (
+  documents.length !== 1
+) {
 
-    if (
-      documents.length === 0
-    ) {
-
-      return NextResponse.json(
-        {
-          error:
-            "No prescription document was provided.",
-        },
-        {
-          status: 400,
-        }
-      );
-
+  return NextResponse.json(
+    {
+      error:
+        "Exactly one medical document must be processed per request.",
+    },
+    {
+      status: 400
     }
+  );
+
+}
+
+const document =
+  documents[0];
 
 
     //--------------------------------------------------------
     // Validate File Sizes
     //--------------------------------------------------------
 
-    for (const document of documents) {
+if (
+  document.size >
+  MAX_FILE_SIZE_BYTES
+) {
 
-      if (
-        document.size >
-        MAX_FILE_SIZE_BYTES
-      ) {
-
-        return NextResponse.json(
-          {
-            error:
-              "A selected file is too large. Maximum allowed size is 10 MB per file.",
-          },
-          {
-            status: 400,
-          }
-        );
-
-      }
-
+  return NextResponse.json(
+    {
+      error:
+        "The selected file is too large. Maximum allowed size is 10 MB.",
+    },
+    {
+      status: 400,
     }
+  );
+
+}
 
 
     //--------------------------------------------------------
     // Determine Upload Type
     //--------------------------------------------------------
 
-    const pdfDocuments =
-      documents.filter(
-        document =>
-          document.type ===
-          PDF_TYPE
-      );
+const isPdf =
+  document.type ===
+  PDF_TYPE;
 
+const isImage =
+  SUPPORTED_IMAGE_TYPES.has(
+    document.type
+  );
 
-    const imageDocuments =
-      documents.filter(
-        document =>
-          SUPPORTED_IMAGE_TYPES.has(
-            document.type
-          )
-      );
-
-
-    const unsupportedDocuments =
-      documents.filter(
-        document =>
-          document.type !==
-            PDF_TYPE &&
-          !SUPPORTED_IMAGE_TYPES.has(
-            document.type
-          )
-      );
-
-
-    if (
-      unsupportedDocuments.length > 0
-    ) {
-
-      return NextResponse.json(
-        {
-          error:
-            "Unsupported file format. Please use JPG, PNG, WebP, or PDF.",
-        },
-        {
-          status: 400,
-        }
-      );
-
-    }
-
-
-    //--------------------------------------------------------
-    // Prevent Mixed PDF + Image Set
-    //--------------------------------------------------------
-
-    if (
-      pdfDocuments.length > 0 &&
-      imageDocuments.length > 0
-    ) {
-
-      return NextResponse.json(
-        {
-          error:
-            "Please upload either one PDF or a set of photos, not both together.",
-        },
-        {
-          status: 400,
-        }
-      );
-
-    }
-
-
-//--------------------------------------------------------
-// Validate PDF Count
-//--------------------------------------------------------
 
 if (
-    pdfDocuments.length >
-    MAX_PDF_FILES
+  !isPdf &&
+  !isImage
 ) {
-    return NextResponse.json(
-        {
-            error:
-                `You can upload up to ${MAX_PDF_FILES} PDF documents at a time.`,
-        },
-        {
-            status: 400,
-        }
-    );
-}
 
-
-    //--------------------------------------------------------
-    // Validate Image Count
-    //--------------------------------------------------------
-
-    if (
-      imageDocuments.length >
-      MAX_IMAGE_FILES
-    ) {
-
-      return NextResponse.json(
-        {
-          error:
-            `You can upload up to ${MAX_IMAGE_FILES} photos at a time.`,
-        },
-        {
-          status: 400,
-        }
-      );
-
+  return NextResponse.json(
+    {
+      error:
+        "Unsupported file format. Please use JPG, PNG, WebP, or PDF.",
+    },
+    {
+      status: 400,
     }
+  );
 
-
+}
+ 
     //--------------------------------------------------------
     // OpenAI Client
     //--------------------------------------------------------
@@ -1097,74 +1037,73 @@ if (
             type:
               "input_text",
 
-text:
+ text:
     extractionMode === "DOCTOR_NOTES"
-        ? DOCTOR_NOTES_EXTRACTION_INSTRUCTIONS
-        : EXTRACTION_INSTRUCTIONS,
-          },
-        ];
+      ? DOCTOR_NOTES_EXTRACTION_INSTRUCTIONS
+      : EXTRACTION_INSTRUCTIONS,
+ 
+      }
+    ];
 
+//--------------------------------------------------------
+// Add Image Inputs
+//--------------------------------------------------------
 
-    //--------------------------------------------------------
-    // Add Image Inputs
-    //--------------------------------------------------------
+if (isImage) {
 
-    for (
-      const image of imageDocuments
-    ) {
-
-      const imageBuffer =
+    const imageBuffer =
         Buffer.from(
-          await image.arrayBuffer()
+            await document.arrayBuffer()
         );
 
-
-      const base64Image =
+    const base64Image =
         imageBuffer.toString(
-          "base64"
+            "base64"
         );
 
-
-      content.push({
+    content.push({
 
         type:
-          "input_image",
+            "input_image",
 
         image_url:
-          `data:${image.type};base64,${base64Image}`,
+            `data:${document.type};base64,${base64Image}`,
 
         detail:
-          "high",
+            "high",
 
-      });
+    });
 
-    }
+}
 
 
     //--------------------------------------------------------
     // Add PDF Input
     //--------------------------------------------------------
 
-for (
-    const pdf of pdfDocuments
-) {
+if (isPdf) {
+
     const pdfBuffer =
         Buffer.from(
-            await pdf.arrayBuffer()
+            await document.arrayBuffer()
         );
 
     const uploadedPdf =
         await openai.files.create({
+
             file:
                 await toFile(
                     pdfBuffer,
-                    pdf.name,
+                    document.name,
                     {
-                        type: PDF_TYPE,
+                        type:
+                            PDF_TYPE,
                     }
                 ),
+
             purpose:
                 "user_data",
+
         });
 
     uploadedPdfFileIds.push(
@@ -1172,11 +1111,15 @@ for (
     );
 
     content.push({
+
         type:
             "input_file",
+
         file_id:
             uploadedPdf.id,
+
     });
+
 }
 
 
@@ -1216,6 +1159,8 @@ console.log(
     "DOCTOR NOTES RAW AI OUTPUT:",
     outputText
 );
+
+
 
 if (!outputText) {
 
