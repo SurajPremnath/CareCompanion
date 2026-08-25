@@ -4,10 +4,6 @@ import { supabase } from "@/lib/supabase";
 const DAD_PATIENT_ID =
     "8d0abd84-3828-4292-b7b0-8772e4b7b5ad";
 
-const END_DATE =
-    new Date()
-        .toISOString();
-
 
 export interface ClinicalTrendSummary {
 
@@ -27,7 +23,10 @@ export interface ClinicalTrendSummary {
 
 
 
-export async function buildClinicalTrends():
+export async function buildClinicalTrends(
+    startDate: string,
+    endDate: string
+):
 
 Promise<ClinicalTrendSummary[]> {
 
@@ -55,12 +54,12 @@ weight_kg
 
 .gte(
     "recorded_at",
-    "2026-07-10 00:00:00"
+    `${startDate} 00:00:00`
 )
 
 .lte(
     "recorded_at",
-    END_DATE
+    `${endDate} 23:59:59`
 )
 
 .order(

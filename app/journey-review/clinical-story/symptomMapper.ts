@@ -21,7 +21,20 @@ export const symptomLabels: Record<string,string> = {
         "Cough",
 
 
+DIZZINESS:
+    "Dizziness",
+
+GIDDINESS:
+    "Giddiness",
+
+VOMITING:
+    "Vomiting",
+
+WALKING_DIFFICULTY:
+    "Walking difficulty",
+
     OTHER:
         "Other symptoms"
+
 
 };

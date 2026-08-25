@@ -35,6 +35,7 @@ systolic,
 diastolic,
 weight_kg,
 symptoms,
+other_symptom,
 recorded_at
 `
         )
@@ -71,46 +72,105 @@ await supabase
     );
 
 
+const {
+    data: dailyCareSymptoms,
+    error: dailyCareSymptomsError
+} =
+await supabase
+    .from("daily_care_symptoms")
+    .select(
+        `
+        symptom_key
+        `
+    )
+    .eq(
+        "patient_id",
+        DAD_PATIENT_ID
+    );
+
+
     const records =
         dailyCare ?? [];
 
 
+const symptomValues =
+    (dailyCareSymptoms ?? [])
+        .map(record =>
+            record.symptom_key
+        )
+        .filter(
+            (value): value is string =>
+                Boolean(value)
+        );
+
+
 const clinicalTimeline =
-    records.map(record => ({
+    records.map(record => {
 
-        date:
-            record.recorded_at,
-
-
-        symptoms:
+        const recordSymptoms =
             Array.isArray(record.symptoms)
                 ? record.symptoms
-                : [],
+                    .filter(
+                        (symptom): symptom is string =>
+                            typeof symptom === "string"
+                    )
+                    .map(symptom =>
+                        symptom.toLowerCase()
+                    )
+                : [];
 
+        const otherSymptom =
+            typeof record.other_symptom === "string" &&
+            record.other_symptom.trim()
+                ? record.other_symptom
+                    .trim()
+                    .toLowerCase()
+                : null;
 
-        vitals: {
+        const symptomsForDate =
+            [
+                ...recordSymptoms,
+                ...(otherSymptom
+                    ? [otherSymptom]
+                    : [])
+            ]
+            .filter(symptom =>
+                symptomValues.includes(symptom)
+            );
 
-            temperature:
-                record.temperature,
+        return {
+            date:
+                record.recorded_at,
 
-            pulse:
-                record.pulse,
+            symptoms:
+                Array.from(
+                    new Set(
+                        symptomsForDate
+                    )
+                ),
 
-            spo2:
-                record.spo2,
+            vitals: {
+                temperature:
+                    record.temperature,
 
-            systolic:
-                record.systolic,
+                pulse:
+                    record.pulse,
 
-            diastolic:
-                record.diastolic,
+                spo2:
+                    record.spo2,
 
-            weight:
-                record.weight_kg
+                systolic:
+                    record.systolic,
 
-        }
+                diastolic:
+                    record.diastolic,
 
-    }));
+                weight:
+                    record.weight_kg
+            }
+        };
+    });
+
 
 
 const assessmentRecords =

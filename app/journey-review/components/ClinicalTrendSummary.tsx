@@ -36,6 +36,281 @@ import {
     trendReportPdf
 } from "@/lib/pdf/trendReportPdf";
 
+import {
+    buildPatient,
+} from "@/app/journey-review/data/patient";
+
+
+const REPORT_PERIOD_DAYS = 21;
+
+const INITIAL_REPORT_START =
+    "2026-07-10";
+
+const INITIAL_REPORT_END =
+    "2026-08-03";
+
+
+interface ReportPeriod {
+    start: string;
+    end: string;
+    label: string;
+    isCurrent: boolean;
+}
+
+function calculateAge(
+    dateOfBirth: string | null | undefined
+): number | null {
+
+    if (!dateOfBirth) {
+        return null;
+    }
+
+    const birthDate =
+        new Date(dateOfBirth);
+
+    if (
+        Number.isNaN(
+            birthDate.getTime()
+        )
+    ) {
+        return null;
+    }
+
+    const today =
+        new Date();
+
+    let age =
+        today.getFullYear() -
+        birthDate.getFullYear();
+
+    const monthDifference =
+        today.getMonth() -
+        birthDate.getMonth();
+
+    if (
+        monthDifference < 0 ||
+        (
+            monthDifference === 0 &&
+            today.getDate() <
+                birthDate.getDate()
+        )
+    ) {
+        age--;
+    }
+
+    return age;
+
+}
+
+
+function toLocalDateString(
+    date: Date
+): string {
+
+    const year =
+        date.getFullYear();
+
+    const month =
+        String(
+            date.getMonth() + 1
+        ).padStart(2, "0");
+
+    const day =
+        String(
+            date.getDate()
+        ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+
+function formatJourneyDate(
+    dateString: string
+): string {
+
+    const [
+        year,
+        month,
+        day
+    ] =
+        dateString
+            .split("-")
+            .map(Number);
+
+    return new Intl.DateTimeFormat(
+        "en-GB",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }
+    ).format(
+        new Date(
+            year,
+            month - 1,
+            day
+        )
+    );
+}
+
+
+function buildReportPeriods(): ReportPeriod[] {
+
+    const periods: ReportPeriod[] = [];
+
+    const today =
+        new Date()
+            .toISOString()
+            .split("T")[0];
+
+
+    // --------------------------------------------------
+    // Period 1 — fixed initial CareVR timeline period
+    // --------------------------------------------------
+
+    periods.push({
+
+        start:
+            INITIAL_REPORT_START,
+
+        end:
+            INITIAL_REPORT_END <= today
+                ? INITIAL_REPORT_END
+                : today,
+
+        label:
+            `${formatReportDate(
+                INITIAL_REPORT_START
+            )} - ` +
+
+            `${formatReportDate(
+                INITIAL_REPORT_END <= today
+                    ? INITIAL_REPORT_END
+                    : today
+            )}`,
+
+        isCurrent:
+            INITIAL_REPORT_END > today,
+
+    });
+
+
+    // --------------------------------------------------
+    // Subsequent periods
+    // --------------------------------------------------
+
+    let periodStart =
+        new Date(
+            `${INITIAL_REPORT_END}T00:00:00`
+        );
+
+
+    periodStart.setDate(
+        periodStart.getDate() + 1
+    );
+
+
+    while (
+
+        periodStart
+            .toISOString()
+            .split("T")[0] <= today
+
+    ) {
+
+        const start =
+            periodStart
+                .toISOString()
+                .split("T")[0];
+
+
+        const periodEnd =
+            new Date(
+                periodStart
+            );
+
+
+        periodEnd.setDate(
+
+            periodEnd.getDate()
+                + REPORT_PERIOD_DAYS
+                - 1
+
+        );
+
+
+        const calculatedEnd =
+            periodEnd
+                .toISOString()
+                .split("T")[0];
+
+
+        const isCurrent =
+            calculatedEnd > today;
+
+
+        const end =
+            isCurrent
+                ? today
+                : calculatedEnd;
+
+
+        periods.push({
+
+            start,
+
+            end,
+
+            label:
+                `${formatReportDate(start)} - ` +
+                `${formatReportDate(end)}`,
+
+            isCurrent,
+
+        });
+
+
+        if (isCurrent) {
+
+            break;
+
+        }
+
+
+        periodStart =
+            new Date(
+                periodEnd
+            );
+
+
+        periodStart.setDate(
+            periodStart.getDate() + 1
+        );
+
+    }
+
+
+    return periods;
+
+}
+
+function formatReportDate(
+    dateString: string
+): string {
+
+    return new Date(
+        `${dateString}T00:00:00`
+    ).toLocaleDateString(
+        "en-GB",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        }
+    );
+
+}
+
 /*
 --------------------------------------------------
 ICON SYSTEM
@@ -529,15 +804,38 @@ export default function ClinicalTrends({
 
 }: Props){
 
+const reportPeriods =
+    buildReportPeriods();
 
-    const [trends,setTrends] =
-        useState<ClinicalTrendSummary[]>([]);
+const [selectedPeriod, setSelectedPeriod] =
+    useState<ReportPeriod | null>(
+        null
+    );
+
+
+const [generateRequested, setGenerateRequested] =
+    useState(false);
+
+
+const [trends,setTrends] =
+    useState<ClinicalTrendSummary[]>([]);
 
 const [selectedInsight, setSelectedInsight] =
     useState<string | null>(null);
 
-const [downloadingPdf, setDownloadingPdf] =
+const [downloadingPdf,setDownloadingPdf] =
     useState(false);
+
+const [generating,setGenerating] =
+    useState(false);
+
+const [progress,setProgress] =
+    useState(0);
+
+const [message,setMessage] =
+    useState(
+        "Select a reporting period"
+    );
 
 async function handleGeneratePdf() {
 
@@ -545,29 +843,52 @@ async function handleGeneratePdf() {
 
         setDownloadingPdf(true);
 
+const careVrPatient =
+    buildPatient();
+
+
 const pdfBytes =
     await trendReportPdf.generate(
 
-        trends.map(
-            trend => ({
+trends.map(
+    trend => ({
 
-                parameter: trend.parameter,
+        parameter:
+            trend.parameter,
 
-                status:
-                    trendMeta[
-                        trend.parameter
-                    ]?.status ?? "Unknown",
+        status:
+            trendMeta[
+                trend.parameter
+            ]?.status ?? "Unknown",
 
-                current: trend.current,
+        current:
+            trend.current,
 
-                minimum: trend.minimum,
+        periods: [
 
-                maximum: trend.maximum,
+            {
 
-                average: trend.average
+                label:
+                    "Current",
 
-            })
-        ),
+                current:
+                    trend.current,
+
+                minimum:
+                    trend.minimum,
+
+                maximum:
+                    trend.maximum,
+
+                average:
+                    trend.average
+
+            }
+
+        ]
+
+    })
+),
 
         {
 
@@ -577,9 +898,11 @@ const pdfBytes =
 
             sex: patient.gender,
 
-            hospitalName: patient.hospital,
+                doctorName:
+        careVrPatient.doctor,
 
-            doctorName: patient.doctor
+    hospitalName:
+        careVrPatient.hospital,
 
         }
 
@@ -641,26 +964,75 @@ link.download =
 }
 
 
-    useEffect(()=>{
+useEffect(() => {
+
+    if (
+        !generateRequested ||
+        !selectedPeriod?.start ||
+        !selectedPeriod?.end
+    ) {
+        return;
+    }
+
+    const startDate =
+        selectedPeriod.start;
+
+    const endDate =
+        selectedPeriod.end;
+
+    let cancelled = false;
 
 
-        async function load(){
+    async function loadClinicalTrends() {
 
+        try {
 
             const data =
-                await buildClinicalTrends();
+                await buildClinicalTrends(
+                    startDate,
+                    endDate
+                );
 
 
-            setTrends(data);
+            if (!cancelled) {
 
+                setTrends(data);
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Unable to generate Clinical Trends.",
+                error
+            );
+
+        } finally {
+
+            if (!cancelled) {
+
+                setGenerateRequested(false);
+
+            }
 
         }
 
+    }
 
-        load();
+
+    loadClinicalTrends();
 
 
-    },[]);
+    return () => {
+
+        cancelled = true;
+
+    };
+
+}, [
+    generateRequested,
+    selectedPeriod
+]);
 
 
 
@@ -671,6 +1043,246 @@ return (
             space-y-8
         "
     >
+
+        {/* ==================================================
+            CLINICAL TRENDS REPORTING PERIOD
+        ================================================== */}
+
+        <div
+            className="
+                w-full
+                rounded-2xl
+                border
+                border-slate-200
+                bg-white
+                p-6
+                shadow-sm
+            "
+        >
+
+            <div
+                className="
+                    text-center
+                "
+            >
+
+                <h2
+                    className="
+                        text-xl
+                        font-bold
+                        text-slate-900
+                    "
+                >
+                    Clinical Trends
+                </h2>
+
+
+                <p
+                    className="
+                        mt-2
+                        text-sm
+                        text-slate-500
+                    "
+                >
+                    Select reporting period
+                </p>
+
+
+                <div
+                    className="
+                        mx-auto
+                        mt-5
+                        flex
+                        w-full
+                        max-w-xl
+                        flex-col
+                        gap-3
+                    "
+                >
+
+                    {reportPeriods.map(
+                        period => {
+
+                            const isSelected =
+                                selectedPeriod?.start ===
+                                    period.start;
+
+
+                            return (
+
+                                <button
+                                    key={
+                                        period.start
+                                    }
+                                    type="button"
+                                    onClick={() =>
+                                        setSelectedPeriod(
+                                            period
+                                        )
+                                    }
+                                    className={`
+                                        w-full
+                                        rounded-xl
+                                        border
+                                        px-4
+                                        py-3
+                                        text-left
+                                        transition
+
+                                        ${
+                                            isSelected
+                                                ? `
+                                                    border-2
+                                                    border-[#5630e8]
+                                                    bg-[#f5f3ff]
+                                                  `
+                                                : `
+                                                    border-slate-200
+                                                    bg-white
+                                                    hover:bg-slate-50
+                                                  `
+                                        }
+                                    `}
+                                >
+
+                                    <div
+                                        className="
+                                            flex
+                                            items-center
+                                            justify-between
+                                            gap-3
+                                        "
+                                    >
+
+                                        <span
+                                            className={`
+                                                text-sm
+                                                ${
+                                                    isSelected
+                                                        ? "font-bold"
+                                                        : "font-semibold"
+                                                }
+                                                text-slate-900
+                                            `}
+                                        >
+                                            {period.label}
+                                        </span>
+
+
+                                        {period.isCurrent && (
+
+                                            <span
+                                                className="
+                                                    shrink-0
+                                                    text-xs
+                                                    font-bold
+                                                    text-[#5630e8]
+                                                "
+                                            >
+                                                Current
+                                            </span>
+
+                                        )}
+
+                                    </div>
+
+                                </button>
+
+                            );
+
+                        }
+                    )}
+
+                </div>
+
+
+                {selectedPeriod && (
+
+                    <div
+                        className="
+                            mt-4
+                            text-sm
+                            text-slate-500
+                        "
+                    >
+                        Selected period:
+                        {" "}
+
+                        <span
+                            className="
+                                font-semibold
+                                text-slate-700
+                            "
+                        >
+                            {selectedPeriod.label}
+                        </span>
+
+                    </div>
+
+                )}
+
+
+                {/* ==================================================
+                    GENERATE CLINICAL TREND REPORT
+                ================================================== */}
+
+                <button
+                    type="button"
+                    disabled={
+                        !selectedPeriod
+                    }
+                    onClick={() => {
+
+                        if (
+                            !selectedPeriod
+                        ) {
+                            return;
+                        }
+
+                        setTrends([]);
+
+                        setGenerateRequested(true);
+
+
+                    }}
+                    className={`
+                        mx-auto
+                        mt-5
+                        w-full
+                        max-w-xl
+                        rounded-xl
+                        px-4
+                        py-3
+                        text-sm
+                        font-bold
+                        text-white
+                        transition
+
+                        ${
+                            selectedPeriod
+                                ? `
+                                    cursor-pointer
+                                    bg-[#5630e8]
+                                    hover:bg-[#4724c6]
+                                  `
+                                : `
+                                    cursor-not-allowed
+                                    bg-slate-300
+                                  `
+                        }
+                    `}
+                >
+                    Generate Clinical Trend Report
+                </button>
+
+            </div>
+
+        </div>
+
+
+        {/* ==================================================
+            EXISTING CLINICAL TRENDS
+        ================================================== */}
 
         <div
             className="
@@ -687,27 +1299,26 @@ return (
         </div>
 
 
-            {trends.map((item)=>{
+        {trends.map((item) => {
+
+            const Icon =
+                iconMap[item.parameter];
+
+            const meta =
+                trendMeta[item.parameter];
 
 
-                const Icon =
-                    iconMap[item.parameter];
+            return (
 
+                <div
+                    key={item.parameter}
+                    className="
+                        flex
+                        gap-6
+                    "
+                >
 
-                const meta =
-                    trendMeta[item.parameter];
-
-
-
-                return (
-
-                    <div
-                        key={item.parameter}
-                        className="
-                            flex
-                            gap-6
-                        "
-                    >
+                    {/* EXISTING CONTENT CONTINUES HERE */}
 
 
                         {/* LEFT TIMELINE */}
@@ -1029,6 +1640,255 @@ ml-8
 
 
             })}
+
+
+            {/* ==================================================
+                DETAILED CLINICAL TRENDS
+               
+                Reuse the existing clinical trend history and
+                Recharts infrastructure to show the actual
+                recorded values over time.
+                ================================================== */}
+
+            <div
+                className="
+                    mt-10
+                    rounded-3xl
+                    border
+                    border-slate-100
+                    bg-white
+                    p-6
+                    shadow-sm
+                "
+            >
+
+                <div className="mb-6">
+
+                    <h2
+                        className="
+                            text-xl
+                            font-bold
+                            text-slate-900
+                        "
+                    >
+                        Clinical Trend Graphs
+                    </h2>
+
+                    <p
+                        className="
+                            mt-1
+                            text-sm
+                            text-slate-500
+                        "
+                    >
+                        Recorded vital measurements over the selected period.
+                    </p>
+
+                </div>
+
+
+                <div
+                    className="
+                        grid
+                        grid-cols-1
+                        gap-6
+                        lg:grid-cols-2
+                    "
+                >
+
+                    {trends.map((item) => {
+
+                        const meta =
+                            trendMeta[item.parameter];
+
+                        const lineColor =
+                            meta?.color === "red"
+                                ? "#ef4444"
+                                :
+                            meta?.color === "green"
+                                ? "#22c55e"
+                                :
+                            meta?.color === "orange"
+                                ? "#f97316"
+                                :
+                            meta?.color === "purple"
+                                ? "#a855f7"
+                                :
+                                "#2563eb";
+
+
+                        const chartData =
+                            item.history.map(
+                                (
+                                    value,
+                                    index
+                                ) => ({
+                                    index:
+                                        index + 1,
+
+                                    value:
+                                        value
+                                })
+                            );
+
+
+                        if (
+                            chartData.length === 0
+                        ) {
+
+                            return (
+
+                                <div
+                                    key={
+                                        item.parameter
+                                    }
+                                    className="
+                                        rounded-2xl
+                                        border
+                                        border-slate-100
+                                        bg-slate-50
+                                        p-5
+                                    "
+                                >
+
+                                    <div
+                                        className="
+                                            text-base
+                                            font-bold
+                                            text-slate-800
+                                        "
+                                    >
+                                        {
+                                            item.parameter
+                                        }
+                                    </div>
+
+                                    <div
+                                        className="
+                                            mt-4
+                                            text-sm
+                                            text-slate-500
+                                        "
+                                    >
+                                        No recorded data available.
+                                    </div>
+
+                                </div>
+
+                            );
+
+                        }
+
+
+                        return (
+
+                            <div
+                                key={
+                                    item.parameter
+                                }
+                                className="
+                                    rounded-2xl
+                                    border
+                                    border-slate-100
+                                    bg-slate-50
+                                    p-5
+                                "
+                            >
+
+                                <div
+                                    className="
+                                        mb-4
+                                        flex
+                                        items-center
+                                        justify-between
+                                    "
+                                >
+
+                                    <div>
+
+                                        <div
+                                            className="
+                                                text-base
+                                                font-bold
+                                                text-slate-900
+                                            "
+                                        >
+                                            {
+                                                item.parameter
+                                            }
+                                        </div>
+
+                                        <div
+                                            className="
+                                                mt-1
+                                                text-xs
+                                                text-slate-500
+                                            "
+                                        >
+                                            {
+                                                meta?.description
+                                            }
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div
+                                    className="
+                                        h-56
+                                        w-full
+                                    "
+                                >
+
+                                    <ResponsiveContainer
+                                        width="100%"
+                                        height="100%"
+                                    >
+
+                                        <LineChart
+                                            data={
+                                                chartData
+                                            }
+                                            margin={{
+                                                top: 10,
+                                                right: 10,
+                                                left: 0,
+                                                bottom: 5
+                                            }}
+                                        >
+
+                                            <Line
+                                                type="monotone"
+                                                dataKey="value"
+                                                stroke={
+                                                    lineColor
+                                                }
+                                                strokeWidth={2.5}
+                                                dot={{
+                                                    r: 3
+                                                }}
+                                                activeDot={{
+                                                    r: 5
+                                                }}
+                                            />
+
+                                        </LineChart>
+
+                                    </ResponsiveContainer>
+
+                                </div>
+
+                            </div>
+
+                        );
+
+                    })}
+
+                </div>
+
+            </div>
 
 
         </div>

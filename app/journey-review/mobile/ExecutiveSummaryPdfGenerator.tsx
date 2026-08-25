@@ -19,8 +19,17 @@ import {
 } from "@/lib/prescription/prescriptionRepository";
 
 import {
+    buildClinicalTrends,
+    ClinicalTrendSummary,
+} from "../data/clinicalTrends";
+
+import {
     patientStorage,
 } from "@/lib/storage/patientStorage";
+
+import {
+    buildPatient,
+} from "@/app/journey-review/data/patient";
 
 
 const REPORT_PERIOD_DAYS = 21;
@@ -41,27 +50,38 @@ interface ReportPeriod {
 function calculateAge(
     dateOfBirth: string | null | undefined
 ): number | null {
+
     if (!dateOfBirth) {
         return null;
     }
 
+
     const birthDate =
         new Date(dateOfBirth);
 
-    if (Number.isNaN(birthDate.getTime())) {
+
+    if (
+        Number.isNaN(
+            birthDate.getTime()
+        )
+    ) {
         return null;
     }
 
+
     const today =
         new Date();
+
 
     let age =
         today.getFullYear() -
         birthDate.getFullYear();
 
+
     const monthDifference =
         today.getMonth() -
         birthDate.getMonth();
+
 
     if (
         monthDifference < 0 ||
@@ -71,10 +91,14 @@ function calculateAge(
                 birthDate.getDate()
         )
     ) {
+
         age--;
+
     }
 
+
     return age;
+
 }
 
 function buildReportPeriods(): ReportPeriod[] {
@@ -86,26 +110,37 @@ function buildReportPeriods(): ReportPeriod[] {
             .toISOString()
             .split("T")[0];
 
+
     // --------------------------------------------------
     // Period 1 — fixed initial CareVR timeline period
     // --------------------------------------------------
 
     periods.push({
-        start: INITIAL_REPORT_START,
+
+        start:
+            INITIAL_REPORT_START,
+
         end:
             INITIAL_REPORT_END <= today
                 ? INITIAL_REPORT_END
                 : today,
+
         label:
-            `${formatReportDate(INITIAL_REPORT_START)} - ` +
+            `${formatReportDate(
+                INITIAL_REPORT_START
+            )} - ` +
+
             `${formatReportDate(
                 INITIAL_REPORT_END <= today
                     ? INITIAL_REPORT_END
                     : today
             )}`,
+
         isCurrent:
             INITIAL_REPORT_END > today,
+
     });
+
 
     // --------------------------------------------------
     // Subsequent periods
@@ -116,14 +151,18 @@ function buildReportPeriods(): ReportPeriod[] {
             `${INITIAL_REPORT_END}T00:00:00`
         );
 
+
     periodStart.setDate(
         periodStart.getDate() + 1
     );
 
+
     while (
+
         periodStart
             .toISOString()
             .split("T")[0] <= today
+
     ) {
 
         const start =
@@ -131,56 +170,75 @@ function buildReportPeriods(): ReportPeriod[] {
                 .toISOString()
                 .split("T")[0];
 
+
         const periodEnd =
-            new Date(periodStart);
+            new Date(
+                periodStart
+            );
+
 
         periodEnd.setDate(
+
             periodEnd.getDate()
                 + REPORT_PERIOD_DAYS
                 - 1
+
         );
+
 
         const calculatedEnd =
             periodEnd
                 .toISOString()
                 .split("T")[0];
 
+
         const isCurrent =
             calculatedEnd > today;
+
 
         const end =
             isCurrent
                 ? today
                 : calculatedEnd;
 
+
         periods.push({
+
             start,
+
             end,
+
             label:
                 `${formatReportDate(start)} - ` +
                 `${formatReportDate(end)}`,
+
             isCurrent,
+
         });
 
+
         if (isCurrent) {
+
             break;
+
         }
 
-periodStart = new Date(periodEnd);
 
-periodStart.setDate(
-    periodStart.getDate() + 1
-);
+        periodStart =
+            new Date(
+                periodEnd
+            );
 
-periodStart.setHours(
-    0,
-    0,
-    0,
-    0
-);
+
+        periodStart.setDate(
+            periodStart.getDate() + 1
+        );
+
     }
 
+
     return periods;
+
 }
 
 function formatReportDate(
@@ -221,8 +279,13 @@ const [message, setMessage] =
         "Select a reporting period"
     );
 
-const [selectedPeriod, setSelectedPeriod] =
-    useState<ReportPeriod | null>(null);
+
+const [trends, setTrends] =
+    useState<ClinicalTrendSummary[]>([]);
+
+
+const [selectedPeriods, setSelectedPeriods] =
+    useState<ReportPeriod[]>([]);
 
 const [generating, setGenerating] =
     useState(false);
@@ -236,13 +299,14 @@ const reportPeriods =
 // Summary and Clinical Story are generated
 // immediately before creating the PDF.
 
+
 useEffect(() => {
 
     if (!generating) {
         return;
     }
 
-    if (!selectedPeriod) {
+    if (selectedPeriods.length === 0) {
         return;
     }
 
@@ -250,7 +314,7 @@ useEffect(() => {
         return;
     }
 
-    const activePeriod = selectedPeriod;
+    const activePeriod = selectedPeriods[0];
 
     generationStartedRef.current = true;
 
@@ -326,138 +390,204 @@ const latestPrescription =
 
             const summary =
                 await buildExecutiveSummary();
-
             // --------------------------------------------------
-            // Filter timeline to selected reporting period
-            // --------------------------------------------------
-
-const reportStart =
-    new Date(
-        `${activePeriod.start}T00:00:00`
-    );
-
-const reportEnd =
-    new Date(
-        `${activePeriod.end}T23:59:59`
-    );
-
-            const filteredTimeline =
-                (
-                    summary.clinicalTimeline ??
-                    []
-                ).filter(event => {
-
-                    const eventDate =
-                        new Date(event.date);
-
-                    return (
-                        eventDate >=
-                            reportStart &&
-                        eventDate <=
-                            reportEnd
-                    );
-                });
-
-            // --------------------------------------------------
-            // Build a single report-period bucket
+            // Build one report-period bucket for every selected
+            // reporting period.
+            //
+            // A single selected period continues to behave as
+            // before. When multiple periods are selected, each
+            // period gets its own independent bucket.
             // --------------------------------------------------
 
-            const groupedTimeline = [
-                {
-                    weekLabel:
-                        activePeriod.label,
+            const groupedTimeline =
+                selectedPeriods.map(
+                    period => {
 
-                    recordCount: 0,
+                        const reportStart =
+                            new Date(
+                                `${period.start}T00:00:00`
+                            );
 
-                    symptoms:
-                        [] as string[],
+                        const reportEnd =
+                            new Date(
+                                `${period.end}T23:59:59`
+                            );
 
-                    vitals: {
-                        temperature:
-                            [] as number[],
+                        const filteredTimeline =
+                            (
+                                summary.clinicalTimeline ??
+                                []
+                            ).filter(
+                                event => {
 
-                        pulse:
-                            [] as number[],
+                                    const eventDate =
+                                        new Date(
+                                            event.date
+                                        );
 
-                        spo2:
-                            [] as number[],
+                                    return (
+                                        eventDate >=
+                                            reportStart &&
+                                        eventDate <=
+                                            reportEnd
+                                    );
+                                }
+                            );
 
-                        systolic:
-                            [] as number[],
+                        const bucket = {
+                            weekLabel:
+                                period.label,
 
-                        diastolic:
-                            [] as number[],
-                    },
+                            recordCount: 0,
 
-                    weight:
-                        [] as number[],
+                            symptoms:
+                                [] as string[],
 
-                    assessments:
-                        [] as string[],
-                },
-            ];
+                            vitals: {
+                                temperature:
+                                    [] as number[],
 
-            filteredTimeline.forEach(
-                event => {
+                                pulse:
+                                    [] as number[],
 
-                    const bucket =
-                        groupedTimeline[0];
+                                spo2:
+                                    [] as number[],
 
-                    bucket.recordCount++;
+    bloodPressure:
+        [] as {
+            date: string;
+            systolic: number;
+            diastolic: number;
+        }[],
+},
 
-                    bucket.symptoms.push(
-                        ...event.symptoms
-                    );
+                            weight:
+                                [] as number[],
 
-                    if (
-                        event.vitals.temperature
-                    ) {
-                        bucket.vitals.temperature.push(
-                            event.vitals.temperature
-                        );
-                    }
+                            assessments:
+                                [] as string[],
+                        };
 
-                    if (
-                        event.vitals.pulse
-                    ) {
-                        bucket.vitals.pulse.push(
-                            event.vitals.pulse
-                        );
-                    }
+filteredTimeline.forEach(
+    event => {
 
-                    if (
-                        event.vitals.spo2
-                    ) {
-                        bucket.vitals.spo2.push(
-                            event.vitals.spo2
-                        );
-                    }
+        bucket.recordCount++;
 
-                    if (
-                        event.vitals.systolic
-                    ) {
-                        bucket.vitals.systolic.push(
-                            event.vitals.systolic
-                        );
-                    }
+        /*
+         * Combine standard symptoms and Other Symptom
+         * into the same Symptoms collection.
+         *
+         * Each symptom is added only once within the
+         * current reporting period.
+         *
+         * Comparison is case-insensitive and ignores
+         * surrounding whitespace, while preserving the
+         * original display text of the first occurrence.
+         */
 
-                    if (
-                        event.vitals.diastolic
-                    ) {
-                        bucket.vitals.diastolic.push(
-                            event.vitals.diastolic
-                        );
-                    }
+        const symptomsToAdd = [
+            ...event.symptoms,
+            ...(event.otherSymptom
+                ? [event.otherSymptom]
+                : [])
+        ];
 
-                    if (
-                        event.vitals.weight
-                    ) {
-                        bucket.weight.push(
-                            event.vitals.weight
-                        );
-                    }
-                }
+        for (
+            const symptom of symptomsToAdd
+        ) {
+
+            const normalizedSymptom =
+                symptom
+                    .trim()
+                    .toLowerCase();
+
+            if (
+                !normalizedSymptom
+            ) {
+                continue;
+            }
+
+            const alreadyExists =
+                bucket.symptoms.some(
+                    existingSymptom =>
+                        existingSymptom
+                            .trim()
+                            .toLowerCase() ===
+                        normalizedSymptom
+                );
+
+            if (
+                !alreadyExists
+            ) {
+
+                bucket.symptoms.push(
+                    symptom
+                );
+
+            }
+
+        }
+
+        if (
+            event.vitals.temperature
+        ) {
+            bucket.vitals.temperature.push(
+                event.vitals.temperature
             );
+        }
+
+        if (
+            event.vitals.pulse
+        ) {
+            bucket.vitals.pulse.push(
+                event.vitals.pulse
+            );
+        }
+
+        if (
+            event.vitals.spo2
+        ) {
+            bucket.vitals.spo2.push(
+                event.vitals.spo2
+            );
+        }
+
+        if (
+            event.vitals.systolic !== null &&
+            event.vitals.systolic !== undefined &&
+            event.vitals.diastolic !== null &&
+            event.vitals.diastolic !== undefined
+        ) {
+            bucket.vitals.bloodPressure.push({
+                date:
+                    event.date,
+
+                systolic:
+                    Number(
+                        event.vitals.systolic
+                    ),
+
+                diastolic:
+                    Number(
+                        event.vitals.diastolic
+                    ),
+            });
+        }
+
+        if (
+            event.vitals.weight
+        ) {
+            bucket.weight.push(
+                event.vitals.weight
+            );
+        }
+
+    }
+);
+
+                        return bucket;
+                    }
+                );
 
             const story =
                 buildClinicalStory(
@@ -469,6 +599,9 @@ const reportEnd =
             setMessage(
                 "Generating PDF..."
             );
+
+const careVrPatient =
+    buildPatient();
 
             const bytes =
     await executiveSummaryPdf.generate({
@@ -487,13 +620,11 @@ patient: {
         selectedPatient.gender ??
         "Unknown",
 
-    doctor:
-        latestPrescription?.doctorName ??
-        undefined,
+doctor:
+    careVrPatient.doctor,
 
-    hospital:
-        latestPrescription?.hospitalOrClinic ??
-        undefined,
+hospital:
+    careVrPatient.hospital,
 
     status:
         selectedPatient.status,
@@ -560,7 +691,7 @@ patient: {
 
 }, [
     generating,
-    selectedPeriod,
+    selectedPeriods,
     patientId,
     onComplete,
 ]);
@@ -611,19 +742,41 @@ return (
     {reportPeriods.map(
         period => {
 
-            const isSelected =
-                selectedPeriod?.start ===
-                period.start;
+const isSelected =
+    selectedPeriods.some(
+        selected =>
+            selected.start === period.start
+    );
 
             return (
                 <button
                     key={period.start}
                     type="button"
-                    onClick={() => {
-                        setSelectedPeriod(
-                            period
-                        );
-                    }}
+onClick={() => {
+    setSelectedPeriods(
+        current => {
+            const alreadySelected =
+                current.some(
+                    selected =>
+                        selected.start ===
+                        period.start
+                );
+
+            if (alreadySelected) {
+                return current.filter(
+                    selected =>
+                        selected.start !==
+                        period.start
+                );
+            }
+
+            return [
+                ...current,
+                period,
+            ];
+        }
+    );
+}}
                     style={{
                         width: "100%",
                         padding:
@@ -689,18 +842,36 @@ return (
     )}
 </div>
 
+
+                {selectedPeriods.length > 0 && (
+                    <div
+                        style={{
+                            width: "100%",
+                            maxWidth: 380,
+                            margin: "14px auto 0",
+                            textAlign: "left",
+                            color: "#59657f",
+                            fontSize: 13,
+                        }}
+                    >
+                        {selectedPeriods.length} period
+                        {selectedPeriods.length > 1 ? "s" : ""}
+                        {" selected"}
+                    </div>
+                )}
+
                 <button
                     type="button"
                     disabled={
-                        !selectedPeriod
+                        selectedPeriods.length === 0
                     }
                     onClick={() => {
 
-                        if (
-                            !selectedPeriod
-                        ) {
-                            return;
-                        }
+if (
+    selectedPeriods.length === 0
+) {
+    return;
+}
 
                         setProgress(0);
 
@@ -721,18 +892,18 @@ return (
                             "12px 16px",
                         border: "none",
                         borderRadius: 10,
-                        background:
-                            selectedPeriod
-                                ? "#5630e8"
-                                : "#d1d5db",
+background:
+    selectedPeriods.length > 0
+        ? "#5630e8"
+        : "#d1d5db",
                         color:
                             "#ffffff",
                         fontSize: 15,
                         fontWeight: 700,
-                        cursor:
-                            selectedPeriod
-                                ? "pointer"
-                                : "not-allowed",
+cursor:
+    selectedPeriods.length > 0
+        ? "pointer"
+        : "not-allowed",
                     }}
                 >
                     Generate Report
@@ -763,7 +934,11 @@ return (
                         fontSize: 13,
                     }}
                 >
-                    {selectedPeriod?.label}
+                    {selectedPeriods.length > 0
+        ? selectedPeriods
+            .map(period => period.label)
+            .join(" • ")
+        : ""}
                 </p>
 
                 <div

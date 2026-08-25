@@ -1983,34 +1983,7 @@ else if (
     ];
 
 
-        /*
-         * ==================================================
-         * YESTERDAY'S SYMPTOMS
-         *
-         * Symptoms continue to come from the generated Q3
-         * answer, which is already restricted to yesterday
-         * by answers.ts.
-         * ==================================================
-         */
 
-        const symptomsMatch =
-            answer.match(
-                /Yesterday's symptoms\s*([\s\S]*)$/i
-            );
-
-
-        const yesterdaySymptoms =
-            symptomsMatch?.[1]
-                ? symptomsMatch[1]
-                    .split("\n")
-                    .map(
-                        (
-                            line: string
-                        ) =>
-                            line.trim()
-                    )
-                    .filter(Boolean)
-                : [];
 
 
         return (
@@ -2265,84 +2238,7 @@ else if (
                 </div>
 
 
-                {/* ==================================================
-                    YESTERDAY'S SYMPTOMS
-                ================================================== */}
 
-                <div
-                    className="
-                        border-t
-                        border-slate-100
-                        pt-4
-                    "
-                >
-
-                    <div
-                        className="
-                            mb-2
-                            text-sm
-                            font-bold
-                            text-slate-800
-                        "
-                    >
-                        Yesterday's symptoms
-                    </div>
-
-
-                    {yesterdaySymptoms.length > 0 ? (
-
-                        <div
-                            className="
-                                flex
-                                flex-wrap
-                                gap-2
-                            "
-                        >
-
-                            {yesterdaySymptoms.map(
-                                (
-                                    symptom: string,
-                                    index: number
-                                ) => (
-
-                                    <span
-                                        key={
-                                            index
-                                        }
-                                        className="
-                                            rounded-full
-                                            bg-slate-100
-                                            px-3
-                                            py-1.5
-                                            text-xs
-                                            font-medium
-                                            text-slate-700
-                                        "
-                                    >
-                                        {
-                                            symptom
-                                        }
-                                    </span>
-
-                                )
-                            )}
-
-                        </div>
-
-                    ) : (
-
-                        <div
-                            className="
-                                text-sm
-                                text-slate-500
-                            "
-                        >
-                            No symptoms were recorded yesterday.
-                        </div>
-
-                    )}
-
-                </div>
 
             </div>
 
@@ -2720,44 +2616,183 @@ else if (
                                     "
                                 >
 
-                                    {change.value.map(
-                                        (
-                                            point: string,
-                                            pointIndex: number
-                                        ) => (
+{change.value.map(
+    (
+        point: string,
+        pointIndex: number
+    ) => {
 
-                                            <div
-                                                key={
-                                                    pointIndex
-                                                }
-                                                className="
-                                                    flex
-                                                    items-start
-                                                    gap-2
-                                                "
-                                            >
+        const isVital =
+            change.key === "vitals";
 
-                                                <span
-                                                    className={`
-                                                        mt-[7px]
-                                                        h-1.5
-                                                        w-1.5
-                                                        shrink-0
-                                                        rounded-full
-                                                        ${change.bulletClass}
-                                                    `}
-                                                />
+        const isBloodPressureHeading =
+            isVital &&
+            /blood pressure observations/i.test(
+                point
+            );
 
-                                                <span>
-                                                    {
-                                                        point
-                                                    }
-                                                </span>
+        const isBloodPressure =
+            isVital &&
+            /BP\s+\d+\/\d+\s*mmHg/i.test(
+                point
+            );
 
-                                            </div>
+        const isPulse =
+            isVital &&
+            /elevated pulse/i.test(
+                point
+            );
 
-                                        )
-                                    )}
+        const isSpO2 =
+            isVital &&
+            /low SpO₂|low spo2/i.test(
+                point
+            );
+
+        const abnormalVital =
+            isBloodPressure ||
+            isPulse ||
+            isSpO2;
+
+        return (
+
+            <div
+                key={
+                    pointIndex
+                }
+                className={
+                    isBloodPressureHeading
+                        ? "font-bold text-slate-700"
+                        : `
+                            flex
+                            items-start
+                            gap-2
+                        `
+                }
+            >
+
+                {!isBloodPressureHeading && (
+
+                    <span
+                        className={`
+                            mt-[7px]
+                            h-1.5
+                            w-1.5
+                            shrink-0
+                            rounded-full
+                            ${change.bulletClass}
+                        `}
+                    />
+
+                )}
+
+                <span>
+
+                    {isBloodPressure ? (
+
+                        <>
+                            {
+                                point.split(
+                                    /(\d+\/\d+\s*mmHg)/
+                                )[0]
+                            }
+
+                            <strong
+                                className="
+                                    font-bold
+                                    text-red-600
+                                "
+                            >
+                                {
+                                    point.match(
+                                        /\d+\/\d+\s*mmHg/
+                                    )?.[0]
+                                }
+                            </strong>
+
+                            {
+                                point.split(
+                                    /(\d+\/\d+\s*mmHg)/
+                                )[2]
+                            }
+
+                        </>
+
+                    ) : isPulse ? (
+
+                        <>
+                            {
+                                point.split(
+                                    /(\d+(?:\.\d+)?\s*bpm)/i
+                                )[0]
+                            }
+
+                            <strong
+                                className="
+                                    font-bold
+                                    text-red-600
+                                "
+                            >
+                                {
+                                    point.match(
+                                        /\d+(?:\.\d+)?\s*bpm/i
+                                    )?.[0]
+                                }
+                            </strong>
+
+                            {
+                                point.split(
+                                    /(\d+(?:\.\d+)?\s*bpm)/i
+                                )[2]
+                            }
+                        </>
+
+                    ) : isSpO2 ? (
+
+                        <>
+                            {
+                                point.split(
+                                    /(\d+(?:\.\d+)?%)/i
+                                )[0]
+                            }
+
+                            <strong
+                                className="
+                                    font-bold
+                                    text-red-600
+                                "
+                            >
+                                {
+                                    point.match(
+                                        /\d+(?:\.\d+)?%/i
+                                    )?.[0]
+                                }
+                                    </strong>
+
+                            {
+                                point.split(
+                                    /(\d+(?:\.\d+)?%)/i
+                                )[2]
+                            }
+                        </>
+
+                    ) : (
+
+                        point
+
+                    )}
+
+                </span>
+
+            </div>
+
+        );
+
+    }
+
+)}
+
+
 
                                 </div>
 

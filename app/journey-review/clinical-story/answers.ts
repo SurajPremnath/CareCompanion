@@ -58,32 +58,86 @@ function uniqueStrings(
     values: unknown[] = []
 ): string[] {
 
-    return [
-        ...new Set(
-            values
-                .filter(
-                    value =>
-                        typeof value === "string" &&
-                        value.trim().length > 0
-                )
-                .map(
-                    value =>
-                        String(value).trim()
-                )
+    const seen =
+        new Set<string>();
+
+    const result: string[] = [];
+
+    values
+        .filter(
+            value =>
+                typeof value === "string" &&
+                value.trim().length > 0
         )
-    ];
+        .forEach(
+            value => {
+
+                const displayValue =
+                    String(value)
+                        .trim()
+                        .replace(
+                            /\s+/g,
+                            " "
+                        );
+
+                /*
+                 * Use a normalized comparison key so that
+                 * visually equivalent symptom descriptions
+                 * are treated as the same symptom.
+                 *
+                 * Example:
+                 * "Itching At The Back"
+                 * "Itching At Back"
+                 *
+                 * Both resolve to the same comparison key.
+                 */
+                const comparisonKey =
+                    displayValue
+                        .toLowerCase()
+                        .replace(
+                            /\bat the\b/g,
+                            "at"
+                        )
+                        .replace(
+                            /\s+/g,
+                            " "
+                        )
+                        .trim();
+
+                if (
+                    seen.has(
+                        comparisonKey
+                    )
+                ) {
+                    return;
+                }
+
+                seen.add(
+                    comparisonKey
+                );
+
+                result.push(
+                    displayValue
+                );
+
+            }
+        );
+
+    return result;
 
 }
-
 
 function formatSymptoms(
     symptoms: string[] = []
 ): string[] {
 
-    return uniqueStrings(
+    const formattedSymptoms =
         symptoms
             .filter(
-                symptom => symptom !== "OTHER"
+                symptom =>
+                    typeof symptom === "string" &&
+                    symptom.trim().length > 0 &&
+                    symptom.trim().toUpperCase() !== "OTHER"
             )
             .map(
                 symptom => {
@@ -92,20 +146,64 @@ function formatSymptoms(
                         symptomLabels[symptom] ||
                         symptom;
 
-                    return label
-                        .toLowerCase()
-                        .replace(
-                            /\b\w/g,
-                            char =>
-                                char.toUpperCase()
-                        );
+return label
+    .toLowerCase()
+    .replace(
+        /_/g,
+        " "
+    )
+    .replace(
+        /\b\w/g,
+        char =>
+            char.toUpperCase()
+    );
 
                 }
-            )
+            );
+
+
+    /*
+     * Deduplicate AFTER formatting.
+     *
+     * This ensures values such as:
+     *
+     * Cold
+     * COLD
+     * cold
+     *
+     * and:
+     *
+     * Itching At The Back
+     * Itching at the back
+     *
+     * are treated as the same displayed symptom.
+     */
+
+    const seen =
+        new Set<string>();
+
+    return formattedSymptoms.filter(
+        symptom => {
+
+            const key =
+                symptom
+                    .trim()
+                    .toLowerCase();
+
+            if (
+                seen.has(key)
+            ) {
+                return false;
+            }
+
+            seen.add(key);
+
+            return true;
+
+        }
     );
 
 }
-
 
 function formatLatestVital(
     label: string,
@@ -157,12 +255,15 @@ function generateHealthEvents(
         );
     }
 
-    const symptoms =
-        formatSymptoms(
-            Array.isArray(week.symptoms)
-                ? week.symptoms
-                : []
-        );
+const symptoms =
+    formatSymptoms(
+        Array.isArray(week.symptoms)
+            ? week.symptoms.map(
+                (symptom: string) =>
+                    symptom.toUpperCase()
+            )
+            : []
+    );
 
     sections.push(
         symptoms.length > 0
@@ -258,15 +359,15 @@ function generateHealthChanges(
             );
 
 
-        const changes: string[] = [];
+        const progressionParts: string[] = [];
 
 
         if (
             newSymptoms.length > 0
         ) {
 
-            changes.push(
-                `New: ${newSymptoms.join(", ")}`
+            progressionParts.push(
+                `New symptoms: ${newSymptoms.join(", ")}`
             );
 
         }
@@ -276,20 +377,28 @@ function generateHealthChanges(
             resolvedSymptoms.length > 0
         ) {
 
-            changes.push(
+            progressionParts.push(
                 `No longer reported: ${resolvedSymptoms.join(", ")}`
             );
 
         }
 
 
-        symptomProgression =
-            changes.length > 0
-                ? changes.join("\n")
-                : "No significant symptom change identified.";
+        if (
+            progressionParts.length > 0
+        ) {
 
-    }
-    else if (
+            symptomProgression =
+                progressionParts.join("\n");
+
+        } else {
+
+            symptomProgression =
+                "No significant symptom change was recorded during this period.";
+
+        }
+
+    } else if (
         currentPeriodSymptoms.length > 0
     ) {
 
@@ -304,250 +413,350 @@ function generateHealthChanges(
     );
 
 
-// ==================================================
-// VITAL CHANGES
-// ==================================================
+    // ==================================================
+    // VITAL CHANGES
+    // ==================================================
 
-const periodVitalChanges =
-    uniqueStrings(
+    const vitalChanges: string[] = [];
+
+
+    // --------------------------------------------------
+    // Blood Pressure
+    // --------------------------------------------------
+
+    const bloodPressureObservations =
         Array.isArray(
-            week.vitalChanges
+            week.vitals?.bloodPressure
         )
-            ? week.vitalChanges
-            : []
-    );
-
-const vitalChanges =
-    [...periodVitalChanges];
+            ? week.vitals.bloodPressure
+            : [];
 
 
-// --------------------------------------------------
-// Temperature / Fever
-// --------------------------------------------------
+    if (
+        bloodPressureObservations.length > 0
+    ) {
 
-const temperatures =
-    Array.isArray(
-        week.vitals?.temperature
-    )
-        ? week.vitals.temperature
-            .map(Number)
-            .filter(
-                (value: number) =>
-                    Number.isFinite(value)
-            )
-        : [];
+        const formatBPDate =
+            (
+                dateString: string
+            ) =>
+                new Date(
+                    dateString
+                ).toLocaleDateString(
+                    "en-GB",
+                    {
+                        day: "2-digit",
+                        month: "short",
+                    }
+                );
 
-const feverValues =
-    temperatures.filter(
-        (value: number) =>
-            value >= 100
-    );
 
-if (
-    feverValues.length > 0 &&
-    !vitalChanges.some(
-        (change) =>
-            /fever|temperature/i.test(
-                change
-            )
-    )
-) {
+        const highestSystolic =
+            bloodPressureObservations.reduce(
+                (
+                    highest: any,
+                    current: any
+                ) =>
+                    Number(
+                        current.systolic
+                    ) >
+                    Number(
+                        highest.systolic
+                    )
+                        ? current
+                        : highest
+            );
 
-    const highestTemperature =
-        Math.max(
-            ...feverValues
+
+        const highestDiastolic =
+            bloodPressureObservations.reduce(
+                (
+                    highest: any,
+                    current: any
+                ) =>
+                    Number(
+                        current.diastolic
+                    ) >
+                    Number(
+                        highest.diastolic
+                    )
+                        ? current
+                        : highest
+            );
+
+
+        const lowestSystolic =
+            bloodPressureObservations.reduce(
+                (
+                    lowest: any,
+                    current: any
+                ) =>
+                    Number(
+                        current.systolic
+                    ) <
+                    Number(
+                        lowest.systolic
+                    )
+                        ? current
+                        : lowest
+            );
+
+
+        const bpObservations: string[] = [];
+
+
+        const addObservation =
+            (
+                observation: {
+                    date: string;
+                    systolic: number;
+                    diastolic: number;
+                },
+                description: string
+            ) => {
+
+                const bpText =
+                    `${formatBPDate(
+                        observation.date
+                    )} — BP ` +
+                    `${observation.systolic}/` +
+                    `${observation.diastolic}`;
+
+
+                const text =
+                    description
+                        ? `${bpText} — ${description}`
+                        : bpText;
+
+
+                if (
+                    !bpObservations.includes(
+                        text
+                    )
+                ) {
+
+                    bpObservations.push(
+                        text
+                    );
+
+                }
+
+            };
+
+
+        if (
+            bloodPressureObservations.length === 1
+        ) {
+
+            addObservation(
+                bloodPressureObservations[0],
+                ""
+            );
+
+        } else {
+
+            addObservation(
+                highestSystolic,
+                ""
+            );
+
+            addObservation(
+                highestDiastolic,
+                ""
+            );
+
+            addObservation(
+                lowestSystolic,
+                ""
+            );
+
+        }
+
+
+        vitalChanges.push(
+            ...bpObservations
         );
 
-vitalChanges.push(
-    `Fever: ${highestTemperature}°F`
-);
-
-}
+    }
 
 
-// --------------------------------------------------
-// Blood Pressure
-// --------------------------------------------------
+    // --------------------------------------------------
+    // Pulse
+    // --------------------------------------------------
 
-const systolicValues =
-    Array.isArray(
-        week.vitals?.systolic
-    )
-        ? week.vitals.systolic
-            .map(Number)
-            .filter(
-                (value: number) =>
-                    Number.isFinite(value)
-            )
-        : [];
-
-const diastolicValues =
-    Array.isArray(
-        week.vitals?.diastolic
-    )
-        ? week.vitals.diastolic
-            .map(Number)
-            .filter(
-                (value: number) =>
-                    Number.isFinite(value)
-            )
-        : [];
-
-const lowSystolic =
-    systolicValues.filter(
-        (value: number) =>
-            value < 100
-    );
-
-const lowDiastolic =
-    diastolicValues.filter(
-        (value: number) =>
-            value < 60
-    );
-
-if (
-    (
-        lowSystolic.length > 0 ||
-        lowDiastolic.length > 0
-    ) &&
-    !vitalChanges.some(
-        (change) =>
-            /blood pressure/i.test(
-                change
-            )
-    )
-) {
-
-    const lowestSystolic =
-        lowSystolic.length > 0
-            ? Math.min(
-                ...lowSystolic
-            )
-            : null;
-
-    const lowestDiastolic =
-        lowDiastolic.length > 0
-            ? Math.min(
-                ...lowDiastolic
-            )
-            : null;
-
-    const bpText =
-        lowestSystolic !== null &&
-        lowestDiastolic !== null
-            ? `${lowestSystolic}/${lowestDiastolic} mmHg`
-            : lowestSystolic !== null
-                ? `${lowestSystolic} mmHg systolic`
-                : `${lowestDiastolic} mmHg diastolic`;
-
-vitalChanges.push(
-    `Low BP: ${bpText}`
-);
-
-}
+    const pulseValues =
+        Array.isArray(
+            week.vitals?.pulse
+        )
+            ? week.vitals.pulse
+                .map(Number)
+                .filter(
+                    (
+                        value: number
+                    ) =>
+                        Number.isFinite(value)
+                )
+            : [];
 
 
-// --------------------------------------------------
-// Pulse
-// --------------------------------------------------
-
-const pulseValues =
-    Array.isArray(
-        week.vitals?.pulse
-    )
-        ? week.vitals.pulse
-            .map(Number)
-            .filter(
-                (value: number) =>
-                    Number.isFinite(value)
-            )
-        : [];
-
-const elevatedPulse =
-    pulseValues.filter(
-        (value: number) =>
-            value > 100
-    );
-
-if (
-    elevatedPulse.length > 0 &&
-    !vitalChanges.some(
-        (change) =>
-            /pulse/i.test(
-                change
-            )
-    )
-) {
-
-    const highestPulse =
-        Math.max(
-            ...elevatedPulse
+    const elevatedPulse =
+        pulseValues.filter(
+            (
+                value: number
+            ) =>
+                value > 100
         );
 
-vitalChanges.push(
-    `Elevated pulse: ${highestPulse} bpm`
-);
 
-}
+    if (
+        elevatedPulse.length > 0 &&
+        !vitalChanges.some(
+            change =>
+                /pulse/i.test(
+                    change
+                )
+        )
+    ) {
+
+        const highestPulse =
+            Math.max(
+                ...elevatedPulse
+            );
 
 
-// --------------------------------------------------
-// SpO₂
-// --------------------------------------------------
-
-const spo2Values =
-    Array.isArray(
-        week.vitals?.spo2
-    )
-        ? week.vitals.spo2
-            .map(Number)
-            .filter(
-                (value: number) =>
-                    Number.isFinite(value)
-            )
-        : [];
-
-const lowSpo2 =
-    spo2Values.filter(
-        (value: number) =>
-            value < 95
-    );
-
-if (
-    lowSpo2.length > 0 &&
-    !vitalChanges.some(
-        (change) =>
-            /oxygen|spo2/i.test(
-                change
-            )
-    )
-) {
-
-    const lowestSpo2 =
-        Math.min(
-            ...lowSpo2
+        vitalChanges.push(
+            `Elevated pulse: ${highestPulse} bpm`
         );
 
-vitalChanges.push(
-    `Low SpO₂: ${lowestSpo2}%`
-);
-
-}
+    }
 
 
-// --------------------------------------------------
-// Final result
-// --------------------------------------------------
+    // --------------------------------------------------
+    // SpO₂
+    // --------------------------------------------------
 
-sections.push(
-    `Vital changes\n${
-        vitalChanges.length > 0
-            ? uniqueStrings(
-                vitalChanges
-            ).join("\n")
-            : "No specific vital change was recorded during this period."
-    }`
-);
+    const spo2Values =
+        Array.isArray(
+            week.vitals?.spo2
+        )
+            ? week.vitals.spo2
+                .map(Number)
+                .filter(
+                    (
+                        value: number
+                    ) =>
+                        Number.isFinite(value)
+                )
+            : [];
+
+
+    const lowSpo2 =
+        spo2Values.filter(
+            (
+                value: number
+            ) =>
+                value < 95
+        );
+
+
+    if (
+        lowSpo2.length > 0 &&
+        !vitalChanges.some(
+            change =>
+                /oxygen|spo2/i.test(
+                    change
+                )
+        )
+    ) {
+
+        const lowestSpo2 =
+            Math.min(
+                ...lowSpo2
+            );
+
+
+        vitalChanges.push(
+            `Low SpO₂: ${lowestSpo2}%`
+        );
+
+    }
+
+
+    // --------------------------------------------------
+    // Final vital-change formatting
+    // --------------------------------------------------
+
+    const uniqueVitalChanges =
+        uniqueStrings(
+            vitalChanges
+        );
+
+
+    const bloodPressureItems =
+        uniqueVitalChanges.filter(
+            change =>
+                /BP|blood pressure|systolic|diastolic/i.test(
+                    change
+                )
+        );
+
+
+    const otherVitalItems =
+        uniqueVitalChanges.filter(
+            change =>
+                !/BP|blood pressure|systolic|diastolic/i.test(
+                    change
+                )
+        );
+
+
+    const bloodPressureText =
+        bloodPressureItems
+            .map(
+                change =>
+                    `• ${change}`
+            )
+            .join("\n");
+
+
+    const otherVitalText =
+        otherVitalItems
+            .map(
+                change =>
+                    `• ${change}`
+            )
+            .join("\n");
+
+
+    let vitalChangesText =
+        "Vital changes";
+
+
+    if (
+        bloodPressureItems.length > 0
+    ) {
+
+        vitalChangesText +=
+            "\nBlood Pressure Observations\n" +
+            bloodPressureText;
+
+    }
+
+
+    if (
+        otherVitalItems.length > 0
+    ) {
+
+        vitalChangesText +=
+            "\n" +
+            otherVitalText;
+
+    }
+
+
+    sections.push(
+        vitalChangesText
+    );
 
 
     // ==================================================
@@ -687,15 +896,47 @@ function generatePatientStatus(
      * ==================================================
      */
 
-    const systolicValues =
-        numericValues(
-            vitals.systolic
-        );
+const bloodPressureObservations =
+    Array.isArray(
+        vitals.bloodPressure
+    )
+        ? vitals.bloodPressure.filter(
+            (
+                observation: any
+            ) =>
+                observation &&
+                Number.isFinite(
+                    Number(
+                        observation.systolic
+                    )
+                ) &&
+                Number.isFinite(
+                    Number(
+                        observation.diastolic
+                    )
+                )
+        )
+        : [];
 
-    const diastolicValues =
-        numericValues(
-            vitals.diastolic
-        );
+const systolicValues =
+    bloodPressureObservations.map(
+        (
+            observation: any
+        ) =>
+            Number(
+                observation.systolic
+            )
+    );
+
+const diastolicValues =
+    bloodPressureObservations.map(
+        (
+            observation: any
+        ) =>
+            Number(
+                observation.diastolic
+            )
+    );
 
     let bloodPressure:
         string | null = null;
@@ -850,67 +1091,59 @@ function generatePatientStatus(
     );
 
 
-    /*
-     * ==================================================
-     * YESTERDAY'S SYMPTOMS
-     *
-     * Only the previous calendar day's symptoms are shown.
-     * ==================================================
-     */
+/*
+ * ==================================================
+ * LATEST RECORDED SYMPTOMS
+ *
+ * Show the most recent recorded symptom entry.
+ * Do not restrict symptoms to the previous
+ * calendar day.
+ * ==================================================
+ */
 
-    const yesterday =
-        new Date();
+const symptomEntries =
+    Array.isArray(
+        week.symptomsByDate
+    )
+        ? week.symptomsByDate
+            .filter(
+                (
+                    entry: any
+                ) =>
+                    entry &&
+                    typeof entry.date === "string" &&
+                    Array.isArray(
+                        entry.symptoms
+                    ) &&
+                    entry.symptoms.length > 0
+            )
+            .sort(
+                (
+                    a: any,
+                    b: any
+                ) =>
+                    b.date.localeCompare(
+                        a.date
+                    )
+            )
+        : [];
 
-    yesterday.setDate(
-        yesterday.getDate() - 1
-    );
 
-    const yesterdayString =
-        toLocalDateString(
-            yesterday
-        );
-
-
-    const yesterdayEntries =
-        Array.isArray(
-            week.symptomsByDate
+const latestSymptoms =
+    symptomEntries.length > 0
+        ? formatSymptoms(
+            symptomEntries[0].symptoms
         )
-            ? week.symptomsByDate
-                .filter(
-                    (
-                        entry: any
-                    ) =>
-                        entry.date ===
-                        yesterdayString
-                )
-                .flatMap(
-                    (
-                        entry: any
-                    ) =>
-                        Array.isArray(
-                            entry.symptoms
-                        )
-                            ? entry.symptoms
-                            : []
-                )
-            : [];
+        : [];
 
 
-    const yesterdaySymptoms =
-        formatSymptoms(
-            yesterdayEntries
-        );
-
-
-    sections.push(
-        `Yesterday's symptoms\n${
-            yesterdaySymptoms.length > 0
-                ? yesterdaySymptoms.join("\n")
-                : "No symptoms were recorded yesterday."
-        }`
-    );
-
-
+sections.push(
+    `Latest symptoms\n${
+        latestSymptoms.length > 0
+            ? latestSymptoms.join("\n")
+            : "No symptoms have been recorded."
+    }`
+);
     return sections.join(
         "\n\n"
     );

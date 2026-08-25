@@ -17,11 +17,19 @@ export interface TrendMetric {
 
     current: string;
 
-    minimum: string;
+    periods: {
 
-    maximum: string;
+        label: string;
 
-    average: string;
+        current: string;
+
+        minimum: string;
+
+        maximum: string;
+
+        average: string;
+
+    }[];
 
 }
 
@@ -135,11 +143,15 @@ this.drawMetrics({
 
     boldFont,
 
+    regularFont,
+
     trend,
 
     x,
 
     y: topY,
+
+    width,
 
     theme
 
@@ -216,178 +228,358 @@ private static drawHeader(options: {
 
     });
 
-    PdfDrawing.text(page, {
-
-        text:
-            trend.parameter,
-
-        x:
-            iconX +
-            PdfTheme.card.titleLeftOffset,
-
-        y:
-            iconY +
-            PdfTheme.card.titleTopOffset,
-
-        size:
-            PdfTheme.typography.sectionTitle,
-
-        font:
-            boldFont,
-
-        color:
-            rgb(
-                0.10,
-                0.13,
-                0.18
-            )
-
-    });
-
-    this.drawStatusBadge({
-
-        page,
-
-        font:
-            regularFont,
-
-        status:
-            trend.status,
-
-        x:
-            x +
-            width -
-            PdfTheme.card.badgeRightOffset,
-
-        y:
-            iconY +
-            PdfTheme.card.badgeTopOffset,
-
-        theme
-
-    });
 
 }
 
-    private static drawMetrics(options: {
+private static drawMetrics(options: {
 
-        page: PDFPage;
+    page: PDFPage;
 
-        boldFont: PDFFont;
+    boldFont: PDFFont;
 
-        trend: TrendMetric;
+    regularFont: PDFFont;
 
-        x: number;
+    trend: TrendMetric;
 
-        y: number;
+    x: number;
 
-        theme: SectionTheme;
+    y: number;
 
-    }) {
+    width: number;
 
-        const {
+    theme: SectionTheme;
 
-            page,
+}) {
 
-            boldFont,
+    const {
 
-            trend,
+        page,
 
-            x,
+        boldFont,
 
-            y,
+        regularFont,
 
-            theme
+        trend,
 
-        } = options;
+        x,
 
-        const startX =
-            x +
-            PdfTheme.card.padding;
+        y,
 
-        const startY =
-            y +
-            PdfTheme.card.metricsBottomOffset;
+        width,
 
-        const gap =
-            PdfTheme.metricCard.gap;
+    } = options;
 
-        const width =
-            PdfTheme.metricCard.width;
 
-        PdfMetricCard.draw({
+    const left =
+        x +
+        PdfTheme.card.padding;
 
-            page,
 
-            font: boldFont,
+    const tableWidth =
+        width -
+        (PdfTheme.card.padding * 2);
 
-            title: "CURRENT",
 
-            value: trend.current,
+    const parameterColumnWidth =
+        90;
 
-            x: startX,
 
-            y: startY,
+    const metricColumnWidth =
+        (
+            tableWidth -
+            parameterColumnWidth
+        ) / 4;
 
-            accent: theme.accent
 
-        });
+const headerY =
+    y +
+    75;
 
-        PdfMetricCard.draw({
 
-            page,
+/*
+ * Column headers
+ *
+ * Parameter | Current | Min | Max | Avg
+ */
 
-            font: boldFont,
+PdfDrawing.text(page, {
 
-            title: "MIN",
+    text:
+        trend.parameter,
 
-            value: trend.minimum,
+    x:
+        left,
 
-            x: startX + width + gap,
+    y:
+        headerY,
 
-            y: startY,
+    size: 9,
 
-            accent: theme.accent
+    font:
+        boldFont,
 
-        });
+    color:
+        rgb(
+            0.25,
+            0.29,
+            0.36
+        )
 
-        PdfMetricCard.draw({
+});
 
-            page,
 
-            font: boldFont,
+const headers = [
 
-            title: "MAX",
+    "CURRENT",
+    "MIN",
+    "MAX",
+    "AVG"
 
-            value: trend.maximum,
+];
 
-            x: startX + ((width + gap) * 2),
 
-            y: startY,
+headers.forEach(
+    (header, index) => {
 
-            accent: theme.accent
+        PdfDrawing.text(page, {
 
-        });
+            text:
+                header,
 
-        PdfMetricCard.draw({
+            x:
+                left +
+                parameterColumnWidth +
+                (
+                    metricColumnWidth *
+                    index
+                ),
 
-            page,
+            y:
+                headerY,
 
-            font: boldFont,
+            size: 9,
 
-            title: "AVERAGE",
+            font:
+                boldFont,
 
-            value: trend.average,
-
-            x: startX + ((width + gap) * 3),
-
-            y: startY,
-
-            accent: theme.accent
+            color:
+                rgb(
+                    0.25,
+                    0.29,
+                    0.36
+                )
 
         });
 
     }
+);
+
+
+    /*
+     * Selected reporting periods.
+     *
+     * One row per period.
+     */
+
+    let rowY =
+        headerY - 18;
+
+
+    for (
+        const period of trend.periods
+    ) {
+
+        PdfDrawing.text(page, {
+
+            text:
+                period.label.replace(
+                    /^(\d{2})\s+\w+\s+\d{4}\s+-\s+(\d{2})\s+(\w+)\s+\d{4}$/,
+                    "$1 - $2 $3"
+                ),
+
+            x:
+                left,
+
+            y:
+                rowY,
+
+            size: 9,
+
+            font:
+                regularFont,
+
+            color:
+                rgb(
+                    0.25,
+                    0.29,
+                    0.36
+                )
+
+        });
+
+
+        const noValue =
+    period.current.startsWith("-") &&
+    period.minimum.startsWith("-") &&
+    period.maximum.startsWith("-") &&
+    period.average.startsWith("-");
+
+
+        if (noValue) {
+
+            PdfDrawing.text(page, {
+
+                text:
+                    `No ${trend.parameter.toLowerCase()} recorded for this week`,
+
+                x:
+                    left +
+                    parameterColumnWidth,
+
+                y:
+                    rowY,
+
+                size: 9,
+
+                font:
+                    regularFont,
+
+                color:
+                    rgb(
+                        0.45,
+                        0.48,
+                        0.52
+                    )
+
+            });
+
+        } else {
+
+            PdfDrawing.text(page, {
+
+                text:
+                    period.current,
+
+                x:
+                    left +
+                    parameterColumnWidth,
+
+                y:
+                    rowY,
+
+                size: 9,
+
+                font:
+                    regularFont,
+
+                color:
+                    rgb(
+                        0.10,
+                        0.13,
+                        0.18
+                    )
+
+            });
+
+
+            PdfDrawing.text(page, {
+
+                text:
+                    period.minimum,
+
+                x:
+                    left +
+                    parameterColumnWidth +
+                    metricColumnWidth,
+
+                y:
+                    rowY,
+
+                size: 9,
+
+                font:
+                    regularFont,
+
+                color:
+                    rgb(
+                        0.10,
+                        0.13,
+                        0.18
+                    )
+
+            });
+
+
+            PdfDrawing.text(page, {
+
+                text:
+                    period.maximum,
+
+                x:
+                    left +
+                    parameterColumnWidth +
+                    (
+                        metricColumnWidth * 2
+                    ),
+
+                y:
+                    rowY,
+
+                size: 9,
+
+                font:
+                    regularFont,
+
+                color:
+                    rgb(
+                        0.10,
+                        0.13,
+                        0.18
+                    )
+
+            });
+
+
+            PdfDrawing.text(page, {
+
+                text:
+                    period.average,
+
+                x:
+                    left +
+                    parameterColumnWidth +
+                    (
+                        metricColumnWidth * 3
+                    ),
+
+                y:
+                    rowY,
+
+                size: 9,
+
+                font:
+                    regularFont,
+
+                color:
+                    rgb(
+                        0.10,
+                        0.13,
+                        0.18
+                    )
+
+            });
+
+        }
+
+
+        rowY -= 16;
+
+    }
+
+}
+
+
+
     private static drawStatusBadge(options: {
 
         page: PDFPage;

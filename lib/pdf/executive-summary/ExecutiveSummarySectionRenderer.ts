@@ -23,28 +23,137 @@ export interface ExecutiveSummarySectionOptions {
 
 export class ExecutiveSummarySectionRenderer {
 
-    static drawHealthEvents(
-        options: ExecutiveSummarySectionOptions,
-        section: ExecutiveSummarySection | undefined
-    ): number {
-        const { page, x, y, width, boldFont, regularFont } = options;
-        let currentY = this.drawHeading(page, x, y, width, "1", "Health Events", "What happened during the patient's journey?", boldFont, regularFont);
+static drawHealthEvents(
+    options: ExecutiveSummarySectionOptions,
+    section: ExecutiveSummarySection | undefined
+): number {
+    const {
+        page,
+        x,
+        y,
+        width,
+        boldFont,
+        regularFont
+    } = options;
 
-        for (const period of section?.periods ?? []) {
-            const answer = this.safePdfText(this.cleanText(period?.answer) || "No events recorded during this period.");
-            const wrapped = this.wrapText(answer, 82);
-            const lines = wrapped.split("\n").length;
-            const height = Math.max(58, 30 + lines * 11);
+    let currentY =
+        this.drawHeading(
+            page,
+            x,
+            y,
+            width,
+            "1",
+            "Health Events",
+            "What happened during the patient's journey?",
+            boldFont,
+            regularFont
+        );
 
-            page.drawRectangle({ x, y: currentY - height, width, height, borderWidth: 0.7, borderColor: rgb(0.88, 0.91, 0.94), color: rgb(0.985, 0.99, 0.995) });
-            page.drawCircle({ x: x + 12, y: currentY - 16, size: 4, color: rgb(0.09, 0.41, 0.67) });
-            page.drawText(this.safePdfText(String(period?.weekLabel ?? "Recorded period")), { x: x + 25, y: currentY - 19, font: boldFont, size: 9, color: rgb(0.09, 0.41, 0.67) });
-            page.drawText(wrapped, { x: x + 25, y: currentY - 37, font: regularFont, size: 8.5, lineHeight: 11, maxWidth: width - 35, color: rgb(0.28, 0.34, 0.41) });
-            currentY -= height + 7;
-        }
+    for (
+        const period of section?.periods ?? []
+    ) {
 
-        return currentY;
+        let answer =
+            this.cleanText(
+                period?.answer
+            );
+
+        /*
+         * --------------------------------------------------
+         * DEDUPLICATE SYMPTOMS
+         * --------------------------------------------------
+         *
+         * The clinical story may contain the same symptom
+         * more than once because it is aggregated from
+         * multiple Daily Care records.
+         *
+         * Other Symptoms are already concatenated into the
+         * symptoms collection upstream.
+         *
+         * At this final PDF boundary, remove duplicate
+         * symptom values without changing the rest of the
+         * clinical answer.
+         * --------------------------------------------------
+         */
+
+        answer =
+            this.deduplicateSymptoms(
+                answer
+            );
+
+        answer =
+            this.safePdfText(
+                answer ||
+                "No events recorded during this period."
+            );
+
+        const wrapped =
+            this.wrapText(
+                answer,
+                82
+            );
+
+        const lines =
+            wrapped.split("\n").length;
+
+        const height =
+            Math.max(
+                58,
+                30 + lines * 11
+            );
+
+        page.drawRectangle({
+            x,
+            y: currentY - height,
+            width,
+            height,
+            borderWidth: 0.7,
+            borderColor: rgb(0.88, 0.91, 0.94),
+            color: rgb(0.985, 0.99, 0.995)
+        });
+
+        page.drawCircle({
+            x: x + 12,
+            y: currentY - 16,
+            size: 4,
+            color: rgb(0.09, 0.41, 0.67)
+        });
+
+        page.drawText(
+            this.safePdfText(
+                String(
+                    period?.weekLabel ??
+                    "Recorded period"
+                )
+            ),
+            {
+                x: x + 25,
+                y: currentY - 19,
+                font: boldFont,
+                size: 9,
+                color: rgb(0.09, 0.41, 0.67)
+            }
+        );
+
+        page.drawText(
+            wrapped,
+            {
+                x: x + 25,
+                y: currentY - 37,
+                font: regularFont,
+                size: 8.5,
+                lineHeight: 11,
+                maxWidth: width - 35,
+                color: rgb(0.28, 0.34, 0.41)
+            }
+        );
+
+        currentY -=
+            height + 7;
     }
+
+    return currentY;
+}
 
     static drawHealthChanges(
         options: ExecutiveSummarySectionOptions,
@@ -133,22 +242,7 @@ export class ExecutiveSummarySectionRenderer {
             currentY -= 16;
         }
 
-        page.drawText("Yesterday's symptoms", { x, y: currentY, font: boldFont, size: 9.5, color: rgb(0.15, 0.20, 0.28) });
-        currentY -= 15;
-
-        const symptoms = this.extractYesterdaySymptoms(answer);
-        if (symptoms.length === 0) {
-            page.drawText("No symptoms were recorded yesterday.", { x, y: currentY, font: regularFont, size: 8.5, color: rgb(0.35, 0.40, 0.46) });
-            return currentY - 18;
-        }
-
-        for (const symptom of symptoms) {
-            page.drawCircle({ x: x + 4, y: currentY + 3, size: 2.5, color: rgb(0.49, 0.24, 0.74) });
-            page.drawText(this.safePdfText(symptom), { x: x + 12, y: currentY, font: regularFont, size: 8.5, color: rgb(0.28, 0.34, 0.41) });
-            currentY -= 13;
-        }
-
-        return currentY - 8;
+return currentY - 8;
     }
 
     static drawClinicalPlan(
@@ -214,6 +308,79 @@ export class ExecutiveSummarySectionRenderer {
         const latest = values[values.length - 1].value;
         return { current: `${latest}°F`, min: `${Math.min(...numbers)}°F`, max: `${Math.max(...numbers)}°F`, fallback: true };
     }
+
+
+private static deduplicateSymptoms(
+    answer: string
+): string {
+
+    if (!answer) {
+        return "";
+    }
+
+    const match =
+        answer.match(
+            /^(\s*Symptoms\s*)([\s\S]*)$/i
+        );
+
+    if (!match) {
+        return answer;
+    }
+
+    const prefix =
+        match[1];
+
+    const symptomText =
+        match[2]
+            .trim();
+
+    if (!symptomText) {
+        return answer;
+    }
+
+    /*
+     * Symptoms are currently rendered as a comma-separated
+     * list. Preserve the existing display format while
+     * removing duplicate symptom values.
+     */
+    const symptoms =
+        symptomText
+            .split(",")
+            .map(
+                symptom =>
+                    symptom.trim()
+            )
+            .filter(Boolean);
+
+    const seen =
+        new Set<string>();
+
+    const uniqueSymptoms =
+        symptoms.filter(
+            symptom => {
+
+                const key =
+                    symptom
+                        .toLowerCase();
+
+                if (
+                    seen.has(key)
+                ) {
+                    return false;
+                }
+
+                seen.add(key);
+
+                return true;
+            }
+        );
+
+    return (
+        prefix +
+        uniqueSymptoms.join(", ")
+    );
+}
+
 
     private static extractYesterdaySymptoms(answer: string): string[] {
         const match = answer.match(/Yesterday's symptoms\s*([\s\S]*)$/i);

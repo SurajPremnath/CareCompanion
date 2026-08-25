@@ -2,6 +2,7 @@
 
 import {
     Suspense,
+    useCallback,
     useEffect,
     useMemo,
     useState,
@@ -58,6 +59,18 @@ import UploadCareWorkspace
 import CareJourneyDisplayConfiguration
     from "@/Components/dashboard/CareJourneyDisplayConfiguration";
 
+/*
+import CareJourneyProcessingWorkspace
+    from "@/Components/dashboard/CareJourneyProcessingWorkspace";
+
+
+import CareJourneyProcessingWorkspace
+    from "@/Components/dashboard/CareJourneyProcessingWorkspaceStrataparseTest";
+*/
+
+import CareJourneyProcessingWorkspace
+    from "@/Components/dashboard/CareJourneyProcessingWorkspaceWOW";
+
 import {
     prescriptionStorage,
 } from "@/lib/prescription/prescriptionStorage";
@@ -76,6 +89,10 @@ import ExecutiveSummaryPdfGenerator
 
 import ClinicalTrendPdfGenerator
     from "@/app/journey-review/mobile/ClinicalTrendPdfGenerator";
+
+import {
+    startAuditAgent,
+} from "@/CareVRTestAuditAgent/runtime/auditAgent";
 
 type DashboardUser = {
     id: string;
@@ -146,29 +163,217 @@ const [
         ""
     );
 
-const [
-    careJourneyDocuments,
-    setCareJourneyDocuments,
-] = useState<File[]>([]);
+/*
+ * PATIENT-SPECIFIC CARE JOURNEY DOCUMENT WORKSPACES
+ *
+ * Each patient's uploaded documents and extracted results
+ * remain available while the user stays inside Record Health.
+ *
+ * This is intentionally React state only.
+ * It is NOT persisted to sessionStorage or the database.
+ *
+ * Patient 1 -> Patient 1 documents/results
+ * Patient 2 -> Patient 2 documents/results
+ *
+ * Leaving Record Health discards this temporary workspace.
+ */
+type CareJourneyDocumentWorkspaceItem = {
+    file: File;
+    status:
+        | "WAITING"
+        | "READING"
+        | "EXTRACTING"
+        | "COMPLETED"
+        | "FAILED";
+    data?: import(
+        "@/lib/prescription-image/prescriptionImageTypes"
+    ).ExtractedPrescription;
+    error?: string;
+};
 
 const [
-    careJourneyConfiguration,
-    setCareJourneyConfiguration,
+    careJourneyDocumentWorkspaces,
+    setCareJourneyDocumentWorkspaces,
 ] =
     useState<
-        CareJourneyDisplayConfigurationState | null
+        Record<
+            string,
+            CareJourneyDocumentWorkspaceItem[]
+        >
+    >({});
+
+/*
+ * Distinguish the initial upload state from a patient-selected
+ * empty state.
+ *
+ * Initial state:
+ *   Show the document upload screen.
+ *
+ * Patient-selected empty state:
+ *   Keep the patient panels visible and show
+ *   "No documents uploaded" in the workspace.
+ */
+const [
+    careJourneyNoDocuments,
+    setCareJourneyNoDocuments,
+] = useState(false);
+
+/*
+ * CARE JOURNEY CONFIGURATION
+ *
+ * Configuration is patient-specific.
+ *
+ * Each patient can have their own Care Journey display
+ * configuration. The configuration remains available for
+ * the current browser session and is selected using
+ * the active patient ID.
+ *
+ * Example:
+ *   Patient 1 → Patient 1 configuration
+ *   Patient 2 → Patient 2 configuration
+ *
+ * This prevents one patient's configuration from being
+ * incorrectly reused for another patient.
+ */
+const [
+    careJourneyConfigurations,
+    setCareJourneyConfigurations,
+] =
+    useState<
+        Record<
+            string,
+            CareJourneyDisplayConfigurationState
+        >
     >(
-        null
+        {}
     );
 
+const [
+    careJourneyConfigurationLoaded,
+    setCareJourneyConfigurationLoaded,
+] =
+    useState(false);
 
+/*
+ * TEMPORARY CARE JOURNEY CONFIGURATION DEBUG
+ *
+ * Used only during development to verify that
+ * patient-specific configurations are actually being
+ * persisted in sessionStorage.
+ *
+ * This should be removed after configuration storage
+ * has been fully verified.
+ */
+const [
+    showCareJourneyConfigurationDebug,
+    setShowCareJourneyConfigurationDebug,
+] =
+    useState(false);
 
+/*
+ * LOAD SAVED CARE JOURNEY CONFIGURATIONS
+ *
+ * Configuration is patient-specific and session-scoped.
+ *
+ * The configuration map is restored when Record Health
+ * opens so that each patient's completed configuration
+ * remains available during the current browser session.
+ *
+ * sessionStorage is intentionally used instead of
+ * localStorage because configuration must not become a
+ * permanent browser setting.
+ */
+useEffect(() => {
+    const savedConfigurations =
+        window.sessionStorage.getItem(
+            "carevr-care-journey-configurations"
+        );
+
+    if (savedConfigurations) {
+        try {
+            const parsedConfigurations =
+                JSON.parse(
+                    savedConfigurations
+                ) as Record<
+                    string,
+                    CareJourneyDisplayConfigurationState
+                >;
+
+            setCareJourneyConfigurations(
+                parsedConfigurations
+            );
+        } catch {
+            /*
+             * Ignore invalid saved configurations.
+             * Affected patients can configure again.
+             */
+        }
+    }
+
+    setCareJourneyConfigurationLoaded(
+        true
+    );
+}, []);
+
+/*
+ * TEMPORARY CONFIGURATION DEBUG READER
+ *
+ * Reads the exact sessionStorage value used by the
+ * production configuration save logic.
+ *
+ * This gives us visibility into what is actually stored
+ * without changing how configuration is persisted.
+ */
+const getStoredCareJourneyConfigurations = () => {
+    try {
+        const stored =
+            window.sessionStorage.getItem(
+                "carevr-care-journey-configurations"
+            );
+
+        if (!stored) {
+            return {};
+        }
+
+        return JSON.parse(stored) as Record<
+            string,
+            CareJourneyDisplayConfigurationState
+        >;
+
+    } catch {
+        return {};
+    }
+};
+
+/*
+ * SAVE PATIENT-SPECIFIC CARE JOURNEY CONFIGURATION
+ *
+ * The configuration belongs to the currently selected
+ * patient. It must never be shared with another patient.
+ */
 const handleCareJourneyConfigurationContinue = (
     configurable_Rest:
         Parameters<
             typeof createCareJourneyConfiguration
         >[0]
 ) => {
+
+    startAuditAgent({
+        runId: crypto.randomUUID(),
+        module: "CARE_JOURNEY",
+        documentCount: careJourneyDocuments.length,
+    });
+
+    /*
+     * A Care Journey configuration cannot be saved
+     * without an active patient in Family mode.
+     */
+    if (
+        careMode === "FAMILY" &&
+        !selectedPatientId
+    ) {
+        return;
+    }
 
     const configuration =
         createCareJourneyConfiguration(
@@ -180,10 +385,40 @@ const handleCareJourneyConfigurationContinue = (
             configuration
         );
 
-    setCareJourneyConfiguration(
-        lockedConfiguration
-    );
+    /*
+     * Add/update only the configuration belonging
+     * to the currently selected patient.
+     */
+    setCareJourneyConfigurations(
+        currentConfigurations => {
 
+            const updatedConfigurations = {
+                ...currentConfigurations,
+                [selectedPatientId ?? "SELF"]:
+                    lockedConfiguration,
+            };
+
+            /*
+             * Persist the complete patient → configuration
+             * map for the current browser session.
+             */
+            try {
+                window.sessionStorage.setItem(
+                    "carevr-care-journey-configurations",
+                    JSON.stringify(
+                        updatedConfigurations
+                    )
+                );
+            } catch {
+                /*
+                 * Persistence failure should not block
+                 * the current Care Journey session.
+                 */
+            }
+
+            return updatedConfigurations;
+        }
+    );
 };
 
 
@@ -446,24 +681,48 @@ const handleCareModeChange =
         };
 
 
-    const handlePatientSelect =
-        (
-            patient: Patient
-        ) => {
+/*
+ * PATIENT SELECTION
+ *
+ * Patient panels remain unchanged.
+ *
+ * When the user changes patient, the current Care Journey
+ * document workspace belongs to the previous patient and must
+ * therefore be cleared.
+ *
+ * The one-time display configuration is deliberately preserved.
+ * It must NOT be shown again merely because the patient changes.
+ */
+const handlePatientSelect =
+    (
+        patient: Patient
+    ) => {
+        if (!consentGranted) {
+            return;
+        }
 
-            if (!consentGranted) {
-                return;
-            }
+        setSelectedPatientId(
+            patient.id
+        );
 
-            setSelectedPatientId(
-                patient.id
-            );
+        setSelectedOption(
+            ""
+        );
 
-            setSelectedOption(
-                ""
-            );
-
-        };
+        /*
+         * Clear only the patient-specific uploaded documents.
+         *
+         * The configuration is intentionally NOT cleared because
+         * configuration is a one-time activity.
+         */
+        /*
+         * Do NOT clear Care Journey documents here.
+         *
+         * Each patient owns a separate temporary workspace.
+         * Changing patient simply changes which workspace is
+         * displayed.
+         */
+    };
 
 
     const handleLogout =
@@ -479,16 +738,37 @@ const handleCareModeChange =
             );
 
 
-            try {
+try {
 
-                await authService.logout();
+    await authService.logout();
 
+    /*
+     * Care Journey configuration is session-scoped.
+     *
+     * It must not survive logout because the next login
+     * may belong to a different user.
+     */
+    try {
+        window.sessionStorage.removeItem(
+            "carevr-care-journey-configurations"
+        );
+    } catch {
+        /*
+         * Storage cleanup failure must not prevent logout.
+         */
+    }
 
-                router.replace(
-                    "/login"
-                );
+    /*
+     * Clear the in-memory Care Journey state as well.
+     */
+    setCareJourneyConfigurations({});
+    setCareJourneyDocumentWorkspaces({});
 
-            }
+    router.replace(
+        "/login"
+    );
+
+}
             catch (logoutError) {
 
                 console.error(
@@ -504,6 +784,48 @@ const handleCareModeChange =
             }
 
         };
+
+const handleCareJourneyProcessingStateChange =
+    useCallback(
+        (
+            items: CareJourneyDocumentWorkspaceItem[]
+        ) => {
+
+            if (!selectedPatientId) {
+                return;
+            }
+
+            setCareJourneyDocumentWorkspaces(
+                currentWorkspaces => {
+
+                    const existingItems =
+                        currentWorkspaces[
+                            selectedPatientId
+                        ] ?? [];
+
+                    if (
+                        JSON.stringify(
+                            existingItems
+                        ) ===
+                        JSON.stringify(
+                            items
+                        )
+                    ) {
+                        return currentWorkspaces;
+                    }
+
+                    return {
+                        ...currentWorkspaces,
+                        [selectedPatientId]:
+                            items,
+                    };
+                }
+            );
+        },
+        [
+            selectedPatientId,
+        ]
+    );
 
 
     const handleCareVRJourney =
@@ -534,18 +856,51 @@ const handleCareModeChange =
         };
 
 
-    /*
-     * Family mode requires a selected patient.
-     * Self mode operates without one.
-     */
-    const canRecord =
-        careMode === "SELF" ||
-        selectedPatient !== null;
+/*
+ * Family mode requires a selected patient.
+ * Self mode operates without one.
+ */
+const canRecord =
+    careMode === "SELF" ||
+    selectedPatient !== null;
 
 
-    if (loading) {
+/*
+ * ACTIVE PATIENT CARE JOURNEY CONFIGURATION
+ *
+ * The Care Journey configuration is stored separately
+ * for each patient.
+ *
+ * When the selected patient changes, this automatically
+ * selects that patient's saved configuration.
+ *
+ * Patient 1 → Patient 1 configuration
+ * Patient 2 → Patient 2 configuration
+ *
+ * If the selected patient has no saved configuration,
+ * the value remains null and the configuration screen
+ * is shown.
+ */
+const careJourneyConfiguration =
+    careJourneyConfigurations[
+        selectedPatientId ?? "SELF"
+    ] ?? null;
 
-        return (
+/*
+ * ACTIVE PATIENT CARE JOURNEY DOCUMENTS
+ *
+ * Always display the workspace belonging to the currently
+ * selected patient.
+ */
+const careJourneyDocuments =
+    careJourneyDocumentWorkspaces[
+        selectedPatientId ?? "SELF"
+    ] ?? [];
+
+
+if (loading) {
+
+    return (
             <main className="record-health-page">
 
                 <div className="record-health-loading">
@@ -747,40 +1102,244 @@ const handleCareModeChange =
 
 </div>
 {searchParams.get("view") === "care-journey" ? (
-
     <>
 
-<div className="dashboard-workspace">
+{/*
+ * TEMPORARY CONFIGURATION DEBUG PANEL
+ *
+ * Remove this block after patient-specific configuration
+ * storage has been verified.
+ */}
+<div
+    style={{
+        width: "100%",
+        marginBottom: "12px",
+        padding: "10px",
+        border: "1px dashed #999",
+        borderRadius: "10px",
+        background: "#fffdf2",
+        boxSizing: "border-box",
+    }}
+>
+    <button
+        type="button"
+        onClick={() =>
+            setShowCareJourneyConfigurationDebug(
+                current => !current
+            )
+        }
+        style={{
+            border: "none",
+            background: "transparent",
+            padding: 0,
+            fontWeight: 800,
+            cursor: "pointer",
+            color: "#333",
+        }}
+    >
+        {showCareJourneyConfigurationDebug
+            ? "Hide Configuration Debug"
+            : "Show Configuration Debug"}
+    </button>
 
-    {careJourneyDocuments.length === 0 ? (
-
-        <CareJourneyUploadPanel
-            onBack={() => {
-                router.back();
+    {showCareJourneyConfigurationDebug && (
+        <div
+            style={{
+                marginTop: "10px",
+                fontSize: "12px",
+                lineHeight: 1.5,
             }}
-            onDocumentsSelected={(documents) => {
+        >
+            <strong>
+                Current Patient
+            </strong>
 
-                setCareJourneyDocuments(
-                    documents
-                );
+            <div>
+                {selectedPatient?.fullName ??
+                    "No patient selected"}
+            </div>
 
-            }}
-        />
+            <div
+                style={{
+                    marginTop: "8px",
+                }}
+            >
+                <strong>
+                    Stored Patient Configurations
+                </strong>
+            </div>
 
-    ) : (
+            {Object.entries(
+                getStoredCareJourneyConfigurations()
+            ).length === 0 ? (
+                <div>
+                    No configurations stored.
+                </div>
+            ) : (
+                Object.entries(
+                    getStoredCareJourneyConfigurations()
+                ).map(
+                    ([
+                        patientId,
+                    ]) => {
 
-        <CareJourneyDisplayConfiguration
-            onContinue={
-                handleCareJourneyConfigurationContinue
-            }
-        />
+                        const patient =
+                            patients.find(
+                                item =>
+                                    item.id ===
+                                    patientId
+                            );
 
+                        return (
+                            <div
+                                key={
+                                    patientId
+                                }
+                            >
+                                ✓{" "}
+                                {patient?.fullName ??
+                                    patientId}
+                            </div>
+                        );
+                    }
+                )
+            )}
+        </div>
     )}
-
 </div>
 
-    </>
 
+{/*
+ * CARE JOURNEY WORKSPACE HANDOFF
+ *
+ * First visit:
+ *   Upload documents
+ *        ↓
+ *   One-time configuration
+ *        ↓
+ *   Processing workspace
+ *
+ * After the configuration has been saved:
+ *   Selecting another patient must NOT show configuration again.
+ *
+ * If that patient has no uploaded documents:
+ *   Processing workspace receives an empty document list and
+ *   shows the simple "No documents uploaded" state.
+ */}
+<div className="dashboard-workspace">
+{!careJourneyConfigurationLoaded ? (
+    null
+) : careJourneyDocuments.length === 0 ? (
+    <CareJourneyUploadPanel
+        onBack={() => {
+            router.back();
+        }}
+onDocumentsSelected={(documents) => {
+
+    if (!selectedPatientId) {
+        return;
+    }
+
+    setCareJourneyDocumentWorkspaces(
+        currentWorkspaces => {
+
+            const existingItems =
+                currentWorkspaces[
+                    selectedPatientId
+                ] ?? [];
+
+            /*
+             * Keep already processed documents/results
+             * and add only the newly uploaded documents.
+             */
+            const existingFiles =
+                new Set(
+                    existingItems.map(
+                        item =>
+                            `${item.file.name}|${item.file.size}|${item.file.lastModified}`
+                    )
+                );
+
+            const newItems =
+                documents
+                    .filter(
+                        file =>
+                            !existingFiles.has(
+                                `${file.name}|${file.size}|${file.lastModified}`
+                            )
+                    )
+                    .map(
+                        file => ({
+                            file,
+                            status:
+                                "WAITING" as const,
+                        })
+                    );
+
+            return {
+                ...currentWorkspaces,
+
+                [selectedPatientId]: [
+                    ...existingItems,
+                    ...newItems,
+                ],
+            };
+        }
+    );
+}}
+    />
+) : careJourneyConfiguration === null ? (
+    <CareJourneyDisplayConfiguration
+        onContinue={
+            handleCareJourneyConfigurationContinue
+        }
+    />
+) : (
+<CareJourneyProcessingWorkspace
+documents={
+    careJourneyDocuments.map(
+        item => item.file
+    )
+}
+
+    configuration={
+        careJourneyConfiguration
+    }
+
+    /*
+     * Restore documents and extracted results already
+     * processed for this patient.
+     *
+     * New documents are added and processed.
+     * Existing completed documents are displayed without
+     * being processed again.
+     */
+    persistedItems={
+        careJourneyDocumentWorkspaces[
+            selectedPatientId ?? "SELF"
+        ] ?? []
+    }
+
+    /*
+     * Save the latest processing state against the
+     * currently selected patient.
+     */
+onProcessingStateChange={
+    handleCareJourneyProcessingStateChange
+}
+
+    onBack={() => {
+
+        router.push(
+            "/record-health?view=care-journey"
+        );
+
+    }}
+/>
+)}
+
+</div>
+    </>
 ) : searchParams.get("view") === "timeline" ? (
 
     <>

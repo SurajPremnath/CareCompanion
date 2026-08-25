@@ -19,6 +19,8 @@ export interface ClinicalTimelineEvent {
 
     symptoms: string[];
 
+    otherSymptom?: string | null;
+
  vitals: {
         temperature?: number | null;
         pulse?: number | null;

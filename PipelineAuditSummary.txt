@@ -1,0 +1,31 @@
+================================================================================
+          STRATAPARSE PIPELINE AUDIT COMPILATION REPORT SUMMARY
+================================================================================
+📊 Global Scan Metrics: Total Files Audited: 874 | Highly Vulnerable: 5 | Fully Optimized: 12
+
+🛑 ACTION REQUIRED: FILES REQUIRING INGESTION & COST OPTIMIZATION
+--------------------------------------------------------------------------------
+1. FILE PROFILE: .\app\api\medical-image\route.ts
+   ⚠️ Legacy Regex Processing: Uses regex string clipping instead of Native Structured Outputs (json_schema).
+
+2. FILE PROFILE: .\app\api\medical-voice\route.ts
+   ⚠️ Legacy Regex Processing: Uses regex string clipping instead of Native Structured Outputs (json_schema).
+
+3. FILE PROFILE: .\app\api\prescription-identity\route.ts
+   ⚠️ Legacy Regex Processing: Uses regex string clipping instead of Native Structured Outputs (json_schema).
+
+4. FILE PROFILE: .\app\api\prescription-image\route.ts
+   ⚠️ Legacy Regex Processing: Uses regex string clipping instead of Native Structured Outputs (json_schema).
+   ⚠️ Missing Trust Badging: Resolves medications but fails to append verification flags back to the review UI components.
+
+5. FILE PROFILE: .\lib\medication\medicineResolver.ts
+   ⚠️ Missing Trust Badging: Resolves medications but fails to append verification flags back to the review UI components.
+
+--------------------------------------------------------------------------------
+🔬 CORE ENGINEERING REMEDIATION BLUEPRINT
+--------------------------------------------------------------------------------
+1. Shift all endpoints to strict OpenAI Structured Outputs (response_format: json_schema).
+2. Enforce local Sharp canvas squashing down to 768px on the shortest edge to minimize visual tiles.
+3. Intercept camera snapshots locally using Laplacian filters to drop blurry content for free.
+4. Connect resolveMedicine hooks to the client UI via boolean safety flags (isClinicalMatchFound).
+================================================================================

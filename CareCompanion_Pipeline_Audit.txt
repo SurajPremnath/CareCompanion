@@ -1,0 +1,89 @@
+==========================================================================================
+                     CARECOMPANION SYSTEM INGESTION AUDIT SUMMARY REPORT
+==========================================================================================
+📊 Global System Telemetry: Files Scanned: 890 | Action Needed: 8 | Verified Optimized: 2
+==========================================================================================
+
+📁 FOLDER: CareCompanion/app\api\medical-image
+📄 FILE NAME: route.ts
+--------------------------------------------------
+   ISSUE DETECTED: 🛑 Legacy Markdown RegExp Trimming Loop Detected.
+   ISSUE DETECTED: 🛑 Uncompressed Multimodal Token Leakage.
+   ISSUE DETECTED: 🛑 Missing Pre-flight Ingestion Gatekeeper (Blur Flaw).
+   -> RECTIFY: Remove manual regex string manipulation and inject native 'response_format: { type: "json_schema" }' into the API completion configuration handler.
+   -> RECTIFY: Intercept incoming image streams using 'sharp' and enforce a maximum short-side bounding scale constraint of 768px to limit visual tile token consumption.
+   -> RECTIFY: Calculate local edge variance via a 3x3 Laplacian matrix convolution filter locally. Automatically reject standard-dev scores < 8.0 for free.
+
+==========================================================================================
+
+📁 FOLDER: CareCompanion/app\api\medical-voice
+📄 FILE NAME: route.ts
+--------------------------------------------------
+   ISSUE DETECTED: 🛑 Legacy Markdown RegExp Trimming Loop Detected.
+   -> RECTIFY: Remove manual regex string manipulation and inject native 'response_format: { type: "json_schema" }' into the API completion configuration handler.
+
+==========================================================================================
+
+📁 FOLDER: CareCompanion/app\api\prescription-identity
+📄 FILE NAME: route.ts
+--------------------------------------------------
+   ISSUE DETECTED: 🛑 Legacy Markdown RegExp Trimming Loop Detected.
+   ISSUE DETECTED: 🛑 Uncompressed Multimodal Token Leakage.
+   ISSUE DETECTED: 🛑 Missing Pre-flight Ingestion Gatekeeper (Blur Flaw).
+   -> RECTIFY: Remove manual regex string manipulation and inject native 'response_format: { type: "json_schema" }' into the API completion configuration handler.
+   -> RECTIFY: Intercept incoming image streams using 'sharp' and enforce a maximum short-side bounding scale constraint of 768px to limit visual tile token consumption.
+   -> RECTIFY: Calculate local edge variance via a 3x3 Laplacian matrix convolution filter locally. Automatically reject standard-dev scores < 8.0 for free.
+
+==========================================================================================
+
+📁 FOLDER: CareCompanion/app\api\prescription-image
+📄 FILE NAME: route.ts
+--------------------------------------------------
+   ISSUE DETECTED: 🛑 Legacy Markdown RegExp Trimming Loop Detected.
+   ISSUE DETECTED: 🛑 Uncompressed Multimodal Token Leakage.
+   ISSUE DETECTED: 🛑 Missing Pre-flight Ingestion Gatekeeper (Blur Flaw).
+   ISSUE DETECTED: 🛑 Ungrounded Database-to-UI Handoff Workflow.
+   -> RECTIFY: Remove manual regex string manipulation and inject native 'response_format: { type: "json_schema" }' into the API completion configuration handler.
+   -> RECTIFY: Intercept incoming image streams using 'sharp' and enforce a maximum short-side bounding scale constraint of 768px to limit visual tile token consumption.
+   -> RECTIFY: Calculate local edge variance via a 3x3 Laplacian matrix convolution filter locally. Automatically reject standard-dev scores < 8.0 for free.
+   -> RECTIFY: Append a Boolean tracking flag ('isClinicalMatchFound') to the structured medicines array payload object to trigger visual error borders in the user component UI.
+
+==========================================================================================
+
+📁 FOLDER: CareCompanion/architecture-report
+📄 FILE NAME: architecture-report.json
+--------------------------------------------------
+   ISSUE DETECTED: 🛑 Legacy Markdown RegExp Trimming Loop Detected.
+   -> RECTIFY: Remove manual regex string manipulation and inject native 'response_format: { type: "json_schema" }' into the API completion configuration handler.
+
+==========================================================================================
+
+📁 FOLDER: CareCompanion/lib\medication
+📄 FILE NAME: medicineResolver.ts
+--------------------------------------------------
+   ISSUE DETECTED: 🛑 Ungrounded Database-to-UI Handoff Workflow.
+   -> RECTIFY: Append a Boolean tracking flag ('isClinicalMatchFound') to the structured medicines array payload object to trigger visual error borders in the user component UI.
+
+==========================================================================================
+
+📁 FOLDER: CareCompanion/Strataparse\ingestion
+📄 FILE NAME: documentClassifier.ts
+--------------------------------------------------
+   ISSUE DETECTED: 🛑 Missing Pre-flight Ingestion Gatekeeper (Blur Flaw).
+   -> RECTIFY: Calculate local edge variance via a 3x3 Laplacian matrix convolution filter locally. Automatically reject standard-dev scores < 8.0 for free.
+
+==========================================================================================
+
+📁 FOLDER: CareCompanion/Strataparse\processing
+📄 FILE NAME: processStrataparseDocument.ts
+--------------------------------------------------
+   ISSUE DETECTED: 🛑 Uncompressed Multimodal Token Leakage.
+   ISSUE DETECTED: 🛑 Missing Pre-flight Ingestion Gatekeeper (Blur Flaw).
+   -> RECTIFY: Intercept incoming image streams using 'sharp' and enforce a maximum short-side bounding scale constraint of 768px to limit visual tile token consumption.
+   -> RECTIFY: Calculate local edge variance via a 3x3 Laplacian matrix convolution filter locally. Automatically reject standard-dev scores < 8.0 for free.
+
+==========================================================================================
+
+==========================================================================================
+                         [ END OF DETAILED EXTRACTION METRICS AUDIT ]
+==========================================================================================

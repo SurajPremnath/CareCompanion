@@ -81,6 +81,10 @@ let currentY =
 
         sex: report.sex,
 
+    doctorName: report.doctorName,
+
+    hospitalName: report.hospitalName,
+
         reportPeriod: report.reportPeriod,
 
         generatedOn: new Date()
@@ -126,6 +130,10 @@ currentY =
         age: report.age,
 
         sex: report.sex,
+
+    doctorName: report.doctorName,
+
+    hospitalName: report.hospitalName,
 
         reportPeriod: report.reportPeriod,
 
