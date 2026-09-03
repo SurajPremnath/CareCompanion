@@ -15,25 +15,97 @@ interface PatientAccess {
 export class PatientRepository extends BaseRepository {
 
   /**
-   * Returns all active patients belonging to the
+   * Returns all active patients available to the
    * currently authenticated user.
+   *
+   * A user may access a Patient either because the Patient
+   * was registered by that user or because the user has an
+   * explicit Family Member → Patient relationship.
    */
   async getPatients(): Promise<Patient[]> {
 
     const userId = await this.getCurrentUserId();
 
-    const { data, error } = await supabase
+    //----------------------------------------------------
+    // Patients registered by the current user
+    //----------------------------------------------------
+
+    const {
+      data: ownedPatients,
+      error: ownedPatientsError
+    } = await supabase
       .from("patients")
       .select("*")
       .eq("user_id", userId)
-      .eq("status", "ACTIVE")
-      .order("full_name", { ascending: true });
+      .eq("status", "ACTIVE");
 
-    if (error) {
-      this.handleError(error);
+    if (ownedPatientsError) {
+      this.handleError(ownedPatientsError);
     }
 
-    return ((data ?? []) as PatientRow[])
+    //----------------------------------------------------
+    // Patients explicitly linked to the current user
+    //----------------------------------------------------
+
+    const {
+      data: relationships,
+      error: relationshipsError
+    } = await supabase
+      .from("family_member_patient_relationships")
+      .select("patient_id")
+      .eq("user_id", userId);
+
+    if (relationshipsError) {
+      this.handleError(relationshipsError);
+    }
+
+    const relationshipPatientIds =
+      (relationships ?? []).map(
+        (relationship) => relationship.patient_id
+      );
+
+    //----------------------------------------------------
+    // Load relationship-linked Patients
+    //----------------------------------------------------
+
+    let linkedPatients: PatientRow[] = [];
+
+    if (relationshipPatientIds.length > 0) {
+
+      const {
+        data,
+        error
+      } = await supabase
+        .from("patients")
+        .select("*")
+        .in("id", relationshipPatientIds)
+        .eq("status", "ACTIVE");
+
+      if (error) {
+        this.handleError(error);
+      }
+
+      linkedPatients = (data ?? []) as PatientRow[];
+    }
+
+    //----------------------------------------------------
+    // Combine both access paths without duplicates
+    //----------------------------------------------------
+
+    const patientsById = new Map<string, PatientRow>();
+
+    for (const patient of (ownedPatients ?? []) as PatientRow[]) {
+      patientsById.set(patient.id, patient);
+    }
+
+    for (const patient of linkedPatients) {
+      patientsById.set(patient.id, patient);
+    }
+
+    return Array.from(patientsById.values())
+      .sort((a, b) =>
+        a.full_name.localeCompare(b.full_name)
+      )
       .map(PatientMapper.fromDatabase);
   }
 

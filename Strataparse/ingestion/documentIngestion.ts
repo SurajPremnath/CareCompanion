@@ -13,6 +13,10 @@ import {
     classifyStrataparseDocument,
 } from "./documentClassifier";
 
+import {
+    observeStrataparse,
+} from "@/CareVRTestAuditAgent/runtime/auditObserver";
+
 /**
  * Converts the documents received from an integrated product
  * into the standard Strataparse intake structure.
@@ -21,7 +25,8 @@ import {
  * It does not extract, analyse, interpret, or save document content.
  */
 export async function createStrataparseIntake(
-    request: StrataparseRequest
+    request: StrataparseRequest,
+    auditRunId?: string
 ): Promise<StrataparseIntake> {
     const documents: StrataparseDocument[] = [];
 
@@ -37,10 +42,38 @@ export async function createStrataparseIntake(
             pageCount = pdf.getPageCount();
         }
 
+
 const classification =
     await classifyStrataparseDocument(
         file
     );
+
+if (auditRunId) {
+    observeStrataparse({
+        type:
+            "DOCUMENT_STARTED",
+
+        runId:
+            auditRunId,
+
+        documentNumber:
+            index + 1,
+
+        pageCount,
+
+        documentType:
+            classification.documentType,
+
+        fileType:
+            file.type,
+
+        readability:
+            classification.readability,
+
+        timestamp:
+            Date.now(),
+    });
+}
 
 documents.push({
     documentNumber: index + 1,

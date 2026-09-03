@@ -1385,37 +1385,27 @@ const mobileSnapshotKey =
 <MobileHeader
     careMode={mobileCareMode}
     onCareModeChange={(mode) => {
-
         setMobileCareMode(mode);
 
         if (mode === "SELF") {
-
             setMobileSelectedPatientId("");
-
             setPersonSelection({
                 mode: "SELF",
                 patientId: null,
-                patientName:
-                    user.fullName,
+                patientName: user.fullName,
             });
-
             setSelectedAction("");
-            
-            
-
         } else {
-
             setPersonSelection({
                 mode: "FAMILY",
                 patientId: null,
                 patientName: null,
             });
-
             setSelectedAction("");
-            
         }
     }}
     userName={user.fullName}
+    showCareModeToggle={mobilePatients.length > 0}
     showHomeButton={false}
     accountMenuOpen={mobileAccountMenuOpen}
     onAccountMenuToggle={() =>

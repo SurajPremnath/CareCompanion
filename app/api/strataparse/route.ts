@@ -12,6 +12,11 @@ import {
     StrataparseAnalyse,
 } from "@/Strataparse/orchestration/strataparseEngine";
 
+
+import {
+    observeStrataparse,
+} from "@/CareVRTestAuditAgent/runtime/auditObserver";
+
 type StrataparseModule =
     | "RECORD_HEALTH"
     | "CARE_JOURNEY";
@@ -23,6 +28,10 @@ type StrataparseConfiguration = {
 export async function POST(
     request: Request
 ) {
+
+let auditRunId:
+    string |
+    undefined;
 
     try {
 
@@ -244,10 +253,32 @@ const strataparseRequest = {
         ),
 };
 
+
+auditRunId =
+    crypto.randomUUID();
+
+observeStrataparse({
+    type:
+        "CONFIGURATION_CAPTURED",
+
+    runId:
+        auditRunId,
+
+    configuration:
+        {
+            ...strataparseRequest.configuration,
+        },
+
+    timestamp:
+        Date.now(),
+});
+
 const intake =
     await StrataparseAnalyse(
-        strataparseRequest
+        strataparseRequest,
+        auditRunId
     );
+
 
 //--------------------------------------------------------
 // PROCESS EACH DOCUMENT INDEPENDENTLY
@@ -262,56 +293,168 @@ const intake =
 // Documents are never combined.
 //--------------------------------------------------------
 
-const results = [];
+//--------------------------------------------------------
+// STREAM COMPLETED DOCUMENT RESULTS
+//
+// Strataparse processes documents sequentially.
+//
+// Each time ONE document completes, immediately send
+// that document's result to CareVR.
+//
+// This does not change Strataparse processing.
+// It only exposes each completed document result
+// immediately instead of buffering all results.
+//--------------------------------------------------------
 
-for (
-    const document of intake.documents
-) {
+const encoder =
+    new TextEncoder();
 
-    const assessment =
-        assessDocument({
-            readability:
-                document.readability,
+const stream =
+    new ReadableStream({
+        async start(controller) {
 
-            pageCount:
-                document.pageCount,
-        });
+            try {
 
-    const result =
-        await processStrataparseDocument({
-            document:
-                document.file,
+                for (
+                    const document of intake.documents
+                ) {
 
-            documentType:
-                document.documentType,
+                    const assessment =
+                        assessDocument({
+                            readability:
+                                document.readability,
 
-            configuration,
+                            pageCount:
+                                document.pageCount,
+                        });
 
-            modelTier:
-                assessment.modelTier,
-        });
+                    const result =
+                        await processStrataparseDocument({
+                            document:
+                                document.file,
 
-    results.push(
-        result
-    );
-}
+                            documentType:
+                                document.documentType,
 
-        //--------------------------------------------------------
-        // RETURN RESULTS TO CAREVR
-        //
-        // One result exists for every input document.
-        //--------------------------------------------------------
+                            configuration,
 
-        return NextResponse.json({
-            success: true,
+                            modelTier:
+                                assessment.modelTier,
 
-            module,
+                            auditRunId:
+                                auditRunId,
 
-            documentCount:
-                documents.length,
+                            documentNumber:
+                                document.documentNumber,
+                        });
 
-            results,
-        });
+                    /*
+                     * This document is now completely
+                     * processed.
+                     *
+                     * Send only this document's result
+                     * to CareVR immediately.
+                     */
+                    controller.enqueue(
+                        encoder.encode(
+                            JSON.stringify({
+                                type:
+                                    "DOCUMENT_COMPLETED",
+
+                                documentNumber:
+                                    document.documentNumber,
+
+                                result,
+                            }) + "\n"
+                        )
+                    );
+                }
+
+                if (
+                    !auditRunId
+                ) {
+                    throw new Error(
+                        "Audit run ID was not created."
+                    );
+                }
+
+                observeStrataparse({
+                    type:
+                        "RUN_COMPLETED",
+
+                    runId:
+                        auditRunId,
+
+                    documentCount:
+                        intake.documentCount,
+
+                    totalPageCount:
+                        intake.totalPageCount,
+
+                    timestamp:
+                        Date.now(),
+                });
+
+                controller.enqueue(
+                    encoder.encode(
+                        JSON.stringify({
+                            type:
+                                "RUN_COMPLETED",
+                        }) + "\n"
+                    )
+                );
+
+                controller.close();
+
+            } catch (
+                error
+            ) {
+
+                console.error(
+                    "STRATAPARSE STREAM ERROR:",
+                    error
+                );
+
+                /*
+                 * If one document fails after previous
+                 * documents have already been returned,
+                 * preserve those completed results and
+                 * communicate the failure through the stream.
+                 */
+                controller.enqueue(
+                    encoder.encode(
+                        JSON.stringify({
+                            type:
+                                "PROCESSING_FAILED",
+
+                            error:
+                                error instanceof Error
+                                    ? error.message
+                                    : "Strataparse processing failed.",
+                        }) + "\n"
+                    )
+                );
+
+                controller.close();
+            }
+        },
+    });
+
+return new Response(
+    stream,
+    {
+        headers: {
+            "Content-Type":
+                "application/x-ndjson; charset=utf-8",
+
+            "Cache-Control":
+                "no-cache, no-transform",
+
+            "Connection":
+                "keep-alive",
+        },
+    }
+);
 
     } catch (
         error
@@ -321,6 +464,27 @@ for (
             "STRATAPARSE ROUTE ERROR:",
             error
         );
+
+        if (
+            auditRunId
+        ) {
+
+            observeStrataparse({
+                type:
+                    "PROCESSING_FAILED",
+
+                runId:
+                    auditRunId,
+
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : "Strataparse processing failed.",
+
+                timestamp:
+                    Date.now(),
+            });
+        }
 
         return NextResponse.json(
             {

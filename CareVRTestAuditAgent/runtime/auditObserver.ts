@@ -45,6 +45,9 @@ export type StrataparseAuditEvent =
         documentType:
             string;
 
+        fileType:
+            string;
+
         readability:
             string;
 
@@ -83,11 +86,18 @@ export type StrataparseAuditEvent =
         pageNumber:
             number;
 
-        modelTier:
-            string;
+modelTier:
+    string;
 
-        inputTokens?:
-            number;
+/*
+ * Actual GPT model identifier already resolved and used
+ * by Strataparse for this page.
+ */
+model:
+    string;
+
+inputTokens?:
+    number;
 
         outputTokens?:
             number;
@@ -251,6 +261,9 @@ const auditEvents =
  * This function intentionally returns immediately.
  *
  * Strataparse must NEVER await the audit system.
+ *
+ * The event is queued independently so audit recording
+ * cannot block or alter production processing.
  */
 export function observeStrataparse(
     event:
@@ -260,18 +273,25 @@ export function observeStrataparse(
     queueMicrotask(
         () => {
 
-            void recordAuditEvent(
-                event
-            ).catch(
-                error => {
+            try {
 
-                    console.error(
-                        "CAERV TEST AUDIT OBSERVER ERROR:",
-                        error
-                    );
+                recordAuditEvent(
+                    event
+                );
 
-                }
-            );
+            } catch (
+                error
+            ) {
+
+                /*
+                 * Audit failures must never become
+                 * Strataparse failures.
+                 */
+                console.error(
+                    "CAERV TEST AUDIT OBSERVER ERROR:",
+                    error
+                );
+            }
 
         }
     );
@@ -284,10 +304,10 @@ export function observeStrataparse(
  * This function is deliberately isolated from the
  * Strataparse execution path.
  */
-async function recordAuditEvent(
+function recordAuditEvent(
     event:
         StrataparseAuditEvent
-): Promise<void> {
+): void {
 
     try {
 
@@ -297,13 +317,13 @@ async function recordAuditEvent(
             ) ?? [];
 
         const enrichedEvent =
-    enrichTiming(
-        event
-    );
+            enrichTiming(
+                event
+            );
 
-existingEvents.push(
-    enrichedEvent
-);
+        existingEvents.push(
+            enrichedEvent
+        );
 
         auditEvents.set(
             event.runId,
@@ -320,7 +340,6 @@ existingEvents.push(
          * The Audit Agent must never become a reason for
          * Strataparse processing to fail.
          */
-
         console.error(
             "CAERV TEST AUDIT RECORDING ERROR:",
             error

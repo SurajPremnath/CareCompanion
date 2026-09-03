@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ClinicalTrendSummary from "./components/ClinicalTrendSummary";
+import ClinicalTrendGraphs from "./components/ClinicalTrendGraphs";
 
 import Image from "next/image";
 

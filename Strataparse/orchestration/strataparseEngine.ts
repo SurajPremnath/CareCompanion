@@ -20,7 +20,8 @@ import {
  * Strataparse intake. It does not perform extraction.
  */
 export async function StrataparseAnalyse(
-    request: StrataparseRequest
+    request: StrataparseRequest,
+    auditRunId?: string
 ): Promise<StrataparseIntake> {
     if (!request.integrationKey.trim()) {
         throw new Error(
@@ -88,5 +89,8 @@ export async function StrataparseAnalyse(
     }
 
 
-    return createStrataparseIntake(request);
+    return createStrataparseIntake(
+    request,
+    auditRunId
+);
 }

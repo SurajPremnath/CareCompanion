@@ -253,6 +253,42 @@ page.drawRectangle({
 
     }
 
+    static line(
+        page: PDFPage,
+        options: {
+            startX: number;
+            startY: number;
+            endX: number;
+            endY: number;
+            thickness?: number;
+            color?: RGB;
+        }
+    ) {
+
+        page.drawLine({
+
+            start: {
+                x: options.startX,
+                y: options.startY
+            },
+
+            end: {
+                x: options.endX,
+                y: options.endY
+            },
+
+            thickness:
+                options.thickness ?? 2,
+
+            color:
+                options.color ??
+                rgb(0.15, 0.39, 0.85)
+
+        });
+
+    }
+
+
     static badge(
         page: PDFPage,
         options: BadgeOptions

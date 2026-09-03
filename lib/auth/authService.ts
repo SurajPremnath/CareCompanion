@@ -14,51 +14,54 @@ export class AuthService {
    * The PostgreSQL trigger automatically creates
    * the profile in the users table.
    */
-  async register(
-    fullName: string,
-    email: string,
-    password: string
-  ): Promise<{
-    user: User;
-    session: Session | null;
-  }> {
+async register(
+  fullName: string,
+  email: string,
+  password: string,
+  familyMemberType: "PRIMARY" | "SECONDARY" | "OTHER"
+): Promise<{
+  user: User;
+  session: Session | null;
+}> {
 
-    const { data, error } =
-      await supabase.auth.signUp({
+  const { data, error } =
+    await supabase.auth.signUp({
 
-        email,
+      email,
 
-        password,
+      password,
 
-        options: {
+      options: {
 
-          data: {
+        data: {
 
-            full_name: fullName
+          full_name: fullName,
 
-          }
+          family_member_type: familyMemberType
 
         }
 
-      });
+      }
 
-    if (error) {
-      throw error;
-    }
+    });
 
-    if (!data.user) {
-      throw new Error("Unable to create account.");
-    }
-
-    return {
-
-      user: data.user,
-
-      session: data.session
-
-    };
-
+  if (error) {
+    throw error;
   }
+
+  if (!data.user) {
+    throw new Error("Unable to create account.");
+  }
+
+  return {
+
+    user: data.user,
+
+    session: data.session
+
+  };
+
+}
 
   /**
    * Login.

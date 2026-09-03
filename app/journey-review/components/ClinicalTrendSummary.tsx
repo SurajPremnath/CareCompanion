@@ -40,6 +40,8 @@ import {
     buildPatient,
 } from "@/app/journey-review/data/patient";
 
+import ClinicalTrendGraphs
+    from "./ClinicalTrendGraphs";
 
 const REPORT_PERIOD_DAYS = 21;
 
@@ -846,6 +848,18 @@ async function handleGeneratePdf() {
 const careVrPatient =
     buildPatient();
 
+console.log(
+    "PDF INPUT TRENDS:",
+    trends
+);
+
+console.log(
+    "PDF INPUT HISTORY:",
+    trends.map(trend => ({
+        parameter: trend.parameter,
+        history: trend.history
+    }))
+);
 
 const pdfBytes =
     await trendReportPdf.generate(
@@ -863,6 +877,9 @@ trends.map(
 
         current:
             trend.current,
+
+history:
+    trend.history,
 
         periods: [
 
@@ -966,6 +983,15 @@ link.download =
 
 useEffect(() => {
 
+    console.log(
+        "CLINICAL TREND EFFECT:",
+        {
+            generateRequested,
+            selectedPeriod
+        }
+    );
+
+
     if (
         !generateRequested ||
         !selectedPeriod?.start ||
@@ -994,11 +1020,16 @@ useEffect(() => {
                 );
 
 
-            if (!cancelled) {
+if (!cancelled) {
 
-                setTrends(data);
+    console.log(
+        "CLINICAL TRENDS DATA:",
+        data
+    );
 
-            }
+    setTrends(data);
+
+}
 
         } catch (error) {
 
@@ -2021,8 +2052,7 @@ function MetricCard({
     }
 />
 
-
-
+ 
 
         </div>
 

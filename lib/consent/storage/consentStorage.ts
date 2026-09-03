@@ -11,6 +11,14 @@ import {
 } from "@/lib/consent/repository/consentRepository";
 
 import {
+    carevrAccessRepository,
+} from "@/lib/repositories/carevrAccessRepository";
+
+import {
+    carevrModulePermissions,
+} from "@/lib/repositories/carevrModulePermissions";
+
+import {
     CURRENT_CONSENT_VERSION,
     CURRENT_PRIVACY_POLICY_VERSION,
     CURRENT_TERMS_VERSION,
@@ -26,42 +34,52 @@ export class ConsentStorage {
         const userId =
             await authService.getCurrentUserId();
 
-await consentRepository.create({
+        await consentRepository.create({
 
-userId,
+            userId,
 
-consentVersion:
-    CURRENT_CONSENT_VERSION,
+            consentVersion:
+                CURRENT_CONSENT_VERSION,
 
-privacyPolicyVersion:
-    CURRENT_PRIVACY_POLICY_VERSION,
+            privacyPolicyVersion:
+                CURRENT_PRIVACY_POLICY_VERSION,
 
-termsVersion:
-    CURRENT_TERMS_VERSION,
+            termsVersion:
+                CURRENT_TERMS_VERSION,
 
-medicalDisclaimerVersion:
-    CURRENT_MEDICAL_DISCLAIMER_VERSION,
+            medicalDisclaimerVersion:
+                CURRENT_MEDICAL_DISCLAIMER_VERSION,
 
-aiDisclaimerVersion:
-    CURRENT_AI_DISCLAIMER_VERSION,
+            aiDisclaimerVersion:
+                CURRENT_AI_DISCLAIMER_VERSION,
 
-language:
-    DEFAULT_CONSENT_LANGUAGE,
+            language:
+                DEFAULT_CONSENT_LANGUAGE,
 
-    accepted: true,
+            accepted: true,
 
-    acceptedAt: new Date(),
+            acceptedAt: new Date(),
 
-});
+        });
+
+        const carevrAccessId =
+            await carevrAccessRepository.createPrimaryAccess(
+                userId
+            );
+
+        await carevrModulePermissions.createPrimaryPermissions(
+            carevrAccessId,
+            userId
+        );
 
     }
 
-async hasAcceptedCurrentConsent(): Promise<boolean> {
+    async hasAcceptedCurrentConsent(): Promise<boolean> {
 
-    return await consentRepository
-        .hasAcceptedCurrentConsent();
+        return await consentRepository
+            .hasAcceptedCurrentConsent();
 
-}
+    }
 
 }
 

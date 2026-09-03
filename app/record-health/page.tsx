@@ -91,8 +91,27 @@ import ClinicalTrendPdfGenerator
     from "@/app/journey-review/mobile/ClinicalTrendPdfGenerator";
 
 import {
-    startAuditAgent,
-} from "@/CareVRTestAuditAgent/runtime/auditAgent";
+    startAuditCoordinator,
+    syncAuditCoordinatorObservations,
+    markAuditCoordinatorRendered,
+    completeAuditCoordinator,
+    recordAuditCoordinatorEvaluation,
+    type AuditCoordinator,
+} from "@/CareVRTestAuditAgent/runtime/auditCoordinator";
+
+import {
+    observeStrataparse,
+} from "@/CareVRTestAuditAgent/runtime/auditObserver";
+
+import {
+    recordAuditEvaluation,
+    buildAuditAccuracyComparisons,
+} from "@/CareVRTestAuditAgent/runtime/auditEvaluation";
+
+import careVRGoldStandard
+    from "@/benchmarks/consultation-v1/expected-output.json";
+
+
 
 type DashboardUser = {
     id: string;
@@ -163,6 +182,22 @@ const [
         ""
     );
 
+
+const [
+    careJourneyAuditCoordinator,
+    setCareJourneyAuditCoordinator,
+] = useState<AuditCoordinator | null>(
+    null
+);
+
+/*
+ * CARE JOURNEY AUDIT LIFECYCLE
+ *
+ * The audit begins when the user clicks Continue and is
+ * retained by the parent until the processing workspace
+ * confirms that the final results UI has rendered.
+ */
+
 /*
  * PATIENT-SPECIFIC CARE JOURNEY DOCUMENT WORKSPACES
  *
@@ -185,10 +220,20 @@ type CareJourneyDocumentWorkspaceItem = {
         | "EXTRACTING"
         | "COMPLETED"
         | "FAILED";
-    data?: import(
-        "@/lib/prescription-image/prescriptionImageTypes"
-    ).ExtractedPrescription;
+
+/*
+ * Current Strataparse document result.
+ *
+ * CareVR keeps the document type together with the
+ * extraction returned by Strataparse so the presentation
+ * layer can render the selected information correctly.
+ */
+data?: {
+    documentType: string;
+    extraction: Record<string, unknown>;
+};
     error?: string;
+
 };
 
 const [
@@ -351,18 +396,63 @@ const getStoredCareJourneyConfigurations = () => {
  * The configuration belongs to the currently selected
  * patient. It must never be shared with another patient.
  */
-const handleCareJourneyConfigurationContinue = (
+const handleCareJourneyConfigurationContinue = async (
     configurable_Rest:
         Parameters<
             typeof createCareJourneyConfiguration
         >[0]
 ) => {
 
-    startAuditAgent({
-        runId: crypto.randomUUID(),
-        module: "CARE_JOURNEY",
-        documentCount: careJourneyDocuments.length,
-    });
+    const auditConfigurationResponse =
+        await fetch(
+            "/admin/Audit/configuration"
+        );
+
+    if (
+        !auditConfigurationResponse.ok
+    ) {
+        throw new Error(
+            "Unable to resolve audit configuration."
+        );
+    }
+
+const auditConfiguration =
+    await auditConfigurationResponse.json() as {
+        productId:
+            string;
+
+        ruleId:
+            string;
+
+        pricing: {
+            model:
+                string;
+
+            inputCostPer1K:
+                number;
+
+            outputCostPer1K:
+                number;
+
+            currency?:
+                string;
+        };
+    };
+
+    console.log(
+        "[CARE JOURNEY DEBUG] 02A - About to start Audit Agent",
+        {
+            timestamp:
+                new Date().toISOString(),
+
+            documentCount:
+                careJourneyDocuments.length,
+
+            careMode,
+
+            selectedPatientId,
+        }
+    );
 
     /*
      * A Care Journey configuration cannot be saved
@@ -375,19 +465,93 @@ const handleCareJourneyConfigurationContinue = (
         return;
     }
 
+    /*
+     * Start the audit coordinator only after the
+     * patient validation has succeeded.
+     *
+     * Product and Rule are resolved through the
+     * server-side audit configuration route so
+     * supabaseAdmin never enters the client bundle.
+     */
+let auditCoordinator:
+        AuditCoordinator;
+
+auditCoordinator =
+    await startAuditCoordinator({
+        runId:
+            crypto.randomUUID(),
+
+        module:
+            "CARE_JOURNEY",
+
+        documentCount:
+            careJourneyDocuments.length,
+
+        productId:
+            auditConfiguration.productId,
+
+        ruleId:
+            auditConfiguration.ruleId,
+
+        pricing:
+            auditConfiguration.pricing,
+
+        /*
+         * Capture the actual documents submitted by the user
+         * at the existing CareVR Continue boundary.
+         *
+         * This is audit input evidence only.
+         * It does not modify or control Strataparse.
+         */
+        documentInventory:
+            careJourneyDocuments.map(
+                (
+                    item,
+                    index
+                ) => ({
+                    documentNumber:
+                        index + 1,
+
+                    fileName:
+                        item.file.name,
+
+                    fileType:
+                        item.file.type,
+                })
+            ),
+    });
+
+    console.log(
+        "[CARE JOURNEY DEBUG] 03 - Parent Continue handler entered",
+        {
+            configurable_Rest,
+            timestamp: new Date().toISOString(),
+        }
+    );
+
     const configuration =
         createCareJourneyConfiguration(
             configurable_Rest
         );
+
+    console.log(
+        "[CARE JOURNEY DEBUG] 04 - Configuration created",
+        configuration
+    );
 
     const lockedConfiguration =
         lockCareJourneyConfiguration(
             configuration
         );
 
+    console.log(
+        "[CARE JOURNEY DEBUG] 05 - Configuration locked",
+        lockedConfiguration
+    );
+
     /*
-     * Add/update only the configuration belonging
-     * to the currently selected patient.
+     * Persist the Care Journey configuration
+     * for the currently selected patient.
      */
     setCareJourneyConfigurations(
         currentConfigurations => {
@@ -398,10 +562,6 @@ const handleCareJourneyConfigurationContinue = (
                     lockedConfiguration,
             };
 
-            /*
-             * Persist the complete patient → configuration
-             * map for the current browser session.
-             */
             try {
                 window.sessionStorage.setItem(
                     "carevr-care-journey-configurations",
@@ -411,7 +571,7 @@ const handleCareJourneyConfigurationContinue = (
                 );
             } catch {
                 /*
-                 * Persistence failure should not block
+                 * Persistence failure must not block
                  * the current Care Journey session.
                  */
             }
@@ -419,8 +579,635 @@ const handleCareJourneyConfigurationContinue = (
             return updatedConfigurations;
         }
     );
+
+    /*
+     * CAREVR → STRATAPARSE
+     *
+     * CareVR supplies the documents and the
+     * Care Journey configuration.
+     *
+     * Strataparse owns:
+     * - integration validation
+     * - document intake
+     * - page counting
+     * - classification
+     * - readability assessment
+     * - model routing
+     * - extraction
+     * - result assembly
+     */
+    console.log(
+        "[CARE JOURNEY DEBUG] 07 - About to invoke Strataparse",
+        {
+            timestamp: new Date().toISOString(),
+            documentCount:
+                careJourneyDocuments.length,
+            documents:
+                careJourneyDocuments.map(
+                    item => item.file.name
+                ),
+        }
+    );
+
+    try {
+
+        const formData =
+            new FormData();
+
+formData.append(
+    "digitalKey",
+    "LineariseAILabs-HealthCare-PatientManagement-CareVR-Strataparse01"
+);
+
+        formData.append(
+            "module",
+            "CARE_JOURNEY"
+        );
+
+formData.append(
+    "auditRunId",
+    auditCoordinator.run.runId
+);
+
+        formData.append(
+            "documentType",
+            "CARE_JOURNEY"
+        );
+
+formData.append(
+    "configuration",
+    JSON.stringify({
+        expectedOutput:
+            lockedConfiguration.configurable_Rest,
+    })
+);
+
+        careJourneyDocuments.forEach(
+            item => {
+                formData.append(
+                    "documents",
+                    item.file
+                );
+            }
+        );
+
+        console.log(
+            "[CARE JOURNEY DEBUG] 08 - Sending documents to Strataparse",
+            {
+                timestamp:
+                    new Date().toISOString(),
+                documentCount:
+                    careJourneyDocuments.length,
+            }
+        );
+
+        const response =
+            await fetch(
+                "/api/strataparse",
+                {
+                    method: "POST",
+                    body: formData,
+                }
+            );
+
+        console.log(
+            "[CARE JOURNEY DEBUG] 09 - Strataparse response received",
+            {
+                timestamp:
+                    new Date().toISOString(),
+                status:
+                    response.status,
+                ok:
+                    response.ok,
+            }
+        );
+
+        if (!response.ok) {
+
+            const errorText =
+                await response.text();
+
+            console.error(
+                "[CARE JOURNEY DEBUG] 10 - Strataparse request failed",
+                {
+                    timestamp:
+                        new Date().toISOString(),
+                    status:
+                        response.status,
+                    error:
+                        errorText,
+                }
+            );
+
+            return;
+        }
+
+const responseText =
+    await response.text();
+
+const responseLines =
+    responseText
+        .split("\n")
+        .map(
+            line =>
+                line.trim()
+        )
+        .filter(Boolean);
+
+type StrataparseDocumentResult = {
+    documentType:
+        string;
+
+    extraction:
+        Record<string, unknown>;
 };
 
+type StrataparseStreamResult = {
+    documentCount?:
+        number;
+
+    results?:
+        StrataparseDocumentResult[];
+};
+
+const parsedResults:
+    StrataparseStreamResult[] = [];
+
+for (
+    const line
+    of responseLines
+) {
+
+    try {
+
+const parsed =
+    JSON.parse(
+        line
+    );
+
+if (
+    parsed &&
+    typeof parsed ===
+        "object"
+) {
+
+    parsedResults.push(
+        parsed as
+            StrataparseStreamResult
+    );
+}
+
+    } catch (
+        parseError
+    ) {
+
+        console.error(
+            "[CARE JOURNEY DEBUG] 10A - Invalid Strataparse response record",
+            {
+                timestamp:
+                    new Date().toISOString(),
+
+                error:
+                    parseError,
+
+                line,
+            }
+        );
+
+        throw parseError;
+    }
+}
+
+/*
+ * STRATAPARSE RESPONSE
+ *
+ * Strataparse returns one JSON record per streamed
+ * response record. The final result record contains
+ * the documentCount and document results consumed
+ * below.
+ *
+ * Do not treat the entire response body as one JSON
+ * document because the API response is streamed.
+ */
+const strataparseResult =
+    parsedResults[
+        parsedResults.length - 1
+    ] ??
+    {};
+
+/*
+ * ------------------------------------------------------------
+ * AUDIT ACCURACY EVALUATION
+ * ------------------------------------------------------------
+ *
+ * The Audit Agent now compares the actual CareVR/Strataparse
+ * result against the approved CareVR Gold Standard benchmark.
+ *
+ * IMPORTANT:
+ *
+ * - The benchmark is the source of expected evidence.
+ * - The actual result comes directly from the production
+ *   Strataparse response already received above.
+ * - The Audit Agent does not modify the production result.
+ * - No model routing, prompt, or extraction decision is changed.
+ *
+ * This produces explicit:
+ *
+ *     CORRECT
+ *     MISSED
+ *     INCORRECT
+ *
+ * evidence for Founder-level accuracy reporting.
+ */
+
+const benchmarkExpectedOutput =
+    careVRGoldStandard as Record<
+        string,
+        unknown
+    >;
+
+const benchmarkActualResult =
+    Array.isArray(
+        strataparseResult.results
+    ) &&
+    strataparseResult.results.length > 0
+        ? strataparseResult.results[0]?.extraction
+        : undefined;
+
+if (
+    benchmarkActualResult &&
+    typeof benchmarkActualResult ===
+        "object"
+) {
+
+    const accuracyComparisons =
+        buildAuditAccuracyComparisons(
+            benchmarkExpectedOutput,
+            benchmarkActualResult
+        );
+
+    const accuracyEvaluation =
+        recordAuditEvaluation({
+
+            runId:
+                auditCoordinator.run.runId,
+
+            documentNumber:
+                1,
+
+            accuracyComparisons,
+
+            notes: [
+                "Accuracy evaluated against the approved CareVR Gold Standard Consultation v1 benchmark.",
+            ],
+        });
+
+    auditCoordinator =
+        recordAuditCoordinatorEvaluation(
+            auditCoordinator,
+            accuracyEvaluation
+        );
+
+    console.log(
+        "[CARE JOURNEY AUDIT DEBUG] Accuracy evaluation recorded",
+        {
+            runId:
+                auditCoordinator.run.runId,
+
+            evaluatedItems:
+                accuracyEvaluation.accuracyEvaluatedItems,
+
+            correctItems:
+                accuracyEvaluation.accuracyCorrectItems,
+
+            missedItems:
+                accuracyEvaluation.accuracyMissedItems,
+
+            incorrectItems:
+                accuracyEvaluation.accuracyIncorrectItems,
+
+            accuracyPercentage:
+                accuracyEvaluation.accuracyScore,
+        }
+    );
+
+} else {
+
+    console.warn(
+        "[CARE JOURNEY AUDIT DEBUG] Accuracy evaluation skipped because no actual extraction result was available.",
+        {
+            runId:
+                auditCoordinator.run.runId,
+        }
+    );
+}
+
+console.log(
+    "[CARE JOURNEY DEBUG] 11 - Strataparse result received",
+    {
+        timestamp:
+            new Date().toISOString(),
+
+        documentCount:
+            strataparseResult?.documentCount,
+
+        results:
+            strataparseResult?.results,
+    }
+);
+
+        /*
+         * STRATAPARSE → CAREVR RESULT HANDOFF
+         *
+         * Strataparse returns exactly one result for each
+         * independently processed input document.
+         *
+         * CareVR now attaches each returned extraction to
+         * the corresponding workspace document.
+         *
+         * No database persistence happens here.
+         * This is temporary in-session UI state only.
+         */
+        setCareJourneyDocumentWorkspaces(
+            currentWorkspaces => {
+
+                const patientKey =
+                    selectedPatientId ?? "SELF";
+
+                const existingItems =
+                    currentWorkspaces[
+                        patientKey
+                    ] ?? [];
+
+                const results =
+                    Array.isArray(
+                        strataparseResult.results
+                    )
+                        ? strataparseResult.results
+                        : [];
+
+                const updatedItems =
+                    existingItems.map(
+                        (
+                            item,
+                            index
+                        ) => {
+
+                            const result =
+                                results[index];
+
+                            if (!result) {
+
+                                return {
+                                    ...item,
+                                    status:
+                                        "FAILED" as const,
+                                    error:
+                                        "Strataparse did not return a result for this document.",
+                                };
+
+                            }
+
+                            return {
+                                ...item,
+
+                                /*
+                                 * Strataparse has completed the
+                                 * document and returned its extracted
+                                 * intelligence.
+                                 */
+                                status:
+                                    "COMPLETED" as const,
+
+/*
+ * Preserve the complete Strataparse document result.
+ *
+ * CareVR presentation uses the document type to determine
+ * how the returned extraction should be displayed.
+ */
+data: {
+    documentType:
+        result.documentType,
+
+    extraction:
+        result.extraction,
+},
+
+                                error:
+                                    undefined,
+                            };
+                        }
+                    );
+
+                console.log(
+                    "[CARE JOURNEY DEBUG] 12 - Strataparse results attached to workspace",
+                    {
+                        timestamp:
+                            new Date().toISOString(),
+                        patientKey,
+                        resultCount:
+                            results.length,
+                        updatedItems:
+                            updatedItems.map(
+                                item => ({
+                                    fileName:
+                                        item.file.name,
+                                    status:
+                                        item.status,
+                                    hasData:
+                                        !!item.data,
+                                })
+                            ),
+                    }
+                );
+
+                return {
+                    ...currentWorkspaces,
+                    [patientKey]:
+                        updatedItems,
+                };
+            }
+        );
+
+
+console.log(
+    "[CARE JOURNEY AUDIT DEBUG] 01 - Entering audit observation sync",
+    {
+        timestamp:
+            new Date().toISOString(),
+        runId:
+            auditCoordinator.run.runId,
+    }
+);
+
+
+
+        auditCoordinator =
+            syncAuditCoordinatorObservations(
+                auditCoordinator
+            );
+
+
+console.log(
+    "[CARE JOURNEY AUDIT DEBUG] 02 - Audit observation sync completed",
+    {
+        timestamp:
+            new Date().toISOString(),
+        runId:
+            auditCoordinator.run.runId,
+    }
+);
+
+
+console.log(
+    "[CARE JOURNEY AUDIT DEBUG] 03 - Entering audit result rendered",
+    {
+        timestamp:
+            new Date().toISOString(),
+        runId:
+            auditCoordinator.run.runId,
+    }
+);
+
+const resultRenderedAt =
+    Date.now();
+
+auditCoordinator =
+    markAuditCoordinatorRendered(
+        auditCoordinator,
+        resultRenderedAt
+    );
+
+observeStrataparse({
+    type:
+        "RESULT_RENDERED",
+
+    runId:
+        auditCoordinator.run.runId,
+
+    documentCount:
+        auditCoordinator.run.documentCount,
+
+    timestamp:
+        resultRenderedAt,
+});
+
+
+console.log(
+    "[CARE JOURNEY AUDIT DEBUG] 04 - Audit result rendered completed",
+    {
+        timestamp:
+            new Date().toISOString(),
+        runId:
+            auditCoordinator.run.runId,
+    }
+);
+
+console.log(
+    "[CARE JOURNEY AUDIT DEBUG] 05 - Entering audit completion",
+    {
+        timestamp:
+            new Date().toISOString(),
+        runId:
+            auditCoordinator.run.runId,
+    }
+);
+
+
+
+        auditCoordinator =
+            await completeAuditCoordinator(
+                auditCoordinator
+            );
+
+
+console.log(
+    "[CARE JOURNEY AUDIT DEBUG] 06 - Audit completion returned",
+    {
+        timestamp:
+            new Date().toISOString(),
+        runId:
+            auditCoordinator.run.runId,
+        hasAggregation:
+            !!auditCoordinator.aggregation,
+        hasReport:
+            !!auditCoordinator.report,
+    }
+);
+
+console.log(
+    "[CARE JOURNEY AUDIT DEBUG] 07 - Entering audit database save",
+    {
+        timestamp:
+            new Date().toISOString(),
+        runId:
+            auditCoordinator.run.runId,
+        productId:
+            auditCoordinator.productId,
+        ruleId:
+            auditCoordinator.ruleId,
+        hasAggregation:
+            !!auditCoordinator.aggregation,
+    }
+);
+
+const auditSaveResponse =
+await fetch(
+    "/admin/Audit/save",
+    {
+        method:
+            "POST",
+
+        headers: {
+            "Content-Type":
+                "application/json",
+        },
+
+        body:
+            JSON.stringify({
+                aggregation:
+                    auditCoordinator.aggregation,
+
+                productId:
+                    auditCoordinator.productId,
+
+                ruleId:
+                    auditCoordinator.ruleId,
+            }),
+    }
+);
+
+if (
+    !auditSaveResponse.ok
+) {
+    throw new Error(
+        "Failed to save audit to database."
+    );
+}
+
+
+} catch (error) {
+
+    console.error(
+        "[CARE JOURNEY DEBUG] 12 - Strataparse invocation failed",
+        {
+            timestamp:
+                new Date().toISOString(),
+
+            error:
+                error instanceof Error
+                    ? error.message
+                    : String(error),
+
+            stack:
+                error instanceof Error
+                    ? error.stack
+                    : undefined,
+        }
+    );
+}
+
+};
 
 
     const [
@@ -1295,7 +2082,33 @@ onDocumentsSelected={(documents) => {
         }
     />
 ) : (
-<CareJourneyProcessingWorkspace
+<>
+    {console.log(
+        "[CARE JOURNEY DEBUG] 07 - Processing Workspace render branch reached",
+        {
+            timestamp: new Date().toISOString(),
+            selectedPatientId,
+            configurationExists:
+                careJourneyConfiguration !== null,
+            documentsCount:
+                careJourneyDocuments.length,
+            documents:
+                careJourneyDocuments.map(
+                    item => ({
+                        name: item.file.name,
+                        size: item.file.size,
+                    })
+                ),
+            persistedItemsCount:
+                (
+                    careJourneyDocumentWorkspaces[
+                        selectedPatientId ?? "SELF"
+                    ] ?? []
+                ).length,
+        }
+    )}
+
+    <CareJourneyProcessingWorkspace
 documents={
     careJourneyDocuments.map(
         item => item.file
@@ -1336,6 +2149,7 @@ onProcessingStateChange={
 
     }}
 />
+</>
 )}
 
 </div>

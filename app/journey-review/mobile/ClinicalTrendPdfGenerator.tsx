@@ -292,13 +292,42 @@ setTrends(data);
 
 const pdfTrends =
     Array.from(
-        new Map(
-            data.map(
-                trend => [
-                    trend.parameter,
-                    trend
-                ]
-            )
+        data.reduce(
+            (
+                map,
+                trend
+            ) => {
+
+                const existing =
+                    map.get(
+                        trend.parameter
+                    );
+
+                if (existing) {
+
+                    existing.history = [
+                        ...existing.history,
+                        ...trend.history
+                    ];
+
+                } else {
+
+                    map.set(
+                        trend.parameter,
+                        {
+                            ...trend,
+                            history: [
+                                ...trend.history
+                            ]
+                        }
+                    );
+
+                }
+
+                return map;
+
+            },
+            new Map()
         ).values()
     );
 
@@ -326,6 +355,9 @@ pdfTrends.map(
 
         current:
             trend.current,
+
+        history:
+            trend.history,
 
         periods:
             selectedPeriods.map(

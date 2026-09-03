@@ -80,6 +80,18 @@ export interface AuditSummary {
     totalTokens:
         number;
 
+    /*
+     * Founder-level derived usage metric.
+     *
+     * Calculated from the actual aggregated total token
+     * usage divided by the actual number of audit requests.
+     *
+     * This is observational only and does not affect
+     * Strataparse processing or model routing.
+     */
+    averageTokensPerRequest:
+        number;
+
     totalCost:
         number;
 
@@ -103,6 +115,27 @@ export interface AuditSummary {
 
     totalPages:
         number;
+
+    singlePageDocuments:
+        number;
+
+    multiPageDocuments:
+        number;
+
+    pageExecution:
+        Array<{
+            documentNumber:
+                number;
+
+            pageNumber:
+                number;
+
+            started:
+                boolean;
+
+            completed:
+                boolean;
+        }>;
 
     failedEvaluations:
         number;
@@ -138,6 +171,33 @@ export interface AuditSummaryBuildInput {
 
     totalPages?:
         number;
+
+    documentCoverage?:
+        Array<{
+            documentNumber:
+                number;
+
+            documentType:
+                string;
+
+            pageCount:
+                number;
+        }>;
+
+    pageExecution?:
+        Array<{
+            documentNumber:
+                number;
+
+            pageNumber:
+                number;
+
+            started:
+                boolean;
+
+            completed:
+                boolean;
+        }>;
 }
 
 
@@ -186,6 +246,22 @@ export function buildAuditSummary(
             "totalTokens"
         );
 
+/*
+ * Derive average token usage per audit request from
+ * the already aggregated observational usage values.
+ *
+ * Zero requests must never produce NaN or Infinity.
+ */
+const averageTokensPerRequest =
+    requests.length > 0
+        ? Number(
+            (
+                totalTokens /
+                requests.length
+            ).toFixed(2)
+        )
+        : 0;
+
     const totalCost =
         getCostNumber(
             input.cost
@@ -194,43 +270,106 @@ export function buildAuditSummary(
     const evaluations =
         input.evaluations;
 
-    const accuracyValues =
-        evaluations
-            .map(
-                evaluation =>
-                    evaluation.accuracyScore
-            )
-            .filter(
-                (
-                    value
-                ): value is number =>
-                    typeof value ===
-                    "number"
-            );
+/*
+ * Accuracy is now derived from explicit expected-vs-actual
+ * comparison evidence.
+ *
+ * Do not average independently supplied document percentages.
+ * That can produce a misleading result when documents contain
+ * different numbers of evaluated items.
+ */
+const accuracyEvaluatedItems =
+    evaluations.reduce(
+        (
+            total,
+            evaluation
+        ) =>
+            total +
+            evaluation.accuracyEvaluatedItems,
+        0
+    );
 
-    const completenessValues =
-        evaluations
-            .map(
-                evaluation =>
-                    evaluation.completenessScore
-            )
-            .filter(
-                (
-                    value
-                ): value is number =>
-                    typeof value ===
-                    "number"
-            );
+const accuracyCorrectItems =
+    evaluations.reduce(
+        (
+            total,
+            evaluation
+        ) =>
+            total +
+            evaluation.accuracyCorrectItems,
+        0
+    );
 
-    const accuracy =
-        calculateAverage(
-            accuracyValues
+const accuracy =
+    accuracyEvaluatedItems > 0
+        ? Number(
+            (
+                accuracyCorrectItems /
+                accuracyEvaluatedItems *
+                100
+            ).toFixed(2)
+        )
+        : 0;
+
+const accuracyMisses =
+    evaluations.flatMap(
+        evaluation =>
+            evaluation.accuracyMisses
+    );
+
+const accuracyEvaluated =
+    accuracyEvaluatedItems > 0;
+
+/*
+ * Completeness is derived only from explicitly supplied
+ * completeness scores recorded by the Audit Agent.
+ *
+ * Evaluations without a completeness score are excluded.
+ * No completeness value is invented for an unevaluated document.
+ */
+const completenessValues =
+    evaluations
+        .map(
+            evaluation =>
+                evaluation.completenessScore
+        )
+        .filter(
+            (
+                score
+            ): score is number =>
+                typeof score ===
+                "number"
         );
 
-    const completeness =
-        calculateAverage(
-            completenessValues
-        );
+const completeness =
+    calculateAverage(
+        completenessValues
+    );
+
+    /*
+     * Page coverage is derived only from document-level
+     * observations collected by the passive Audit Agent.
+     *
+     * No page classification is inferred from document type
+     * and no coverage value is hardcoded.
+     */
+    const documentCoverage =
+        input.documentCoverage ??
+        [];
+
+    const singlePageDocuments =
+        documentCoverage.filter(
+            document =>
+                document.pageCount ===
+                1
+        ).length;
+
+    const multiPageDocuments =
+        documentCoverage.filter(
+            document =>
+                document.pageCount >
+                1
+        ).length;
 
     return {
 
@@ -271,6 +410,8 @@ export function buildAuditSummary(
 
         totalTokens,
 
+        averageTokensPerRequest,
+
         totalCost,
 
         requestCompletionRate:
@@ -289,19 +430,45 @@ export function buildAuditSummary(
 
         completeness,
 
-        accuracyStatus:
-            calculateEvaluationStatus(
-                accuracyValues
-            ),
+accuracyStatus:
+    accuracyEvaluated
+        ? calculateEvaluationStatus(
+            [
+                accuracy,
+            ]
+        )
+        : "NOT_EVALUATED",
 
         completenessStatus:
             calculateEvaluationStatus(
                 completenessValues
             ),
 
-totalPages:
-    input.totalPages ??
-    0,
+        totalPages:
+            input.totalPages ??
+            0,
+
+        singlePageDocuments,
+
+        multiPageDocuments,
+
+
+        pageExecution:
+            (input.pageExecution ?? []).map(
+                page => ({
+                    documentNumber:
+                        page.documentNumber,
+
+                    pageNumber:
+                        page.pageNumber,
+
+                    started:
+                        page.started,
+
+                    completed:
+                        page.completed,
+                })
+            ),
 
         failedEvaluations:
             evaluations.filter(
@@ -375,6 +542,21 @@ export function buildAuditSummaryFromRun(
         totalTokens:
             run.totalTokens,
 
+        /*
+         * Compatibility path uses the persisted run-level
+         * request and token totals to expose the same
+         * Founder-level derived metric.
+         */
+        averageTokensPerRequest:
+            run.requestCount > 0
+                ? Number(
+                    (
+                        run.totalTokens /
+                        run.requestCount
+                    ).toFixed(2)
+                )
+                : 0,
+
         totalCost:
             Number(
                 run.totalCost.toFixed(6)
@@ -406,6 +588,15 @@ export function buildAuditSummaryFromRun(
 
         totalPages:
             0,
+
+        singlePageDocuments:
+            0,
+
+        multiPageDocuments:
+            0,
+
+        pageExecution:
+            [],
 
         failedEvaluations:
             0,

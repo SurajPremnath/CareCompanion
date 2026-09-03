@@ -17,6 +17,8 @@ export interface TrendMetric {
 
     current: string;
 
+    history?: number[];
+
     periods: {
 
         label: string;
@@ -64,6 +66,12 @@ export class PdfSection {
 static drawSection(
     options: PdfSectionOptions
 ): number {
+
+console.log(
+    "PDF DRAW SECTION:",
+    options.trend.parameter,
+    options.trend.history
+);
 
     const {
 
@@ -138,28 +146,22 @@ this.drawHeader({
 });
 
 this.drawMetrics({
-
     page,
-
     boldFont,
-
     regularFont,
-
     trend,
-
     x,
-
     y: topY,
-
     width,
-
     theme
-
 });
+
 
 return topY - PdfTheme.card.gap;
 
 }
+
+
 
 private static drawHeader(options: {
 
@@ -576,7 +578,289 @@ headers.forEach(
 
     }
 
+
+
+
 }
+
+
+    /*
+     * Draw the recorded clinical trend history as a simple
+     * PDF-native line graph.
+     *
+     * The screen uses Recharts, but the PDF cannot render
+     * React components. The same recorded history is therefore
+     * drawn directly using pdf-lib primitives.
+     */
+    static drawTrendGraph(options: {
+
+        page: PDFPage;
+
+        trend: TrendMetric;
+
+        x: number;
+
+        y: number;
+
+        width: number;
+
+    }) {
+
+console.log(
+    "PDF DRAW TREND GRAPH",
+    options.trend.parameter,
+    options.trend.history
+);
+
+        const {
+
+            page,
+
+            trend,
+
+            x,
+
+            y,
+
+            width
+
+        } = options;
+
+
+        const history =
+            (trend.history ?? [])
+                .filter(
+                    value =>
+                        Number.isFinite(value)
+                );
+
+
+        if (history.length < 2) {
+
+            return;
+
+        }
+
+
+        const graphHeight = 70;
+
+        const graphWidth = width;
+
+        const minimum =
+            Math.min(...history);
+
+        const maximum =
+            Math.max(...history);
+
+        const range =
+            maximum - minimum;
+
+
+        /*
+         * Keep a visible vertical range even when all
+         * recorded values are identical.
+         */
+        const valueRange =
+            range === 0
+                ? 1
+                : range;
+
+
+        const padding = 6;
+
+
+        const graphLeft =
+            x + padding;
+
+        const graphRight =
+            x +
+            graphWidth -
+            padding;
+
+        const graphBottom =
+            y;
+
+        const graphTop =
+            y +
+            graphHeight;
+
+
+        /*
+         * Graph baseline.
+         */
+        PdfDrawing.divider(page, {
+
+            x:
+                graphLeft,
+
+            y:
+                graphBottom,
+
+            width:
+                graphRight -
+                graphLeft,
+
+            thickness: 1,
+
+            color:
+                rgb(
+                    0.88,
+                    0.90,
+                    0.93
+                )
+
+        });
+
+
+        /*
+         * Draw each recorded value as a point and connect
+         * consecutive measurements with a line.
+         */
+        history.forEach(
+            (value, index) => {
+
+                const normalized =
+                    (
+                        value -
+                        minimum
+                    ) /
+                    valueRange;
+
+
+                const pointX =
+                    history.length === 1
+                        ? graphLeft
+                        :
+                        graphLeft +
+                        (
+                            (
+                                graphRight -
+                                graphLeft
+                            ) *
+                            index /
+                            (
+                                history.length -
+                                1
+                            )
+                        );
+
+
+                const pointY =
+                    graphBottom +
+                    (
+                        normalized *
+                        (
+                            graphHeight -
+                            padding
+                        )
+                    );
+
+
+                if (index > 0) {
+
+                    const previousValue =
+                        history[
+                            index - 1
+                        ];
+
+                    const previousNormalized =
+                        (
+                            previousValue -
+                            minimum
+                        ) /
+                        valueRange;
+
+
+                    const previousX =
+                        graphLeft +
+                        (
+                            (
+                                graphRight -
+                                graphLeft
+                            ) *
+                            (
+                                index - 1
+                            ) /
+                            (
+                                history.length -
+                                1
+                            )
+                        );
+
+
+                    const previousY =
+                        graphBottom +
+                        (
+                            previousNormalized *
+                            (
+                                graphHeight -
+                                padding
+                            )
+                        );
+
+
+                    page.drawLine({
+
+                        start: {
+
+                            x:
+                                previousX,
+
+                            y:
+                                previousY
+
+                        },
+
+                        end: {
+
+                            x:
+                                pointX,
+
+                            y:
+                                pointY
+
+                        },
+
+                        thickness: 2,
+
+                        color:
+                            rgb(
+                                0.34,
+                                0.19,
+                                0.91
+                            )
+
+                    });
+
+                }
+
+
+                PdfDrawing.circle(page, {
+
+                    x:
+                        pointX,
+
+                    y:
+                        pointY,
+
+                    size: 2.5,
+
+                    borderWidth: 0,
+
+                    fillColor:
+                        rgb(
+                            0.34,
+                            0.19,
+                            0.91
+                        )
+
+                });
+
+            }
+        );
+
+    }
+
 
 
 

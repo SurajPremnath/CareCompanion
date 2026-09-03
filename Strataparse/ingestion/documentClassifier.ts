@@ -50,59 +50,43 @@ export async function classifyStrataparseDocument(
     const bytes =
         await file.arrayBuffer();
 
-    const uploadedFile =
-        await openai.files.create({
-            file:
-                new File(
-                    [
-                        bytes,
-                    ],
-                    file.name,
-                    {
-                        type:
-                            file.type ||
-                            "application/octet-stream",
-                    }
-                ),
-            purpose:
-                "user_data",
-        });
+const pageType =
+    file.type.toLowerCase();
 
-    try {
+let uploadedFile:
+    OpenAI.Files.FileObject |
+    undefined;
 
-        const response =
-            await openai.responses.create({
-                model:
-                    process.env.STRATAPARSE_MODEL_CLASSIFIER ||
-                    process.env.STRATAPARSE_MODEL_LUNA ||
-                    "",
+try {
 
-                input: [
-                    {
-                        role:
-                            "system",
+    const documentContent:
+        Array<
+            | {
+                type:
+                    "input_text";
+                text:
+                    string;
+            }
+            | {
+                type:
+                    "input_image";
+                image_url:
+                    string;
+                detail:
+                    "high";
+            }
+            | {
+                type:
+                    "input_file";
+                file_id:
+                    string;
+            }
+        > = [
+            {
+                type:
+                    "input_text",
 
-                        content: [
-                            {
-                                type:
-                                    "input_text",
-
-                                text:
-                                    DOCUMENT_CLASSIFICATION_PROMPT,
-                            },
-                        ],
-                    },
-
-                    {
-                        role:
-                            "user",
-
-                        content: [
-                            {
-                                type:
-                                    "input_text",
-
-                                text: `
+                text: `
 Analyse this document.
 
 Determine:
@@ -116,26 +100,101 @@ Do not infer the document type from its filename.
 
 Return JSON only.
 `,
-                            },
+            },
+        ];
 
-                            {
-                                type:
-                                    "input_file",
+    if (
+        pageType.startsWith(
+            "image/"
+        )
+    ) {
 
-                                file_id:
-                                    uploadedFile.id,
-                            },
+        const base64 =
+            Buffer.from(
+                bytes
+            ).toString(
+                "base64"
+            );
+
+        documentContent.push({
+            type:
+                "input_image",
+
+            image_url:
+                `data:${file.type};base64,${base64}`,
+
+            detail:
+                "high",
+        });
+
+    } else {
+
+        uploadedFile =
+            await openai.files.create({
+                file:
+                    new File(
+                        [
+                            bytes,
                         ],
-                    },
-                ],
-
-                text: {
-                    format: {
-                        type:
-                            "json_object",
-                    },
-                },
+                        file.name,
+                        {
+                            type:
+                                file.type ||
+                                "application/octet-stream",
+                        }
+                    ),
+                purpose:
+                    "user_data",
             });
+
+        documentContent.push({
+            type:
+                "input_file",
+
+            file_id:
+                uploadedFile.id,
+        });
+    }
+
+    const response =
+        await openai.responses.create({
+            model:
+                process.env.STRATAPARSE_MODEL_CLASSIFIER ||
+                process.env.STRATAPARSE_MODEL_LUNA ||
+                "",
+
+            input: [
+                {
+                    role:
+                        "system",
+
+                    content: [
+                        {
+                            type:
+                                "input_text",
+
+                            text:
+                                DOCUMENT_CLASSIFICATION_PROMPT,
+                        },
+                    ],
+                },
+
+                {
+                    role:
+                        "user",
+
+                    content:
+                        documentContent,
+                },
+            ],
+
+            text: {
+                format: {
+                    type:
+                        "json_object",
+                },
+            },
+        });
 
         const outputText =
             response.output_text?.trim();
@@ -207,12 +266,14 @@ Return JSON only.
          * The uploaded classification file is temporary.
          * The classification stage does not own persistent storage.
          */
-        try {
-            await openai.files.delete(
-                uploadedFile.id
-            );
-        } catch {
-            // Classification result remains valid even if cleanup fails.
-        }
+try {
+    if (uploadedFile) {
+        await openai.files.delete(
+            uploadedFile.id
+        );
+    }
+} catch {
+    // Classification result remains valid even if cleanup fails.
+}
     }
 }

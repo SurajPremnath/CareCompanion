@@ -21,13 +21,29 @@ export default function LoginPage() {
 
   const loginPageReadyRef = useRef(false);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showPassword, setShowPassword] =
+const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+const [loading, setLoading] = useState(false);
+const [googleLoading, setGoogleLoading] = useState(false);
+const [error, setError] = useState("");
+const [showPassword, setShowPassword] =
     useState(false);
+
+/*
+ * Demo role selection only.
+ *
+ * This currently controls the mobile login UI selection.
+ * It does NOT change authentication, consent, relationships,
+ * permissions, or backend authorization.
+ */
+const [selectedRole, setSelectedRole] =
+    useState<
+        "SELF" |
+        "DOCTOR" |
+        "CARETAKER" |
+        "FAMILY" |
+        ""
+    >("");
 
   useEffect(() => {
     if (loginPageReadyRef.current) {
@@ -224,6 +240,44 @@ return (
         font-size: 13px;
         line-height: 1.45;
       }
+
+/* ---------------------------------------------------------
+   LOGIN VALIDATION PANEL
+
+   Positioned independently so validation never pushes the
+   role panels or any controls below them downward.
+
+   The panel is intentionally compact and narrower than
+   the login form.
+--------------------------------------------------------- */
+
+.login-validation-panel {
+  position: absolute;
+
+  left: 0;
+  top: -54px;
+
+  width: 39%;
+  min-height: 30px;
+
+  padding: 3px 8px;
+
+  border: 1px solid #ffd0d0;
+  border-radius: 7px;
+
+  background: #fff5f5;
+
+  color: #b42318;
+
+  font-size: 10px;
+  line-height: 14px;
+
+  z-index: 20;
+}
+
+.login-validation-visible {
+  visibility: visible;
+}
 
       .field {
         margin-bottom: 16px;
@@ -453,6 +507,116 @@ return (
     no-repeat;
 }
 
+      /* =========================================================
+         ROLE SELECTION
+
+         UI-only at this stage.
+         Authentication and authorization remain unchanged.
+      ========================================================= */
+
+      .role-selection {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      .role-selection-title {
+        margin-bottom: 10px;
+
+        font-size: 14px;
+        line-height: 1.3;
+
+        font-weight: 700;
+
+        color: #15203d;
+      }
+
+.role-options {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 7px;
+}
+
+.role-option {
+  min-height: 66px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  padding: 7px 4px;
+
+  border: 1px solid #d9dce6;
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  color: #15203d;
+
+  cursor: pointer;
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+      .role-option:hover:not(:disabled) {
+        border-color: #b9a7f7;
+        background: #faf8ff;
+      }
+
+.role-option-selected {
+  border: 2px solid #2563eb;
+
+  background: #f3f8ff;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(37, 99, 235, 0.20);
+}
+
+      .role-option:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .role-icon {
+        width: 30px;
+        height: 30px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+
+        background: #f1eaff;
+
+        color: #7043f5;
+
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .role-label {
+        font-size: 12px;
+        line-height: 1.2;
+
+        font-weight: 700;
+
+        text-align: center;
+      }
+
+
       /* ==============================
          TABLET
       ============================== */
@@ -484,17 +648,50 @@ return (
         }
       }
 
-      /* ==============================
-         MOBILE
-      ============================== */
 
-/* =========================================================
-   MOBILE LOGIN
-   ========================================================= */
+      /* =========================================================
+         MOBILE LOGIN
+      ========================================================= */
 
-@media (max-width: 600px) {
+      @media (max-width: 600px) {
 
-  .login-page {
+        /* ---------------------------------------------------------
+           MOBILE ROLE SELECTION
+
+           UI-only at this stage.
+           Authentication and authorization remain unchanged.
+        --------------------------------------------------------- */
+
+        .role-selection {
+          margin-bottom: 12px;
+        }
+
+        .role-selection-title {
+          margin-bottom: 7px;
+          font-size: 14px;
+        }
+
+        .role-options {
+          gap: 7px;
+        }
+
+        .role-option {
+          min-height: 78px;
+          padding: 8px 4px;
+          border-radius: 12px;
+        }
+
+        .role-icon {
+          width: 27px;
+          height: 27px;
+          font-size: 16px;
+        }
+
+        .role-label {
+          font-size: 10.5px;
+        }
+
+        .login-page {
     display: block;
     width: 100%;
     height: 100dvh;
@@ -531,8 +728,7 @@ return (
   }
 
   .login-footer {
-    z-index: 4;
-    padding: 0 12px 8px;
+    display: none;
   }
 
   /* ---------------------------------------------------------
@@ -554,10 +750,12 @@ return (
 
 /* ---------------------------------------------------------
    MOBILE CAREVR LOGO
-   --------------------------------------------------------- */
 
-/* The mobile background already contains the CareVR logo.
-   Do not render a second logo on mobile. */
+   The CareVR logo is now part of the mobile background
+   artwork itself.
+
+   Do not render a second logo from the login page.
+--------------------------------------------------------- */
 
 .carevr-logo {
   display: none;
@@ -570,18 +768,18 @@ return (
      of the mobile artwork.
      --------------------------------------------------------- */
 
-  .login-content {
-    position: absolute;
+.login-content {
+  position: absolute;
 
-    top: 44%;
-    left: 6%;
-    right: 6%;
+  top: 39%;
+  left: 6%;
+  right: 6%;
 
-    width: auto;
-    max-width: none;
+  width: auto;
+  max-width: none;
 
-    margin: 0;
-  }
+  margin: 0;
+}
 
   /* ---------------------------------------------------------
      WELCOME
@@ -900,7 +1098,7 @@ return (
 
       @media (max-height: 700px) and (max-width: 600px) {
         .login-content {
-          top: 28%;
+          top: 25%;
         }
 
         .login-heading {
@@ -962,24 +1160,134 @@ return (
   aria-label="CareVR"
 />
 
-          <div className="login-content">
+<div className="login-content">
 
-            <div className="login-heading">
-              <h1>Welcome</h1>
+{/* ---------------------------------------------------------
+    LOGIN VALIDATION PANEL
 
-              <p>
-                Sign in to continue your care journey
-              </p>
-            </div>
+    Displays all existing login validation messages.
+    The panel is positioned independently so its appearance
+    does not move the role panels or controls below it.
+--------------------------------------------------------- */}
 
-            {error && (
-              <div
-                className="login-error"
-                role="alert"
-              >
-                {error}
-              </div>
-            )}
+{(!selectedRole || error) && (
+  <div
+    className="login-validation-panel"
+    role="alert"
+    aria-live="polite"
+  >
+    {!selectedRole
+      ? "Please select who you are signing in as."
+      : error}
+  </div>
+)}
+
+<div className="role-selection">
+
+
+    <div className="role-options">
+
+<button
+    type="button"
+    className={`role-option ${
+        selectedRole === "SELF"
+            ? "role-option-selected"
+            : ""
+    }`}
+    onClick={() =>
+        setSelectedRole("SELF")
+    }
+    disabled={
+        loading ||
+        googleLoading
+    }
+>
+    <span className="role-icon">
+        👤
+    </span>
+
+    <span className="role-label">
+        Self
+    </span>
+</button>
+
+
+        <button
+            type="button"
+            className={`role-option ${
+                selectedRole === "DOCTOR"
+                    ? "role-option-selected"
+                    : ""
+            }`}
+            onClick={() =>
+                setSelectedRole("DOCTOR")
+            }
+            disabled={
+                loading ||
+                googleLoading
+            }
+        >
+            <span className="role-icon">
+                🩺
+            </span>
+
+            <span className="role-label">
+                Doctor
+            </span>
+        </button>
+
+        <button
+            type="button"
+            className={`role-option ${
+                selectedRole === "CARETAKER"
+                    ? "role-option-selected"
+                    : ""
+            }`}
+            onClick={() =>
+                setSelectedRole("CARETAKER")
+            }
+            disabled={
+                loading ||
+                googleLoading
+            }
+        >
+            <span className="role-icon">
+                ♡
+            </span>
+
+            <span className="role-label">
+                CareTaker
+            </span>
+        </button>
+
+        <button
+            type="button"
+            className={`role-option ${
+                selectedRole === "FAMILY"
+                    ? "role-option-selected"
+                    : ""
+            }`}
+            onClick={() =>
+                setSelectedRole("FAMILY")
+            }
+            disabled={
+                loading ||
+                googleLoading
+            }
+        >
+            <span className="role-icon">
+                👥
+            </span>
+
+            <span className="role-label">
+                Family Member
+            </span>
+        </button>
+
+    </div>
+</div>
+
+
 
             {/* EMAIL */}
 

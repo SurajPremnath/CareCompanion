@@ -41,7 +41,10 @@ import {
 
 import {
     createAuditCost,
+    calculateAuditRequestCost,
+    mergeAuditCost,
     type AuditCost,
+    type AuditModelPricing,
 } from "./auditCost";
 
 import {
@@ -81,6 +84,15 @@ export interface AuditCoordinator {
     run:
         AuditRunState;
 
+    productId:
+        string;
+
+    ruleId:
+        string;
+
+    pricing:
+        AuditModelPricing;
+
     result:
         AuditResultEvidence;
 
@@ -98,6 +110,72 @@ export interface AuditCoordinator {
 
     totalPages:
         number;
+
+    /**
+     * Actual document inventory supplied by CareVR when
+     * the user starts the audit run.
+     *
+     * This is input evidence only.
+     *
+     * The Audit Agent records the documents that were
+     * actually submitted. It does not modify, inspect,
+     * control, or alter Strataparse processing.
+     */
+    documentInventory:
+        Array<{
+            documentNumber:
+                number;
+
+            fileName:
+                string;
+
+            fileType:
+                string;
+        }>;
+
+    /**
+     * Preserves document-level page evidence observed by the
+     * passive Audit Agent.
+     *
+     * This evidence is observational only. It is used to
+     * produce Founder-level Test Coverage and does not
+     * control or modify CareVR or Strataparse.
+     */
+documentCoverage:
+    Array<{
+        documentNumber:
+            number;
+
+        documentType:
+            string;
+
+        fileType:
+            string;
+
+        readability:
+            string;
+
+        pageCount:
+            number;
+    }>;
+
+pageExecution:
+    Array<{
+        documentNumber:
+            number;
+
+        pageNumber:
+            number;
+
+        started:
+            boolean;
+
+        completed:
+            boolean;
+    }>;
+
+observedEventKeys:
+    string[];
 
     aggregation?:
         AuditAggregation;
@@ -117,7 +195,7 @@ export interface AuditCoordinator {
  * The function only creates the audit state required
  * to observe a run.
  */
-export function startAuditCoordinator(
+export async function startAuditCoordinator(
     input: {
         runId:
             string;
@@ -125,21 +203,57 @@ export function startAuditCoordinator(
         module:
             string;
 
-        documentCount:
+                documentCount:
             number;
+
+        productId:
+            string;
+
+        ruleId:
+            string;
+
+        pricing:
+            AuditModelPricing;
+
+        /**
+         * Actual documents submitted by CareVR at the
+         * beginning of the audit run.
+         */
+        documentInventory:
+            Array<{
+                documentNumber:
+                    number;
+
+                fileName:
+                    string;
+
+                fileType:
+                    string;
+            }>;
     }
 ):
-    AuditCoordinator {
+    Promise<AuditCoordinator> {
 
     const run =
         createAuditRun(
             input
         );
 
+
     const coordinator:
         AuditCoordinator = {
 
         run,
+
+        productId:
+            input.productId,
+
+        ruleId:
+            input.ruleId,
+
+        pricing:
+            input.pricing,
+
 
         result:
             createAuditResultEvidence(
@@ -150,7 +264,10 @@ export function startAuditCoordinator(
             createAuditUsage(),
 
         cost:
-            createAuditCost(),
+            createAuditCost(
+                input.pricing.currency ??
+                "USD"
+            ),
 
         requests:
             [],
@@ -160,6 +277,23 @@ export function startAuditCoordinator(
 
         totalPages:
             0,
+
+        documentInventory:
+            input.documentInventory.map(
+                document => ({
+                    ...document,
+                })
+            ),
+
+documentCoverage:
+    [],
+
+pageExecution:
+    [],
+
+observedEventKeys:
+    [],
+
     };
 
     saveAuditRun(
@@ -176,6 +310,10 @@ export function startAuditCoordinator(
  *
  * This function reads audit events only.
  * It does not control or modify the production flow.
+ *
+ * Synchronisation is incremental and idempotent:
+ * an observer event that has already been incorporated into
+ * this coordinator is ignored on subsequent synchronisations.
  */
 export function syncAuditCoordinatorObservations(
     coordinator:
@@ -188,8 +326,15 @@ export function syncAuditCoordinatorObservations(
             coordinator.run.runId
         );
 
+    let cost =
+    {
+        ...coordinator.cost,
+    };
+
     let usage =
-        createAuditUsage();
+        {
+            ...coordinator.usage,
+        };
 
     const requests =
         [
@@ -199,24 +344,181 @@ export function syncAuditCoordinatorObservations(
     let totalPages =
         coordinator.totalPages;
 
+    const documentCoverage =
+        [
+            ...coordinator.documentCoverage,
+        ];
+
+const pageExecution =
+    coordinator.pageExecution.map(
+        page => ({
+            ...page,
+        })
+    );
+
+    const observedEventKeys =
+        new Set(
+            coordinator.observedEventKeys
+        );
+
     for (
         const event
         of events
     ) {
 
+        const eventKey =
+            createAuditObservationKey(
+                event
+            );
+
+        /*
+         * The passive observer may return the complete event
+         * history for a run. Do not process an event that has
+         * already been incorporated into this coordinator.
+         */
         if (
-            event.type ===
-            "DOCUMENT_STARTED"
+            observedEventKeys.has(
+                eventKey
+            )
         ) {
 
-            totalPages +=
-                event.pageCount;
+            continue;
         }
 
-        if (
-            event.type ===
-            "PAGE_COMPLETED"
-        ) {
+        observedEventKeys.add(
+            eventKey
+        );
+
+if (
+    event.type ===
+    "DOCUMENT_STARTED"
+) {
+
+    totalPages +=
+        event.pageCount;
+
+    /*
+     * Preserve the actual document-level evidence observed
+     * by the passive Audit Agent.
+     *
+     * The Audit Agent records the document metadata already
+     * available at the Strataparse observation boundary.
+     *
+     * This does not classify, modify, or control the document.
+     */
+    documentCoverage.push({
+        documentNumber:
+            event.documentNumber,
+
+        documentType:
+            event.documentType,
+
+        fileType:
+            event.fileType,
+
+        readability:
+            event.readability,
+
+        pageCount:
+            event.pageCount,
+    });
+}
+
+if (
+    event.type ===
+    "PAGE_STARTED"
+) {
+
+    /*
+     * Preserve the actual PAGE_STARTED observation.
+     *
+     * This records only what the passive Audit Agent
+     * observed. It does not start, stop, retry, route,
+     * or otherwise control Strataparse execution.
+     */
+    const existingPage =
+        pageExecution.find(
+            page =>
+                page.documentNumber ===
+                    event.documentNumber &&
+                page.pageNumber ===
+                    event.pageNumber
+        );
+
+    if (
+        existingPage
+    ) {
+
+        existingPage.started =
+            true;
+
+    } else {
+
+        pageExecution.push({
+
+            documentNumber:
+                event.documentNumber,
+
+            pageNumber:
+                event.pageNumber,
+
+            started:
+                true,
+
+            completed:
+                false,
+        });
+    }
+}
+
+if (
+    event.type ===
+    "PAGE_COMPLETED"
+) {
+
+            /*
+             * Preserve the actual PAGE_COMPLETED observation.
+             *
+             * Completion is recorded independently from request
+             * accounting because page execution state is a separate
+             * Founder-level coverage signal.
+             *
+             * If PAGE_STARTED was observed earlier, preserve that
+             * start evidence. If it was not observed, do not invent it.
+             */
+            const existingPage =
+                pageExecution.find(
+                    page =>
+                        page.documentNumber ===
+                            event.documentNumber &&
+                        page.pageNumber ===
+                            event.pageNumber
+                );
+
+            if (
+                existingPage
+            ) {
+
+                existingPage.completed =
+                    true;
+
+            } else {
+
+                pageExecution.push({
+
+                    documentNumber:
+                        event.documentNumber,
+
+                    pageNumber:
+                        event.pageNumber,
+
+                    started:
+                        false,
+
+                    completed:
+                        true,
+                });
+            }
 
             usage =
                 {
@@ -255,6 +557,39 @@ export function syncAuditCoordinatorObservations(
                         ),
                 };
 
+            /*
+             * Calculate cost only when the observed
+             * PAGE_COMPLETED event contains token usage.
+             *
+             * No token usage means no invented cost.
+             */
+            if (
+                typeof event.inputTokens ===
+                    "number" &&
+                typeof event.outputTokens ===
+                    "number"
+            ) {
+
+                const requestCost =
+                    calculateAuditRequestCost({
+
+                        inputTokens:
+                            event.inputTokens,
+
+                        outputTokens:
+                            event.outputTokens,
+
+                        pricing:
+                            coordinator.pricing,
+                    });
+
+                cost =
+                    mergeAuditCost(
+                        cost,
+                        requestCost
+                    );
+            }
+
             requests.push({
 
                 requestId:
@@ -269,11 +604,14 @@ export function syncAuditCoordinatorObservations(
                 pageNumber:
                     event.pageNumber,
 
-                modelTier:
-                    event.modelTier,
+modelTier:
+    event.modelTier,
 
-                status:
-                    "COMPLETED",
+modelName:
+    event.model,
+
+status:
+    "COMPLETED",
 
                 startedAt:
                     event.timestamp -
@@ -360,10 +698,60 @@ export function syncAuditCoordinatorObservations(
 
         usage,
 
+        cost,
+
         requests,
 
-        totalPages,
+totalPages,
+
+documentCoverage,
+
+pageExecution,
+
+observedEventKeys:
+    Array.from(
+        observedEventKeys
+    ),
     };
+}
+
+
+/**
+ * Creates a deterministic identity for an observed audit event.
+ *
+ * StrataparseAuditEvent is a discriminated union and not every
+ * event type contains documentNumber or pageNumber. The key
+ * therefore uses only fields guaranteed to exist on every event.
+ *
+ * Event-specific fields are included only where available.
+ */
+function createAuditObservationKey(
+    event:
+        ReturnType<
+            typeof getStrataparseAuditEvents
+        >[number]
+):
+    string {
+
+    const documentNumber =
+        "documentNumber" in event
+            ? event.documentNumber ?? "unknown"
+            : "unknown";
+
+    const pageNumber =
+        "pageNumber" in event
+            ? event.pageNumber ?? "unknown"
+            : "unknown";
+
+    return [
+        event.type,
+        event.runId,
+        documentNumber,
+        pageNumber,
+        event.timestamp,
+    ].join(
+        "|"
+    );
 }
 
 
@@ -428,65 +816,184 @@ export function markAuditCoordinatorRendered(
  * This should only be called after the relevant result
  * has actually been rendered.
  */
-export function completeAuditCoordinator(
+export async function completeAuditCoordinator(
     coordinator:
         AuditCoordinator
 ):
-    AuditCoordinator {
+    Promise<AuditCoordinator> {
 
-    const completedRun =
-        completeAuditRun(
-            coordinator.run
-        );
+console.log(
+    "[AUDIT COMPLETION DEBUG] 01 - Completing audit run",
+    {
+        runId:
+            coordinator.run.runId,
+    }
+);
 
-    const aggregation =
-        aggregateAuditRun({
-
-            run:
-                completedRun,
-
-            requests:
-                coordinator.requests,
-
-            usage:
-                coordinator.usage,
-
-            cost:
-                coordinator.cost,
-
-            result:
-                coordinator.result,
-
-            evaluations:
-                coordinator.evaluations,
-
-            totalPages:
-                coordinator.totalPages,
-        });
-
-    const analysis =
-        analyzeAuditRun(
-            aggregation
-        );
-
-    const report =
-        createAuditReport({
-
-            reportId:
-                `${completedRun.runId}-report`,
-
-            aggregation,
-
-            analysis,
-        });
-
-    saveAuditRun(
-        completedRun
+const completedRun =
+    completeAuditRun(
+        coordinator.run
     );
 
-    saveAuditReport(
-        report
+console.log(
+    "[AUDIT COMPLETION DEBUG] 02 - Audit run completed",
+    {
+        runId:
+            completedRun.runId,
+        status:
+            completedRun.status,
+    }
+);
+
+console.log(
+    "[AUDIT COMPLETION DEBUG] 03 - Entering aggregation",
+    {
+        runId:
+            completedRun.runId,
+        requests:
+            coordinator.requests.length,
+        documentCoverage:
+            coordinator.documentCoverage.length,
+        evaluations:
+            coordinator.evaluations.length,
+    }
+);
+
+const aggregation =
+    aggregateAuditRun({
+
+        run:
+            completedRun,
+
+        requests:
+            coordinator.requests,
+
+        usage:
+            coordinator.usage,
+
+        cost:
+            coordinator.cost,
+
+        result:
+            coordinator.result,
+
+        evaluations:
+            coordinator.evaluations,
+
+        totalPages:
+            coordinator.totalPages,
+
+        documentCoverage:
+            coordinator.documentCoverage,
+
+        pageExecution:
+            coordinator.pageExecution,
+    });
+
+console.log(
+    "[AUDIT COMPLETION DEBUG] 04 - Aggregation returned",
+    {
+        runId:
+            completedRun.runId,
+        requests:
+            aggregation.requests.length,
+        documents:
+            aggregation.documentSummary.totalDocuments,
+        pages:
+            aggregation.documentSummary.totalPages,
+    }
+);
+
+console.log(
+    "[AUDIT COMPLETION DEBUG] 05 - Entering analysis",
+    {
+        runId:
+            completedRun.runId,
+    }
+);
+
+const analysis =
+    analyzeAuditRun(
+        aggregation
     );
+
+console.log(
+    "[AUDIT COMPLETION DEBUG] 06 - Analysis returned",
+    {
+        runId:
+            completedRun.runId,
+        status:
+            analysis.overallStatus,
+        findings:
+            analysis.findings.length,
+    }
+);
+
+console.log(
+    "[AUDIT COMPLETION DEBUG] 07 - Entering report creation",
+    {
+        runId:
+            completedRun.runId,
+    }
+);
+
+const report =
+    createAuditReport({
+
+        reportId:
+            `${completedRun.runId}-report`,
+
+        aggregation,
+
+        analysis,
+    });
+
+console.log(
+    "[AUDIT COMPLETION DEBUG] 08 - Report created",
+    {
+        runId:
+            completedRun.runId,
+        reportId:
+            report.reportId,
+        status:
+            report.status,
+    }
+);
+
+console.log(
+    "[AUDIT COMPLETION DEBUG] 09 - Saving in-memory audit state",
+    {
+        runId:
+            completedRun.runId,
+    }
+);
+
+saveAuditRun(
+    completedRun
+);
+
+console.log(
+    "[AUDIT COMPLETION DEBUG] 10 - Saving in-memory audit report",
+    {
+        runId:
+            completedRun.runId,
+        reportId:
+            report.reportId,
+    }
+);
+
+saveAuditReport(
+    report
+);
+
+console.log(
+    "[AUDIT COMPLETION DEBUG] 11 - Completion storage finished",
+    {
+        runId:
+            completedRun.runId,
+    }
+);
+
 
     return {
 

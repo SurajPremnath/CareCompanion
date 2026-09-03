@@ -32,9 +32,12 @@ import {
 completeAuditAgent,
 } from "@/CareVRTestAuditAgent/runtime/auditAgent";
 
+
 import type {
     AuditAgent,
 } from "@/CareVRTestAuditAgent/runtime/auditAgent";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
 
 import { useRouter } from "next/navigation";
 
@@ -70,12 +73,26 @@ type ProcessingStatus =
 interface CareJourneyDocumentWorkspaceItem {
     file: File;
     status: ProcessingStatus;
+
+/*
+ * Complete document result returned by the current
+ * Strataparse processing pipeline.
+ *
+ * The UI consumes the document type and extraction
+ * without modifying the Strataparse result.
+ */
+data?: {
+    documentType: string;
+    extraction: Record<string, unknown>;
+};
+
     error?: string;
 }
 
 interface CareJourneyProcessingWorkspaceProps {
     documents: File[];
     configuration: CareJourneyDisplayConfiguration;
+    auditAgent?: AuditAgent | null;
     persistedItems?: CareJourneyDocumentWorkspaceItem[];
     onProcessingStateChange?: (
         items: CareJourneyDocumentWorkspaceItem[]
@@ -162,15 +179,236 @@ function getDocumentPages(file: File): string {
     return getFileTypeLabel(file) === "PDF" ? "PDF document" : "Image document";
 }
 
+/*
+ * ============================================================
+ * CARE JOURNEY INFORMATION PRESENTATION
+ * ============================================================
+ *
+ * The workspace receives the complete result from Strataparse,
+ * but only presents information selected by the user.
+ *
+ * These helpers are presentation-only.
+ * They do not alter the Strataparse extraction.
+ */
+
+const INFORMATION_NOT_AVAILABLE =
+    "Information not available in the document uploaded.";
+
+function formatInformationLabel(
+    value: string
+): string {
+    return value
+        .replace(/([A-Z])/g, " $1")
+        .replace(/[_-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/^./, character =>
+            character.toUpperCase()
+        );
+}
+
+function hasInformation(
+    value: unknown
+): boolean {
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+        return false;
+    }
+
+    if (
+        Array.isArray(value)
+    ) {
+        return value.length > 0;
+    }
+
+    if (
+        typeof value === "object"
+    ) {
+        return Object.keys(
+            value as Record<string, unknown>
+        ).length > 0;
+    }
+
+    return true;
+}
+
+function formatInformationValue(
+    value: unknown
+): string {
+    if (
+        Array.isArray(value)
+    ) {
+        return value
+            .map(item =>
+                typeof item === "object"
+                    ? JSON.stringify(item)
+                    : String(item)
+            )
+            .join("\n");
+    }
+
+    if (
+        typeof value === "object" &&
+        value !== null
+    ) {
+        return Object.entries(
+            value as Record<string, unknown>
+        )
+            .map(
+                ([key, nestedValue]) =>
+                    `${formatInformationLabel(key)}: ${
+                        hasInformation(nestedValue)
+                            ? formatInformationValue(
+                                  nestedValue
+                              )
+                            : INFORMATION_NOT_AVAILABLE
+                    }`
+            )
+            .join("\n");
+    }
+
+    return String(value);
+}
+
+function getConfiguredExtractionValue(
+    extraction: Record<string, unknown>,
+    panel: string
+): unknown {
+
+    const panelFieldMap:
+        Record<string, string[]> = {
+
+        PATIENT: [
+            "patientIdentity",
+            "patient",
+            "patientInformation",
+        ],
+
+        DOCTOR: [
+            "doctor",
+            "doctorName",
+        ],
+
+        HOSPITAL: [
+            "hospital",
+            "hospitalName",
+            "hospitalOrClinic",
+        ],
+
+        CONSULTATION: [
+            "consultation",
+            "consultationDate",
+            "consultationMode",
+        ],
+
+        CURRENT_STATE_OF_HEALTH: [
+            "currentStateOfHealth",
+        ],
+
+        DIAGNOSIS: [
+            "diagnosis",
+            "diagnosisOrAssessment",
+        ],
+
+        CLINICAL_ASSESSMENTS: [
+            "clinicalAssessments",
+            "clinicalAssessment",
+        ],
+
+        SYMPTOMS: [
+            "symptoms",
+        ],
+
+        PRESENTING_COMPLAINTS: [
+            "presentingComplaints",
+            "complaints",
+        ],
+
+        CLINICAL_HISTORY: [
+            "clinicalHistory",
+            "pastMedicalHistory",
+            "history",
+        ],
+
+        EXAMINATION_FINDINGS: [
+            "examinationFindings",
+        ],
+
+        TESTS_ADVISED: [
+            "testsAdvised",
+            "investigations",
+        ],
+
+        DOCTOR_INSTRUCTIONS: [
+            "doctorInstructions",
+        ],
+
+        MEDICATIONS: [
+            "medicines",
+            "medications",
+        ],
+
+        FOLLOW_UP_PLAN: [
+            "followUpPlan",
+        ],
+
+        CLINICAL_PLAN: [
+            "clinicalPlan",
+        ],
+    };
+
+    const possibleFields =
+        panelFieldMap[panel] ?? [];
+
+    for (
+        const field of possibleFields
+    ) {
+
+        if (
+            Object.prototype.hasOwnProperty.call(
+                extraction,
+                field
+            )
+        ) {
+            return extraction[field];
+        }
+    }
+
+    return undefined;
+}
+
 export default function CareJourneyProcessingWorkspaceWOW({
     documents,
     configuration,
+    auditAgent,
     persistedItems,
     onProcessingStateChange,
     onBack,
 }: CareJourneyProcessingWorkspaceProps) {
 
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 01 - Component function entered",
+        {
+            timestamp: new Date().toISOString(),
+            documentsCount: documents.length,
+            documents: documents.map(file => file.name),
+            configuration,
+            persistedItemsCount: persistedItems?.length ?? 0,
+        }
+    );
+
 const router = useRouter();
+
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 02 - Router initialized",
+        {
+            timestamp: new Date().toISOString(),
+        }
+    );
+
 
     const initialItems = useMemo(() => {
         const persistedByKey = new Map(
@@ -179,6 +417,8 @@ const router = useRouter();
                 item,
             ])
         );
+
+
 
         return documents.slice(0, 5).map(file => {
             const key = `${file.name}|${file.size}|${file.lastModified}`;
@@ -190,6 +430,19 @@ const router = useRouter();
             );
         });
     }, [documents, persistedItems]);
+
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 03 - Initial document items calculated",
+        {
+            timestamp: new Date().toISOString(),
+            initialItemsCount: initialItems.length,
+            items: initialItems.map(item => ({
+                name: item.file.name,
+                status: item.status,
+            })),
+        }
+    );
+
 
 
 const auditObservedDocumentsRef =
@@ -213,11 +466,28 @@ const auditAgentRef =
 
 const startAuditObservation = () => {
 
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 04 - startAuditObservation entered",
+        {
+            timestamp: new Date().toISOString(),
+            auditAlreadyExists: !!auditAgentRef.current,
+        }
+    );
+
+
     if (auditAgentRef.current) {
         return;
     }
 
     try {
+
+        console.log(
+            "[CARE JOURNEY DEBUG] WOW 05 - About to start Audit observation",
+            {
+                timestamp: new Date().toISOString(),
+                documentCount: documents.length,
+            }
+        );
 
         auditAgentRef.current =
             startAuditAgent({
@@ -230,6 +500,15 @@ const startAuditObservation = () => {
                 documentCount:
                     documents.length,
             });
+
+        console.log(
+            "[CARE JOURNEY DEBUG] WOW 06 - Audit observation start returned",
+            {
+                timestamp: new Date().toISOString(),
+                auditAgentCreated: !!auditAgentRef.current,
+            }
+        );
+
 
     } catch (error) {
 
@@ -247,6 +526,28 @@ const startAuditObservation = () => {
     }
 };
 
+/*
+ * Start the passive audit observation when the
+ * processing workspace has its current document set.
+ *
+ * The audit agent observes processing only.
+ * It does not control or block Strataparse.
+ */
+useEffect(() => {
+
+    startAuditObservation();
+
+}, [documents.length]);
+
+console.log(
+    "[CARE JOURNEY DEBUG] WOW 08 - About to initialize items state",
+    {
+        timestamp: new Date().toISOString(),
+        initialItemsCount: initialItems.length,
+        initialStatuses: initialItems.map(item => item.status),
+    }
+);
+
 
     const [items, setItems] = useState<CareJourneyDocumentWorkspaceItem[]>(
         initialItems
@@ -257,15 +558,76 @@ const startAuditObservation = () => {
     );
 
     useEffect(() => {
+
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 09 - Items synchronization effect entered",
+        {
+            timestamp: new Date().toISOString(),
+            initialItemsCount: initialItems.length,
+            items: initialItems.map((item, index) => ({
+                documentNumber: index + 1,
+                name: item.file.name,
+                status: item.status,
+            })),
+        }
+    );
+
+
         setItems(initialItems);
+
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 10 - Items synchronization state update requested",
+        {
+            timestamp: new Date().toISOString(),
+        }
+    );
+
     }, [initialItems]);
 
 useEffect(() => {
 
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 11 - Items processing-state effect entered",
+        {
+            timestamp: new Date().toISOString(),
+            itemsCount: items.length,
+            items: items.map((item, index) => ({
+                documentNumber: index + 1,
+                name: item.file.name,
+                status: item.status,
+            })),
+        }
+    );
+
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 12 - About to notify parent of processing state",
+        {
+            timestamp: new Date().toISOString(),
+        }
+    );
+
+
     onProcessingStateChange?.(items);
+
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 13 - Parent processing-state notification returned",
+        {
+            timestamp: new Date().toISOString(),
+        }
+    );
+
 
     const agent =
         auditAgentRef.current;
+
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 14 - Audit agent checked",
+        {
+            timestamp: new Date().toISOString(),
+            auditAgentExists: !!agent,
+        }
+    );
+
 
     if (!agent) {
         return;
@@ -276,6 +638,17 @@ useEffect(() => {
 
             const documentNumber =
                 index + 1;
+
+        console.log(
+            "[CARE JOURNEY DEBUG] WOW 15 - Inspecting document status",
+            {
+                timestamp: new Date().toISOString(),
+                documentNumber,
+                fileName: item.file.name,
+                status: item.status,
+            }
+        );
+
 
             if (
                 item.status === "READING" &&
@@ -288,29 +661,28 @@ useEffect(() => {
                     documentNumber
                 );
 
-                recordAuditEvent({
-                    type:
-                        "DOCUMENT_STARTED",
 
-                    runId:
-                        agent.run.runId,
+                console.log(
+                    "[CARE JOURNEY DEBUG] WOW 16 - Audit DOCUMENT_STARTED",
+                    {
+                        timestamp: new Date().toISOString(),
+                        documentNumber,
+                        fileName: item.file.name,
+                    }
+                );
 
-                    documentNumber,
+                console.log(
+                    "[CARE JOURNEY DEBUG] WOW 17 - Audit PAGE_STARTED",
+                    {
+                        timestamp: new Date().toISOString(),
+                        documentNumber,
+                    }
+                );
 
-                    pageCount:
-                        1,
 
-                    documentType:
-                        "UNKNOWN",
-
-                    readability:
-                        "UNKNOWN",
-
-                    timestamp:
-                        Date.now(),
-                });
 
                 recordAuditEvent({
+
                     type:
                         "PAGE_STARTED",
 
@@ -331,9 +703,8 @@ useEffect(() => {
 
             }
 
-            if (item.status === "COMPLETED") {
-
                 if (
+                    item.status === "COMPLETED" &&
                     !auditCompletedDocumentsRef.current.has(
                         documentNumber
                     )
@@ -343,26 +714,17 @@ useEffect(() => {
                         documentNumber
                     );
 
-                    recordAuditEvent({
-                        type:
-                            "PAGE_COMPLETED",
+                    console.log(
+                        "[CARE JOURNEY DEBUG] WOW 19 - Audit DOCUMENT_COMPLETED",
+                        {
+                            timestamp: new Date().toISOString(),
+                            documentNumber,
+                        }
+                    );
 
-                        runId:
-                            agent.run.runId,
-
-                        documentNumber,
-
-                        pageNumber:
-                            1,
-
-                        modelTier:
-                            "CAREJOURNEY",
-
-                        timestamp:
-                            Date.now(),
-                    });
 
                     recordAuditEvent({
+
                         type:
                             "DOCUMENT_COMPLETED",
 
@@ -380,42 +742,50 @@ useEffect(() => {
 
                 }
 
-            }
 
             if (item.status === "FAILED") {
 
-                if (
-                    !auditFailedDocumentsRef.current.has(
-                        documentNumber
-                    )
-                ) {
+    if (
+        !auditFailedDocumentsRef.current.has(
+            documentNumber
+        )
+    ) {
 
-                    auditFailedDocumentsRef.current.add(
-                        documentNumber
-                    );
+        auditFailedDocumentsRef.current.add(
+            documentNumber
+        );
 
-                    recordAuditEvent({
-                        type:
-                            "PROCESSING_FAILED",
-
-                        runId:
-                            agent.run.runId,
-
-                        documentNumber,
-
-                        error:
-                            "Care Journey document processing failed.",
-
-                        timestamp:
-                            Date.now(),
-                    });
-
-                }
-
+        console.log(
+            "[CARE JOURNEY DEBUG] WOW 20 - Audit PROCESSING_FAILED",
+            {
+                timestamp: new Date().toISOString(),
+                documentNumber,
+                fileName: item.file.name,
             }
+        );
 
-        }
-    );
+        recordAuditEvent({
+            type:
+                "PROCESSING_FAILED",
+
+            runId:
+                agent.run.runId,
+
+            documentNumber,
+
+            error:
+                "Care Journey document processing failed.",
+
+            timestamp:
+                Date.now(),
+        });
+
+    }  // closes inner if
+
+}      // closes FAILED if
+
+}      // closes items.forEach callback
+);     // closes items.forEach(...)
 
 }, [items, onProcessingStateChange]);
 
@@ -434,47 +804,6 @@ useEffect(() => {
     const allComplete =
         items.length > 0 && completedCount === items.length;
 
-useEffect(() => {
-
-    const agent =
-        auditAgentRef.current;
-
-    if (!agent || !allComplete) {
-        return;
-    }
-
-    if (
-        agent.run.status === "COMPLETED"
-    ) {
-        return;
-    }
-
-    recordAuditEvent({
-        type:
-            "RUN_COMPLETED",
-
-        runId:
-            agent.run.runId,
-
-        documentCount:
-            items.length,
-
-        totalPageCount:
-            items.length,
-
-        timestamp:
-            Date.now(),
-    });
-
-    const completedAgent =
-        completeAuditAgent(
-            agent
-        );
-
-    auditAgentRef.current =
-        completedAgent;
-
-}, [allComplete, items.length]);
 
 
 
@@ -483,6 +812,20 @@ useEffect(() => {
             ? 0
             : Math.round((completedCount / items.length) * 100);
 
+
+console.log(
+    "[CARE JOURNEY DEBUG] WOW 29 - Progress calculated",
+    {
+        timestamp: new Date().toISOString(),
+        itemsCount: items.length,
+        completedCount,
+        activeCount,
+        failedCount,
+        overallProgress,
+    }
+);
+
+
     const currentIndex = items.findIndex(
         item => item.status === "READING" || item.status === "EXTRACTING"
     );
@@ -490,7 +833,41 @@ useEffect(() => {
     const activeIndex = currentIndex >= 0 ? currentIndex : Math.min(completedCount, Math.max(items.length - 1, 0));
     const activeItem = items[activeIndex];
 
+
+console.log(
+    "[CARE JOURNEY DEBUG] WOW 30 - Active document calculated",
+    {
+        timestamp: new Date().toISOString(),
+        currentIndex,
+        activeIndex,
+        activeItem: activeItem
+            ? {
+                name: activeItem.file.name,
+                status: activeItem.status,
+            }
+            : null,
+    }
+);
+
+console.log(
+    "[CARE JOURNEY DEBUG] WOW 31 - Component returning UI",
+    {
+        timestamp: new Date().toISOString(),
+        items: items.map(item => ({
+            name: item.file.name,
+            status: item.status,
+        })),
+        overallProgress,
+        currentIndex,
+        activeIndex,
+        allComplete,
+    }
+);
+
     return (
+
+
+
         <main className="min-h-screen bg-[#fbfbff] text-[#18204a]">
             {/* =====================================================
                 HEADER
@@ -500,7 +877,21 @@ useEffect(() => {
                     <div className="flex items-center gap-4">
                         <button
                             type="button"
-                            onClick={onBack}
+                            onClick={() => {
+
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 32 - Processing Workspace Back clicked",
+        {
+            timestamp: new Date().toISOString(),
+            items: items.map(item => ({
+                name: item.file.name,
+                status: item.status,
+            })),
+        }
+    );
+
+    onBack?.();
+}}
                             disabled={!onBack}
                             aria-label="Go back"
                             className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e5e6f2] bg-white text-[#3f46c6] shadow-sm transition hover:border-[#cfd1f4] disabled:cursor-default disabled:opacity-0"
@@ -544,32 +935,6 @@ useEffect(() => {
             </header>
 
             <div className="mx-auto max-w-[1180px] px-6 pb-12 pt-8">
-                {/* =================================================
-                    HERO / INTELLIGENCE INTRO
-                ================================================= */}
-                <section className="relative overflow-hidden rounded-[28px] border border-[#e4e5f5] bg-white px-7 py-8 shadow-[0_16px_50px_rgba(37,42,93,0.07)] sm:px-10 sm:py-10">
-                    <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-[#e9e6ff] blur-3xl" />
-                    <div className="pointer-events-none absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-[#e5f3ff] blur-3xl" />
-
-                    <div className="relative flex flex-col items-center text-center">
-                        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#eeeaff] to-[#dfeaff] shadow-[0_12px_30px_rgba(77,53,220,0.14)]">
-                            <Sparkles className="h-8 w-8 text-[#4d35dc]" />
-                        </div>
-
-                        <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#dedaff] bg-[#f8f7ff] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[#5946d9]">
-                            CareVR Intelligence
-                        </div>
-
-                        <h1 className="max-w-[760px] text-3xl font-extrabold tracking-[-0.04em] text-[#17204a] sm:text-[42px] sm:leading-[1.08]">
-                            Understanding your health records
-                        </h1>
-
-                        <p className="mt-4 max-w-[700px] text-[15px] leading-7 text-[#69708d] sm:text-base">
-                            CareVR is carefully reading your documents and finding the information that matters for this Care Journey.
-                        </p>
-                    </div>
-                </section>
-
                 {/* =================================================
                     DOCUMENTS
                 ================================================= */}
@@ -629,11 +994,23 @@ useEffect(() => {
 
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                setExpandedDocument(
-                                                    isExpanded ? null : index
-                                                )
-                                            }
+onClick={() => {
+
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 33 - Document options clicked",
+        {
+            timestamp: new Date().toISOString(),
+            documentIndex: index,
+            fileName: item.file.name,
+            status: item.status,
+            wasExpanded: isExpanded,
+        }
+    );
+
+    setExpandedDocument(
+        isExpanded ? null : index
+    );
+}}
                                             aria-label={`Show options for ${item.file.name}`}
                                             className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6d7391] transition hover:bg-[#f5f5fb]"
                                         >
@@ -773,22 +1150,33 @@ useEffect(() => {
                 </section>
 
                 {/* =================================================
-                    EXTRACTED INFORMATION / RESULT PLACEHOLDER
+                    EXTRACTED INFORMATION
 
-                    This intentionally does not invent extracted values.
-                    Strataparse will populate this area in the next step.
+                    Strataparse owns extraction and analysis.
+                    CareVR displays the returned intelligence.
+
+                    The display is configuration-driven:
+                    - Prescription → prescription information
+                    - Doctor Notes → consultation / clinical information
+                    - Lab Results → patient-relevant laboratory information
+
+                    CareVR does not invent values that were not
+                    returned by Strataparse.
                 ================================================= */}
                 <section className="mt-6 rounded-[24px] border border-[#e5e6f2] bg-white p-6 shadow-[0_10px_35px_rgba(37,42,93,0.05)] sm:p-7">
+
                     <div className="flex items-start justify-between gap-4 border-b border-[#ececf4] pb-5">
                         <div>
                             <div className="flex items-center gap-2">
                                 <h2 className="text-xl font-extrabold tracking-[-0.02em]">
                                     Intelligence results
                                 </h2>
+
                                 <Sparkles className="h-4 w-4 text-[#4d35dc]" />
                             </div>
+
                             <p className="mt-1 text-sm text-[#7a809d]">
-                                Information relevant to this Care Journey will appear here.
+                                Information identified from your health records.
                             </p>
                         </div>
 
@@ -797,28 +1185,150 @@ useEffect(() => {
                         </div>
                     </div>
 
-                    <div className="py-8 text-center">
-                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f5f4ff] text-[#4d35dc]">
-                            <Sparkles className="h-6 w-6" />
-                        </div>
-                        <h3 className="mt-4 text-base font-extrabold text-[#30375d]">
-                            {allComplete
-                                ? "Your information is ready"
-                                : "Your information is being understood"}
-                        </h3>
-                        <p className="mx-auto mt-2 max-w-[560px] text-sm leading-6 text-[#7a809d]">
-                            CareVR will show only the information requested by this Care Journey configuration. It will not guess missing information or replace source values.
-                        </p>
+                    <div className="mt-6 space-y-5">
+
+                        {items
+                            .filter(
+                                item =>
+                                    item.status === "COMPLETED" &&
+                                    item.data
+                            )
+                            .map(
+                                (
+                                    item,
+                                    index
+                                ) => (
+
+                                    <article
+                                        key={`${item.file.name}-result-${index}`}
+                                        className="rounded-2xl border border-[#e5e6f2] bg-[#fbfbff] p-5"
+                                    >
+
+                                        <div className="mb-4 flex items-start justify-between gap-4">
+
+                                            <div className="min-w-0">
+
+                                                <div className="text-sm font-extrabold text-[#18204a]">
+                                                    {item.file.name}
+                                                </div>
+
+<div className="mt-1 text-xs font-medium text-[#7b819d]">
+    {formatInformationLabel(
+        item.data?.documentType ?? "Document"
+    )}
+</div>
+
+                                            </div>
+
+                                            <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                                                <Check className="h-4 w-4" />
+                                                Completed
+                                            </div>
+
+                                        </div>
+
+<div className="space-y-3">
+
+    {configuration.configurable_Rest.map(
+        panel => {
+
+            const value =
+                getConfiguredExtractionValue(
+                    item.data?.extraction ?? {},
+                    panel
+                );
+
+            const available =
+                hasInformation(value);
+
+            return (
+                <div
+                    key={panel}
+                    className="rounded-xl border border-[#ececf5] bg-white p-4"
+                >
+
+                    <div className="text-xs font-extrabold uppercase tracking-[0.08em] text-[#737a99]">
+                        {formatInformationLabel(
+                            panel
+                        )}
                     </div>
+
+                    <div
+                        className={
+                            available
+                                ? "mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-[#30375d]"
+                                : "mt-2 text-sm leading-6 text-[#8a90a8]"
+                        }
+                    >
+                        {available
+                            ? formatInformationValue(
+                                  value
+                              )
+                            : INFORMATION_NOT_AVAILABLE}
+                    </div>
+
+                </div>
+            );
+        }
+    )}
+
+</div>
+
+                                    </article>
+
+                                )
+                            )}
+
+                        {!items.some(
+                            item =>
+                                item.status === "COMPLETED" &&
+                                item.data
+                        ) && (
+
+                            <div className="py-8 text-center">
+
+                                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f5f4ff] text-[#4d35dc]">
+                                    <Sparkles className="h-6 w-6" />
+                                </div>
+
+                                <h3 className="mt-4 text-base font-extrabold text-[#30375d]">
+                                    {allComplete
+                                        ? "No extracted information was returned"
+                                        : "Your information is being understood"}
+                                </h3>
+
+                                <p className="mx-auto mt-2 max-w-[560px] text-sm leading-6 text-[#7a809d]">
+                                    CareVR displays information returned by Strataparse and does not invent missing values.
+                                </p>
+
+                            </div>
+
+                        )}
+
+                    </div>
+
                 </section>
 
 {allComplete && (
                     <div className="mt-6 flex justify-end">
                         <button
                             type="button"
-                            onClick={() =>
-                                router.push("/admin/Audit")
-                            }
+onClick={() => {
+
+    console.log(
+        "[CARE JOURNEY DEBUG] WOW 34 - Audit page button clicked",
+        {
+            timestamp: new Date().toISOString(),
+            allComplete,
+            items: items.map(item => ({
+                name: item.file.name,
+                status: item.status,
+            })),
+        }
+    );
+
+    router.push("/admin/Audit");
+}}
                             className="rounded-xl bg-[#4d35dc] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#3f2cc5]"
                         >
                             View Audit Report
@@ -826,45 +1336,13 @@ useEffect(() => {
                     </div>
                 )}
 
-                {/* =================================================
-                    TRUST
-                ================================================= */}
-                <section className="mt-6 flex flex-col gap-4 rounded-[24px] border border-[#e0e5f4] bg-gradient-to-r from-white to-[#f8faff] p-6 shadow-[0_10px_35px_rgba(37,42,93,0.04)] sm:flex-row sm:items-center sm:p-7">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f0efff] text-[#4d35dc]">
-                        <ShieldCheck className="h-7 w-7" />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="font-extrabold text-[#263057]">
-                            Your health information is protected
-                        </h3>
-                        <p className="mt-1 max-w-[760px] text-sm leading-6 text-[#737a97]">
-                            CareVR keeps the processing experience focused on the documents and Care Journey configuration you provided.
-                        </p>
-                    </div>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                        <Check className="h-5 w-5" />
-                    </div>
-                </section>
+
             </div>
 
             {/* =====================================================
                 FOOTER
             ===================================================== */}
-            <footer className="border-t border-[#dfe2f1] bg-[#17234f] text-white">
-                <div className="mx-auto flex max-w-[1180px] flex-col gap-5 px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <div className="font-extrabold tracking-wide">CareVR</div>
-                        <div className="mt-1 text-xs text-white/60">
-                            Intelligent. Secure. Built around the Care Journey.
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-xs font-semibold text-white/75">
-                        <ShieldCheck className="h-5 w-5" />
-                        Secure · Private · Trusted
-                    </div>
-                </div>
-            </footer>
+            <CareVRFooter />
         </main>
     );
 }

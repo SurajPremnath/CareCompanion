@@ -196,6 +196,37 @@ function cloneAggregation(
                 })
             ),
 
+        accuracy:
+            {
+                ...aggregation.accuracy,
+
+                misses:
+                    [
+                        ...aggregation.accuracy.misses,
+                    ],
+            },
+
+        documentCoverage:
+            aggregation.documentCoverage.map(
+                document => ({
+                    ...document,
+                })
+            ),
+
+        pageExecution:
+            aggregation.pageExecution.map(
+                page => ({
+                    ...page,
+                })
+            ),
+
+        modelSummary:
+            aggregation.modelSummary.map(
+                model => ({
+                    ...model,
+                })
+            ),
+
         documentSummary:
             {
                 ...aggregation.documentSummary,

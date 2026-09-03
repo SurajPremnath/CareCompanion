@@ -19,6 +19,10 @@ import {
     STRATAPARSE_SYSTEM_PROMPT,
 } from "@/Strataparse/prompts/strataparseSystemPrompt";
 
+import {
+    observeStrataparse,
+} from "@/CareVRTestAuditAgent/runtime/auditObserver";
+
 export type StrataparseConfiguration = {
     expectedOutput?: string[];
 };
@@ -28,6 +32,16 @@ export type ProcessStrataparseDocumentInput = {
     documentType: string;
     configuration?: StrataparseConfiguration;
     modelTier: StrataparseModelTier;
+
+    /**
+     * Optional audit context.
+     *
+     * Audit is observational only. When supplied, the
+     * processing function emits fire-and-forget observations
+     * but never waits for the audit system.
+     */
+    auditRunId?: string;
+    documentNumber?: number;
 };
 
 export type StrataparseDocumentResult = {
@@ -62,12 +76,14 @@ export async function processStrataparseDocument(
     input: ProcessStrataparseDocumentInput
 ): Promise<StrataparseDocumentResult> {
 
-    const {
-        document,
-        documentType,
-        configuration,
-        modelTier,
-    } = input;
+const {
+    document,
+    documentType,
+    configuration,
+    modelTier,
+    auditRunId,
+    documentNumber,
+} = input;
 
     //--------------------------------------------------------
     // MODEL
@@ -129,18 +145,63 @@ export async function processStrataparseDocument(
                 pageIndex
             ];
 
-        const pageResult =
-            await extractPage({
-                page,
-                model,
-                targetedPrompt,
-                pageNumber:
-                    pageIndex + 1,
-            });
+const pageResult =
+    await extractPage({
+        page,
+        model,
+        targetedPrompt,
+        pageNumber:
+            pageIndex + 1,
 
-        pageResults.push(
-            pageResult
-        );
+        auditRunId,
+        documentNumber,
+        modelTier,
+    });
+
+if (
+    auditRunId &&
+    documentNumber !== undefined
+) {
+observeStrataparse({
+    type:
+        "PAGE_COMPLETED",
+
+    runId:
+        auditRunId,
+
+    documentNumber,
+
+    pageNumber:
+        pageIndex + 1,
+
+    modelTier,
+
+    /*
+     * Preserve the actual GPT model already resolved by
+     * Strataparse and already supplied to extractPage().
+     *
+     * The Audit Agent observes this value only.
+     * It does not select or modify the model.
+     */
+    model,
+
+    inputTokens:
+        pageResult.inputTokens,
+
+    outputTokens:
+        pageResult.outputTokens,
+
+    totalTokens:
+        pageResult.totalTokens,
+
+    timestamp:
+        Date.now(),
+});
+}
+
+pageResults.push(
+    pageResult.extraction
+);
     }
 
     //--------------------------------------------------------
@@ -152,6 +213,25 @@ export async function processStrataparseDocument(
             pageResults
         );
 
+    if (
+        auditRunId &&
+        documentNumber !== undefined
+    ) {
+        observeStrataparse({
+            type:
+                "DOCUMENT_COMPLETED",
+
+            runId:
+                auditRunId,
+
+            documentNumber,
+
+            timestamp:
+                Date.now(),
+        });
+    }
+
+
     return {
         documentType,
         extraction,
@@ -159,11 +239,44 @@ export async function processStrataparseDocument(
 }
 
 type ExtractPageInput = {
-    page: Blob;
-    model: string;
-    targetedPrompt: string;
-    pageNumber: number;
+    page:
+        Blob;
+
+    model:
+        string;
+
+    targetedPrompt:
+        string;
+
+    pageNumber:
+        number;
+
+    auditRunId?:
+        string;
+
+    documentNumber?:
+        number;
+
+    modelTier:
+        StrataparseModelTier;
 };
+
+
+type ExtractPageResult = {
+
+    extraction:
+        Record<string, unknown>;
+
+    inputTokens?:
+        number;
+
+    outputTokens?:
+        number;
+
+    totalTokens?:
+        number;
+};
+
 
 /**
  * Extracts exactly ONE page.
@@ -178,15 +291,19 @@ type ExtractPageInput = {
  * No second page or second document is included.
  */
 async function extractPage(
-    input: ExtractPageInput
-): Promise<Record<string, unknown>> {
+    input:
+        ExtractPageInput
+): Promise<ExtractPageResult> {
 
-    const {
-        page,
-        model,
-        targetedPrompt,
-        pageNumber,
-    } = input;
+const {
+    page,
+    model,
+    targetedPrompt,
+    pageNumber,
+    auditRunId,
+    documentNumber,
+    modelTier,
+} = input;
 
     let temporaryOpenAIFileId:
         string |
@@ -328,8 +445,45 @@ or reliably supported by this page.
         // EXTRACTION
         //----------------------------------------------------
 
+        if (
+            auditRunId &&
+            documentNumber !== undefined
+        ) {
+            observeStrataparse({
+                type:
+                    "PAGE_STARTED",
+
+                runId:
+                    auditRunId,
+
+                documentNumber,
+
+                pageNumber,
+
+                modelTier,
+
+                timestamp:
+                    Date.now(),
+            });
+
+            observeStrataparse({
+                type:
+                    "PROMPT_CAPTURED",
+
+                runId:
+                    auditRunId,
+
+                prompt:
+                    targetedPrompt,
+
+                timestamp:
+                    Date.now(),
+            });
+        }
+
         const response =
             await openai.responses.create({
+
                 model,
 
                 instructions:
@@ -394,8 +548,21 @@ or reliably supported by this page.
             );
         }
 
-        return parsed as
-            Record<string, unknown>;
+return {
+
+    extraction:
+        parsed as
+        Record<string, unknown>,
+
+    inputTokens:
+        response.usage?.input_tokens,
+
+    outputTokens:
+        response.usage?.output_tokens,
+
+    totalTokens:
+        response.usage?.total_tokens,
+};
 
     } finally {
 
