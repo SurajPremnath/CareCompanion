@@ -364,6 +364,11 @@ const [
 ] = useState<Patient[]>([]);
 
 const [
+    familyModeAvailable,
+    setFamilyModeAvailable,
+] = useState(false);
+
+const [
     mobileSnapshots,
     setMobileSnapshots,
 ] = useState<Record<string, MobileSnapshot>>({});
@@ -746,8 +751,6 @@ const needsAttention =
         "CONCERNS_REPORTED" ||
     monitoringItems.length > 0;
 
-setMobilePatients([]);
-
 setMobileSelectedPatientId("");
 
 setMobileSnapshots(
@@ -775,22 +778,27 @@ setMobileSnapshots(
             // FAMILY MODE
             //--------------------------------------------------------
 
-            const result =
-                await patientStorage
-                    .getPatients();
+const result =
+    await patientStorage
+        .getPatients();
 
-            if (cancelled) {
-                return;
-            }
+console.log(
+    "MOBILE PATIENT STORAGE RESULT:",
+    result
+);
 
-            const patients =
-                result.success
-                    ? result.data ?? []
-                    : [];
+const patients =
+    result.success
+        ? result.data ?? []
+        : [];
 
-            setMobilePatients(
-                patients
-            );
+setMobilePatients(
+    patients
+);
+
+setFamilyModeAvailable(
+    patients.length > 0
+);
 
             const defaultPatient =
                 patients[0] ??
@@ -1405,7 +1413,6 @@ const mobileSnapshotKey =
         }
     }}
     userName={user.fullName}
-    showCareModeToggle={mobilePatients.length > 0}
     showHomeButton={false}
     accountMenuOpen={mobileAccountMenuOpen}
     onAccountMenuToggle={() =>

@@ -133,75 +133,75 @@ export default function MobileHeader({
     role="group"
     aria-label="Care mode"
 >
+<button
+    type="button"
+    className={`carevr-mobile-mode-option ${
+        careMode === "FAMILY"
+            ? "carevr-mobile-mode-option-active"
+            : ""
+    }`}
+    onClick={() =>
+        onCareModeChange("FAMILY")
+    }
+>
+<span
+    style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: "6px",
+        color: "#8FD3FF",
+    }}
+    aria-hidden="true"
+>
+        <svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <circle
+                cx="9"
+                cy="8"
+                r="3"
+            />
+
+            <path
+                d="M3.5 19c.7-3.2 2.6-5 5.5-5s4.8 1.8 5.5 5"
+            />
+
+            <path
+                d="M16 5.5a2.5 2.5 0 1 1 0 5"
+            />
+
+            <path
+                d="M16 13.5c2.4.2 3.9 2 4.5 4.5"
+            />
+        </svg>
+    </span>
+
+    Family
+</button>
+
     {showCareModeToggle && (
         <button
             type="button"
             className={`carevr-mobile-mode-option ${
-                careMode === "FAMILY"
+                careMode === "SELF"
                     ? "carevr-mobile-mode-option-active"
                     : ""
             }`}
             onClick={() =>
-                onCareModeChange("FAMILY")
+                onCareModeChange("SELF")
             }
         >
-            <span
-                style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginRight: "6px",
-                    color: "#8FD3FF",
-                }}
-                aria-hidden="true"
-            >
-                <svg
-                    width="17"
-                    height="17"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                >
-                    <circle
-                        cx="9"
-                        cy="8"
-                        r="3"
-                    />
-
-                    <path
-                        d="M3.5 19c.7-3.2 2.6-5 5.5-5s4.8 1.8 5.5 5"
-                    />
-
-                    <path
-                        d="M16 5.5a2.5 2.5 0 1 1 0 5"
-                    />
-
-                    <path
-                        d="M16 13.5c2.4.2 3.9 2 4.5 4.5"
-                    />
-                </svg>
-            </span>
-
-            Family
+            Self
         </button>
     )}
-
-    <button
-        type="button"
-        className={`carevr-mobile-mode-option ${
-            careMode === "SELF"
-                ? "carevr-mobile-mode-option-active"
-                : ""
-        }`}
-        onClick={() =>
-            onCareModeChange("SELF")
-        }
-    >
-        Self
-    </button>
 </div>
 
                 <div className="carevr-mobile-account-wrapper">
