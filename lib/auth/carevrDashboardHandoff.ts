@@ -113,13 +113,29 @@ export async function resolveCareVRDashboardHandoff(
                 selectedRole
             );
 
-    if (!access) {
+if (!access) {
+
+    if (selectedRole === "DOCTOR") {
 
         throw new Error(
-            "Active CareVR access is required."
+            "Doctor access is not assigned. Please contact your Primary."
         );
 
     }
+
+    if (selectedRole === "CARETAKER") {
+
+        throw new Error(
+            "Caretaker access is not assigned. Please contact your Primary."
+        );
+
+    }
+
+    throw new Error(
+        "Selected CareVR role is not assigned. Please contact your Primary."
+    );
+
+}
 
 
     //--------------------------------------------------------
