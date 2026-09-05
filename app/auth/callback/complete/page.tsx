@@ -123,14 +123,11 @@ function GoogleAuthComplete() {
       <main>
         <p>{errorMessage}</p>
 
-        <button
-          type="button"
-          onClick={() =>
-            router.replace("/login")
-          }
-        >
-          Return to Login
-        </button>
+<a
+  href="/login"
+>
+  Return to Login
+</a>
       </main>
     );
 
