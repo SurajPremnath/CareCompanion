@@ -96,25 +96,25 @@ async register(
 /**
  * Sign in using Google OAuth.
  */
-async signInWithGoogle(): Promise<void> {
-  const { error } =
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
+  async signInWithGoogle(
+    selectedRole: "SELF" | "DOCTOR" | "CARETAKER" | "FAMILY"
+  ): Promise<void> {
+    const callbackUrl =
+      `${window.location.origin}/auth/callback?role=${encodeURIComponent(selectedRole)}`;
 
-      options: {
-        redirectTo:
-          `${window.location.origin}/auth/callback`,
-
-        queryParams: {
-          prompt: "select_account",
+    const { error } =
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callbackUrl,
+          queryParams: {
+            prompt: "select_account",
+          },
         },
-      },
-    });
+      });
 
-  if (error) {
-    throw error;
+    if (error) throw error;
   }
-}
 
   /**
    * Logout.

@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+const VALID_ROLES = [
+    "SELF",
+    "DOCTOR",
+    "CARETAKER",
+    "FAMILY",
+] as const;
+
 export async function GET(
     request: Request
 ) {
@@ -11,15 +18,16 @@ const { searchParams, origin } =
 const code =
     searchParams.get("code");
 
-let next =
-    searchParams.get("next")
-    ?? "/dashboard";
+const selectedRole =
+    searchParams.get("role");
 
-if (!next.startsWith("/")) {
-
-    next = "/dashboard";
-
-}
+const role =
+    selectedRole &&
+    VALID_ROLES.includes(
+        selectedRole as typeof VALID_ROLES[number]
+    )
+        ? selectedRole
+        : "SELF";
 
 const supabase =
     await createSupabaseServerClient();
@@ -34,7 +42,7 @@ if (code) {
 
 return NextResponse.redirect(
     new URL(
-        next,
+        `/auth/callback/complete?role=${encodeURIComponent(role)}`,
         origin
     )
 );

@@ -123,23 +123,28 @@ router.replace("/dashboard");
   }
 };
 
-  const handleGoogleLogin = async () => {
-    setError("");
+const handleGoogleLogin = async () => {
+  setError("");
 
-    try {
-      setGoogleLoading(true);
+  if (!selectedRole) {
+    setError("Please select your CareVR role.");
+    return;
+  }
 
-      await authService.signInWithGoogle();
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Unable to continue with Google.";
+  try {
+    setGoogleLoading(true);
 
-      setError(message);
-      setGoogleLoading(false);
-    }
-  };
+    await authService.signInWithGoogle(selectedRole);
+  } catch (err) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Unable to continue with Google.";
+
+    setError(message);
+    setGoogleLoading(false);
+  }
+};
 
 return (
   <>
