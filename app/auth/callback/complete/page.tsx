@@ -1,10 +1,20 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Suspense,
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 import { authService } from "@/lib/auth/authService";
-import { resolveCareVRDashboardHandoff } from "@/lib/auth/carevrDashboardHandoff";
+import {
+  resolveCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
 
 type CareVRRole =
   | "SELF"
@@ -20,84 +30,136 @@ const VALID_ROLES: CareVRRole[] = [
 ];
 
 function GoogleAuthComplete() {
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [errorMessage, setErrorMessage] =
+    useState<string | null>(null);
+
   useEffect(() => {
+
     let cancelled = false;
 
-    const completeGoogleLogin = async () => {
-      try {
-        const requestedRole =
-          searchParams.get("role") as CareVRRole | null;
+    const completeGoogleLogin =
+      async () => {
 
-        const selectedRole =
-          requestedRole &&
-          VALID_ROLES.includes(requestedRole)
-            ? requestedRole
-            : null;
+        try {
 
-        if (!selectedRole) {
-          throw new Error(
-            "Please return to Login and select your CareVR role."
+          const requestedRole =
+  searchParams.get("role") as CareVRRole | null;
+
+          const selectedRole =
+            requestedRole &&
+            VALID_ROLES.includes(
+              requestedRole
+            )
+              ? requestedRole
+              : null;
+
+          if (!selectedRole) {
+
+            throw new Error(
+              "Please return to Login and select your CareVR role."
+            );
+
+          }
+
+          const authenticatedUser =
+            await authService.getCurrentUser();
+
+          if (!authenticatedUser) {
+
+            throw new Error(
+              "Unable to establish your CareVR session. Please return to Login."
+            );
+
+          }
+
+          await resolveCareVRDashboardHandoff(
+            authenticatedUser.id,
+            selectedRole
           );
+
+          if (!cancelled) {
+
+            router.replace(
+              "/dashboard"
+            );
+
+          }
+
         }
+        catch (err) {
 
-        const authenticatedUser =
-          await authService.getCurrentUser();
+          if (cancelled) return;
 
-        if (!authenticatedUser) {
-          throw new Error(
-            "Unable to establish your CareVR session. Please return to Login."
+          setErrorMessage(
+            err instanceof Error
+              ? err.message
+              : "Unable to complete Google login."
           );
+
         }
 
-        await resolveCareVRDashboardHandoff(
-          authenticatedUser.id,
-          selectedRole
-        );
-
-        if (!cancelled) {
-          router.replace("/dashboard");
-        }
-      } catch (err) {
-        if (cancelled) return;
-
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Unable to complete Google login.";
-
-        router.replace(
-          `/login?error=${encodeURIComponent(message)}`
-        );
-      }
-    };
+      };
 
     void completeGoogleLogin();
 
     return () => {
+
       cancelled = true;
+
     };
-  }, [router, searchParams]);
+
+  }, [
+    router,
+    searchParams,
+  ]);
+
+  if (errorMessage) {
+
+    return (
+      <main>
+        <p>{errorMessage}</p>
+
+        <button
+          type="button"
+          onClick={() =>
+            router.replace("/login")
+          }
+        >
+          Return to Login
+        </button>
+      </main>
+    );
+
+  }
 
   return (
     <main>
-      <p>Completing your CareVR login...</p>
+      <p>
+        Completing your CareVR login...
+      </p>
     </main>
   );
+
 }
 
 export default function GoogleAuthCompletePage() {
+
   return (
     <Suspense
       fallback={
         <main>
-          <p>Completing your CareVR login...</p>
+          <p>
+            Completing your CareVR login...
+          </p>
         </main>
       }
     >
       <GoogleAuthComplete />
     </Suspense>
   );
+
 }
