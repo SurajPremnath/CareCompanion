@@ -125,6 +125,10 @@ function GoogleAuthComplete() {
 
 <a
   href="/login"
+  style={{
+    textDecoration: "underline",
+    cursor: "pointer",
+  }}
 >
   Return to Login
 </a>
