@@ -5,16 +5,25 @@ import React, {
   useRef,
   useState,
 } from "react";
+
 import { useRouter } from "next/navigation";
+
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
 import { authService } from "@/lib/auth/authService";
+
 import {
   authSessionService,
 } from "@/lib/analytics/authSessionService";
+
 import {
   performanceTracker,
 } from "@/lib/performance/performanceTracker";
+
+
+import {
+  resolveCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,20 +39,22 @@ const [showPassword, setShowPassword] =
     useState(false);
 
 /*
- * Demo role selection only.
+ * Care context and role are selected at Login.
  *
- * This currently controls the mobile login UI selection.
- * It does NOT change authentication, consent, relationships,
- * permissions, or backend authorization.
+ * These values are currently UI state only. The subsequent
+ * CareVR authorization layer will receive them with the login
+ * request and validate the user's actual authorization.
  */
+const [selectedContext, setSelectedContext] =
+    useState<"FAMILY" | "ORGANISATION">("FAMILY");
+
 const [selectedRole, setSelectedRole] =
     useState<
         "SELF" |
         "DOCTOR" |
         "CARETAKER" |
-        "FAMILY" |
-        ""
-    >("");
+        "FAMILY"
+    >("SELF");
 
   useEffect(() => {
     if (loginPageReadyRef.current) {
@@ -79,18 +90,25 @@ const handleLogin = async () => {
       feature: "LOGIN_TO_DASHBOARD",
     });
 
-    await authService.login(
-      email.trim(),
-      password
-    );
+const authenticatedUser =
+  await authService.login(
+    email.trim(),
+    password
+  );
 
-    void authSessionService
-      .start()
-      .catch(() => {
-        // Analytics must never block navigation.
-      });
+await resolveCareVRDashboardHandoff(
+  authenticatedUser.id,
+  selectedRole
+);
 
-    router.replace("/dashboard");
+void authSessionService
+  .start()
+  .catch(() => {
+    // Analytics must never block navigation.
+  });
+
+router.replace("/dashboard");
+
   } catch (err) {
     performanceTracker.cancel();
 
@@ -160,7 +178,7 @@ return (
         align-items: center;
         justify-content: center;
         padding: 28px;
-        background: #ffffff;
+        background: #f1eaff;
       }
 
       .login-shell {
@@ -179,14 +197,14 @@ return (
       }
 
       /* ==============================
-         LEFT — LOGIN
+         LEFT â€” LOGIN
       ============================== */
 
       .login-left {
         display: flex;
         flex-direction: column;
-        padding: 42px 64px 34px;
-        background: #ffffff;
+        padding: 34px 54px 30px;
+        background: #f1eaff;
       }
 
 /* =========================================================
@@ -493,7 +511,7 @@ return (
       }
 
       /* ==============================
-         RIGHT — BRAND IMAGE
+         RIGHT â€” BRAND IMAGE
       ============================== */
 
 .login-right {
@@ -506,6 +524,90 @@ return (
     center center / 100% 100%
     no-repeat;
 }
+
+      /* ==============================
+         CARE CONTEXT
+         ============================== */
+
+      .context-selection {
+        width: 100%;
+        margin-bottom: 14px;
+      }
+
+      .context-selection-title {
+        margin-bottom: 8px;
+        font-size: 14px;
+        line-height: 1.3;
+        font-weight: 700;
+        color: #15203d;
+      }
+
+      .context-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .context-option {
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border: 1px solid #d9dce6;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.82);
+        color: #15203d;
+        text-align: left;
+        cursor: pointer;
+        transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+      }
+
+      .context-option:hover:not(:disabled) {
+        border-color: #b9a7f7;
+        background: rgba(255, 255, 255, 0.96);
+      }
+
+      .context-option-selected {
+        border: 2px solid #7043f5;
+        background: #f7f3ff;
+        box-shadow: 0 0 0 2px rgba(112, 67, 245, 0.10);
+      }
+
+      .context-option:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .context-icon {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 9px;
+        background: #f1eaff;
+        color: #7043f5;
+      }
+
+      .context-option-copy {
+        min-width: 0;
+      }
+
+      .context-option-title {
+        display: block;
+        font-size: 13px;
+        font-weight: 750;
+        line-height: 1.2;
+      }
+
+      .context-option-description {
+        display: block;
+        margin-top: 3px;
+        font-size: 10.5px;
+        line-height: 1.25;
+        color: #737b91;
+      }
 
       /* =========================================================
          ROLE SELECTION
@@ -574,13 +676,13 @@ return (
       }
 
 .role-option-selected {
-  border: 2px solid #2563eb;
+  border: 2px solid #7043f5;
 
-  background: #f3f8ff;
+  background: #f7f3ff;
 
   box-shadow:
     0 0 0 2px
-    rgba(37, 99, 235, 0.20);
+    rgba(112, 67, 245, 0.12);
 }
 
       .role-option:disabled {
@@ -656,6 +758,45 @@ return (
       @media (max-width: 600px) {
 
         /* ---------------------------------------------------------
+           MOBILE CARE CONTEXT
+        --------------------------------------------------------- */
+
+        .context-selection {
+          margin-bottom: 9px;
+        }
+
+        .context-selection-title {
+          margin-bottom: 5px;
+          font-size: 10.5px;
+        }
+
+        .context-options {
+          gap: 6px;
+        }
+
+        .context-option {
+          min-height: 57px;
+          gap: 7px;
+          padding: 7px 8px;
+          border-radius: 10px;
+        }
+
+        .context-icon {
+          width: 28px;
+          height: 28px;
+          flex-basis: 28px;
+        }
+
+        .context-option-title {
+          font-size: 10.5px;
+        }
+
+        .context-option-description {
+          margin-top: 2px;
+          font-size: 8.5px;
+        }
+
+        /* ---------------------------------------------------------
            MOBILE ROLE SELECTION
 
            UI-only at this stage.
@@ -667,8 +808,8 @@ return (
         }
 
         .role-selection-title {
-          margin-bottom: 7px;
-          font-size: 14px;
+          margin-bottom: 5px;
+          font-size: 10.5px;
         }
 
         .role-options {
@@ -722,14 +863,14 @@ return (
   background-size: 100% 100%;
 }
 
-  /* Desktop artwork panel is not used on mobile */
-  .login-right {
-    display: none;
-  }
+/* Desktop artwork panel is not used on mobile */
+.login-right {
+  display: none;
+}
 
-  .login-footer {
-    display: none;
-  }
+.login-footer {
+  display: none;
+}
 
   /* ---------------------------------------------------------
      LOGIN LAYER
@@ -751,16 +892,13 @@ return (
 /* ---------------------------------------------------------
    MOBILE CAREVR LOGO
 
-   The CareVR logo is now part of the mobile background
-   artwork itself.
-
-   Do not render a second logo from the login page.
+   The logo is rendered by the login page so the new purple
+   background can be used without the old baked-in artwork.
 --------------------------------------------------------- */
 
 .carevr-logo {
   display: none;
 }
-
   /* ---------------------------------------------------------
      LOGIN CONTENT
 
@@ -771,7 +909,7 @@ return (
 .login-content {
   position: absolute;
 
-  top: 39%;
+  top: 28%;
   left: 6%;
   right: 6%;
 
@@ -802,10 +940,12 @@ return (
     color: #15203d;
   }
 
-/* Mobile does not need a second sign-in message.
-   The artwork already communicates the product message. */
 .login-heading p {
-  display: none;
+  display: block;
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.3;
+  color: #5f6780;
 }
 
   /* ---------------------------------------------------------
@@ -1055,7 +1195,7 @@ return (
 
       @media (max-width: 380px) {
         .login-content {
-          top: 30%;
+          top: 20%;
           left: 5%;
           right: 5%;
         }
@@ -1098,7 +1238,7 @@ return (
 
       @media (max-height: 700px) and (max-width: 600px) {
         .login-content {
-          top: 25%;
+          top: 20%;
         }
 
         .login-heading {
@@ -1150,7 +1290,7 @@ return (
       <section className="login-shell">
 
         {/* ============================
-            LEFT — LOGIN
+            LEFT â€” LOGIN
         ============================ */}
 
         <div className="login-left">
@@ -1162,30 +1302,66 @@ return (
 
 <div className="login-content">
 
-{/* ---------------------------------------------------------
-    LOGIN VALIDATION PANEL
 
-    Displays all existing login validation messages.
-    The panel is positioned independently so its appearance
-    does not move the role panels or controls below it.
---------------------------------------------------------- */}
+<div className="context-selection">
+  <div className="context-selection-title"></div>
+  <div className="context-selection-title"></div>
+  <div className="context-selection-title"></div>
+  <div className="context-options" role="group" aria-label="Care context">
+    <button
+      type="button"
+      className={`context-option ${
+        selectedContext === "FAMILY"
+          ? "context-option-selected"
+          : ""
+      }`}
+      onClick={() => setSelectedContext("FAMILY")}
+      disabled={loading || googleLoading}
+      aria-pressed={selectedContext === "FAMILY"}
+    >
+      <span className="context-icon" aria-hidden="true">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M3 10.5 12 3l9 7.5" />
+          <path d="M5.5 9.5V20h13V9.5" />
+          <path d="M9.5 20v-5h5v5" />
+        </svg>
+      </span>
+      <span className="context-option-copy">
+        <span className="context-option-title">Care Family</span>
+        <span className="context-option-description">For individuals and families</span>
+      </span>
+    </button>
 
-{(!selectedRole || error) && (
-  <div
-    className="login-validation-panel"
-    role="alert"
-    aria-live="polite"
-  >
-    {!selectedRole
-      ? "Please select who you are signing in as."
-      : error}
+    <button
+      type="button"
+      className={`context-option ${
+        selectedContext === "ORGANISATION"
+          ? "context-option-selected"
+          : ""
+      }`}
+      onClick={() => setSelectedContext("ORGANISATION")}
+      disabled={true}
+      aria-pressed={selectedContext === "ORGANISATION"}
+      aria-label="Care Organisation (coming soon)"
+    >
+      <span className="context-icon" aria-hidden="true">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <rect x="4" y="3" width="16" height="18" rx="2" />
+          <path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-4h4v4" />
+        </svg>
+      </span>
+      <span className="context-option-copy">
+        <span className="context-option-title">Care Organisation</span>
+        <span className="context-option-description">Coming soon — for care teams and providers</span>
+      </span>
+    </button>
   </div>
-)}
+</div>
 
 <div className="role-selection">
+  <div className="role-selection-title">Select Your Role</div>
 
-
-    <div className="role-options">
+  <div className="role-options">
 
 <button
     type="button"
@@ -1287,7 +1463,15 @@ return (
     </div>
 </div>
 
-
+{error && (
+  <div
+    className="login-error"
+    role="alert"
+    aria-live="polite"
+  >
+    {error}
+  </div>
+)}
 
             {/* EMAIL */}
 
@@ -1529,7 +1713,7 @@ return (
 </div>
 
 {/* ============================
-    RIGHT — BRAND EXPERIENCE
+    RIGHT â€” BRAND EXPERIENCE
 ============================ */}
 
 <div className="login-right" aria-hidden="true" />

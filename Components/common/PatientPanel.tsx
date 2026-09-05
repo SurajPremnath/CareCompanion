@@ -99,6 +99,7 @@ export default function PatientPanel({
     careMode,
 }: PatientPanelProps) {
 
+
     if (careMode === "SELF") {
         return null;
     }

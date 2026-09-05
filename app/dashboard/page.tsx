@@ -75,6 +75,21 @@ import {
     performanceTracker,
 } from "@/lib/performance/performanceTracker";
 
+import {
+    getCareVRToggle,
+} from "@/lib/auth/carevrToggle";
+
+import {
+    getCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
+
+import type {
+    CareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
+
+import type {
+    CareVRToggleConfiguration,
+} from "@/lib/auth/carevrToggle";
 
 import HelpWorkspace from "@/app/components/dashboard/HelpWorkspace";
 
@@ -351,7 +366,21 @@ const [
     mobileCareMode,
     setMobileCareMode,
 ] = useState<"FAMILY" | "SELF">(
-    "FAMILY"
+    "SELF"
+);
+
+const [
+    careVRHandoff,
+    setCareVRHandoff,
+] = useState<CareVRDashboardHandoff | null>(
+    null
+);
+
+const [
+    careVRToggle,
+    setCareVRToggle,
+] = useState<CareVRToggleConfiguration | null>(
+    null
 );
 
     //------------------------------------------------------------
@@ -367,6 +396,8 @@ const [
     familyModeAvailable,
     setFamilyModeAvailable,
 ] = useState(false);
+
+
 
 const [
     mobileSnapshots,
@@ -406,129 +437,172 @@ const [
             true;
 
 
-        async function loadDashboard() {
+async function loadDashboard() {
 
-            try {
+    try {
 
-                const authUser =
-                    await authService
-                        .getCurrentUser();
+        const authUser =
+            await authService
+                .getCurrentUser();
 
+        if (!authUser) {
 
-                if (!authUser) {
+            router.replace(
+                "/login"
+            );
 
-                    router.replace(
-                        "/login"
-                    );
-
-                    return;
-
-                }
+            return;
+        }
 
 
-                const profile =
-                    await profileRepository
-                        .getCurrentProfile();
+        const profile =
+            await profileRepository
+                .getCurrentProfile();
+
+        const consentGranted =
+            await consentStorage
+                .hasAcceptedCurrentConsent();
+
+        setConsentGranted(
+            consentGranted
+        );
 
 
-const consentGranted =
-    await consentStorage
-        .hasAcceptedCurrentConsent();
+        if (!profile) {
 
-setConsentGranted(
-    consentGranted
-);
+            await authService.logout();
 
-                if (!profile) {
+            router.replace(
+                "/login"
+            );
 
-                    await authService.logout();
-
-                    router.replace(
-                        "/login"
-                    );
-
-                    return;
-
-                }
+            return;
+        }
 
 
-                setUser({
+        //--------------------------------------------------------
+        // Resolve the Dashboard handoff created during Login.
+        //
+        // The handoff already contains the selected CareVR role,
+        // assigned modules, and Patient scope.
+        //
+        // The toggle resolver uses that information only to
+        // determine the Dashboard care-mode presentation.
+        //--------------------------------------------------------
 
-                    id:
-                        profile.id,
+        const dashboardHandoff =
+            getCareVRDashboardHandoff();
 
-                    fullName:
-                        profile.fullName,
+        if (!dashboardHandoff) {
 
-                    email:
-                        profile.email,
-
-                    role:
-                        profile.role,
-
-                });
-
-
-                void analyticsService
-                    .track({
-
-                        module:
-                            ANALYTICS_MODULES
-                                .DASHBOARD,
-
-                        eventName:
-                            ANALYTICS_EVENTS
-                                .PAGE_VIEWED,
-
-                        pagePath:
-                            "/dashboard",
-
-                    })
-                    .catch(() => {
-
-                        // Analytics must not block rendering
-
-                    });
-
-            }
-            catch (error) {
-
-                console.error(
-                    "Unable to load home page.",
-                    error
-                );
-
-
-                try {
-
-                    await authService.logout();
-
-                }
-                catch {
-
-                    // Ignore logout failure
-
-                }
-
-
-                router.replace(
-                    "/login"
-                );
-
-            }
-            finally {
-
-                setLoading(false);
-
-            }
+            throw new Error(
+                "CareVR Dashboard handoff is required."
+            );
 
         }
+
+
+const toggleConfiguration =
+    getCareVRToggle(
+        dashboardHandoff
+    );
+
+setCareVRHandoff(
+    dashboardHandoff
+);
+
+
+
+setCareVRToggle(
+    toggleConfiguration
+);
+
+if (toggleConfiguration.initialMode) {
+    setMobileCareMode(
+        toggleConfiguration.initialMode
+    );
+}
+
+
+
+        setUser({
+
+            id:
+                profile.id,
+
+            fullName:
+                profile.fullName,
+
+            email:
+                profile.email,
+
+            role:
+                profile.role,
+
+        });
+
+
+        void analyticsService
+            .track({
+
+                module:
+                    ANALYTICS_MODULES
+                        .DASHBOARD,
+
+                eventName:
+                    ANALYTICS_EVENTS
+                        .PAGE_VIEWED,
+
+                pagePath:
+                    "/dashboard",
+
+            })
+            .catch(() => {
+
+                // Analytics must not block rendering
+
+            });
+
+    }
+    catch (error) {
+
+        console.error(
+            "Unable to load home page.",
+            error
+        );
+
+
+        try {
+
+            await authService.logout();
+
+        }
+        catch {
+
+            // Ignore logout failure
+
+        }
+
+
+        router.replace(
+            "/login"
+        );
+
+    }
+    finally {
+
+        setLoading(false);
+
+    }
+
+}
 
 
         void loadDashboard();
 
     }, [router]);
 
+ 
 
     //------------------------------------------------------------
     // Load Mobile Caretaker Data
@@ -782,10 +856,7 @@ const result =
     await patientStorage
         .getPatients();
 
-console.log(
-    "MOBILE PATIENT STORAGE RESULT:",
-    result
-);
+
 
 const patients =
     result.success
@@ -795,6 +866,7 @@ const patients =
 setMobilePatients(
     patients
 );
+
 
 setFamilyModeAvailable(
     patients.length > 0
@@ -1413,7 +1485,19 @@ const mobileSnapshotKey =
         }
     }}
     userName={user.fullName}
-    showHomeButton={false}
+    showCareModeToggle={
+        careVRToggle?.showToggle ?? false
+    }
+    showSelfToggle={
+        careVRToggle?.showSelf ?? false
+    }
+    showFamilyToggle={
+        careVRToggle?.showFamily ?? false
+    }
+    showHomeButton={true}
+    onHomeClick={() =>
+        router.replace("/dashboard")
+    }
     accountMenuOpen={mobileAccountMenuOpen}
     onAccountMenuToggle={() =>
         setMobileAccountMenuOpen(
@@ -1468,13 +1552,15 @@ const mobileSnapshotKey =
     )}
 
 
-<PatientPanel
-    userName={user.fullName}
-    patients={mobilePatients}
-    selectedPatientId={mobileSelectedPatientId}
-    onPatientSelect={selectMobilePatient}
-    careMode={mobileCareMode}
-/>
+{(careVRHandoff?.patientCount ?? 0) > 0 && (
+    <PatientPanel
+        userName={user.fullName}
+        patients={mobilePatients}
+        selectedPatientId={mobileSelectedPatientId}
+        onPatientSelect={selectMobilePatient}
+        careMode={mobileCareMode}
+    />
+)}
 
 {(
     mobileCareMode === "SELF" ||
@@ -1931,7 +2017,9 @@ headerAccessory={<LanguageSelector />}
 
 </div>
 
-{isPersonSelectionComplete && (
+{isPersonSelectionComplete &&
+ careVRHandoff &&
+ careVRHandoff.moduleCount > 0 && (
 
     <div style={mainActionWrapper}>
 

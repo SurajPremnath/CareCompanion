@@ -72,12 +72,6 @@ async getPatients(): Promise<Patient[]> {
     .eq("family_id", membership.family_id)
     .eq("status", "ACTIVE");
 
-console.log("PATIENT REPOSITORY FAMILY RESULT:", {
-  userId,
-  familyId: membership.family_id,
-  data,
-  error,
-});
 
   if (error) {
     this.handleError(error);

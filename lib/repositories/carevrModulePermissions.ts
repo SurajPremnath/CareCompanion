@@ -61,7 +61,31 @@ export class CareVRModulePermissionsRepository extends BaseRepository {
       this.handleError(error);
     }
   }
+
+  async getActivePermissions(
+    carevrAccessId: string
+  ): Promise<
+    Array<{
+      module: string;
+      permission: string;
+    }>
+  > {
+    const { data, error } = await supabase
+      .from("carevr_module_permissions")
+      .select("module, permission")
+      .eq("carevr_access_id", carevrAccessId)
+      .eq("status", "ACTIVE");
+
+    if (error) {
+      this.handleError(error);
+    }
+
+    return data ?? [];
+  }
+
 }
+
+
 
 export const carevrModulePermissions =
   new CareVRModulePermissionsRepository();
