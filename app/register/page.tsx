@@ -577,91 +577,137 @@ onClick={() => {
         )}
 
         <div className="invitee-primary-confirmation">
-<p>
-    You are already registered with CareVR as a {inviteePrimaryHandoff?.sourceRole}.
-    Confirming will register your profile with an additional role as a
-    Primary Family Member along with {inviteePrimaryHandoff?.sourceRole}.
-</p>
+            {!inviteePrimaryConfirmed ? (
+                <>
+                    <p>
+                        You are already registered with CareVR as a{" "}
+                        {inviteePrimaryHandoff?.sourceRole}.
+                        Confirming will register your profile with an additional
+                        role as a Primary Family Member along with{" "}
+                        {inviteePrimaryHandoff?.sourceRole}.
+                    </p>
 
-<div className="confirmation-actions">
-    <button
-        type="button"
-        className="create-account-button"
-        onClick={async () => {
-            if (!inviteePrimaryHandoff) {
-                setError(
-                    "Primary registration handoff is no longer available."
-                );
-                return;
-            }
+                    <div className="confirmation-actions">
+                        <button
+                            type="button"
+                            className="create-account-button"
+                            onClick={async () => {
+                                if (!inviteePrimaryHandoff) {
+                                    setError(
+                                        "Primary registration handoff is no longer available."
+                                    );
+                                    return;
+                                }
 
-            try {
-                setLoading(true);
-                setError("");
-                setSuccess("");
+                                try {
+                                    setLoading(true);
+                                    setError("");
+                                    setSuccess("");
 
-                const user = await authService.getCurrentUser();
+                                    const user =
+                                        await authService.getCurrentUser();
 
-                if (!user) {
-                    throw new Error(
-                        "Authenticated user could not be found."
-                    );
-                }
+                                    if (!user) {
+                                        throw new Error(
+                                            "Authenticated user could not be found."
+                                        );
+                                    }
 
-                if (user.id !== inviteePrimaryHandoff.userId) {
-                    throw new Error(
-                        "Primary registration handoff does not belong to the current user."
-                    );
-                }
+                                    if (
+                                        user.id !==
+                                        inviteePrimaryHandoff.userId
+                                    ) {
+                                        throw new Error(
+                                            "Primary registration handoff does not belong to the current user."
+                                        );
+                                    }
 
-                /*
-                 * The user already has a Supabase Auth account.
-                 * This provisions an additional PRIMARY CareVR access
-                 * context for the existing user. It does not create
-                 * another Auth account.
-                 */
-                await provisionPrimaryAccess(user.id);
+                                    /*
+                                     * The user already has a Supabase Auth account.
+                                     * This provisions an additional PRIMARY CareVR
+                                     * access context for the existing user.
+                                     * It does not create another Auth account.
+                                     */
+                                    await provisionPrimaryAccess(user.id);
 
-                /*
-                 * The handoff has now been consumed successfully.
-                 */
-                inviteeToPrimaryHandoff.clear();
+                                    /*
+                                     * The additional PRIMARY profile has been
+                                     * created successfully.
+                                     */
+                                    setSuccess(
+                                        "Your Additional profile of Primary has been created successfully. Please be responsible and accountable in adhering to CareVR’s Terms of Use, privacy requirements, and the responsibilities associated with the Primary Family Member role."
+                                    );
 
-                /*
-                 * Return to the normal Login flow so the existing
-                 * credentials can establish the PRIMARY context.
-                 */
-                await authService.logout();
+                                    /*
+                                     * Keep the confirmation panel visible so the
+                                     * success message can be displayed even after
+                                     * the handoff is consumed.
+                                     */
+                                    setInviteePrimaryConfirmed(true);
 
-                router.replace("/login");
-            } catch (err) {
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Unable to register Primary Family Member access.";
+                                    /*
+                                     * The handoff has now been consumed successfully.
+                                     */
+                                    inviteeToPrimaryHandoff.clear();
 
-                setError(message);
-            } finally {
-                setLoading(false);
-            }
-        }}
-        disabled={loading}
-    >
-        {loading ? "Confirming..." : "Confirm"}
-    </button>
+                                    /*
+                                     * End the existing Invitee session.
+                                     * The user will use the existing credentials
+                                     * to establish the PRIMARY context from Login.
+                                     */
+                                    await authService.logout();
 
-    <button
-        type="button"
-        className="login-link-button"
-        onClick={() => {
-            setIsPrimaryFamilyMember(null);
-            setInviteePrimaryConfirmed(false);
-        }}
-        disabled={loading}
-    >
-        Cancel
-    </button>
-</div>
+                                } catch (err) {
+                                    const message =
+                                        err instanceof Error
+                                            ? err.message
+                                            : "Unable to register Primary Family Member access.";
+
+                                    setError(message);
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }}
+                            disabled={loading}
+                        >
+                            {loading
+                                ? "Confirming..."
+                                : "Confirm"}
+                        </button>
+
+                        <button
+                            type="button"
+                            className="login-link-button"
+                            onClick={() => {
+                                setIsPrimaryFamilyMember(null);
+                                setInviteePrimaryConfirmed(false);
+                            }}
+                            disabled={loading}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </>
+            ) : (
+                <div
+                    className="success-message"
+                    role="status"
+                >
+                    <p>
+                        {success}
+                    </p>
+
+                    <button
+                        type="button"
+                        className="login-link-button"
+                        onClick={() => {
+                            router.replace("/login");
+                        }}
+                    >
+                        Click Back to Login
+                    </button>
+                </div>
+            )}
         </div>
     </div>
 )}

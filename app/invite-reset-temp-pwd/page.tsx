@@ -86,6 +86,11 @@ function InviteResetTempPwdContent({
         setErrorMessage,
     ] = useState("");
 
+    const [
+        successMessage,
+        setSuccessMessage,
+    ] = useState("");
+
     const passwordRequirements = [
         {
             label: "At least 8 characters",
@@ -189,14 +194,23 @@ function InviteResetTempPwdContent({
             );
 
             /*
-             * Force a fresh login using the new
-             * permanent password.
+             * Password change and invitation acceptance
+             * completed successfully.
+             *
+             * Keep the user on this page so the
+             * confirmation message and Back to Login
+             * action can be displayed.
              */
-            await authService.logout();
+            setErrorMessage("");
 
-            router.replace(
-                "/login"
+            setSuccessMessage(
+                "Your password has been changed successfully."
             );
+
+            setOldPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+
         } catch (error) {
             console.error(
                 "Unable to complete invited-user password change.",
@@ -502,6 +516,31 @@ function InviteResetTempPwdContent({
                             >
                                 {errorMessage}
                             </p>
+                        )}
+
+                        {successMessage && (
+                            <div
+                                className="invite-submit-success"
+                                role="status"
+                            >
+                                <p>
+                                    {successMessage}
+                                </p>
+
+                                <button
+                                    type="button"
+                                    className="invite-submit-button"
+                                    onClick={async () => {
+                                        await authService.logout();
+
+                                        router.replace(
+                                            "/login"
+                                        );
+                                    }}
+                                >
+                                    Click Back to Login
+                                </button>
+                            </div>
                         )}
 
                         <button

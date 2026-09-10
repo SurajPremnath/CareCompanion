@@ -23,6 +23,29 @@ export interface InvitedUserCredentialResult {
   email: string;
 }
 
+function deriveFullNameFromEmail(
+  email: string
+): string {
+  const localPart =
+    email
+      .split("@")[0]
+      ?.trim() ?? "";
+
+  const parts =
+    localPart
+      .replace(/[._-]+/g, " ")
+      .split(/\s+/)
+      .filter(Boolean);
+
+  return parts
+    .map(
+      (part) =>
+        part.charAt(0).toUpperCase() +
+        part.slice(1)
+    )
+    .join(" ");
+}
+
 class InvitedUserCredential {
 
   /**
@@ -50,6 +73,9 @@ class InvitedUserCredential {
         ? "SECONDARY"
         : "OTHER";
 
+    const fullName =
+      deriveFullNameFromEmail(email);
+
     const {
       data,
       error
@@ -60,6 +86,9 @@ class InvitedUserCredential {
           input.temporaryPassword,
         email_confirm: true,
         user_metadata: {
+          full_name:
+            fullName,
+
           family_member_type:
             familyMemberType
         }

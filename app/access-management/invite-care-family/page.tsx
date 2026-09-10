@@ -1624,29 +1624,6 @@ const handleCopyInvitationTemplate = async () => {
         </div>
 
 
-        {/* ==================================================
-            FINISH
-        ================================================== */}
-
-        <button
-            type="button"
-            className="finish-invitation-button"
-            disabled={
-                !invitationTemplateCopied
-            }
-            onClick={handleFinalizeInvitation}
-        >
-
-            <span>
-                Finish
-            </span>
-
-            <span className="finish-arrow">
-                →
-            </span>
-
-        </button>
-
     </section>
 )}
 

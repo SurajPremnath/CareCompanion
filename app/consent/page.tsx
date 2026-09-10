@@ -10,6 +10,10 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/lib/auth/authService";
 
 import {
+    profileRepository,
+} from "@/lib/repositories/profileRepository";
+
+import {
     consentStorage,
 } from "@/lib/consent/storage/consentStorage";
 
@@ -47,11 +51,13 @@ useEffect(() => {
 
         try {
 
-            const user =
-                await authService.requireAuthenticatedUser();
+            await authService.requireAuthenticatedUser();
+
+            const profile =
+                await profileRepository.getCurrentProfile();
 
             setUserName(
-                user.user_metadata?.full_name || ""
+                profile?.fullName || ""
             );
 
         } catch (error) {
@@ -418,17 +424,21 @@ const handleAccept = async () => {
                             }
                         />
 
-                        <span>
-                            I confirm that the information I provide
-                            to CareVR is provided voluntarily. Where I
-                            provide information about another person,
-                            I confirm that I have the appropriate
-                            authority or permission to do so. I consent
-                            to CareVR processing my personal and health
-                            information for the purposes described above
-                            and understand that I may withdraw my consent
-                            as permitted by law.
-                        </span>
+<span>
+    I confirm that the information I provide{" "}
+    <strong>
+        to CareVR is provided voluntarily.
+    </strong>{" "}
+    Where I provide information about another
+    person, I confirm that I have the appropriate
+    authority or permission to do so.{" "}
+    <strong>
+        I consent to CareVR processing my personal
+        and health information
+    </strong>{" "}
+    for the purposes described above and understand
+    that I may withdraw my consent as permitted by law.
+</span>
 
                     </label>
 
@@ -446,14 +456,16 @@ const handleAccept = async () => {
                             }
                         />
 
-                        <span>
-                            I accept the CareVR Terms of Use and Medical
-                            Disclaimer. I understand that CareVR helps
-                            me organize and carry my health information
-                            to my doctor, but does not provide medical
-                            interpretation, diagnosis, treatment or
-                            clinical advice.
-                        </span>
+<span>
+    I accept the CareVR Terms of Use and Medical
+    Disclaimer.{" "}
+    <strong>
+        I understand that CareVR helps me organize
+        and carry my health information to my doctor,
+        but does not provide medical interpretation,
+        diagnosis, treatment or clinical advice.
+    </strong>
+</span>
 
                     </label>
 
