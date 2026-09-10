@@ -13,6 +13,10 @@ import {
     consentStorage,
 } from "@/lib/consent/storage/consentStorage";
 
+import {
+    carevrAuthorizationHandoff,
+} from "@/lib/authorization/carevrAuthorizationHandoff";
+
 export default function ConsentPage() {
 
     const router = useRouter();
@@ -200,24 +204,59 @@ const INFORMATION_SECTION_COUNT =
 
     };
 
-    const handleAccept = async () => {
+const handleAccept = async () => {
 
-        try {
+    try {
 
-            await consentStorage.acceptConsent();
+        await consentStorage.acceptConsent({
 
-            router.replace("/dashboard");
+            privacyPanel:
+                reviewedTabs.has("privacy"),
 
-        } catch (error) {
+            familyPanel:
+                reviewedTabs.has("family"),
 
-            console.error(
-                "Unable to save consent.",
-                error
-            );
+            trackingPanel:
+                reviewedTabs.has("tracking"),
 
-        }
+            securityPanel:
+                reviewedTabs.has("security"),
 
-    };
+            medicalPanel:
+                reviewedTabs.has("medical"),
+
+            legalDataProtectionPanel:
+                reviewedTabs.has("legal"),
+
+            storageProcessingPanel:
+                reviewedTabs.has("storage"),
+
+            retentionDeletionPanel:
+                reviewedTabs.has("retention"),
+
+            voluntaryProcessingAgreement:
+                readConfirmed,
+
+            termsMedicalAgreement:
+                agreementAccepted,
+
+            privacyPolicyAcknowledgement:
+                privacyPolicyAcknowledged,
+
+        });
+
+        router.replace("/dashboard");
+
+    } catch (error) {
+
+        console.error(
+            "Unable to save consent.",
+            error
+        );
+
+    }
+
+};
 
     return (
 
@@ -330,15 +369,15 @@ const INFORMATION_SECTION_COUNT =
 
                     </h2>
 
-                    <p style={styles.contentText}>
+<div style={styles.contentText}>
 
-                        {
-                            tabContent[
-                                selectedTab as keyof typeof tabContent
-                            ].content
-                        }
+    {
+        tabContent[
+            selectedTab as keyof typeof tabContent
+        ].content
+    }
 
-                    </p>
+</div>
 
                 </div>
 

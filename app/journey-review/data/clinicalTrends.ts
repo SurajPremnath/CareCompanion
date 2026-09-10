@@ -1,9 +1,6 @@
 import { supabase } from "@/lib/supabase";
 
 
-const DAD_PATIENT_ID =
-    "8d0abd84-3828-4292-b7b0-8772e4b7b5ad";
-
 
 export interface ClinicalTrendSummary {
 
@@ -24,6 +21,7 @@ export interface ClinicalTrendSummary {
 
 
 export async function buildClinicalTrends(
+    patientId: string,
     startDate: string,
     endDate: string
 ):
@@ -49,7 +47,7 @@ weight_kg
 
 .eq(
     "patient_id",
-    DAD_PATIENT_ID
+    patientId
 )
 
 .gte(
@@ -81,13 +79,16 @@ if(error){
 const records =
     data ?? [];
 
+if (records.length === 0) {
+    return [];
+}
+
 
 
 
 const calculate = (
     values:number[]
 )=>{
-
 
     if(values.length===0){
 
@@ -357,49 +358,50 @@ export interface ClinicalTrendGraphData {
 }
 
 export async function buildClinicalTrendGraphData(
+    patientId: string,
     startDate: string,
     endDate: string
 ):
 Promise<ClinicalTrendGraphData[]> {
 
-    const { data, error } =
-        await supabase
+const { data, error } =
+    await supabase
 
-            .from("daily_care")
+        .from("daily_care")
 
-            .select(
-                `
-                recorded_at,
-                temperature,
-                pulse,
-                spo2,
-                systolic,
-                diastolic,
-                weight_kg
-                `
-            )
+        .select(
+            `
+            recorded_at,
+            temperature,
+            pulse,
+            spo2,
+            systolic,
+            diastolic,
+            weight_kg
+            `
+        )
 
-            .eq(
-                "patient_id",
-                DAD_PATIENT_ID
-            )
+        .eq(
+            "patient_id",
+            patientId
+        )
 
-            .gte(
-                "recorded_at",
-                `${startDate} 00:00:00`
-            )
+        .gte(
+            "recorded_at",
+            `${startDate} 00:00:00`
+        )
 
-            .lte(
-                "recorded_at",
-                `${endDate} 23:59:59`
-            )
+        .lte(
+            "recorded_at",
+            `${endDate} 23:59:59`
+        )
 
-            .order(
-                "recorded_at",
-                {
-                    ascending: true
-                }
-            );
+        .order(
+            "recorded_at",
+            {
+                ascending: true
+            }
+        );
 
     if (error) {
         throw error;

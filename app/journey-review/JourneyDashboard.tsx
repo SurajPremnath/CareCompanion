@@ -35,9 +35,12 @@ useEffect(() => {
 
     async function loadExecutiveSummary(){
 
-        const summary =
-            await buildExecutiveSummary();
-
+const summary =
+    await buildExecutiveSummary(
+        journey.patient.id,
+        "2026-07-10",
+        "2026-08-03"
+    );
 
 
         setExecutiveSummary(summary);

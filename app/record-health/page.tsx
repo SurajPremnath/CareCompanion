@@ -111,8 +111,6 @@ import {
 import careVRGoldStandard
     from "@/benchmarks/consultation-v1/expected-output.json";
 
-
-
 type DashboardUser = {
     id: string;
     fullName: string;
@@ -122,6 +120,19 @@ type DashboardUser = {
 
 import CareJourneyUploadPanel
     from "@/Components/dashboard/CareJourneyUploadPanel";
+
+import {
+    reportHandoffStore,
+} from "@/lib/authorization/reportHandoff";
+
+import type {
+    ReportHandoff,
+} from "@/lib/authorization/reportHandoff";
+
+
+import {
+    reportExecutionHandoffStore,
+} from "@/lib/authorization/reportExecutionHandoff";
 
 type RecordHealthOption =
     | "VOICE"
@@ -175,12 +186,19 @@ const [
         : "FAMILY"
 );
 
+const [selectedOption, setSelectedOption] = useState<RecordHealthOption>("");
+
+const [reportExecutionType, setReportExecutionType] =
+    useState<
+        "EXECUTIVE_SUMMARY" |
+        "CLINICAL_TRENDS" |
+        null
+    >(null);
+
 const [
-        selectedOption,
-        setSelectedOption,
-    ] = useState<RecordHealthOption>(
-        ""
-    );
+    reportNoDataMessage,
+    setReportNoDataMessage,
+] = useState<string>("");
 
 
 const [
@@ -189,6 +207,44 @@ const [
 ] = useState<AuditCoordinator | null>(
     null
 );
+
+const [
+    reportHandoff,
+    setReportHandoff,
+] = useState<ReportHandoff | null>(
+    null
+);
+
+
+const [
+    reportStartDate,
+    setReportStartDate,
+] = useState<string>("");
+
+
+const [
+    reportEndDate,
+    setReportEndDate,
+] = useState<string>("");
+
+
+const [
+    reportDatePreset,
+    setReportDatePreset,
+] = useState<
+    | "LAST_3_DAYS"
+    | "LAST_7_DAYS"
+    | "LAST_10_DAYS"
+    | "LAST_21_DAYS"
+    | "CUSTOM"
+    | ""
+>("");
+
+
+const [
+    reportDateError,
+    setReportDateError,
+] = useState<string>("");
 
 /*
  * CARE JOURNEY AUDIT LIFECYCLE
@@ -274,8 +330,8 @@ const [
  * the active patient ID.
  *
  * Example:
- *   Patient 1 → Patient 1 configuration
- *   Patient 2 → Patient 2 configuration
+ *   Patient 1 â†’ Patient 1 configuration
+ *   Patient 2 â†’ Patient 2 configuration
  *
  * This prevents one patient's configuration from being
  * incorrectly reused for another patient.
@@ -581,7 +637,7 @@ auditCoordinator =
     );
 
     /*
-     * CAREVR → STRATAPARSE
+     * CAREVR â†’ STRATAPARSE
      *
      * CareVR supplies the documents and the
      * Care Journey configuration.
@@ -917,7 +973,7 @@ console.log(
 );
 
         /*
-         * STRATAPARSE → CAREVR RESULT HANDOFF
+         * STRATAPARSE â†’ CAREVR RESULT HANDOFF
          *
          * Strataparse returns exactly one result for each
          * independently processed input document.
@@ -1253,6 +1309,7 @@ if (
 
         async function loadPage() {
 
+
             try {
 
                 const authUser =
@@ -1268,6 +1325,30 @@ if (
 
                     return;
                 }
+
+
+const incomingReportHandoff =
+    reportHandoffStore.get();
+
+if (
+    incomingReportHandoff &&
+    incomingReportHandoff.userId !== authUser.id
+) {
+    throw new Error(
+        "Report handoff does not match the authenticated user."
+    );
+}
+
+console.log(
+    "[REPORT DEBUG] Incoming report handoff",
+    incomingReportHandoff
+);
+
+setReportHandoff(
+    incomingReportHandoff
+);
+
+
 
 
                 const profile =
@@ -1661,8 +1742,8 @@ const canRecord =
  * When the selected patient changes, this automatically
  * selects that patient's saved configuration.
  *
- * Patient 1 → Patient 1 configuration
- * Patient 2 → Patient 2 configuration
+ * Patient 1 â†’ Patient 1 configuration
+ * Patient 2 â†’ Patient 2 configuration
  *
  * If the selected patient has no saved configuration,
  * the value remains null and the configuration screen
@@ -1691,7 +1772,7 @@ if (loading) {
             <main className="record-health-page">
 
                 <div className="record-health-loading">
-                    Loading…
+                    Loadingâ€¦
                 </div>
 
                 <style jsx>{`
@@ -1862,7 +1943,7 @@ if (loading) {
                             </div>
 
                             <span className="self-mode-check">
-                                ✓
+                                âœ“
                             </span>
 
                         </section>
@@ -1876,15 +1957,15 @@ if (loading) {
 
 <div className="record-health-heading">
 
-<h1>
-    {searchParams.get("view") === "timeline"
-        ? "Health Timeline"
-        : searchParams.get("view") === "assessment"
+{searchParams.get("view") === "timeline" ? null : (
+    <h1>
+        {searchParams.get("view") === "assessment"
             ? "Health Assessment"
             : searchParams.get("view") === "care-journey"
                 ? "Path to finding your timeline"
                 : "Record Health"}
-</h1>
+    </h1>
+)}
 
 
 </div>
@@ -1983,7 +2064,7 @@ if (loading) {
                                     patientId
                                 }
                             >
-                                ✓{" "}
+                                âœ“{" "}
                                 {patient?.fullName ??
                                     patientId}
                             </div>
@@ -2001,9 +2082,9 @@ if (loading) {
  *
  * First visit:
  *   Upload documents
- *        ↓
+ *        â†“
  *   One-time configuration
- *        ↓
+ *        â†“
  *   Processing workspace
  *
  * After the configuration has been saved:
@@ -2154,122 +2235,565 @@ onProcessingStateChange={
 
 </div>
     </>
-) : searchParams.get("view") === "timeline" ? (
+ ) : searchParams.get("view") === "timeline" ? (
 
     <>
-        {careMode === "FAMILY" &&
-        selectedPatient?.fullName === "K V Premnath" ? (
-            <div className="timeline-report-grid">
 
-                <button
-                    type="button"
-                    className={
-                        selectedOption === "EXECUTIVE_SUMMARY"
-                            ? "timeline-report-option timeline-report-option-selected"
-                            : "timeline-report-option"
-                    }
-                    onClick={() =>
-                        setSelectedOption(
-                            "EXECUTIVE_SUMMARY"
-                        )
-                    }
-                >
+        {reportHandoff ? (
 
-                    <span className="timeline-report-icon">
-                        📋
-                    </span>
+            <>
 
-                    <strong>
-                        Executive Summary
-                    </strong>
+                {!reportExecutionType ? (
+                    <>
+                        <div className="timeline-report-grid">
 
-                </button>
+                            <button
+                                type="button"
+                                className={
+                                    selectedOption === "EXECUTIVE_SUMMARY"
+                                        ? "timeline-report-option timeline-report-option-selected"
+                                        : "timeline-report-option"
+                                }
+                                onClick={() => {
+
+                                    setSelectedOption(
+                                        "EXECUTIVE_SUMMARY"
+                                    );
+
+setReportDatePreset("");
+setReportStartDate("");
+setReportEndDate("");
+setReportDateError("");
+setReportNoDataMessage("");
+
+                                }}
+                            >
+
+                                <span className="timeline-report-icon">
+                                    ▤
+                                </span>
+
+                                <strong>
+                                    Executive Summary
+                                </strong>
+
+                            </button>
 
 
-                <button
-                    type="button"
-                    className={
-                        selectedOption === "CLINICAL_TRENDS"
-                            ? "timeline-report-option timeline-report-option-selected"
-                            : "timeline-report-option"
-                    }
-                    onClick={() =>
-                        setSelectedOption(
-                            "CLINICAL_TRENDS"
-                        )
-                    }
-                >
+                            <button
+                                type="button"
+                                className={
+                                    selectedOption === "CLINICAL_TRENDS"
+                                        ? "timeline-report-option timeline-report-option-selected"
+                                        : "timeline-report-option"
+                                }
+                                onClick={() => {
 
-                    <span className="timeline-report-icon">
-                        📈
-                    </span>
+                                    setSelectedOption(
+                                        "CLINICAL_TRENDS"
+                                    );
 
-                    <strong>
-                        Clinical Trends
-                    </strong>
+setReportDatePreset("");
+setReportStartDate("");
+setReportEndDate("");
+setReportDateError("");
+setReportNoDataMessage("");
 
-                </button>
+                                }}
+                            >
 
-            </div>
+                                <span className="timeline-report-icon">
+                                    ↗
+                                </span>
+
+                                <strong>
+                                    Clinical Trends
+                                </strong>
+
+                            </button>
+
+                        </div>
+
+
+                        {selectedOption !== "" && (
+
+                            <section className="workspace-section">
+
+                                <div className="report-period-row">
+
+                                    <h2>
+                                        Reporting Period
+                                    </h2>
+
+                                    <div className="report-period-options">
+
+                                        <button
+                                            type="button"
+                                            className={
+                                                reportDatePreset === "LAST_3_DAYS"
+                                                    ? "timeline-report-option timeline-report-option-selected"
+                                                    : "timeline-report-option"
+                                            }
+                                            onClick={() => {
+                                                const end = new Date();
+                                                const start = new Date();
+                                                start.setDate(end.getDate() - 2);
+setReportDatePreset("LAST_3_DAYS");
+setReportStartDate(start.toISOString().slice(0, 10));
+setReportEndDate(end.toISOString().slice(0, 10));
+setReportDateError("");
+setReportNoDataMessage("");
+                                            }}
+                                        >
+                                            <span className="report-period-radio" />
+                                            <span>Last 3 Days</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className={
+                                                reportDatePreset === "LAST_7_DAYS"
+                                                    ? "timeline-report-option timeline-report-option-selected"
+                                                    : "timeline-report-option"
+                                            }
+                                            onClick={() => {
+                                                const end = new Date();
+                                                const start = new Date();
+                                                start.setDate(end.getDate() - 6);
+                                                setReportDatePreset("LAST_7_DAYS");
+                                                setReportStartDate(start.toISOString().slice(0, 10));
+                                                setReportEndDate(end.toISOString().slice(0, 10));
+                                                setReportDateError("");
+                                                setReportNoDataMessage("");
+                                            }}
+                                        >
+                                            <span className="report-period-radio" />
+                                            <span>Last 7 Days</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className={
+                                                reportDatePreset === "LAST_10_DAYS"
+                                                    ? "timeline-report-option timeline-report-option-selected"
+                                                    : "timeline-report-option"
+                                            }
+                                            onClick={() => {
+                                                const end = new Date();
+                                                const start = new Date();
+                                                start.setDate(end.getDate() - 9);
+                                                setReportDatePreset("LAST_10_DAYS");
+                                                setReportStartDate(start.toISOString().slice(0, 10));
+                                                setReportEndDate(end.toISOString().slice(0, 10));
+                                                setReportDateError("");
+                                                setReportNoDataMessage("");
+                                            }}
+                                        >
+                                            <span className="report-period-radio" />
+                                            <span>Last 10 Days</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className={
+                                                reportDatePreset === "LAST_21_DAYS"
+                                                    ? "timeline-report-option timeline-report-option-selected"
+                                                    : "timeline-report-option"
+                                            }
+                                            onClick={() => {
+                                                const end = new Date();
+                                                const start = new Date();
+                                                start.setDate(end.getDate() - 20);
+                                                setReportDatePreset("LAST_21_DAYS");
+                                                setReportStartDate(start.toISOString().slice(0, 10));
+                                                setReportEndDate(end.toISOString().slice(0, 10));
+                                                setReportDateError("");
+                                                setReportNoDataMessage("");
+                                            }}
+                                        >
+                                            <span className="report-period-radio" />
+                                            <span>Last 21 Days</span>
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                <div className="report-period-or" aria-hidden="true">
+                                    <span>OR</span>
+                                </div>
+
+                                <div className="report-custom-period">
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+setReportDatePreset("CUSTOM");
+setReportStartDate("");
+setReportEndDate("");
+setReportDateError("");
+setReportNoDataMessage("");
+                                        }}
+                                        className={
+                                            reportDatePreset === "CUSTOM"
+                                                ? "report-custom-selector report-custom-selector-selected"
+                                                : "report-custom-selector"
+                                        }
+                                    >
+                                        <span className="report-period-radio" />
+                                        <span>Custom Period</span>
+                                    </button>
+
+                                    {reportDatePreset === "CUSTOM" && (
+                                        <div className="report-custom-fields">
+                                            <label>
+                                                <span>From Date</span>
+                                                <input
+                                                    type="date"
+                                                    value={reportStartDate}
+                                                    onChange={event => {
+                                                        setReportStartDate(event.target.value);
+                                                        setReportDateError("");
+                                                    }}
+                                                />
+                                            </label>
+
+                                            <label>
+                                                <span>To Date</span>
+                                                <input
+                                                    type="date"
+                                                    value={reportEndDate}
+                                                    onChange={event => {
+                                                        setReportEndDate(event.target.value);
+                                                        setReportDateError("");
+                                                    }}
+                                                />
+                                            </label>
+                                        </div>
+                                    )}
+
+                                </div>
+
+{reportDateError && (
+
+    <div className="report-date-error">
+        {reportDateError}
+    </div>
+
+)}
+
+{reportNoDataMessage && (
+
+    <div className="report-date-error">
+        {reportNoDataMessage}
+    </div>
+
+)}
+
+
+<button
+    type="button"
+                                    disabled={
+                                        !reportStartDate ||
+                                        !reportEndDate
+                                    }
+onClick={() => {
+
+    if (
+        selectedOption !== "EXECUTIVE_SUMMARY" &&
+        selectedOption !== "CLINICAL_TRENDS"
+    ) {
+        setReportDateError(
+            "Please select a report before generating."
+        );
+
+        return;
+    }
+
+    if (
+        !reportStartDate ||
+        !reportEndDate
+    ) {
+        setReportDateError(
+            "Please select a reporting period."
+        );
+
+        return;
+    }
+
+
+                                        const start =
+                                            new Date(
+                                                `${reportStartDate}T00:00:00`
+                                            );
+
+                                        const end =
+                                            new Date(
+                                                `${reportEndDate}T00:00:00`
+                                            );
+
+
+                                        if (
+                                            Number.isNaN(
+                                                start.getTime()
+                                            ) ||
+                                            Number.isNaN(
+                                                end.getTime()
+                                            )
+                                        ) {
+
+                                            setReportDateError(
+                                                "Please enter a valid reporting period."
+                                            );
+
+                                            return;
+
+                                        }
+
+
+                                        if (
+                                            start >
+                                            end
+                                        ) {
+
+                                            setReportDateError(
+                                                "The start date cannot be after the end date."
+                                            );
+
+                                            return;
+
+                                        }
+
+
+                                        const difference =
+                                            Math.floor(
+                                                (
+                                                    end.getTime() -
+                                                    start.getTime()
+                                                ) /
+                                                (
+                                                    1000 *
+                                                    60 *
+                                                    60 *
+                                                    24
+                                                )
+                                            );
+
+
+                                        if (
+                                            difference >
+                                            20
+                                        ) {
+
+                                            setReportDateError(
+                                                "The reporting period cannot exceed 21 calendar days."
+                                            );
+
+                                            return;
+
+                                        }
+
+
+setReportDateError("");
+
+console.log(
+    "[REPORT DEBUG] Generate Report clicked",
+    {
+        selectedOption,
+        reportStartDate,
+        reportEndDate,
+
+        reportHandoffPatientId:
+            reportHandoff.patientId,
+
+        careMode,
+
+        selectedPatientId,
+
+        selectedPatient,
+
+        executionPatientId:
+            careMode === "SELF"
+                ? null
+                : selectedPatient?.id ?? null,
+
+        executionPatientName:
+            careMode === "SELF"
+                ? user.fullName
+                : selectedPatient?.fullName ??
+                    reportHandoff.patientName,
+    }
+);
+
+reportExecutionHandoffStore.set({
+
+    userId:
+        reportHandoff.userId,
+
+    patientId:
+        careMode === "SELF"
+            ? null
+            : selectedPatient?.id ?? null,
+
+    patientName:
+        careMode === "SELF"
+            ? user.fullName
+            : selectedPatient?.fullName ??
+                reportHandoff.patientName,
+
+    reportType:
+        selectedOption,
+
+    startDate:
+        reportStartDate,
+
+    endDate:
+        reportEndDate,
+
+    requestedAt:
+        new Date().toISOString(),
+
+});
+
+console.log(
+    "[REPORT DEBUG] Setting report execution type",
+    selectedOption
+);
+
+setReportExecutionType(
+    selectedOption
+);
+
+                                    }}
+                                    style={{
+                                        width: "100%",
+                                        maxWidth: 380,
+                                        margin: "18px auto 0",
+                                        padding: "12px 16px",
+                                        border: "none",
+                                        borderRadius: 10,
+                                        background:
+                                            reportStartDate &&
+                                            reportEndDate
+                                                ? "#5630e8"
+                                                : "#d1d5db",
+                                        color: "#ffffff",
+                                        fontSize: 15,
+                                        fontWeight: 700,
+                                        cursor:
+                                            reportStartDate &&
+                                            reportEndDate
+                                                ? "pointer"
+                                                : "not-allowed",
+                                    }}
+                                >
+                                    Generate Report
+                                </button>
+
+                            </section>
+
+                        )}
+
+                    </>
+
+                ) : (
+
+                    <section className="workspace-section">
+
+                        {reportExecutionType === "EXECUTIVE_SUMMARY" && (
+
+<ExecutiveSummaryPdfGenerator
+    patientId={
+        careMode === "SELF"
+            ? null
+            : selectedPatient?.id ?? null
+    }
+    patientName={
+        careMode === "SELF"
+            ? user.fullName
+            : selectedPatient?.fullName ??
+                reportHandoff.patientName
+    }
+    startDate={
+        reportStartDate
+    }
+    endDate={
+        reportEndDate
+    }
+onComplete={() => {
+    setReportExecutionType(null);
+}}
+
+onNoData={() => {
+    setReportExecutionType(null);
+
+    setReportNoDataMessage(
+        "No data available for the selected period."
+    );
+}}
+/>
+
+                        )}
+
+
+                        {reportExecutionType === "CLINICAL_TRENDS" && (
+
+<ClinicalTrendPdfGenerator
+    patientId={
+        careMode === "SELF"
+            ? null
+            : selectedPatient?.id ?? null
+    }
+    patientName={
+        careMode === "SELF"
+            ? user.fullName
+            : selectedPatient?.fullName ??
+                reportHandoff.patientName
+    }
+    startDate={
+        reportStartDate
+    }
+    endDate={
+        reportEndDate
+    }
+    onComplete={() => {
+        setReportExecutionType(null);
+    }}
+    onNoData={() => {
+        setReportExecutionType(null);
+
+        setReportNoDataMessage(
+            "No data available for the selected period."
+        );
+    }}
+/>
+
+                        )}
+
+                    </section>
+
+                )}
+
+            </>
 
         ) : (
 
             <div className="timeline-unavailable">
+
                 <div className="timeline-unavailable-icon">
-                    💙
+                    ⚠
                 </div>
 
                 <strong>
-                    Health Timeline is currently available for K V Premnath.
+                    Health Timeline context is unavailable.
                 </strong>
 
                 <p>
-                    We are working to make this available for other family
-                    members too.
+                    Please return to the Dashboard and open Health Timeline
+                    again.
                 </p>
+
             </div>
-
-        )}
-
-
-        {careMode === "FAMILY" &&
-        selectedPatient?.fullName === "K V Premnath" &&
-        selectedOption === "EXECUTIVE_SUMMARY" && (
-
-            <section className="workspace-section">
-
-<ExecutiveSummaryPdfGenerator
-    patientId={selectedPatient.id}
-    patientName={selectedPatient.fullName}
-    onComplete={() => {
-        setSelectedOption("");
-    }}
-/>
-
-            </section>
-
-        )}
-
-
-        {careMode === "FAMILY" &&
-        selectedPatient?.fullName === "K V Premnath" &&
-        selectedOption === "CLINICAL_TRENDS" && (
-
-            <section className="workspace-section">
-
-                <ClinicalTrendPdfGenerator
-                    patientId={
-                        selectedPatient.id
-                    }
-                    patientName={
-                        selectedPatient.fullName
-                    }
-                    onComplete={() => {
-                        setSelectedOption("");
-                    }}
-                />
-
-            </section>
 
         )}
 
@@ -2310,7 +2834,7 @@ onProcessingStateChange={
         >
 
             <span className="assessment-start-icon">
-                🩺
+                ðŸ©º
             </span>
 
             <strong>
@@ -2344,7 +2868,7 @@ onProcessingStateChange={
         >
 
             <span className="record-method-icon voice-icon">
-                🎙
+                ðŸŽ™
             </span>
 
             <strong>
@@ -2371,7 +2895,7 @@ onProcessingStateChange={
         >
 
             <span className="record-method-icon upload-icon">
-                📷
+                ðŸ“·
             </span>
 
             <strong>
@@ -2398,7 +2922,7 @@ onProcessingStateChange={
         >
 
             <span className="record-method-icon manual-icon">
-                ✎
+                âœŽ
             </span>
 
             <strong>
@@ -2808,6 +3332,267 @@ onProcessingStateChange={
     box-shadow:
         0 3px 10px rgba(79, 32, 216, 0.08);
 }
+
+/* Reporting-period controls: horizontal on desktop, compact and responsive on mobile. */
+.report-period-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 16px;
+}
+
+.report-period-row h2 {
+    flex: 0 0 auto;
+    margin: 0;
+    color: #101d45;
+    font-size: 18px;
+    line-height: 1.2;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.report-period-options {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.report-period-options .timeline-report-option {
+    min-width: 0;
+    width: 100%;
+    min-height: 48px;
+    height: 48px;
+    padding: 0 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: 1px solid #d9dce5;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #101d45;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.report-period-radio {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    border: 1.5px solid #aeb4c2;
+    border-radius: 50%;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+.report-period-options
+    .timeline-report-option-selected
+    .report-period-radio,
+.report-custom-selector-selected .report-period-radio {
+    border: 5px solid #5630e8;
+}
+
+.report-period-options
+    .timeline-report-option-selected {
+    border: 1.5px solid #5630e8;
+    background: #faf8ff;
+    box-shadow: 0 2px 8px rgba(79, 32, 216, 0.08);
+}
+
+.report-period-options .timeline-report-option:hover {
+    border-color: #a99be8;
+    background: #fbfaff;
+}
+
+.report-period-or {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0 14px;
+    color: #7b8498;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.report-period-or::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: #dfe2e9;
+}
+
+.report-custom-period {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.report-custom-selector {
+    min-width: 190px;
+    height: 48px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    flex: 0 0 auto;
+    border: 1px solid #d9dce5;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #101d45;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.report-custom-selector-selected {
+    border: 1.5px solid #5630e8;
+    background: #faf8ff;
+}
+
+.report-custom-fields {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.report-custom-fields label {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #59657f;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.report-custom-fields input {
+    min-width: 0;
+    width: 100%;
+    height: 46px;
+    padding: 0 12px;
+    border: 1px solid #d9dce5;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #101d45;
+    font: inherit;
+    box-sizing: border-box;
+}
+
+@media (max-width: 760px) {
+    .report-period-row {
+        display: block;
+    }
+
+    .report-period-row h2 {
+        margin-bottom: 10px;
+        font-size: 17px;
+    }
+
+    .report-period-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .report-period-options .timeline-report-option {
+        height: 46px;
+        min-height: 46px;
+        padding: 0 10px;
+        font-size: 13px;
+    }
+
+    .report-custom-period {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .report-custom-selector {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .report-custom-fields {
+        width: 100%;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .report-custom-fields label {
+        display: grid;
+        grid-template-columns: 78px minmax(0, 1fr);
+        gap: 8px;
+    }
+}
+
+@media (max-width: 390px) {
+    .report-period-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .report-period-options .timeline-report-option {
+        min-height: 44px;
+        height: 44px;
+        padding: 0 8px;
+        justify-content: flex-start;
+        gap: 7px;
+        font-size: 12px;
+    }
+
+    .report-period-radio {
+        width: 16px;
+        height: 16px;
+        flex-basis: 16px;
+    }
+}
+
+.report-period-options .timeline-report-option {
+    min-width: 0;
+    min-height: 52px;
+    height: 52px;
+    padding: 0 18px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    border: 1px solid #d9dce5;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #101d45;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 650;
+    text-align: left;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
 
 .timeline-report-icon {
     width: 52px;

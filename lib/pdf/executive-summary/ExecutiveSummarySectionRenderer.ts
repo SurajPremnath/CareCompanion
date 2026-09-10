@@ -195,55 +195,377 @@ static drawHealthEvents(
         return currentY;
     }
 
-    static drawPatientStatus(
-        options: ExecutiveSummarySectionOptions,
-        section: ExecutiveSummarySection | undefined,
-        summary?: any
-    ): number {
-        const { page, x, y, width, boldFont, regularFont } = options;
-        let currentY = this.drawHeading(page, x, y, width, "3", "Patient Status", "How is the patient doing now?", boldFont, regularFont);
-        const answer = this.cleanText(section?.periods?.[section.periods.length - 1]?.answer);
-        const vitals = this.parseVitals(answer);
+static drawPatientStatus(
+    options: ExecutiveSummarySectionOptions,
+    section: ExecutiveSummarySection | undefined,
+    summary?: any
+): number {
+    const {
+        page,
+        x,
+        y,
+        width,
+        boldFont,
+        regularFont
+    } = options;
 
-        if (!vitals.temperature) {
-            const fallback = this.getTemperatureFallback(summary);
-            if (fallback) vitals.temperature = fallback;
-        }
+    let currentY =
+        this.drawHeading(
+            page,
+            x,
+            y,
+            width,
+            "3",
+            "Patient Status",
+            "How is the patient doing now?",
+            boldFont,
+            regularFont
+        );
 
-        const cards = [
-            ["Blood Pressure", vitals.bloodPressure],
-            ["Pulse", vitals.pulse],
-            ["SpO2", vitals.spo2],
-            ["Temperature", vitals.temperature]
-        ] as const;
+    const answer =
+        this.cleanText(
+            section?.periods?.[
+                section.periods.length - 1
+            ]?.answer
+        );
 
-        const gap = 7;
-        const cardWidth = (width - gap * 3) / 4;
-        const cardHeight = 88;
+const vitals =
+    this.parseVitals(answer);
 
-        for (let i = 0; i < cards.length; i++) {
-            const [label, data] = cards[i];
-            const cardX = x + i * (cardWidth + gap);
-            const value = data ?? { current: "—", min: "—", max: "—", fallback: false };
+const fallbackVitals: {
+    temperature?: number | null;
+    pulse?: number | null;
+    spo2?: number | null;
+    systolic?: number | null;
+    diastolic?: number | null;
+    weight?: number | null;
+} =
+    summary?.fallbackVitals ?? {};
 
-            page.drawRectangle({ x: cardX, y: currentY - cardHeight, width: cardWidth, height: cardHeight, borderWidth: 0.8, borderColor: rgb(0.86, 0.89, 0.93), color: rgb(1, 1, 1) });
-            page.drawText(label, { x: cardX + 8, y: currentY - 16, font: boldFont, size: 8.5, color: rgb(0.40, 0.45, 0.52) });
-            page.drawText(value.fallback ? "Latest*" : "Current", { x: cardX + 8, y: currentY - 31, font: regularFont, size: 7.5, color: rgb(0.55, 0.59, 0.65) });
-            page.drawText(this.safePdfText(value.current), { x: cardX + 8, y: currentY - 48, font: boldFont, size: 12, color: rgb(0.09, 0.13, 0.20) });
-            page.drawLine({ start: { x: cardX + 8, y: currentY - 56 }, end: { x: cardX + cardWidth - 8, y: currentY - 56 }, thickness: 0.5, color: rgb(0.90, 0.92, 0.94) });
-            page.drawText(`Min  ${this.safePdfText(value.min)}`, { x: cardX + 8, y: currentY - 70, font: regularFont, size: 7.5, color: rgb(0.42, 0.47, 0.53) });
-            page.drawText(`Max  ${this.safePdfText(value.max)}`, { x: cardX + 8, y: currentY - 82, font: regularFont, size: 7.5, color: rgb(0.42, 0.47, 0.53) });
-        }
+console.log(
+    "[ExecutiveSummary PatientStatus] fallbackVitals:",
+    fallbackVitals
+);
 
-        currentY -= cardHeight + 13;
+console.log(
+    "[ExecutiveSummary PatientStatus] temperature:",
+    fallbackVitals.temperature
+);
 
-        if (vitals.temperature?.fallback) {
-            page.drawText("* Latest available temperature record; no temperature was recorded this week.", { x, y: currentY, font: regularFont, size: 7.5, color: rgb(0.55, 0.59, 0.65) });
-            currentY -= 16;
-        }
+const applyFallback = (
+    data: any,
+    fallbackValue: number | null | undefined,
+    suffix: string
+) => {
+    const currentValue =
+        String(
+            data?.current ?? ""
+        )
+            .trim();
 
-return currentY - 8;
+    const hasRecordedValue =
+        currentValue !== "" &&
+        currentValue !== "-" &&
+        currentValue !== "—" &&
+        currentValue !== "–" &&
+        currentValue !== "â€”" &&
+        currentValue !== "â€“";
+
+    if (hasRecordedValue) {
+        return data;
     }
+
+    if (
+        fallbackValue === null ||
+        fallbackValue === undefined
+    ) {
+        return data;
+    }
+
+    const formatted =
+        `${fallbackValue}${suffix}`;
+
+    return {
+        current: formatted,
+        min: formatted,
+        max: formatted,
+        fallback: true
+    };
+};
+
+vitals.temperature =
+    applyFallback(
+        vitals.temperature,
+        fallbackVitals.temperature,
+        "°F"
+    );
+
+vitals.pulse =
+    applyFallback(
+        vitals.pulse,
+        fallbackVitals.pulse,
+        " bpm"
+    );
+
+vitals.spo2 =
+    applyFallback(
+        vitals.spo2,
+        fallbackVitals.spo2,
+        "%"
+    );
+
+
+    if (
+        !vitals.bloodPressure &&
+        (
+            fallbackVitals.systolic !== null &&
+            fallbackVitals.systolic !== undefined &&
+            fallbackVitals.diastolic !== null &&
+            fallbackVitals.diastolic !== undefined
+        )
+    ) {
+        const formatted =
+            `${fallbackVitals.systolic}/${fallbackVitals.diastolic} mmHg`;
+
+        vitals.bloodPressure = {
+            current: formatted,
+            min: formatted,
+            max: formatted,
+            fallback: true
+        };
+    }
+
+    const cards = [
+        [
+            "Blood Pressure",
+            vitals.bloodPressure
+        ],
+        [
+            "Pulse",
+            vitals.pulse
+        ],
+        [
+            "SpO2",
+            vitals.spo2
+        ],
+        [
+            "Temperature",
+            vitals.temperature
+        ]
+    ] as const;
+
+    const gap = 7;
+
+    const cardWidth =
+        (width - gap * 3) / 4;
+
+    const cardHeight = 88;
+
+    for (
+        let i = 0;
+        i < cards.length;
+        i++
+    ) {
+        const [
+            label,
+            data
+        ] = cards[i];
+
+        const cardX =
+            x +
+            i *
+                (cardWidth + gap);
+
+        const value =
+            data ?? {
+                current: "—",
+                min: "—",
+                max: "—",
+                fallback: false
+            };
+
+        page.drawRectangle({
+            x: cardX,
+            y:
+                currentY -
+                cardHeight,
+            width: cardWidth,
+            height: cardHeight,
+            borderWidth: 0.8,
+            borderColor:
+                rgb(
+                    0.86,
+                    0.89,
+                    0.93
+                ),
+            color:
+                rgb(
+                    1,
+                    1,
+                    1
+                )
+        });
+
+        page.drawText(
+            label,
+            {
+                x:
+                    cardX + 8,
+                y:
+                    currentY - 16,
+                font:
+                    boldFont,
+                size: 8.5,
+                color:
+                    rgb(
+                        0.40,
+                        0.45,
+                        0.52
+                    )
+            }
+        );
+
+        page.drawText(
+            value.fallback
+                ? "Latest*"
+                : "Current",
+            {
+                x:
+                    cardX + 8,
+                y:
+                    currentY - 31,
+                font:
+                    regularFont,
+                size: 7.5,
+                color:
+                    rgb(
+                        0.55,
+                        0.59,
+                        0.65
+                    )
+            }
+        );
+
+        page.drawText(
+            this.safePdfText(
+                value.current
+            ),
+            {
+                x:
+                    cardX + 8,
+                y:
+                    currentY - 48,
+                font:
+                    boldFont,
+                size: 12,
+                color:
+                    rgb(
+                        0.09,
+                        0.13,
+                        0.20
+                    )
+            }
+        );
+
+        page.drawLine({
+            start: {
+                x:
+                    cardX + 8,
+                y:
+                    currentY - 56
+            },
+            end: {
+                x:
+                    cardX +
+                    cardWidth -
+                    8,
+                y:
+                    currentY - 56
+            },
+            thickness: 0.5,
+            color:
+                rgb(
+                    0.90,
+                    0.92,
+                    0.94
+                )
+        });
+
+        page.drawText(
+            `Min  ${this.safePdfText(value.min)}`,
+            {
+                x:
+                    cardX + 8,
+                y:
+                    currentY - 70,
+                font:
+                    regularFont,
+                size: 7.5,
+                color:
+                    rgb(
+                        0.42,
+                        0.47,
+                        0.53
+                    )
+            }
+        );
+
+        page.drawText(
+            `Max  ${this.safePdfText(value.max)}`,
+            {
+                x:
+                    cardX + 8,
+                y:
+                    currentY - 82,
+                font:
+                    regularFont,
+                size: 7.5,
+                color:
+                    rgb(
+                        0.42,
+                        0.47,
+                        0.53
+                    )
+            }
+        );
+    }
+
+    currentY -=
+        cardHeight + 13;
+
+    const fallbackNotes =
+        Array.isArray(
+            summary?.fallbackVitalNotes
+        )
+            ? summary.fallbackVitalNotes
+            : [];
+
+    for (
+        const note of fallbackNotes
+    ) {
+        page.drawText(
+            this.safePdfText(note),
+            {
+                x,
+                y: currentY,
+                font:
+                    regularFont,
+                size: 7.5,
+                color:
+                    rgb(
+                        0.55,
+                        0.59,
+                        0.65
+                    ),
+                maxWidth: width
+            }
+        );
+
+        currentY -= 16;
+    }
+
+    return currentY - 8;
+}
 
     static drawClinicalPlan(
         options: ExecutiveSummarySectionOptions,
@@ -300,14 +622,6 @@ return currentY - 8;
         return result;
     }
 
-    private static getTemperatureFallback(summary: any): any | null {
-        const records = Array.isArray(summary?.clinicalTimeline) ? summary.clinicalTimeline : [];
-        const values = records.map((event: any) => ({ date: new Date(event?.date).getTime(), value: Number(event?.vitals?.temperature) })).filter((item: any) => Number.isFinite(item.value) && item.value > 0 && item.value < 120).sort((a: any, b: any) => a.date - b.date);
-        if (!values.length) return null;
-        const numbers = values.map((item: any) => item.value);
-        const latest = values[values.length - 1].value;
-        return { current: `${latest}°F`, min: `${Math.min(...numbers)}°F`, max: `${Math.max(...numbers)}°F`, fallback: true };
-    }
 
 
 private static deduplicateSymptoms(

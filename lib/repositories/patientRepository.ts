@@ -47,17 +47,53 @@ async getPatients(): Promise<Patient[]> {
   }
 
   //------------------------------------------------------
-  // No established Family means there are no Family
-  // Patients to return.
+  // Resolve the Family for the authenticated user.
+  //
+  // PRIMARY users resolve their Family through
+  // family_memberships.
+  //
+  // Invited CareVR users may not have a
+  // family_memberships row. Their authorized Family is
+  // established through the active carevr_access record.
   //------------------------------------------------------
 
-  if (!membership?.family_id) {
+  let familyId =
+    membership?.family_id ?? null;
+
+  if (!familyId) {
+    const {
+      data: access,
+      error: accessError
+    } = await supabase
+      .from("carevr_access")
+      .select("family_id")
+      .eq("user_id", userId)
+      .eq("access_status", "ACTIVE")
+      .not("family_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (accessError) {
+      this.handleError(accessError);
+    }
+
+    familyId =
+      access?.family_id ?? null;
+  }
+
+  //------------------------------------------------------
+  // No established or authorized Family means there are
+  // no Family Patients to return.
+  //------------------------------------------------------
+
+  if (!familyId) {
     return [];
   }
 
   //------------------------------------------------------
   // Retrieve all active Patients belonging to the
-  // authenticated user's established Family.
+  // resolved Family.
   //
   // Family mode is governed by patients.family_id,
   // not patients.user_id.
@@ -69,7 +105,7 @@ async getPatients(): Promise<Patient[]> {
   } = await supabase
     .from("patients")
     .select("*")
-    .eq("family_id", membership.family_id)
+    .eq("family_id", familyId)
     .eq("status", "ACTIVE");
 
 

@@ -1,5 +1,3 @@
-import { JourneyDashboard } from "./JourneyDashboard";
-
 import {
     buildPatient,
     navigation,
@@ -167,12 +165,6 @@ clinicalTimeline: [],
     };
 
 
-    return (
-
-        <JourneyDashboard
-            journey={journey}
-        />
-
-    );
+return null;
 
 }

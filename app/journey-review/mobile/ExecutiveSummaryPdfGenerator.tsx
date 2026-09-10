@@ -34,18 +34,6 @@ import {
 
 const REPORT_PERIOD_DAYS = 21;
 
-const INITIAL_REPORT_START =
-    "2026-07-10";
-
-const INITIAL_REPORT_END =
-    "2026-08-03";
-
-interface ReportPeriod {
-    start: string;
-    end: string;
-    label: string;
-    isCurrent: boolean;
-}
 
 function calculateAge(
     dateOfBirth: string | null | undefined
@@ -101,145 +89,7 @@ function calculateAge(
 
 }
 
-function buildReportPeriods(): ReportPeriod[] {
 
-    const periods: ReportPeriod[] = [];
-
-    const today =
-        new Date()
-            .toISOString()
-            .split("T")[0];
-
-
-    // --------------------------------------------------
-    // Period 1 — fixed initial CareVR timeline period
-    // --------------------------------------------------
-
-    periods.push({
-
-        start:
-            INITIAL_REPORT_START,
-
-        end:
-            INITIAL_REPORT_END <= today
-                ? INITIAL_REPORT_END
-                : today,
-
-        label:
-            `${formatReportDate(
-                INITIAL_REPORT_START
-            )} - ` +
-
-            `${formatReportDate(
-                INITIAL_REPORT_END <= today
-                    ? INITIAL_REPORT_END
-                    : today
-            )}`,
-
-        isCurrent:
-            INITIAL_REPORT_END > today,
-
-    });
-
-
-    // --------------------------------------------------
-    // Subsequent periods
-    // --------------------------------------------------
-
-    let periodStart =
-        new Date(
-            `${INITIAL_REPORT_END}T00:00:00`
-        );
-
-
-    periodStart.setDate(
-        periodStart.getDate() + 1
-    );
-
-
-    while (
-
-        periodStart
-            .toISOString()
-            .split("T")[0] <= today
-
-    ) {
-
-        const start =
-            periodStart
-                .toISOString()
-                .split("T")[0];
-
-
-        const periodEnd =
-            new Date(
-                periodStart
-            );
-
-
-        periodEnd.setDate(
-
-            periodEnd.getDate()
-                + REPORT_PERIOD_DAYS
-                - 1
-
-        );
-
-
-        const calculatedEnd =
-            periodEnd
-                .toISOString()
-                .split("T")[0];
-
-
-        const isCurrent =
-            calculatedEnd > today;
-
-
-        const end =
-            isCurrent
-                ? today
-                : calculatedEnd;
-
-
-        periods.push({
-
-            start,
-
-            end,
-
-            label:
-                `${formatReportDate(start)} - ` +
-                `${formatReportDate(end)}`,
-
-            isCurrent,
-
-        });
-
-
-        if (isCurrent) {
-
-            break;
-
-        }
-
-
-        periodStart =
-            new Date(
-                periodEnd
-            );
-
-
-        periodStart.setDate(
-            periodStart.getDate() + 1
-        );
-
-    }
-
-
-    return periods;
-
-}
 
 function formatReportDate(
     dateString: string
@@ -262,13 +112,19 @@ function formatReportDate(
 interface ExecutiveSummaryPdfGeneratorProps {
     patientId: string | null;
     patientName: string;
+    startDate: string;
+    endDate: string;
     onComplete?: () => void;
+    onNoData?: () => void;
 }
 
 export default function ExecutiveSummaryPdfGenerator({
     patientId,
     patientName,
+    startDate,
+    endDate,
     onComplete,
+    onNoData,
 }: ExecutiveSummaryPdfGeneratorProps) {
 
 const [progress, setProgress] =
@@ -284,17 +140,13 @@ const [trends, setTrends] =
     useState<ClinicalTrendSummary[]>([]);
 
 
-const [selectedPeriods, setSelectedPeriods] =
-    useState<ReportPeriod[]>([]);
 
 const [generating, setGenerating] =
-    useState(false);
+    useState(true);
 
 const generationStartedRef =
     useRef(false);
 
-const reportPeriods =
-    buildReportPeriods();
 // No state required.
 // Summary and Clinical Story are generated
 // immediately before creating the PDF.
@@ -306,7 +158,10 @@ useEffect(() => {
         return;
     }
 
-    if (selectedPeriods.length === 0) {
+    if (
+        !startDate ||
+        !endDate
+    ) {
         return;
     }
 
@@ -314,9 +169,8 @@ useEffect(() => {
         return;
     }
 
-    const activePeriod = selectedPeriods[0];
-
     generationStartedRef.current = true;
+
 
     async function startGeneration() {
 
@@ -366,8 +220,8 @@ const prescriptionHistory =
         user.id,
         "FAMILY",
         patientId,
-        activePeriod.start,
-        activePeriod.end
+        startDate,
+        endDate
     );
 
 const latestPrescription =
@@ -388,10 +242,22 @@ const latestPrescription =
                 "Preparing Executive Summary..."
             );
 
-            const summary =
-                await buildExecutiveSummary();
-            // --------------------------------------------------
-            // Build one report-period bucket for every selected
+const summary =
+    await buildExecutiveSummary(
+        patientId,
+        startDate,
+        endDate
+    );
+
+if (
+    summary.totalDailyCareRecords === 0
+) {
+    onNoData?.();
+    return;
+}
+
+// --------------------------------------------------
+// Build one report-period bucket for every selected
             // reporting period.
             //
             // A single selected period continues to behave as
@@ -399,74 +265,74 @@ const latestPrescription =
             // period gets its own independent bucket.
             // --------------------------------------------------
 
-            const groupedTimeline =
-                selectedPeriods.map(
-                    period => {
+const reportStart =
+    new Date(
+        `${startDate}T00:00:00`
+    );
 
-                        const reportStart =
-                            new Date(
-                                `${period.start}T00:00:00`
-                            );
+const reportEnd =
+    new Date(
+        `${endDate}T23:59:59`
+    );
 
-                        const reportEnd =
-                            new Date(
-                                `${period.end}T23:59:59`
-                            );
+const filteredTimeline =
+    (
+        summary.clinicalTimeline ??
+        []
+    ).filter(
+        event => {
 
-                        const filteredTimeline =
-                            (
-                                summary.clinicalTimeline ??
-                                []
-                            ).filter(
-                                event => {
+            const eventDate =
+                new Date(
+                    event.date
+                );
 
-                                    const eventDate =
-                                        new Date(
-                                            event.date
-                                        );
+            return (
+                eventDate >=
+                    reportStart &&
+                eventDate <=
+                    reportEnd
+            );
+        }
+    );
 
-                                    return (
-                                        eventDate >=
-                                            reportStart &&
-                                        eventDate <=
-                                            reportEnd
-                                    );
-                                }
-                            );
+const bucket = {
+    weekLabel:
+        `${formatReportDate(
+            startDate
+        )} - ${formatReportDate(
+            endDate
+        )}`,
 
-                        const bucket = {
-                            weekLabel:
-                                period.label,
+    recordCount: 0,
 
-                            recordCount: 0,
+    symptoms:
+        [] as string[],
 
-                            symptoms:
-                                [] as string[],
+    vitals: {
+        temperature:
+            [] as number[],
 
-                            vitals: {
-                                temperature:
-                                    [] as number[],
+        pulse:
+            [] as number[],
 
-                                pulse:
-                                    [] as number[],
+        spo2:
+            [] as number[],
 
-                                spo2:
-                                    [] as number[],
+        bloodPressure:
+            [] as {
+                date: string;
+                systolic: number;
+                diastolic: number;
+            }[],
+    },
 
-    bloodPressure:
-        [] as {
-            date: string;
-            systolic: number;
-            diastolic: number;
-        }[],
-},
+    weight:
+        [] as number[],
 
-                            weight:
-                                [] as number[],
-
-                            assessments:
-                                [] as string[],
-                        };
+    assessments:
+        [] as string[],
+};
 
 filteredTimeline.forEach(
     event => {
@@ -525,31 +391,36 @@ filteredTimeline.forEach(
                 );
 
             }
-
         }
 
         if (
             event.vitals.temperature
         ) {
+
             bucket.vitals.temperature.push(
                 event.vitals.temperature
             );
+
         }
 
         if (
             event.vitals.pulse
         ) {
+
             bucket.vitals.pulse.push(
                 event.vitals.pulse
             );
+
         }
 
         if (
             event.vitals.spo2
         ) {
+
             bucket.vitals.spo2.push(
                 event.vitals.spo2
             );
+
         }
 
         if (
@@ -558,7 +429,9 @@ filteredTimeline.forEach(
             event.vitals.diastolic !== null &&
             event.vitals.diastolic !== undefined
         ) {
+
             bucket.vitals.bloodPressure.push({
+
                 date:
                     event.date,
 
@@ -571,28 +444,32 @@ filteredTimeline.forEach(
                     Number(
                         event.vitals.diastolic
                     ),
+
             });
+
         }
 
         if (
             event.vitals.weight
         ) {
+
             bucket.weight.push(
                 event.vitals.weight
             );
+
         }
 
     }
 );
 
-                        return bucket;
-                    }
-                );
+const groupedTimeline = [
+    bucket
+];
 
-            const story =
-                buildClinicalStory(
-                    groupedTimeline
-                );
+const story =
+    buildClinicalStory(
+        groupedTimeline
+    );
 
             setProgress(70);
 
@@ -603,33 +480,42 @@ filteredTimeline.forEach(
 const careVrPatient =
     buildPatient();
 
-            const bytes =
+const bytes =
     await executiveSummaryPdf.generate({
-patient: {
-    id: patientId,
+        patient: {
+            id: patientId,
 
-    name:
-        patientName,
+            name:
+                patientName,
 
-    age:
-        calculateAge(
-            selectedPatient.dateOfBirth
-        ),
+            age:
+                calculateAge(
+                    selectedPatient.dateOfBirth
+                ),
 
-    gender:
-        selectedPatient.gender ??
-        "Unknown",
+            gender:
+                selectedPatient.gender ??
+                "Unknown",
 
-doctor:
-    careVrPatient.doctor,
+            doctor:
+                careVrPatient.doctor,
 
-hospital:
-    careVrPatient.hospital,
+            hospital:
+                careVrPatient.hospital,
 
-    status:
-        selectedPatient.status,
-},
+            status:
+                selectedPatient.status,
+        },
+
+        reportPeriod:
+            `${formatReportDate(
+                startDate
+            )} - ${formatReportDate(
+                endDate
+            )}`,
+
         summary,
+
         clinicalStory: story,
     });
 
@@ -670,20 +556,38 @@ hospital:
             }, 300);
 
         }
-        catch (error) {
+catch (error) {
 
-            console.error(
-                "Unable to generate Executive Summary.",
-                error
-            );
+    console.error(
+        "Unable to generate Executive Summary.",
+        error
+    );
 
-            setMessage(
-                "Unable to generate report."
-            );
+if (
+    error instanceof Error &&
+    error.message ===
+        "No data available for the selected period."
+) {
 
-            setGenerating(false);
+    setMessage(
+        "No data available for the selected period."
+    );
 
-        }
+    setGenerating(false);
+
+    onComplete?.();
+
+    return;
+
+}
+
+setMessage(
+    "Unable to generate report."
+);
+
+setGenerating(false);
+
+}
 
     }
 
@@ -691,8 +595,10 @@ hospital:
 
 }, [
     generating,
-    selectedPeriods,
+    startDate,
+    endDate,
     patientId,
+    patientName,
     onComplete,
 ]);
 
@@ -706,212 +612,38 @@ return (
         }}
     >
 
-        {!generating ? (
+{!generating ? (
 
-            <>
-                <h2
-                    style={{
-                        margin:
-                            "0 0 18px",
-                    }}
-                >
-                    Executive Summary
-                </h2>
+    <>
+        <h2
+            style={{
+                margin:
+                    "0 0 18px",
+            }}
+        >
+            Executive Summary
+        </h2>
 
-                <p
-                    style={{
-                        margin:
-                            "0 0 10px",
-                        color: "#59657f",
-                        fontSize: 14,
-                    }}
-                >
-                    Select reporting period
-                </p>
+        <p
+            style={{
+                margin:
+                    "0 0 10px",
+                color:
+                    "#59657f",
+                fontSize: 14,
+            }}
+        >
+            {startDate && endDate
+                ? `${formatReportDate(
+                    startDate
+                )} - ${formatReportDate(
+                    endDate
+                )}`
+                : "Preparing report..."}
+        </p>
+    </>
 
-<div
-    style={{
-        width: "100%",
-        maxWidth: 380,
-        margin: "0 auto",
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-    }}
->
-    {reportPeriods.map(
-        period => {
-
-const isSelected =
-    selectedPeriods.some(
-        selected =>
-            selected.start === period.start
-    );
-
-            return (
-                <button
-                    key={period.start}
-                    type="button"
-onClick={() => {
-    setSelectedPeriods(
-        current => {
-            const alreadySelected =
-                current.some(
-                    selected =>
-                        selected.start ===
-                        period.start
-                );
-
-            if (alreadySelected) {
-                return current.filter(
-                    selected =>
-                        selected.start !==
-                        period.start
-                );
-            }
-
-            return [
-                ...current,
-                period,
-            ];
-        }
-    );
-}}
-                    style={{
-                        width: "100%",
-                        padding:
-                            "14px 16px",
-                        borderRadius: 12,
-                        border:
-                            isSelected
-                                ? "2px solid #5630e8"
-                                : "1px solid #d1d5db",
-                        background:
-                            isSelected
-                                ? "#f5f3ff"
-                                : "#ffffff",
-                        color:
-                            "#101d45",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        boxSizing:
-                            "border-box",
-                    }}
-                >
-                    <div
-                        style={{
-                            display: "flex",
-                            alignItems:
-                                "center",
-                            justifyContent:
-                                "space-between",
-                            gap: 12,
-                        }}
-                    >
-
-                        <span
-                            style={{
-                                fontSize: 15,
-                                fontWeight:
-                                    isSelected
-                                        ? 700
-                                        : 600,
-                            }}
-                        >
-                            {period.label}
-                        </span>
-
-                        {period.isCurrent && (
-                            <span
-                                style={{
-                                    flexShrink: 0,
-                                    fontSize: 12,
-                                    fontWeight: 700,
-                                    color:
-                                        "#5630e8",
-                                }}
-                            >
-                                Current
-                            </span>
-                        )}
-
-                    </div>
-                </button>
-            );
-        }
-    )}
-</div>
-
-
-                {selectedPeriods.length > 0 && (
-                    <div
-                        style={{
-                            width: "100%",
-                            maxWidth: 380,
-                            margin: "14px auto 0",
-                            textAlign: "left",
-                            color: "#59657f",
-                            fontSize: 13,
-                        }}
-                    >
-                        {selectedPeriods.length} period
-                        {selectedPeriods.length > 1 ? "s" : ""}
-                        {" selected"}
-                    </div>
-                )}
-
-                <button
-                    type="button"
-                    disabled={
-                        selectedPeriods.length === 0
-                    }
-                    onClick={() => {
-
-if (
-    selectedPeriods.length === 0
-) {
-    return;
-}
-
-                        setProgress(0);
-
-                        setMessage(
-                            "Preparing Executive Summary..."
-                        );
-
-                        setGenerating(
-                            true
-                        );
-
-                    }}
-                    style={{
-                        width: "100%",
-                        maxWidth: 380,
-                        marginTop: 16,
-                        padding:
-                            "12px 16px",
-                        border: "none",
-                        borderRadius: 10,
-background:
-    selectedPeriods.length > 0
-        ? "#5630e8"
-        : "#d1d5db",
-                        color:
-                            "#ffffff",
-                        fontSize: 15,
-                        fontWeight: 700,
-cursor:
-    selectedPeriods.length > 0
-        ? "pointer"
-        : "not-allowed",
-                    }}
-                >
-                    Generate Report
-                </button>
-
-            </>
-
-        ) : (
+) : (
 
             <>
 
@@ -927,19 +659,21 @@ cursor:
                     {message}
                 </p>
 
-                <p
-                    style={{
-                        marginTop: 4,
-                        color: "#59657f",
-                        fontSize: 13,
-                    }}
-                >
-                    {selectedPeriods.length > 0
-        ? selectedPeriods
-            .map(period => period.label)
-            .join(" • ")
+<p
+    style={{
+        marginTop: 4,
+        color: "#59657f",
+        fontSize: 13,
+    }}
+>
+    {startDate && endDate
+        ? `${formatReportDate(
+            startDate
+        )} - ${formatReportDate(
+            endDate
+        )}`
         : ""}
-                </p>
+</p>
 
                 <div
                     style={{

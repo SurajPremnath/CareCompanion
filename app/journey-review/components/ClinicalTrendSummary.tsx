@@ -1013,11 +1013,12 @@ useEffect(() => {
 
         try {
 
-            const data =
-                await buildClinicalTrends(
-                    startDate,
-                    endDate
-                );
+const data =
+    await buildClinicalTrends(
+        patient.id,
+        startDate,
+        endDate
+    );
 
 
 if (!cancelled) {

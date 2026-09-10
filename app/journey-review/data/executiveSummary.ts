@@ -4,20 +4,11 @@ import type {
 } from "../components/types";
 
 
-const DAD_PATIENT_ID =
-    "8d0abd84-3828-4292-b7b0-8772e4b7b5ad";
-
-
-const START_DATE = "2026-07-10";
-
-const END_DATE =
-    new Date()
-        .toISOString()
-        .split("T")[0];
-
-export async function buildExecutiveSummary()
-: Promise<ExecutiveSummaryViewModel> {
-
+export async function buildExecutiveSummary(
+    patientId: string,
+    startDate: string,
+    endDate: string
+): Promise<ExecutiveSummaryViewModel> {
 
 
     const {
@@ -41,22 +32,41 @@ recorded_at
         )
         .eq(
             "patient_id",
-            DAD_PATIENT_ID
+            patientId
         )
-.gte(
-    "recorded_at",
-    `${START_DATE}T00:00:00`
-)
-.lte(
-    "recorded_at",
-    `${END_DATE}T23:59:59`
-)
-        .order(
+        .gte(
             "recorded_at",
-            {
-                ascending:true
-            }
-        );
+            `${startDate}T00:00:00`
+        )
+        .lte(
+            "recorded_at",
+            `${endDate}T23:59:59`
+        )
+    .order(
+        "recorded_at",
+        {
+            ascending:true
+        }
+    );
+
+console.log(
+    "[EXEC SUMMARY DEBUG] daily_care",
+    {
+        patientId,
+        startDate,
+        endDate,
+        recordCount:
+            dailyCare?.length ?? 0,
+        firstRecord:
+            dailyCare?.[0] ?? null,
+        lastRecord:
+            dailyCare?.[
+                (dailyCare?.length ?? 1) - 1
+            ] ?? null,
+        error:
+            dailyCareError ?? null
+    }
+);
 
 
 const {
@@ -68,9 +78,22 @@ await supabase
     .select("*")
     .eq(
         "patient_id",
-        DAD_PATIENT_ID
+        patientId
+    )
+    .gte(
+        "completed_at",
+        `${startDate}T00:00:00`
+    )
+    .lte(
+        "completed_at",
+        `${endDate}T23:59:59`
+    )
+    .order(
+        "completed_at",
+        {
+            ascending: true
+        }
     );
-
 
 const {
     data: dailyCareSymptoms,
@@ -85,13 +108,206 @@ await supabase
     )
     .eq(
         "patient_id",
-        DAD_PATIENT_ID
+        patientId
     );
 
 
-    const records =
-        dailyCare ?? [];
+const records =
+    dailyCare ?? [];
 
+const {
+    data: previousDailyCare,
+    error: previousDailyCareError
+} =
+    await supabase
+        .from("daily_care")
+        .select(`
+            temperature,
+            pulse,
+            spo2,
+            systolic,
+            diastolic,
+            weight_kg,
+            recorded_at
+        `)
+        .eq("patient_id", patientId)
+        .lt(
+            "recorded_at",
+            `${startDate}T00:00:00`
+        )
+        .order(
+            "recorded_at",
+            {
+                ascending: false
+            }
+        );
+
+if (previousDailyCareError) {
+    throw previousDailyCareError;
+}
+
+const previousRecords =
+    previousDailyCare ?? [];
+
+const selectedVitalValues = {
+    temperature:
+        records
+            .map(record => record.temperature)
+            .filter(
+                value =>
+                    value !== null &&
+                    value !== undefined
+            ),
+
+    pulse:
+        records
+            .map(record => record.pulse)
+            .filter(
+                value =>
+                    value !== null &&
+                    value !== undefined
+            ),
+
+    spo2:
+        records
+            .map(record => record.spo2)
+            .filter(
+                value =>
+                    value !== null &&
+                    value !== undefined
+            ),
+
+    systolic:
+        records
+            .map(record => record.systolic)
+            .filter(
+                value =>
+                    value !== null &&
+                    value !== undefined
+            ),
+
+    diastolic:
+        records
+            .map(record => record.diastolic)
+            .filter(
+                value =>
+                    value !== null &&
+                    value !== undefined
+            ),
+
+    weight:
+        records
+            .map(record => record.weight_kg)
+            .filter(
+                value =>
+                    value !== null &&
+                    value !== undefined
+            )
+};
+
+const fallbackVitals = {
+    temperature:
+        selectedVitalValues.temperature.length === 0
+            ? (
+                previousRecords.find(
+                    record =>
+                        record.temperature !== null &&
+                        record.temperature !== undefined
+                )?.temperature ?? null
+            )
+            : null,
+
+    pulse:
+        selectedVitalValues.pulse.length === 0
+            ? (
+                previousRecords.find(
+                    record =>
+                        record.pulse !== null &&
+                        record.pulse !== undefined
+                )?.pulse ?? null
+            )
+            : null,
+
+    spo2:
+        selectedVitalValues.spo2.length === 0
+            ? (
+                previousRecords.find(
+                    record =>
+                        record.spo2 !== null &&
+                        record.spo2 !== undefined
+                )?.spo2 ?? null
+            )
+            : null,
+
+    systolic:
+        selectedVitalValues.systolic.length === 0
+            ? (
+                previousRecords.find(
+                    record =>
+                        record.systolic !== null &&
+                        record.systolic !== undefined
+                )?.systolic ?? null
+            )
+            : null,
+
+    diastolic:
+        selectedVitalValues.diastolic.length === 0
+            ? (
+                previousRecords.find(
+                    record =>
+                        record.diastolic !== null &&
+                        record.diastolic !== undefined
+                )?.diastolic ?? null
+            )
+            : null,
+
+    weight:
+        selectedVitalValues.weight.length === 0
+            ? (
+                previousRecords.find(
+                    record =>
+                        record.weight_kg !== null &&
+                        record.weight_kg !== undefined
+                )?.weight_kg ?? null
+            )
+            : null
+};
+
+const fallbackVitalNotes: string[] = [];
+
+if (fallbackVitals.temperature !== null) {
+    fallbackVitalNotes.push(
+        "* Latest available temperature reading; no temperature was recorded during the selected period."
+    );
+}
+
+if (
+    fallbackVitals.pulse !== null
+) {
+    fallbackVitalNotes.push(
+        "* Latest available pulse reading; no pulse was recorded during the selected period."
+    );
+}
+
+if (
+    fallbackVitals.spo2 !== null
+) {
+    fallbackVitalNotes.push(
+        "* Latest available SpO₂ reading; no SpO₂ was recorded during the selected period."
+    );
+}
+
+if (
+    fallbackVitals.systolic !== null ||
+    fallbackVitals.diastolic !== null
+) {
+    fallbackVitalNotes.push(
+        "* Latest available blood pressure reading; no complete blood pressure reading was recorded during the selected period."
+    );
+}
+
+// Weight is not displayed in the Executive Summary
+// Patient Status section, so no weight fallback note is generated.
 
 const symptomValues =
     (dailyCareSymptoms ?? [])
@@ -264,34 +480,37 @@ const assessmentRecords =
             assessmentRecords.length,
 
 
-        vitalSummary: {
+vitalSummary: {
 
-            temperature: calculateRange(
-                temperatures
-            ),
+    temperature: calculateRange(
+        temperatures
+    ),
 
-            pulse: calculateRange(
-                pulses
-            ),
+    pulse: calculateRange(
+        pulses
+    ),
 
-            spo2: calculateRange(
-                spo2
-            ),
+    spo2: calculateRange(
+        spo2
+    ),
 
-            systolic: calculateRange(
-                systolic
-            ),
+    systolic: calculateRange(
+        systolic
+    ),
 
-            diastolic: calculateRange(
-                diastolic
-            ),
+    diastolic: calculateRange(
+        diastolic
+    ),
 
-            weight: calculateRange(
-                weights
-            )
+    weight: calculateRange(
+        weights
+    )
 
-        },
+},
 
+fallbackVitals,
+
+fallbackVitalNotes,
 
 recordedEvents: {
 

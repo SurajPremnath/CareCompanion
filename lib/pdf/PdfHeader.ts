@@ -219,6 +219,27 @@ page.drawText(
 );
 
 y -= 18;
+
+        //
+        // REPORT DURATION
+        //
+
+        if (reportPeriod) {
+
+            page.drawText(
+                `Report Duration : ${reportPeriod}`,
+                {
+                    x: left,
+                    y,
+                    size: 10,
+                    font: regularFont
+                }
+            );
+
+            y -= 18;
+
+        }
+
         //
         // END DIVIDER
         //

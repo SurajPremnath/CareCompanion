@@ -1,6 +1,12 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+
+import { authService } from "@/lib/auth/authService";
+import { hasPrimaryAccess } from "@/lib/carevr/hasPrimaryAccess";
+import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 
 export type MobileCareMode = "FAMILY" | "SELF";
 
@@ -52,15 +58,59 @@ onHomeClick,
 
     consentGranted,
 
-    onAddPatient,
-    onCareVRJourney,
-    onHelp,
-
     languageSelector,
 
     onLogout,
     loggingOut = false,
 }: MobileHeaderProps) {
+    const router = useRouter();
+
+    const [switchingProfile, setSwitchingProfile] =
+        useState(false);
+
+    const handleSwitchProfile = async () => {
+        if (switchingProfile || loggingOut) {
+            return;
+        }
+
+        setSwitchingProfile(true);
+
+        try {
+            const user =
+                await authService.getCurrentUser();
+
+            if (!user) {
+                router.replace("/login");
+                return;
+            }
+
+            const isPrimary =
+                await hasPrimaryAccess(user.id);
+
+            if (isPrimary) {
+                await onLogout();
+                return;
+            }
+
+inviteeToPrimaryHandoff.set({
+    userId: user.id,
+    sourceRole: "CARETAKER",
+    targetRole: "PRIMARY",
+    createdAt: new Date().toISOString(),
+});
+
+router.replace("/register");
+return;
+        }
+        catch (error) {
+            console.error(
+                "Unable to switch profile.",
+                error
+            );
+
+            setSwitchingProfile(false);
+        }
+    };
 
     const getUserInitials = (name: string): string => {
         const parts = name
@@ -228,11 +278,30 @@ onHomeClick,
                             className="carevr-mobile-account-menu"
                             role="menu"
                         >
+                            <div className="carevr-mobile-account-menu-section">
+                                <div className="carevr-mobile-account-menu-section-title">
+                                    CAREVR FAMILY
+                                </div>
+
+                                <button
+                                    type="button"
+                                    className="carevr-mobile-account-menu-primary"
+                                    disabled={switchingProfile || loggingOut}
+                                    onClick={handleSwitchProfile}
+                                >
+                                    {loggingOut
+                                        ? "Switching profile…"
+                                        : "Switch Profile"}
+                                </button>
+                            </div>
+
                             <button
                                 type="button"
                                 className="carevr-mobile-account-menu-primary"
                                 disabled={!consentGranted}
-                                onClick={onAddPatient}
+                                onClick={() => {
+                                    router.push("/add-patient");
+                                }}
                             >
                                 Add Patient
                             </button>
@@ -240,7 +309,9 @@ onHomeClick,
                             <button
                                 type="button"
                                 className="carevr-mobile-account-menu-primary"
-                                onClick={onCareVRJourney}
+                                onClick={() => {
+                                    router.push("/carevr-journey");
+                                }}
                             >
                                 CareVR Journey
                             </button>
@@ -248,7 +319,9 @@ onHomeClick,
                             <button
                                 type="button"
                                 className="carevr-mobile-account-menu-primary"
-                                onClick={onHelp}
+                                onClick={() => {
+                                    router.push("/help");
+                                }}
                             >
                                 Help
                             </button>
@@ -420,6 +493,28 @@ onHomeClick,
                     box-shadow:
                         0 10px 30px rgba(40, 31, 90, 0.14);
                 }
+
+.carevr-mobile-account-menu-section-title {
+    padding: 5px 8px 7px;
+    color: #111827;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.carevr-mobile-account-menu-section {
+    padding-bottom: 4px;
+}
+
+.carevr-mobile-account-menu-section-title {
+    padding: 5px 10px 7px;
+    color: #111827;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
 
 .carevr-mobile-account-menu-primary,
 .carevr-mobile-account-menu-logout {

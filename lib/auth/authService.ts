@@ -66,31 +66,56 @@ async register(
   /**
    * Login.
    */
-  async login(
-    email: string,
-    password: string
-  ): Promise<User> {
+async login(
+  email: string,
+  password: string
+): Promise<User> {
 
-    const { data, error } =
-      await supabase.auth.signInWithPassword({
+  const response = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      password,
+    }),
+  });
 
-        email,
+  let result: {
+    message?: string;
+    user?: User;
+    session?: Session;
+  };
 
-        password
-
-      });
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data.user) {
-      throw new Error("Invalid login.");
-    }
-
-    return data.user;
-
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error("Unable to login.");
   }
+
+  if (!response.ok) {
+    throw new Error(
+      result.message || "Unable to login."
+    );
+  }
+
+  if (!result.user || !result.session) {
+    throw new Error("Invalid login.");
+  }
+
+  const { error: sessionError } =
+    await supabase.auth.setSession({
+      access_token: result.session.access_token,
+      refresh_token: result.session.refresh_token,
+    });
+
+  if (sessionError) {
+    throw sessionError;
+  }
+
+  return result.user;
+}
 
 
 /**

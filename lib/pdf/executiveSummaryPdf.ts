@@ -18,14 +18,28 @@ import type {
 
 export interface ExecutiveSummaryReport {
     patient: PatientViewModel;
+
+    reportPeriod?: string;
+
     summary: ExecutiveSummaryViewModel;
+
     clinicalStory: any[];
 }
 
 export class ExecutiveSummaryPdf {
 
     async generate(report: ExecutiveSummaryReport): Promise<Uint8Array> {
-        const pdf = await PDFDocument.create();
+    console.log(
+        "[ExecutiveSummaryPdf DEBUG] generate called",
+        {
+            patientId: report.patient?.id,
+            reportPeriod: report.reportPeriod,
+            fallbackVitals:
+                report.summary?.fallbackVitals
+        }
+    );
+
+    const pdf = await PDFDocument.create();
         const regularFont = await pdf.embedFont(StandardFonts.Helvetica);
         const boldFont = await pdf.embedFont(StandardFonts.HelveticaBold);
         const logoImage = await PdfAssets.loadLogo(pdf);

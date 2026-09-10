@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 import { authService } from "@/lib/auth/authService";
+import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
+import { provisionPrimaryAccess } from "@/lib/authorization/provisionPrimaryAccess";
 
 export default function RegisterPage() {
 
     const router = useRouter();
-
+const inviteePrimaryHandoff = inviteeToPrimaryHandoff.get();
+const isInviteeToPrimary = inviteePrimaryHandoff !== null;
     /*
      * Primary Family Member declaration is the first registration-flow gate.
      *
@@ -23,6 +26,8 @@ export default function RegisterPage() {
     const [isPrimaryFamilyMember, setIsPrimaryFamilyMember] =
         useState<boolean | null>(null);
 
+const [inviteePrimaryConfirmed, setInviteePrimaryConfirmed] =
+    useState(false);
 
     const [fullName, setFullName] = useState("");
 
@@ -288,28 +293,31 @@ export default function RegisterPage() {
 
                         <div className="primary-options">
 
-                            <button
-                                type="button"
-                                className={`primary-option ${
-                                    isPrimaryFamilyMember === true
-                                        ? "primary-option-selected"
-                                        : ""
-                                }`}
-                                onClick={() =>
-                                    setIsPrimaryFamilyMember(true)
-                                }
-                            >
-                                <span className="radio-circle">
-                                    {isPrimaryFamilyMember === true && (
-                                        <span className="radio-dot" />
-                                    )}
-                                </span>
+<button
+    type="button"
+    className={`primary-option ${
+        isPrimaryFamilyMember === true
+            ? "primary-option-selected"
+            : ""
+    }`}
+    onClick={() => {
+        setIsPrimaryFamilyMember(true);
 
-                                <span>
-                                    Yes
-                                </span>
+        if (isInviteeToPrimary) {
+            setInviteePrimaryConfirmed(false);
+        }
+    }}
+>
+    <span className="radio-circle">
+        {isPrimaryFamilyMember === true && (
+            <span className="radio-dot" />
+        )}
+    </span>
 
-                            </button>
+    <span>
+        Yes
+    </span>
+</button>
 
                             <button
                                 type="button"
@@ -318,10 +326,15 @@ export default function RegisterPage() {
                                         ? "primary-option-selected"
                                         : ""
                                 }`}
-                                onClick={() => {
-                                    setIsPrimaryFamilyMember(false);
-                                    router.replace("/login");
-                                }}
+onClick={() => {
+    setIsPrimaryFamilyMember(false);
+
+    if (isInviteeToPrimary) {
+        inviteeToPrimaryHandoff.clear();
+    }
+
+    router.replace("/login");
+}}
                             >
                                 <span className="radio-circle">
                                     {isPrimaryFamilyMember === false && (
@@ -343,7 +356,7 @@ export default function RegisterPage() {
                         EXISTING REGISTRATION FORM
                         ============================ */}
 
-                    {isPrimaryFamilyMember === true && (
+{isPrimaryFamilyMember === true && !isInviteeToPrimary && (
 
                         <div className="registration-panel">
 
@@ -541,6 +554,117 @@ export default function RegisterPage() {
                         </div>
 
                     )}
+
+{isPrimaryFamilyMember === true && isInviteeToPrimary && (
+    <div className="registration-panel">
+        <div className="registration-panel-heading">
+            <h2>
+                Confirm Primary Registration
+            </h2>
+
+            <p>
+                Please confirm for registration of Primary role.
+            </p>
+        </div>
+
+        {error && (
+            <div
+                className="error-message"
+                role="alert"
+            >
+                {error}
+            </div>
+        )}
+
+        <div className="invitee-primary-confirmation">
+<p>
+    You are already registered with CareVR as a {inviteePrimaryHandoff?.sourceRole}.
+    Confirming will register your profile with an additional role as a
+    Primary Family Member along with {inviteePrimaryHandoff?.sourceRole}.
+</p>
+
+<div className="confirmation-actions">
+    <button
+        type="button"
+        className="create-account-button"
+        onClick={async () => {
+            if (!inviteePrimaryHandoff) {
+                setError(
+                    "Primary registration handoff is no longer available."
+                );
+                return;
+            }
+
+            try {
+                setLoading(true);
+                setError("");
+                setSuccess("");
+
+                const user = await authService.getCurrentUser();
+
+                if (!user) {
+                    throw new Error(
+                        "Authenticated user could not be found."
+                    );
+                }
+
+                if (user.id !== inviteePrimaryHandoff.userId) {
+                    throw new Error(
+                        "Primary registration handoff does not belong to the current user."
+                    );
+                }
+
+                /*
+                 * The user already has a Supabase Auth account.
+                 * This provisions an additional PRIMARY CareVR access
+                 * context for the existing user. It does not create
+                 * another Auth account.
+                 */
+                await provisionPrimaryAccess(user.id);
+
+                /*
+                 * The handoff has now been consumed successfully.
+                 */
+                inviteeToPrimaryHandoff.clear();
+
+                /*
+                 * Return to the normal Login flow so the existing
+                 * credentials can establish the PRIMARY context.
+                 */
+                await authService.logout();
+
+                router.replace("/login");
+            } catch (err) {
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : "Unable to register Primary Family Member access.";
+
+                setError(message);
+            } finally {
+                setLoading(false);
+            }
+        }}
+        disabled={loading}
+    >
+        {loading ? "Confirming..." : "Confirm"}
+    </button>
+
+    <button
+        type="button"
+        className="login-link-button"
+        onClick={() => {
+            setIsPrimaryFamilyMember(null);
+            setInviteePrimaryConfirmed(false);
+        }}
+        disabled={loading}
+    >
+        Cancel
+    </button>
+</div>
+        </div>
+    </div>
+)}
 
                 </section>
 

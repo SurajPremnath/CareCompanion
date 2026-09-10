@@ -804,49 +804,7 @@ style={optionButton}
 
 </button>
 
-{selectedMobileTimelineAction === "EXECUTIVE_SUMMARY" && (
 
-    <div
-        style={{
-            marginTop: "20px"
-        }}
-    >
-
-        <ExecutiveSummaryPdfGenerator
-            patientId={patientId}
-            patientName={patientName}
-            onComplete={() => {
-
-                setSelectedMobileTimelineAction("");
-
-            }}
-        />
-
-    </div>
-
-)}
-
-{selectedMobileTimelineAction === "CLINICAL_TRENDS" && (
-
-    <div
-        style={{
-            marginTop: "20px"
-        }}
-    >
-
-        <ClinicalTrendPdfGenerator
-            patientId={patientId}
-            patientName={patientName}
-            onComplete={() => {
-
-                setSelectedMobileTimelineAction("");
-
-            }}
-        />
-
-    </div>
-
-)}
 
 </div>
 

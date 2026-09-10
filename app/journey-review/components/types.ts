@@ -21,7 +21,7 @@ export interface ClinicalTimelineEvent {
 
     otherSymptom?: string | null;
 
- vitals: {
+    vitals: {
         temperature?: number | null;
         pulse?: number | null;
         spo2?: number | null;
@@ -75,7 +75,16 @@ clinicalTimeline: ClinicalTimelineEvent[];
 
     };
 
+    fallbackVitals?: {
+        temperature?: number | null;
+        pulse?: number | null;
+        spo2?: number | null;
+        systolic?: number | null;
+        diastolic?: number | null;
+        weight?: number | null;
+    };
 
+    fallbackVitalNotes?: string[];
 
     recordedEvents: {
 

@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 
 import { authService } from "@/lib/auth/authService";
 import { patientStorage } from "@/lib/storage/patientStorage";
+import { familyStorage } from "@/lib/storage/familyStorage";
 import { AppAlert } from "@/lib/utils/appAlert";
 
 import MobileHeader from "@/Components/common/MobileHeader";
@@ -212,11 +213,38 @@ const [loggingOut, setLoggingOut] =
 
 }
 
+if (!result.data) {
+
+  AppAlert.error(
+    t("addPatient.saveFailed")
+  );
+
+  return;
+
+}
+
+const familyResult =
+  await familyStorage.savePatientToFamily(
+    result.data.id,
+    relationship
+  );
+
+if (!familyResult.success) {
+
+  AppAlert.error(
+    familyResult.error ??
+    t("addPatient.saveFailed")
+  );
+
+  return;
+
+}
+
 AppAlert.success(
   t("addPatient.saveSuccess")
 );
 
-        router.push("/dashboard");
+router.push("/dashboard");
 
       }
       catch {

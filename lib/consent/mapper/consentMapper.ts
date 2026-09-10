@@ -12,11 +12,33 @@ export interface ConsentRow {
 
     privacy_policy_version: number;
 
-    termsVersion: number;
+    terms_version: number;
 
     medical_disclaimer_version: number;
 
     ai_disclaimer_version: number;
+
+    privacy_panel: boolean;
+
+    family_panel: boolean;
+
+    tracking_panel: boolean;
+
+    security_panel: boolean;
+
+    medical_panel: boolean;
+
+    legal_data_protection_panel: boolean;
+
+    storage_processing_panel: boolean;
+
+    retention_deletion_panel: boolean;
+
+    voluntary_processing_agreement: boolean;
+
+    terms_medical_agreement: boolean;
+
+    privacy_policy_acknowledgement: boolean;
 
     accepted: boolean;
 
@@ -33,99 +55,165 @@ export interface ConsentRow {
 export class ConsentMapper {
 
     static toDomain(
-    row: ConsentRow
-): Consent {
+        row: ConsentRow
+    ): Consent {
 
-    return {
+        return {
 
-        id: row.id,
+            id: row.id,
 
-        userId: row.user_id,
+            userId: row.user_id,
 
-        consentVersion:
-            row.consent_version,
+            consentVersion:
+                row.consent_version,
 
-        privacyPolicyVersion:
-            row.privacy_policy_version,
+            privacyPolicyVersion:
+                row.privacy_policy_version,
 
-        termsVersion:
-            row.termsVersion,
+            termsVersion:
+                row.terms_version,
 
-        medicalDisclaimerVersion:
-            row.medical_disclaimer_version,
+            medicalDisclaimerVersion:
+                row.medical_disclaimer_version,
 
-        aiDisclaimerVersion:
-            row.ai_disclaimer_version,
+            aiDisclaimerVersion:
+                row.ai_disclaimer_version,
 
-        accepted:
-            row.accepted,
+            privacyPanel:
+                row.privacy_panel,
 
-        acceptedAt:
-            row.accepted_at
-                ? new Date(
-                    row.accepted_at
-                )
-                : null,
+            familyPanel:
+                row.family_panel,
 
-        language:
-            row.language,
+            trackingPanel:
+                row.tracking_panel,
 
-        createdAt:
-            new Date(
-                row.created_at
-            ),
+            securityPanel:
+                row.security_panel,
 
-        updatedAt:
-            new Date(
-                row.updated_at
-            ),
+            medicalPanel:
+                row.medical_panel,
 
-    };
+            legalDataProtectionPanel:
+                row.legal_data_protection_panel,
 
-} 
+            storageProcessingPanel:
+                row.storage_processing_panel,
 
- static toInsert(
-    consent: Omit<
-        Consent,
-        "id" |
-        "createdAt" |
-        "updatedAt"
-    >
-) {
+            retentionDeletionPanel:
+                row.retention_deletion_panel,
 
-return {
+            voluntaryProcessingAgreement:
+                row.voluntary_processing_agreement,
 
-    user_id:
-        consent.userId,
+            termsMedicalAgreement:
+                row.terms_medical_agreement,
 
-    consent_version:
-        consent.consentVersion,
+            privacyPolicyAcknowledgement:
+                row.privacy_policy_acknowledgement,
 
-    privacy_policy_version:
-        consent.privacyPolicyVersion,
+            accepted:
+                row.accepted,
 
-    terms_version:
-        consent.termsVersion,
+            acceptedAt:
+                row.accepted_at
+                    ? new Date(
+                        row.accepted_at
+                    )
+                    : null,
 
-    medical_disclaimer_version:
-        consent.medicalDisclaimerVersion,
+            language:
+                row.language,
 
-    ai_disclaimer_version:
-        consent.aiDisclaimerVersion,
+            createdAt:
+                new Date(
+                    row.created_at
+                ),
 
-    accepted:
-        consent.accepted,
+            updatedAt:
+                new Date(
+                    row.updated_at
+                ),
 
-    accepted_at:
-        consent.acceptedAt
-            ? consent.acceptedAt.toISOString()
-            : null,
+        };
 
-    language:
-        consent.language,
+    }
 
-};
+    static toInsert(
+        consent: Omit<
+            Consent,
+            "id" |
+            "createdAt" |
+            "updatedAt"
+        >
+    ) {
 
-}
+        return {
+
+            user_id:
+                consent.userId,
+
+            consent_version:
+                consent.consentVersion,
+
+            privacy_policy_version:
+                consent.privacyPolicyVersion,
+
+            terms_version:
+                consent.termsVersion,
+
+            medical_disclaimer_version:
+                consent.medicalDisclaimerVersion,
+
+            ai_disclaimer_version:
+                consent.aiDisclaimerVersion,
+
+            privacy_panel:
+                consent.privacyPanel,
+
+            family_panel:
+                consent.familyPanel,
+
+            tracking_panel:
+                consent.trackingPanel,
+
+            security_panel:
+                consent.securityPanel,
+
+            medical_panel:
+                consent.medicalPanel,
+
+            legal_data_protection_panel:
+                consent.legalDataProtectionPanel,
+
+            storage_processing_panel:
+                consent.storageProcessingPanel,
+
+            retention_deletion_panel:
+                consent.retentionDeletionPanel,
+
+            voluntary_processing_agreement:
+                consent.voluntaryProcessingAgreement,
+
+            terms_medical_agreement:
+                consent.termsMedicalAgreement,
+
+            privacy_policy_acknowledgement:
+                consent.privacyPolicyAcknowledgement,
+
+            accepted:
+                consent.accepted,
+
+            accepted_at:
+                consent.acceptedAt
+                    ? consent.acceptedAt.toISOString()
+                    : null,
+
+            language:
+                consent.language,
+
+        };
+
+    }
 
 }

@@ -1,0 +1,27 @@
+export const caretakerInvitationTemplate = {
+  subject: "CareVR Invitation — Caretaker",
+
+  body: [
+    "You have been invited to CareVR as a Caretaker.",
+    "",
+    "CareVR Web App:",
+    "{{carevr_url}}",
+    "",
+    "Your initial CareVR access includes:",
+    "{{permitted_access}}",
+    "",
+    "Temporary login password:",
+    "{{temporary_password}}",
+    "",
+    "This temporary password is valid for 7 days.",
+    "",
+    "Please sign in using the CareVR web application and change your temporary password when you first log in.",
+    "",
+    "Your final access will be determined through the authoritative CareVR access governance and Consent Management process.",
+    "",
+    "If you were not expecting this invitation, please contact the person who invited you.",
+    "",
+    "CareVR",
+    "Your Health. Our Care. A Brighter Tomorrow.",
+  ].join("\n"),
+};

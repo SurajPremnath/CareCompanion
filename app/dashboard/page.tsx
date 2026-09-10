@@ -80,12 +80,16 @@ import {
 } from "@/lib/auth/carevrToggle";
 
 import {
-    getCareVRDashboardHandoff,
+    resolveCareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
 
 import type {
     CareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
+
+import {
+    carevrAuthorizationHandoff,
+} from "@/lib/authorization/carevrAuthorizationHandoff";
 
 import type {
     CareVRToggleConfiguration,
@@ -102,6 +106,10 @@ import {
     consentStorage,
 } from "@/lib/consent/storage/consentStorage";
 
+
+import {
+    reportHandoffStore,
+} from "@/lib/authorization/reportHandoff";
 
 type DashboardUser = {
 
@@ -121,6 +129,7 @@ type HomeFeature =
     | "MEDICATION_MANAGEMENT"
     | "ASSESSMENT"
     | "VIEW_HEALTH"
+    | "ACCESS_MANAGEMENT"
     | "HELP";
 
 
@@ -299,6 +308,7 @@ function CareJourneyIcon() {
 
 export default function DashboardPage() {
 
+
     const router =
         useRouter();
 
@@ -376,6 +386,14 @@ const [
     null
 );
 
+const hasDashboardModule = (
+    moduleName: string
+): boolean =>
+    careVRHandoff?.modules.some(
+        (module) =>
+            module.module === moduleName
+    ) ?? false;
+
 const [
     careVRToggle,
     setCareVRToggle,
@@ -386,6 +404,7 @@ const [
     //------------------------------------------------------------
     // Mobile Caretaker Dashboard State
     //------------------------------------------------------------
+
 
 const [
     mobilePatients,
@@ -480,27 +499,57 @@ async function loadDashboard() {
         }
 
 
-        //--------------------------------------------------------
-        // Resolve the Dashboard handoff created during Login.
-        //
-        // The handoff already contains the selected CareVR role,
-        // assigned modules, and Patient scope.
-        //
-        // The toggle resolver uses that information only to
-        // determine the Dashboard care-mode presentation.
-        //--------------------------------------------------------
+//--------------------------------------------------------
+// Resolve the Dashboard handoff from the CareVR
+// Authorization Handoff.
+//
+// The Authorization Handoff contains the role and user
+// context established during Login and Consent.
+//
+// The Dashboard handoff is then resolved fresh from the
+// CareVR authorization tables so Dashboard does not rely
+// on stale sessionStorage state.
+//--------------------------------------------------------
 
-        const dashboardHandoff =
-            getCareVRDashboardHandoff();
+const authorizationHandoff =
+    carevrAuthorizationHandoff.get();
 
-        if (!dashboardHandoff) {
+if (!authorizationHandoff) {
 
-            throw new Error(
-                "CareVR Dashboard handoff is required."
-            );
+    throw new Error(
+        "CareVR Authorization handoff is required."
+    );
 
-        }
+}
 
+if (
+    authorizationHandoff.userId !==
+    authUser.id
+) {
+
+    throw new Error(
+        "CareVR Authorization handoff does not match the authenticated user."
+    );
+
+}
+
+const selectedRole =
+    authorizationHandoff.carevrRole ===
+        "DOCTOR"
+        ? "DOCTOR"
+        : authorizationHandoff.carevrRole ===
+            "CARETAKER"
+            ? "CARETAKER"
+            : authorizationHandoff.carevrRole ===
+                "SECONDARY_FAMILY_MEMBER"
+                ? "FAMILY"
+                : "SELF";
+
+const dashboardHandoff =
+    await resolveCareVRDashboardHandoff(
+        authorizationHandoff.userId,
+        selectedRole
+    );
 
 const toggleConfiguration =
     getCareVRToggle(
@@ -511,18 +560,16 @@ setCareVRHandoff(
     dashboardHandoff
 );
 
-
-
 setCareVRToggle(
     toggleConfiguration
 );
 
 if (toggleConfiguration.initialMode) {
+
     setMobileCareMode(
         toggleConfiguration.initialMode
     );
 }
-
 
 
         setUser({
@@ -848,54 +895,71 @@ setMobileSnapshots(
             }
 
 
-            //--------------------------------------------------------
-            // FAMILY MODE
-            //--------------------------------------------------------
+//--------------------------------------------------------
+// FAMILY MODE
+//--------------------------------------------------------
 
-const result =
-    await patientStorage
-        .getPatients();
+const authorizedPatientIds =
+    (careVRHandoff?.patients ?? [])
+        .map(
+            patient =>
+                patient.id
+        );
 
+const patientResults =
+    await Promise.all(
+        authorizedPatientIds.map(
+            patientId =>
+                patientStorage.getPatient(
+                    patientId
+                )
+        )
+    );
 
-
-const patients =
-    result.success
-        ? result.data ?? []
-        : [];
+const patients: Patient[] =
+    patientResults
+        .filter(
+            result =>
+                result.success &&
+                result.data != null
+        )
+        .map(
+            result =>
+                result.data as Patient
+        );
 
 setMobilePatients(
     patients
 );
 
-
 setFamilyModeAvailable(
     patients.length > 0
 );
 
-            const defaultPatient =
-                patients[0] ??
-                null;
+const defaultPatient =
+    patients[0] ??
+    null;
 
-            if (
-                !mobileSelectedPatientId &&
-                defaultPatient
-            ) {
-                setMobileSelectedPatientId(
-                    defaultPatient.id
-                );
-            }
+if (
+    !mobileSelectedPatientId &&
+    defaultPatient
+) {
+    setMobileSelectedPatientId(
+        defaultPatient.id
+    );
+}
 
-            const snapshotEntries =
-                await Promise.all(
-                    patients.map(
-                        async (
-                            patient
-                        ): Promise<
-                            [
-                                string,
-                                MobileSnapshot
-                            ]
-                        > => {
+const snapshotEntries =
+    await Promise.all(
+        patients.map(
+            async (
+                patient
+            ): Promise<
+                [
+                    string,
+                    MobileSnapshot
+                ]
+            > => {
 
                             try {
 
@@ -1108,6 +1172,10 @@ const selectMobilePatient = (
         return;
     }
 
+    setMobileCareMode(
+        "FAMILY"
+    );
+
     setMobileSelectedPatientId(
         patient.id
     );
@@ -1121,7 +1189,6 @@ const selectMobilePatient = (
     });
 
     setSelectedAction("");
-    
 };
 
 
@@ -1157,14 +1224,12 @@ const openMobileFeature = (
         return;
     }
 
-    const selectedPatient =
-        mobilePatients.find(
-            patient =>
-                patient.id ===
-                mobileSelectedPatientId
-        ) ??
-        mobilePatients[0] ??
-        null;
+ const selectedPatient =
+    mobilePatients.find(
+        patient =>
+            patient.id ===
+            mobileSelectedPatientId
+    ) ?? null;
 
     if (
         mobileCareMode === "FAMILY" &&
@@ -1217,6 +1282,37 @@ if (
     feature === "VIEW_HEALTH"
 ) {
 
+ console.log(
+    "[REPORT DEBUG] FINAL Dashboard patient for report",
+    {
+        mobileCareMode,
+        mobileSelectedPatientId,
+        selectedPatient,
+        patientId: selectedPatient?.id ?? null,
+        patientName:
+            selectedPatient?.fullName ??
+            user.fullName,
+    }
+);
+
+    reportHandoffStore.set({
+        userId:
+            user.id,
+
+patientId:
+    selectedPatient?.id ?? null,
+
+patientName:
+    selectedPatient?.fullName ??
+    user.fullName,
+
+        moduleRequested:
+            "HEALTH_TIMELINE",
+
+        requestedAt:
+            new Date().toISOString(),
+    });
+
     router.push(
         "/record-health?view=timeline"
     );
@@ -1246,6 +1342,15 @@ if (
             ? "/record-health?view=care-journey&mode=self"
             : "/record-health?view=care-journey"
     );
+
+    return;
+}
+
+if (
+    feature === "ACCESS_MANAGEMENT"
+) {
+
+    router.push("/access-management")
 
     return;
 }
@@ -1784,96 +1889,126 @@ const mobileSnapshotKey =
 
         <div className="mobile-quick-actions">
 
-            <button
-                type="button"
-                onClick={() =>
-                    openMobileFeature(
-                        "RECORD_HEALTH"
-                    )
-                }
-                disabled={!consentGranted}
-            >
-                <span className="mobile-action-icon mobile-action-heart">
-                    ♡
-                </span>
+{hasDashboardModule("RECORD_HEALTH") && (
+    <button
+        type="button"
+        onClick={() =>
+            openMobileFeature(
+                "RECORD_HEALTH"
+            )
+        }
+        disabled={!consentGranted}
+    >
+        <span className="mobile-action-icon mobile-action-heart">
+            ♡
+        </span>
 
-                <strong>
-                    Record Health
-                </strong>
+        <strong>
+            Record Health
+        </strong>
 
-                <span>
-                    Vitals, symptoms & more
-                </span>
-            </button>
-
-
-            <button
-                type="button"
-                onClick={() =>
-                    openMobileFeature(
-                        "MEDICATION_MANAGEMENT"
-                    )
-                }
-                disabled={!consentGranted}
-            >
-                <span className="mobile-action-icon mobile-action-purple">
-                    ♧
-                </span>
-
-                <strong>
-                    Care Journey
-                </strong>
-
-                <span>
-                    Prescriptions & doctor’s notes
-                </span>
-            </button>
+        <span>
+            Vitals, symptoms & more
+        </span>
+    </button>
+)}
 
 
-            <button
-                type="button"
-                onClick={() =>
-                    openMobileFeature(
-                        "ASSESSMENT"
-                    )
-                }
-                disabled={!consentGranted}
-            >
-                <span className="mobile-action-icon mobile-action-green">
-                    ✓
-                </span>
+{hasDashboardModule("CARE_JOURNEY") && (
+    <button
+        type="button"
+        onClick={() =>
+            openMobileFeature(
+                "MEDICATION_MANAGEMENT"
+            )
+        }
+        disabled={!consentGranted}
+    >
+        <span className="mobile-action-icon mobile-action-purple">
+            ♧
+        </span>
 
-                <strong>
-                    Assessment
-                </strong>
+        <strong>
+            Care Journey
+        </strong>
 
-                <span>
-                    Health check & assessments
-                </span>
-            </button>
+        <span>
+            Prescriptions & doctorâ€™s notes
+        </span>
+    </button>
+)}
 
 
-            <button
-                type="button"
-                onClick={() =>
-                    openMobileFeature(
-                        "VIEW_HEALTH"
-                    )
-                }
-                disabled={!consentGranted}
-            >
-                <span className="mobile-action-icon mobile-action-blue">
-                    ▣
-                </span>
+{hasDashboardModule("ASSESSMENT") && (
+    <button
+        type="button"
+        onClick={() =>
+            openMobileFeature(
+                "ASSESSMENT"
+            )
+        }
+        disabled={!consentGranted}
+    >
+        <span className="mobile-action-icon mobile-action-green">
+            ✓
+        </span>
 
-                <strong>
-                    Health Timeline
-                </strong>
+        <strong>
+            Assessment
+        </strong>
 
-                <span>
-                    View history & past records
-                </span>
-            </button>
+        <span>
+            Health check & assessments
+        </span>
+    </button>
+)}
+
+
+{hasDashboardModule("HEALTH_TIMELINE") && (
+    <button
+        type="button"
+        onClick={() =>
+            openMobileFeature(
+                "VIEW_HEALTH"
+            )
+        }
+        disabled={!consentGranted}
+    >
+        <span className="mobile-action-icon mobile-action-blue">
+            ▣
+        </span>
+
+        <strong>
+            Health Timeline
+        </strong>
+
+        <span>
+            View history & past records
+        </span>
+    </button>
+)}
+
+{hasDashboardModule("ACCESS_MANAGEMENT") && (
+    <button
+        type="button"
+        onClick={() =>
+            router.push("/access-management")
+        }
+    disabled={!consentGranted}
+    >
+        <span className="mobile-action-icon mobile-action-purple">
+            ⚙️
+        </span>
+
+        <strong>
+            Access Management
+        </strong>
+
+        <span>
+            Manage CareVR access
+        </span>
+    </button>
+)}
 
         </div>
 
@@ -1999,26 +2134,34 @@ headerAccessory={<LanguageSelector />}
 
 <div style={personSelectorWrapper}>
 
-    <PersonSelector
-        value={personSelection}
-        disabled={!consentGranted}
-        onChange={(selection) => {
-            if (!consentGranted) {
-                return;
-            }
+<PersonSelector
+    value={personSelection}
+    patients={
+        careVRHandoff?.patients?.map(
+            patient => ({
+                id: patient.id,
+                userId: patient.userId,
+                fullName: patient.name,
+                relationship: patient.relationship,
+            })
+        ) ?? []
+    }
+    disabled={!consentGranted}
+    onChange={(selection) => {
+        if (!consentGranted) {
+            return;
+        }
 
-            setPersonSelection(selection);
+        setPersonSelection(selection);
 
-            setSelectedAction("");
-
-        }}
-        question={t("medication.whoIsThisFor")}
-    />
+        setSelectedAction("");
+    }}
+    question={t("medication.whoIsThisFor")}
+/>
 
 </div>
 
-{isPersonSelectionComplete &&
- careVRHandoff &&
+{careVRHandoff &&
  careVRHandoff.moduleCount > 0 && (
 
     <div style={mainActionWrapper}>
@@ -2032,143 +2175,10 @@ headerAccessory={<LanguageSelector />}
     style={mainActionGrid}
 >
 
-<button
-    type="button"
-disabled={!consentGranted}
-onClick={() => {
-
-    if (!consentGranted) {
-        return;
-    }
-
-    trackFeatureClick(
-        "RECORD_HEALTH"
-    );
-
-    router.push(
-        personSelection.mode === "SELF"
-            ? "/record-health?mode=self"
-            : "/record-health"
-    );
-
-}}
-        style={{
-
-    ...mainActionButton,
-
-    opacity:
-        consentGranted
-            ? 1
-            : 0.45,
-
-    cursor:
-        consentGranted
-            ? "pointer"
-            : "not-allowed",
-
-}}
-    >
-
-<span
-    style={{
-        ...mainActionCircle,
-
-        ...(selectedAction ===
-        "RECORD_HEALTH"
-            ? selectedActionCircle
-            : {}),
-    }}
->
-    ❤️
-</span>
-
-<span
-    style={{
-        ...mainActionLabel,
-
-        ...(selectedAction ===
-        "RECORD_HEALTH"
-            ? selectedActionLabel
-            : {}),
-    }}
->
-    {t("dashboard.recordHealth")}
-</span>
-
-    </button>
-
-
-<button
-    type="button"
-disabled={!consentGranted}
-onClick={() => {
-
-    if (!consentGranted) {
-        return;
-    }
-
-    trackFeatureClick(
-        "MEDICATION_MANAGEMENT"
-    );
-
-    router.push(
-        personSelection.mode === "SELF"
-            ? "/record-health?view=care-journey&mode=self"
-            : "/record-health?view=care-journey"
-    );
-
-}}
-        style={{
-
-    ...mainActionButton,
-
-    opacity:
-        consentGranted
-            ? 1
-            : 0.45,
-
-    cursor:
-        consentGranted
-            ? "pointer"
-            : "not-allowed",
-
-}}
-    >
-
-<span
-    style={{
-        ...mainActionCircle,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        ...(selectedAction ===
-        "MEDICATION_MANAGEMENT"
-            ? selectedActionCircle
-            : {}),
-    }}
->
-    <CareJourneyIcon />
-</span>
-
-<span
-    style={{
-        ...mainActionLabel,
-
-        ...(selectedAction ===
-        "MEDICATION_MANAGEMENT"
-            ? selectedActionLabel
-            : {}),
-    }}
->
-{t("dashboard.medicationManagement")}    
-</span>
-
-    </button>
-
-
-<button
-    type="button"
-disabled={!consentGranted}
+{hasDashboardModule("RECORD_HEALTH") && (
+    <button
+        type="button"
+    disabled={!consentGranted}
     onClick={() => {
 
         if (!consentGranted) {
@@ -2176,17 +2186,18 @@ disabled={!consentGranted}
         }
 
         trackFeatureClick(
-            "ASSESSMENT"
+            "RECORD_HEALTH"
         );
 
         router.push(
             personSelection.mode === "SELF"
-                ? "/record-health?view=assessment&mode=self"
-                : "/record-health?view=assessment"
+                ? "/record-health?mode=self"
+                : "/record-health"
         );
 
     }}
-    style={{
+        style={{
+
         ...mainActionButton,
 
         opacity:
@@ -2200,102 +2211,304 @@ disabled={!consentGranted}
                 : "not-allowed",
 
     }}
->
-
-        <span
-            style={{
-                ...mainActionCircle,
-
-                ...(selectedAction ===
-                "ASSESSMENT"
-                    ? selectedActionCircle
-                    : {}),
-            }}
         >
-            🩺
-        </span>
 
-<span
-    style={{
-        ...mainActionLabel,
+    <span
+        style={{
+            ...mainActionCircle,
 
-        ...(selectedAction ===
-        "ASSESSMENT"
-            ? selectedActionLabel
-            : {}),
-    }}
->
-{t("dashboard.healthCheckAssessment")}    
-</span>
+            ...(selectedAction ===
+            "RECORD_HEALTH"
+                ? selectedActionCircle
+                : {}),
+        }}
+    >
+        ❤️
+    </span>
+
+    <span
+        style={{
+            ...mainActionLabel,
+
+            ...(selectedAction ===
+            "RECORD_HEALTH"
+                ? selectedActionLabel
+                : {}),
+        }}
+    >
+        {t("dashboard.recordHealth")}
+    </span>
 
     </button>
+)}
 
 
-<button
-    type="button"
-disabled={!consentGranted}
-onClick={() => {
+{hasDashboardModule("CARE_JOURNEY") && (
+    <button
+        type="button"
+    disabled={!consentGranted}
+    onClick={() => {
 
-    if (!consentGranted) {
-        return;
-    }
+        if (!consentGranted) {
+            return;
+        }
 
-    trackFeatureClick(
-        "VIEW_HEALTH"
-    );
+        trackFeatureClick(
+            "MEDICATION_MANAGEMENT"
+        );
 
-    router.push(
-        "/record-health?view=timeline"
-    );
-}}
+        router.push(
+            personSelection.mode === "SELF"
+                ? "/record-health?view=care-journey&mode=self"
+                : "/record-health?view=care-journey"
+        );
+
+    }}
         style={{
 
-    ...mainActionButton,
+        ...mainActionButton,
 
-    opacity:
-        consentGranted
-            ? 1
-            : 0.45,
+        opacity:
+            consentGranted
+                ? 1
+                : 0.45,
 
-    cursor:
-        consentGranted
-            ? "pointer"
-            : "not-allowed",
+        cursor:
+            consentGranted
+                ? "pointer"
+                : "not-allowed",
 
-}}
-    >
-
-        <span
-            style={{
-                ...mainActionCircle,
-
-                ...(selectedAction ===
-                "VIEW_HEALTH"
-                    ? selectedActionCircle
-                    : {}),
-            }}
-        >
-            📊
-        </span>
-
-<span
-    style={{
-        ...mainActionLabel,
-
-        ...(selectedAction ===
-        "VIEW_HEALTH"
-            ? selectedActionLabel
-            : {}),
     }}
->
-{t("dashboard.healthHistory")}
-</span>
+        >
+
+    <span
+        style={{
+            ...mainActionCircle,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            ...(selectedAction ===
+            "MEDICATION_MANAGEMENT"
+                ? selectedActionCircle
+                : {}),
+        }}
+    >
+        <CareJourneyIcon />
+    </span>
+
+    <span
+        style={{
+            ...mainActionLabel,
+
+            ...(selectedAction ===
+            "MEDICATION_MANAGEMENT"
+                ? selectedActionLabel
+                : {}),
+        }}
+    >
+        {t("dashboard.medicationManagement")}
+    </span>
 
     </button>
+)}
+
+
+{hasDashboardModule("ASSESSMENT") && (
+    <button
+        type="button"
+        disabled={!consentGranted}
+        onClick={() => {
+
+            if (!consentGranted) {
+                return;
+            }
+
+            trackFeatureClick(
+                "ASSESSMENT"
+            );
+
+            router.push(
+                personSelection.mode === "SELF"
+                    ? "/record-health?view=assessment&mode=self"
+                    : "/record-health?view=assessment"
+            );
+
+        }}
+        style={{
+            ...mainActionButton,
+
+            opacity:
+                consentGranted
+                    ? 1
+                    : 0.45,
+
+            cursor:
+                consentGranted
+                    ? "pointer"
+                    : "not-allowed",
+        }}
+    >
+
+    <span
+        style={{
+            ...mainActionCircle,
+
+            ...(selectedAction ===
+            "ASSESSMENT"
+                ? selectedActionCircle
+                : {}),
+        }}
+    >
+        🩺
+    </span>
+
+    <span
+        style={{
+            ...mainActionLabel,
+
+            ...(selectedAction ===
+            "ASSESSMENT"
+                ? selectedActionLabel
+                : {}),
+        }}
+    >
+        {t("dashboard.healthCheckAssessment")}
+    </span>
+
+    </button>
+)}
+
+
+{hasDashboardModule("HEALTH_TIMELINE") && (
+    <button
+        type="button"
+        disabled={!consentGranted}
+        onClick={() => {
+
+            if (!consentGranted) {
+                return;
+            }
+
+            openMobileFeature(
+                "VIEW_HEALTH"
+            );
+
+        }}
+        style={{
+
+            ...mainActionButton,
+
+            opacity:
+                consentGranted
+                    ? 1
+                    : 0.45,
+
+            cursor:
+                consentGranted
+                    ? "pointer"
+                    : "not-allowed",
+
+        }}
+    >
+
+    <span
+        style={{
+            ...mainActionCircle,
+
+            ...(selectedAction ===
+            "VIEW_HEALTH"
+                ? selectedActionCircle
+                : {}),
+        }}
+    >
+        📊
+    </span>
+
+    <span
+        style={{
+            ...mainActionLabel,
+
+            ...(selectedAction ===
+            "VIEW_HEALTH"
+                ? selectedActionLabel
+                : {}),
+        }}
+    >
+        {t("dashboard.healthHistory")}
+    </span>
+
+    </button>
+)}
+
+
+{hasDashboardModule("ACCESS_MANAGEMENT") && (
+    <button
+        type="button"
+        disabled={!consentGranted}
+        onClick={() => {
+
+            if (!consentGranted) {
+                return;
+            }
+
+            trackFeatureClick(
+                "ACCESS_MANAGEMENT"
+            );
+
+            router.push(
+                "/access-management"
+            );
+
+        }}
+        style={{
+
+            ...mainActionButton,
+
+            opacity:
+                consentGranted
+                    ? 1
+                    : 0.45,
+
+            cursor:
+                consentGranted
+                    ? "pointer"
+                    : "not-allowed",
+
+        }}
+    >
+
+    <span
+        style={{
+            ...mainActionCircle,
+
+            ...(selectedAction ===
+            "ACCESS_MANAGEMENT"
+                ? selectedActionCircle
+                : {}),
+        }}
+    >
+        ⚙️
+    </span>
+
+    <span
+        style={{
+            ...mainActionLabel,
+
+            ...(selectedAction ===
+            "ACCESS_MANAGEMENT"
+                ? selectedActionLabel
+                : {}),
+        }}
+    >
+        Access Management
+    </span>
+
+    </button>
+)}
 
 </div>
 
-    </div>
+</div>
 
 )}
 

@@ -1,17 +1,11 @@
 "use client";
 
-import {
-    useEffect,
-    useState,
-} from "react";
-
-import {
-    patientStorage,
-} from "@/lib/storage/patientStorage";
-
-import type {
-    Patient,
-} from "@/lib/types/patient";
+type PersonSelectorPatient = {
+    id: string;
+    userId: string | null;
+    fullName: string;
+    relationship: string | null;
+};
 
 
 //------------------------------------------------------------
@@ -19,7 +13,6 @@ import type {
 //------------------------------------------------------------
 
 type PersonSelectorProps = {
-
     value: PersonSelection;
 
     onChange: (
@@ -30,6 +23,7 @@ type PersonSelectorProps = {
 
     disabled?: boolean;
 
+    patients?: PersonSelectorPatient[];
 };
 
 export type PersonMode =
@@ -59,123 +53,16 @@ export interface PersonSelection {
 //------------------------------------------------------------
 
 export default function PersonSelector({
-
     value,
-
     onChange,
-
     question =
         "Who is this for?",
-
     disabled = false,
-
+    patients = [],
 }: PersonSelectorProps) {
 
 
-    const [
-        patients,
-        setPatients,
-    ] =
-        useState<Patient[]>([]);
 
-
-    const [
-        loadingPatients,
-        setLoadingPatients,
-    ] =
-        useState(false);
-
-
-    const [
-        error,
-        setError,
-    ] =
-        useState<string | null>(
-            null
-        );
-
-
-    //--------------------------------------------------------
-    // Load Patients Only For Family
-    //--------------------------------------------------------
-
-    useEffect(() => {
-
-        if (
-            value.mode !== "FAMILY"
-        ) {
-
-            return;
-
-        }
-
-
-        async function loadPatients() {
-
-            setLoadingPatients(true);
-
-            setError(null);
-
-
-            try {
-
-                const result =
-                    await patientStorage
-                        .getPatients();
-
-
-                if (
-                    !result.success
-                ) {
-
-                    setPatients([]);
-
-                    setError(
-                        result.error ??
-                        "Unable to load family members."
-                    );
-
-                    return;
-
-                }
-
-
-                const patientList =
-                    result.data ?? [];
-
-
-                setPatients(
-                    patientList
-                );
-
-            }
-            catch (loadError) {
-
-                console.error(
-                    "Person Selector Patient Load Error:",
-                    loadError
-                );
-
-
-                setPatients([]);
-
-                setError(
-                    "Unable to load family members."
-                );
-
-            }
-            finally {
-
-                setLoadingPatients(false);
-
-            }
-
-        }
-
-
-        void loadPatients();
-
-    }, [value.mode]);
 
 
     //--------------------------------------------------------
@@ -336,19 +223,7 @@ onChange({
 
 </div>
 
-{loadingPatients ? (
-
-    <p style={mutedText}>
-        Loading family members...
-    </p>
-
-) : error ? (
-
-    <p style={errorText}>
-        {error}
-    </p>
-
-) : patients.length === 0 ? (
+{patients.length === 0 ? (
 
     <p style={mutedText}>
         No family members found.
@@ -684,19 +559,3 @@ const mutedText:
     };
 
 
-const errorText:
-    React.CSSProperties = {
-
-        margin:
-            0,
-
-        color:
-            "#b91c1c",
-
-        fontSize:
-            "15px",
-
-        fontWeight:
-            500,
-
-    };
