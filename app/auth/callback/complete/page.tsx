@@ -81,13 +81,21 @@ if (!authenticatedUser) {
 
 }
 
-await validateInvitedUserLogin({
-  email: authenticatedUser.email ?? "",
-  selectedRole:
-    selectedRole === "FAMILY"
-      ? "SECONDARY_FAMILY_MEMBER"
-      : selectedRole,
-});
+const validationResult =
+  await validateInvitedUserLogin({
+    email: authenticatedUser.email ?? "",
+    selectedRole:
+      selectedRole === "FAMILY"
+        ? "SECONDARY_FAMILY_MEMBER"
+        : selectedRole,
+  });
+
+alert(
+  `Google Login Validation\n\n` +
+  `Email: ${authenticatedUser.email ?? ""}\n` +
+  `Role: ${selectedRole}\n` +
+  `Validation Status: ${validationResult.status}`
+);
 
 await resolveCareVRDashboardHandoff(
   authenticatedUser.id,
