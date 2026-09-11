@@ -128,10 +128,21 @@ alert(
               "NOT_INVITED"
           ) {
 
+alert(
+  `CareVR validation returned ${validationResult.status}.\n\n` +
+  "Validation succeeded.\n" +
+  "Now calling resolveCareVRDashboardHandoff()."
+);
+
             await resolveCareVRDashboardHandoff(
               authenticatedUser.id,
               selectedRole
             );
+
+alert(
+  "resolveCareVRDashboardHandoff() completed.\n\n" +
+  "Now routing to Dashboard."
+);
 
             if (!cancelled) {
 
