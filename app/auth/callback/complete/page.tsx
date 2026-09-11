@@ -17,6 +17,10 @@ import {
 } from "@/lib/auth/carevrDashboardHandoff";
 
 import {
+  carevrAuthorizationHandoff,
+} from "@/lib/authorization/carevrAuthorizationHandoff";
+
+import {
   validateInvitedUserLogin,
 } from "@/lib/invitations/invitedUserLoginValidation";
 
@@ -119,46 +123,154 @@ alert(
 );
 
 
-          if (
-            validationResult.status ===
-              "PRIMARY" ||
-            validationResult.status ===
-              "ACCEPTED" ||
-            validationResult.status ===
-              "NOT_INVITED"
-          ) {
+if (
+  validationResult.status ===
+  "PRIMARY"
+) {
+  carevrAuthorizationHandoff.set({
+    userId: authenticatedUser.id,
+    carevrRole: "PRIMARY",
+    familyId: null,
+    patientId: null,
+    consentStage: "COMPLETED",
+    governanceId: null,
+    governanceVersion: null,
+  });
 
-alert(
-  `CareVR validation returned ${validationResult.status}.\n\n` +
-  "Validation succeeded.\n" +
-  "Now calling resolveCareVRDashboardHandoff()."
+  await resolveCareVRDashboardHandoff(
+    authenticatedUser.id,
+    selectedRole
+  );
+
+  if (!cancelled) {
+    router.replace(
+      "/dashboard"
+    );
+  }
+
+  return;
+}
+
+if (
+  validationResult.status ===
+  "VALID_INVITATION"
+) {
+  if (!validationResult.invitationId) {
+    throw new Error(
+      "Invitation information is missing."
+    );
+  }
+
+  router.replace(
+    `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
+      validationResult.invitationId
+    )}`
+  );
+
+  return;
+}
+
+if (
+  validationResult.status ===
+  "CONSENT_REQUIRED"
+) {
+  const carevrRole =
+    selectedRole === "DOCTOR"
+      ? "DOCTOR"
+      : selectedRole === "CARETAKER"
+        ? "CARETAKER"
+        : selectedRole === "FAMILY"
+          ? "SECONDARY_FAMILY_MEMBER"
+          : "PRIMARY";
+
+  carevrAuthorizationHandoff.set({
+    userId: authenticatedUser.id,
+    carevrRole,
+    familyId:
+      validationResult.familyId ?? null,
+    patientId: null,
+    consentStage: "POST_LOGIN",
+    governanceId: null,
+    governanceVersion: null,
+  });
+
+  router.replace(
+    "/consent"
+  );
+
+  return;
+}
+
+if (
+  validationResult.status ===
+  "ACCEPTED"
+) {
+  const carevrRole =
+    selectedRole === "DOCTOR"
+      ? "DOCTOR"
+      : selectedRole === "CARETAKER"
+        ? "CARETAKER"
+        : selectedRole === "FAMILY"
+          ? "SECONDARY_FAMILY_MEMBER"
+          : "PRIMARY";
+
+  carevrAuthorizationHandoff.set({
+    userId: authenticatedUser.id,
+    carevrRole,
+    familyId:
+      validationResult.familyId ?? null,
+    patientId: null,
+    consentStage: "COMPLETED",
+    governanceId: null,
+    governanceVersion: null,
+  });
+
+  await resolveCareVRDashboardHandoff(
+    authenticatedUser.id,
+    selectedRole
+  );
+
+  if (!cancelled) {
+    router.replace(
+      "/dashboard"
+    );
+  }
+
+  return;
+}
+
+if (
+  validationResult.status ===
+    "ROLE_MISMATCH" ||
+  validationResult.status ===
+    "INVALID_INVITATION"
+) {
+  throw new Error(
+    validationResult.message
+  );
+}
+
+if (
+  validationResult.status ===
+  "NOT_INVITED"
+) {
+  await resolveCareVRDashboardHandoff(
+    authenticatedUser.id,
+    selectedRole
+  );
+
+  if (!cancelled) {
+    router.replace(
+      "/dashboard"
+    );
+  }
+
+  return;
+}
+
+throw new Error(
+  validationResult.message
 );
-
-            await resolveCareVRDashboardHandoff(
-              authenticatedUser.id,
-              selectedRole
-            );
-
-alert(
-  "resolveCareVRDashboardHandoff() completed.\n\n" +
-  "Now routing to Dashboard."
-);
-
-            if (!cancelled) {
-
-              router.replace(
-                "/dashboard"
-              );
-
-            }
-
-            return;
-
-          }
-
-          throw new Error(
-            validationResult.message
-          );
 
         }
         catch (err) {
