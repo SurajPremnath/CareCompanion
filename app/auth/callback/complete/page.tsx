@@ -12,9 +12,14 @@ import {
 } from "next/navigation";
 
 import { authService } from "@/lib/auth/authService";
+
 import {
   resolveCareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
+
+import {
+  validateInvitedUserLogin,
+} from "@/lib/invitations/invitedUserLoginValidation";
 
 type CareVRRole =
   | "SELF"
@@ -65,29 +70,37 @@ function GoogleAuthComplete() {
 
           }
 
-          const authenticatedUser =
-            await authService.getCurrentUser();
+const authenticatedUser =
+  await authService.getCurrentUser();
 
-          if (!authenticatedUser) {
+if (!authenticatedUser) {
 
-            throw new Error(
-              "Unable to establish your CareVR session. Please return to Login."
-            );
+  throw new Error(
+    "Unable to establish your CareVR session. Please return to Login."
+  );
 
-          }
+}
 
-          await resolveCareVRDashboardHandoff(
-            authenticatedUser.id,
-            selectedRole
-          );
+await validateInvitedUserLogin({
+  email: authenticatedUser.email ?? "",
+  selectedRole:
+    selectedRole === "FAMILY"
+      ? "SECONDARY_FAMILY_MEMBER"
+      : selectedRole,
+});
 
-          if (!cancelled) {
+await resolveCareVRDashboardHandoff(
+  authenticatedUser.id,
+  selectedRole
+);
 
-            router.replace(
-              "/dashboard"
-            );
+if (!cancelled) {
 
-          }
+  router.replace(
+    "/dashboard"
+  );
+
+}
 
         }
         catch (err) {
