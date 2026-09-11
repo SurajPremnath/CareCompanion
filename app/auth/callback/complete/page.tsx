@@ -105,6 +105,20 @@ alert(
                 "GOOGLE",
             });
 
+
+alert(
+  `CareVR Validation Result\n\n` +
+  `Status: ${validationResult.status}\n` +
+  `Message: ${validationResult.message}\n` +
+  `Invitation ID: ${
+    validationResult.invitationId ?? "null"
+  }\n` +
+  `Family ID: ${
+    validationResult.familyId ?? "null"
+  }`
+);
+
+
           if (
             validationResult.status ===
               "PRIMARY" ||
