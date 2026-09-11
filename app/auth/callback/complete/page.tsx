@@ -81,20 +81,6 @@ function GoogleAuthComplete() {
 
           }
 
-alert(
-  `Google Auth Complete\n\n` +
-  `Email: ${authenticatedUser.email ?? ""}\n` +
-  `User ID: ${authenticatedUser.id}\n` +
-  `Selected Role: ${selectedRole}\n` +
-  `Validator Role: ${
-    selectedRole === "FAMILY"
-      ? "SECONDARY_FAMILY_MEMBER"
-      : selectedRole
-  }\n` +
-  `Authentication Mode: GOOGLE\n\n` +
-  `Calling invitedUserLoginValidation.ts now...`
-);
-
           const validationResult =
             await validateInvitedUserLogin({
               email:
@@ -108,19 +94,6 @@ alert(
               mode:
                 "GOOGLE",
             });
-
-
-alert(
-  `CareVR Validation Result\n\n` +
-  `Status: ${validationResult.status}\n` +
-  `Message: ${validationResult.message}\n` +
-  `Invitation ID: ${
-    validationResult.invitationId ?? "null"
-  }\n` +
-  `Family ID: ${
-    validationResult.familyId ?? "null"
-  }`
-);
 
 
 if (
@@ -247,6 +220,18 @@ if (
 ) {
   throw new Error(
     validationResult.message
+  );
+}
+
+if (
+  validationResult.status ===
+    "NOT_INVITED" &&
+  selectedRole === "FAMILY"
+) {
+  throw new Error(
+    "Family Member Access Not Available\n\n" +
+    "This account is registered as a Primary member of CareVR and does not have Family Member access. " +
+    "Please sign in using your Primary role."
   );
 }
 
