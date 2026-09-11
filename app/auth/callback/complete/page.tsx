@@ -3,7 +3,6 @@
 import {
   Suspense,
   useEffect,
-  useState,
 } from "react";
 
 import {
@@ -39,9 +38,6 @@ function GoogleAuthComplete() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [errorMessage, setErrorMessage] =
-    useState<string | null>(null);
-
   useEffect(() => {
 
     let cancelled = false;
@@ -52,7 +48,7 @@ function GoogleAuthComplete() {
         try {
 
           const requestedRole =
-  searchParams.get("role") as CareVRRole | null;
+            searchParams.get("role") as CareVRRole | null;
 
           const selectedRole =
             requestedRole &&
@@ -70,57 +66,91 @@ function GoogleAuthComplete() {
 
           }
 
-const authenticatedUser =
-  await authService.getCurrentUser();
+          const authenticatedUser =
+            await authService.getCurrentUser();
 
-if (!authenticatedUser) {
+          if (!authenticatedUser) {
 
-  throw new Error(
-    "Unable to establish your CareVR session. Please return to Login."
-  );
+            throw new Error(
+              "Unable to establish your CareVR session. Please return to Login."
+            );
 
-}
-
-const validationResult =
-    await validateInvitedUserLogin({
-        email: authenticatedUser.email ?? "",
-        userId: authenticatedUser.id,
-        selectedRole:
-            selectedRole === "FAMILY"
-                ? "SECONDARY_FAMILY_MEMBER"
-                : selectedRole,
-        mode: "GOOGLE",
-    });
+          }
 
 alert(
-  `Google Login Validation\n\n` +
+  `Google Auth Complete\n\n` +
   `Email: ${authenticatedUser.email ?? ""}\n` +
-  `Role: ${selectedRole}\n` +
-  `Validation Status: ${validationResult.status}`
+  `User ID: ${authenticatedUser.id}\n` +
+  `Selected Role: ${selectedRole}\n` +
+  `Validator Role: ${
+    selectedRole === "FAMILY"
+      ? "SECONDARY_FAMILY_MEMBER"
+      : selectedRole
+  }\n` +
+  `Authentication Mode: GOOGLE\n\n` +
+  `Calling invitedUserLoginValidation.ts now...`
 );
 
-await resolveCareVRDashboardHandoff(
-  authenticatedUser.id,
-  selectedRole
-);
+          const validationResult =
+            await validateInvitedUserLogin({
+              email:
+                authenticatedUser.email ?? "",
+              userId:
+                authenticatedUser.id,
+              selectedRole:
+                selectedRole === "FAMILY"
+                  ? "SECONDARY_FAMILY_MEMBER"
+                  : selectedRole,
+              mode:
+                "GOOGLE",
+            });
 
-if (!cancelled) {
+          if (
+            validationResult.status ===
+              "PRIMARY" ||
+            validationResult.status ===
+              "ACCEPTED" ||
+            validationResult.status ===
+              "NOT_INVITED"
+          ) {
 
-  router.replace(
-    "/dashboard"
-  );
+            await resolveCareVRDashboardHandoff(
+              authenticatedUser.id,
+              selectedRole
+            );
 
-}
+            if (!cancelled) {
+
+              router.replace(
+                "/dashboard"
+              );
+
+            }
+
+            return;
+
+          }
+
+          throw new Error(
+            validationResult.message
+          );
 
         }
         catch (err) {
 
-          if (cancelled) return;
+          if (cancelled) {
+            return;
+          }
 
-          setErrorMessage(
+          const message =
             err instanceof Error
               ? err.message
-              : "Unable to complete Google login."
+              : "Unable to complete Google login.";
+
+          alert(message);
+
+          router.replace(
+            "/login"
           );
 
         }
@@ -139,26 +169,6 @@ if (!cancelled) {
     router,
     searchParams,
   ]);
-
-  if (errorMessage) {
-
-    return (
-      <main>
-        <p>{errorMessage}</p>
-
-<a
-  href="/login"
-  style={{
-    textDecoration: "underline",
-    cursor: "pointer",
-  }}
->
-  Return to Login
-</a>
-      </main>
-    );
-
-  }
 
   return (
     <main>
