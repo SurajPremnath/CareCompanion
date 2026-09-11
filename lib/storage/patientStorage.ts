@@ -158,47 +158,49 @@ if (
   /**
    * Returns one patient.
    */
-  async getPatient(
-    patientId: string
-  ): Promise<Result<Patient>> {
+async getPatient(
+  patientId: string,
+  familyId?: string
+): Promise<Result<Patient>> {
 
-    try {
+  try {
 
-      const patient =
-        await patientRepository.getPatientById(
-          patientId
-        );
+    const patient =
+      await patientRepository.getPatientById(
+        patientId,
+        familyId
+      );
 
-      if (!patient) {
-
-        return StorageResult.failure(
-
-          "PATIENT_NOT_FOUND",
-
-          "Patient not found."
-
-        );
-
-      }
-
-      return StorageResult.success(patient);
-
-    }
-    catch (error) {
+    if (!patient) {
 
       return StorageResult.failure(
 
-        "PATIENT_LOAD_FAILED",
+        "PATIENT_NOT_FOUND",
 
-        "Unable to load patient.",
-
-        error
+        "Patient not found."
 
       );
 
     }
 
+    return StorageResult.success(patient);
+
   }
+  catch (error) {
+
+    return StorageResult.failure(
+
+      "PATIENT_LOAD_FAILED",
+
+      "Unable to load patient.",
+
+      error
+
+    );
+
+  }
+
+}
 
   /**
    * Updates an existing patient.

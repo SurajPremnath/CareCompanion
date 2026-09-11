@@ -906,15 +906,21 @@ const authorizedPatientIds =
                 patient.id
         );
 
+const authorizedFamilyId =
+    careVRHandoff?.access.familyId;
+
 const patientResults =
-    await Promise.all(
-        authorizedPatientIds.map(
-            patientId =>
-                patientStorage.getPatient(
-                    patientId
-                )
+    authorizedFamilyId
+        ? await Promise.all(
+            authorizedPatientIds.map(
+                patientId =>
+                    patientStorage.getPatient(
+                        patientId,
+                        authorizedFamilyId
+                    )
+            )
         )
-    );
+        : [];
 
 const patients: Patient[] =
     patientResults

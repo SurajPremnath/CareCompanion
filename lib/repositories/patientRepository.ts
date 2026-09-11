@@ -188,29 +188,47 @@ async getPatientAccess(): Promise<PatientAccess> {
   /**
    * Returns a patient by id.
    */
-  async getPatientById(
-    patientId: string
-  ): Promise<Patient | null> {
+async getPatientById(
+  patientId: string,
+  familyId?: string
+): Promise<Patient | null> {
 
-    const userId = await this.getCurrentUserId();
+  let query = supabase
+    .from("patients")
+    .select("*")
+    .eq("id", patientId)
+    .eq("status", "ACTIVE");
 
-    const { data, error } = await supabase
-      .from("patients")
-      .select("*")
-      .eq("id", patientId)
-      .eq("user_id", userId)
-      .maybeSingle();
+  if (familyId) {
 
-    if (error) {
-      this.handleError(error);
-    }
+    query = query
+      .eq("family_id", familyId);
 
-    if (!data) {
-      return null;
-    }
+  } else {
 
-    return PatientMapper.fromDatabase(data as PatientRow);
+    const userId =
+      await this.getCurrentUserId();
+
+    query = query
+      .eq("user_id", userId);
+
   }
+
+  const { data, error } =
+    await query.maybeSingle();
+
+  if (error) {
+    this.handleError(error);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return PatientMapper.fromDatabase(
+    data as PatientRow
+  );
+}
 
   /**
    * Finds a patient using full name and date of birth.
