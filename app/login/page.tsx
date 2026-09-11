@@ -116,11 +116,13 @@ const handleLogin = async () => {
             ? "SECONDARY_FAMILY_MEMBER"
             : "SELF";
 
-    const invitationValidation =
-      await validateInvitedUserLogin({
+const invitationValidation =
+    await validateInvitedUserLogin({
         email: email.trim(),
+        userId: authenticatedUser.id,
         selectedRole: invitationRole,
-      });
+        mode: "NORMAL",
+    });
 
     if (
       invitationValidation.status ===

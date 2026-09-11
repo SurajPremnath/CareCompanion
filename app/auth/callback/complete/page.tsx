@@ -82,13 +82,15 @@ if (!authenticatedUser) {
 }
 
 const validationResult =
-  await validateInvitedUserLogin({
-    email: authenticatedUser.email ?? "",
-    selectedRole:
-      selectedRole === "FAMILY"
-        ? "SECONDARY_FAMILY_MEMBER"
-        : selectedRole,
-  });
+    await validateInvitedUserLogin({
+        email: authenticatedUser.email ?? "",
+        userId: authenticatedUser.id,
+        selectedRole:
+            selectedRole === "FAMILY"
+                ? "SECONDARY_FAMILY_MEMBER"
+                : selectedRole,
+        mode: "GOOGLE",
+    });
 
 alert(
   `Google Login Validation\n\n` +

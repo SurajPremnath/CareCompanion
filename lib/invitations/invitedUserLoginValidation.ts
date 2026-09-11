@@ -17,9 +17,15 @@ export type InvitedUserLoginValidationStatus =
     | "ROLE_MISMATCH"
     | "INVALID_INVITATION";
 
+export type InvitedUserLoginAuthenticationMode =
+    | "NORMAL"
+    | "GOOGLE";
+
 export interface InvitedUserLoginValidationInput {
     email: string;
+    userId: string;
     selectedRole: InvitedUserLoginRole;
+    mode: InvitedUserLoginAuthenticationMode;
 }
 
 export interface InvitedUserLoginValidationChecks {
@@ -101,27 +107,41 @@ export async function validateInvitedUserLogin(
     const serverSupabase =
         await createSupabaseServerClient();
 
-    const {
-        data: { user },
-        error: userError,
-    } = await serverSupabase.auth.getUser();
+    let authenticatedUserId =
+        input.userId;
 
-    if (userError || !user) {
-        return {
-            status: "INVALID_INVITATION",
-            message: "Authentication is required.",
-            checks: EMPTY_CHECKS,
-        };
+    let authenticatedEmail =
+        input.email.trim().toLowerCase();
+
+    let passwordAuthenticationSucceeded =
+        authenticatedEmail.length > 0;
+
+    if (input.mode === "NORMAL") {
+        const {
+            data: { user },
+            error: userError,
+        } = await serverSupabase.auth.getUser();
+
+        if (userError || !user) {
+            return {
+                status: "INVALID_INVITATION",
+                message: "Authentication is required.",
+                checks: EMPTY_CHECKS,
+            };
+        }
+
+        authenticatedUserId =
+            user.id;
+
+        authenticatedEmail =
+            user.email?.trim().toLowerCase() ?? "";
+
+        passwordAuthenticationSucceeded =
+            authenticatedEmail.length > 0;
     }
-
-    const authenticatedEmail =
-        user.email?.trim().toLowerCase() ?? "";
 
     const suppliedEmail =
         input.email.trim().toLowerCase();
-
-    const passwordAuthenticationSucceeded =
-        authenticatedEmail.length > 0;
 
     const accessType =
         input.selectedRole === "SELF"
@@ -139,7 +159,7 @@ export async function validateInvitedUserLogin(
             .select(
                 "id, family_id, patient_id, access_type, access_status"
             )
-            .eq("user_id", user.id)
+.eq("user_id", authenticatedUserId)
             .eq("access_status", "ACTIVE")
             .eq("access_type", accessType)
             .limit(1)
@@ -180,7 +200,7 @@ export async function validateInvitedUserLogin(
         await serverSupabase
             .from("profiles")
             .select("id")
-            .eq("id", user.id)
+.eq("id", authenticatedUserId)
             .eq("family_member_type", "PRIMARY")
             .maybeSingle();
 
@@ -231,7 +251,7 @@ export async function validateInvitedUserLogin(
                     "authorised_at",
                 ].join(",")
             )
-            .eq("invited_user_id", user.id)
+.eq("invited_user_id", authenticatedUserId)
             .eq("role", input.selectedRole)
             .eq("status", "ACCEPTED")
             .not("consent_accepted_at", "is", null)
