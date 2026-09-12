@@ -155,7 +155,7 @@ const permissions =
 //--------------------------------------------------------
 
 if (
-    access.access_type !== "PRIMARY" &&
+    access.accessType !== "PRIMARY" &&
     permissions.length === 0
 ) {
     throw new Error(
