@@ -265,32 +265,83 @@ async getPatientById(
   /**
    * Creates a new patient.
    */
-  async createPatient(
-    patient: Omit<
-      Patient,
-      "id" | "userId" | "createdAt" | "updatedAt"
-    >
-  ): Promise<Patient> {
+async createPatient(
+  patient: Omit<Patient, "id" | "userId" | "createdAt" | "updatedAt">
+): Promise<Patient> {
 
-    const userId = await this.getCurrentUserId();
+  const userId =
+    await this.getCurrentUserId();
 
-    const payload = {
-      user_id: userId,
-      ...PatientMapper.toDatabase(patient)
-    };
+  //------------------------------------------------------
+  // Resolve Family from the authenticated user's
+  // active PRIMARY CareVR access.
+  //
+  // The Family ID is authoritative from carevr_access.
+  // It is not supplied by the UI.
+  //------------------------------------------------------
 
-    const { data, error } = await supabase
-      .from("patients")
-      .insert(payload)
-      .select()
-      .single();
+  const {
+    data: access,
+    error: accessError
+  } = await supabase
+    .from("carevr_access")
+    .select("family_id")
+    .eq("user_id", userId)
+    .eq("access_type", "PRIMARY")
+    .eq("access_status", "ACTIVE")
+    .not("family_id", "is", null)
+    .limit(1)
+    .maybeSingle();
 
-    if (error) {
-      this.handleError(error);
-    }
+  if (accessError) {
 
-    return PatientMapper.fromDatabase(data as PatientRow);
+    this.handleError(accessError);
+
   }
+
+  if (!access?.family_id) {
+
+    throw new Error(
+      "Active PRIMARY CareVR Family could not be resolved."
+    );
+
+  }
+
+  //------------------------------------------------------
+  // Create Patient directly in the existing Family.
+  //------------------------------------------------------
+
+  const payload = {
+
+    user_id:
+      userId,
+
+    family_id:
+      access.family_id,
+
+    ...PatientMapper.toDatabase(patient)
+
+  };
+
+  const {
+    data,
+    error
+  } = await supabase
+    .from("patients")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+
+    this.handleError(error);
+
+  }
+
+  return PatientMapper.fromDatabase(
+    data as PatientRow
+  );
+}
 
   /**
    * Updates an existing patient.
