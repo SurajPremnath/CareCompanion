@@ -8,6 +8,8 @@ import { authService } from "@/lib/auth/authService";
 import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 import { provisionPrimaryAccess } from "@/lib/authorization/provisionPrimaryAccess";
 
+import { carevrMessages } from "@/lib/messages/carevrMessages";
+
 export default function RegisterPage() {
 
     const router = useRouter();
@@ -48,6 +50,9 @@ const [inviteePrimaryConfirmed, setInviteePrimaryConfirmed] =
     const [error, setError] = useState("");
 
     const [success, setSuccess] = useState("");
+
+const [registrationCompleted, setRegistrationCompleted] =
+    useState(false);
 
     const validateForm = (): boolean => {
 
@@ -122,22 +127,17 @@ const [inviteePrimaryConfirmed, setInviteePrimaryConfirmed] =
                     "PRIMARY"
                 );
 
-            if (result.session) {
-
-                router.replace("/dashboard");
-
-                return;
-            }
+            setRegistrationCompleted(true);
 
             setSuccess(
-                "Account created successfully. Please check your email to verify your account before logging in."
+                `${carevrMessages.registration.primaryCompleted.title}\n\n${carevrMessages.registration.primaryCompleted.message}\n\n${carevrMessages.registration.primaryCompleted.footer}`
             );
 
-            setTimeout(() => {
+            if (result.session) {
 
-                router.replace("/login");
+                await authService.logout();
 
-            }, 2500);
+            }
 
         } catch (err) {
 
@@ -358,202 +358,233 @@ onClick={() => {
 
 {isPrimaryFamilyMember === true && !isInviteeToPrimary && (
 
-                        <div className="registration-panel">
+    <div className="registration-panel">
 
-                            <div className="registration-panel-heading">
+        {!registrationCompleted ? (
 
-                                <h2>
-                                    Create Your Account
-                                </h2>
+            <>
+                <div className="registration-panel-heading">
 
-                                <p>
-                                    Register once to securely manage
-                                    your family's health records.
-                                </p>
+                    <h2>
+                        Create Your Account
+                    </h2>
 
-                            </div>
+                    <p>
+                        Register once to securely manage
+                        your family's health records.
+                    </p>
 
-                            {error && (
+                </div>
 
-                                <div
-                                    className="error-message"
-                                    role="alert"
-                                >
-                                    {error}
-                                </div>
+                {error && (
 
-                            )}
+                    <div
+                        className="error-message"
+                        role="alert"
+                    >
+                        {error}
+                    </div>
 
-                            {success && (
+                )}
 
-                                <div
-                                    className="success-message"
-                                    role="status"
-                                >
-                                    {success}
-                                </div>
+                <label
+                    className="field-label"
+                    htmlFor="fullName"
+                >
+                    Full Name
+                </label>
 
-                            )}
+                <input
+                    id="fullName"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) =>
+                        setFullName(e.target.value)
+                    }
+                    placeholder="Enter your full name"
+                    className="form-input"
+                    disabled={loading}
+                    autoComplete="name"
+                />
 
-                            <label
-                                className="field-label"
-                                htmlFor="fullName"
-                            >
-                                Full Name
-                            </label>
+                <label
+                    className="field-label"
+                    htmlFor="email"
+                >
+                    Email Address
+                </label>
 
-                            <input
-                                id="fullName"
-                                type="text"
-                                value={fullName}
-                                onChange={(e) =>
-                                    setFullName(e.target.value)
-                                }
-                                placeholder="Enter your full name"
-                                className="form-input"
-                                disabled={loading}
-                                autoComplete="name"
-                            />
+                <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) =>
+                        setEmail(e.target.value)
+                    }
+                    placeholder="Enter your email"
+                    className="form-input"
+                    disabled={loading}
+                    autoComplete="email"
+                />
 
-                            <label
-                                className="field-label"
-                                htmlFor="email"
-                            >
-                                Email Address
-                            </label>
+                <label
+                    className="field-label"
+                    htmlFor="password"
+                >
+                    Password
+                </label>
 
-                            <input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) =>
-                                    setEmail(e.target.value)
-                                }
-                                placeholder="Enter your email"
-                                className="form-input"
-                                disabled={loading}
-                                autoComplete="email"
-                            />
+                <div className="password-wrap">
 
-                            <label
-                                className="field-label"
-                                htmlFor="password"
-                            >
-                                Password
-                            </label>
+                    <input
+                        id="password"
+                        type={
+                            showPassword
+                                ? "text"
+                                : "password"
+                        }
+                        value={password}
+                        onChange={(e) =>
+                            setPassword(e.target.value)
+                        }
+                        placeholder="Create a password"
+                        className="form-input password-input"
+                        disabled={loading}
+                        autoComplete="new-password"
+                    />
 
-                            <div className="password-wrap">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setShowPassword(
+                                !showPassword
+                            )
+                        }
+                        className="password-toggle"
+                        aria-label={
+                            showPassword
+                                ? "Hide password"
+                                : "Show password"
+                        }
+                    >
+                        {showPassword ? "🙈" : "👁"}
+                    </button>
 
-                                <input
-                                    id="password"
-                                    type={
-                                        showPassword
-                                            ? "text"
-                                            : "password"
-                                    }
-                                    value={password}
-                                    onChange={(e) =>
-                                        setPassword(e.target.value)
-                                    }
-                                    placeholder="Create a password"
-                                    className="form-input password-input"
-                                    disabled={loading}
-                                    autoComplete="new-password"
-                                />
+                </div>
 
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setShowPassword(
-                                            !showPassword
-                                        )
-                                    }
-                                    className="password-toggle"
-                                    aria-label={
-                                        showPassword
-                                            ? "Hide password"
-                                            : "Show password"
-                                    }
-                                >
-                                    {showPassword ? "🙈" : "👁"}
-                                </button>
+                <label
+                    className="field-label"
+                    htmlFor="confirmPassword"
+                >
+                    Confirm Password
+                </label>
 
-                            </div>
+                <div className="password-wrap">
 
-                            <label
-                                className="field-label"
-                                htmlFor="confirmPassword"
-                            >
-                                Confirm Password
-                            </label>
+                    <input
+                        id="confirmPassword"
+                        type={
+                            showConfirmPassword
+                                ? "text"
+                                : "password"
+                        }
+                        value={confirmPassword}
+                        onChange={(e) =>
+                            setConfirmPassword(
+                                e.target.value
+                            )
+                        }
+                        placeholder="Re-enter your password"
+                        className="form-input password-input"
+                        disabled={loading}
+                        autoComplete="new-password"
+                    />
 
-                            <div className="password-wrap">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setShowConfirmPassword(
+                                !showConfirmPassword
+                            )
+                        }
+                        className="password-toggle"
+                        aria-label={
+                            showConfirmPassword
+                                ? "Hide password"
+                                : "Show password"
+                        }
+                    >
+                        {showConfirmPassword ? "🙈" : "👁"}
+                    </button>
 
-                                <input
-                                    id="confirmPassword"
-                                    type={
-                                        showConfirmPassword
-                                            ? "text"
-                                            : "password"
-                                    }
-                                    value={confirmPassword}
-                                    onChange={(e) =>
-                                        setConfirmPassword(
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="Re-enter your password"
-                                    className="form-input password-input"
-                                    disabled={loading}
-                                    autoComplete="new-password"
-                                />
+                </div>
 
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setShowConfirmPassword(
-                                            !showConfirmPassword
-                                        )
-                                    }
-                                    className="password-toggle"
-                                    aria-label={
-                                        showConfirmPassword
-                                            ? "Hide password"
-                                            : "Show password"
-                                    }
-                                >
-                                    {showConfirmPassword ? "🙈" : "👁"}
-                                </button>
+                <button
+                    type="button"
+                    onClick={() =>
+                        void handleRegister()
+                    }
+                    disabled={loading}
+                    className="create-account-button"
+                >
+                    {loading
+                        ? "Creating Account..."
+                        : "Create Account"}
+                </button>
 
-                            </div>
+                <button
+                    type="button"
+                    onClick={() =>
+                        router.replace("/login")
+                    }
+                    disabled={loading}
+                    className="login-link-button"
+                >
+                    Already have an account? Login
+                </button>
 
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    void handleRegister()
-                                }
-                                disabled={loading}
-                                className="create-account-button"
-                            >
-                                {loading
-                                    ? "Creating Account..."
-                                    : "Create Account"}
-                            </button>
+            </>
 
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    router.replace("/login")
-                                }
-                                disabled={loading}
-                                className="login-link-button"
-                            >
-                                Already have an account? Login
-                            </button>
+        ) : (
 
-                        </div>
+            <div
+                className="registration-success-panel"
+                role="status"
+            >
 
-                    )}
+                <div className="registration-success-icon">
+                    💙
+                </div>
+
+                <h2>
+                    {carevrMessages.registration.primaryCompleted.title}
+                </h2>
+
+                <p>
+                    {carevrMessages.registration.primaryCompleted.message}
+                </p>
+
+                <p>
+                    {carevrMessages.registration.primaryCompleted.footer}
+                </p>
+
+                <button
+                    type="button"
+                    className="create-account-button"
+                    onClick={() =>
+                        router.replace("/login")
+                    }
+                >
+                    Continue to Login
+                </button>
+
+            </div>
+
+        )}
+
+    </div>
+
+)}
 
 {isPrimaryFamilyMember === true && isInviteeToPrimary && (
     <div className="registration-panel">
@@ -1153,6 +1184,45 @@ onClick={() => {
                     margin-bottom: 12px;
                     font-size: 13px;
                     line-height: 1.4;
+                }
+
+
+                .registration-success-panel {
+                    text-align: center;
+                    padding: 18px 8px 8px;
+                }
+
+                .registration-success-icon {
+                    width: 64px;
+                    height: 64px;
+                    margin: 0 auto 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    background: #f0fff5;
+                    border: 1px solid #c7efd5;
+                    font-size: 30px;
+                }
+
+                .registration-success-panel h2 {
+                    margin: 0 0 14px;
+                    color: #15203d;
+                    font-size: 25px;
+                    line-height: 1.25;
+                    font-weight: 750;
+                }
+
+                .registration-success-panel p {
+                    margin: 0 auto 12px;
+                    max-width: 500px;
+                    color: #59627a;
+                    font-size: 14px;
+                    line-height: 1.6;
+                }
+
+                .registration-success-panel .create-account-button {
+                    margin-top: 18px;
                 }
 
                 .error-message {
