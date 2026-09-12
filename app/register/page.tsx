@@ -613,11 +613,8 @@ const [registrationCompleted, setRegistrationCompleted] =
             {!inviteePrimaryConfirmed ? (
                 <>
                     <p>
-                        You are already registered with CareVR as a{" "}
-                        {inviteePrimaryHandoff?.sourceRole}.
-                        Confirming will register your profile with an additional
-                        role as a Primary Family Member along with{" "}
-                        {inviteePrimaryHandoff?.sourceRole}.
+                        You are about to take on additional responsibility as a{" "}
+Primary Family Member.
                     </p>
 
                     <div className="confirmation-actions">
