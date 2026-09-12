@@ -264,37 +264,69 @@ async acceptConsent(
 
     }
 
-    const {
-        data: carevrAccess,
-        error: carevrAccessError,
-    } = await supabase
-        .from("carevr_access")
-        .insert({
-            user_id:
-                authorizationHandoff.userId,
+    let carevrAccessId: string;
 
-            family_id:
-                authorizationHandoff.familyId,
+    if (
+        authorizationHandoff.carevrRole ===
+        "PRIMARY"
+    ) {
 
-            patient_id:
-                authorizationHandoff.patientId,
+        const existingPrimaryAccess =
+            await carevrAccessRepository
+                .getActiveAccessForLoginRole(
+                    userId,
+                    "SELF"
+                );
 
-            access_type:
-                authorizationHandoff.carevrRole,
+        if (!existingPrimaryAccess) {
 
-            access_status:
-                "ACTIVE",
+            throw new Error(
+                "Primary CareVR access is not provisioned."
+            );
 
-            granted_by:
-                userId,
+        }
 
-        })
-        .select("id")
-        .single();
+        carevrAccessId =
+            existingPrimaryAccess.id;
 
-    if (carevrAccessError) {
+    } else {
 
-        throw carevrAccessError;
+        const {
+            data: carevrAccess,
+            error: carevrAccessError,
+        } = await supabase
+            .from("carevr_access")
+            .insert({
+                user_id:
+                    authorizationHandoff.userId,
+
+                family_id:
+                    authorizationHandoff.familyId,
+
+                patient_id:
+                    authorizationHandoff.patientId,
+
+                access_type:
+                    authorizationHandoff.carevrRole,
+
+                access_status:
+                    "ACTIVE",
+
+                granted_by:
+                    userId,
+
+            })
+            .select("id")
+            .single();
+
+        if (carevrAccessError) {
+
+            throw carevrAccessError;
+
+        }
+
+        carevrAccessId =
+            carevrAccess.id;
 
     }
 
@@ -302,7 +334,7 @@ async acceptConsent(
         governanceModules.map(
             (governanceModule) => ({
                 carevr_access_id:
-                    carevrAccess.id,
+                    carevrAccessId,
 
                 module:
                     governanceModule.module,
