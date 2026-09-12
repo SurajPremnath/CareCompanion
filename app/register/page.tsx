@@ -307,6 +307,7 @@ const [registrationCompleted, setRegistrationCompleted] =
             setInviteePrimaryConfirmed(false);
         }
     }}
+    disabled={registrationCompleted}
 >
     <span className="radio-circle">
         {isPrimaryFamilyMember === true && (
@@ -319,23 +320,24 @@ const [registrationCompleted, setRegistrationCompleted] =
     </span>
 </button>
 
-                            <button
-                                type="button"
-                                className={`primary-option ${
-                                    isPrimaryFamilyMember === false
-                                        ? "primary-option-selected"
-                                        : ""
-                                }`}
-onClick={() => {
-    setIsPrimaryFamilyMember(false);
+<button
+    type="button"
+    className={`primary-option ${
+        isPrimaryFamilyMember === false
+            ? "primary-option-selected"
+            : ""
+    }`}
+    onClick={() => {
+        setIsPrimaryFamilyMember(false);
 
-    if (isInviteeToPrimary) {
-        inviteeToPrimaryHandoff.clear();
-    }
+        if (isInviteeToPrimary) {
+            inviteeToPrimaryHandoff.clear();
+        }
 
-    router.replace("/login");
-}}
-                            >
+        router.replace("/login");
+    }}
+    disabled={registrationCompleted}
+>
                                 <span className="radio-circle">
                                     {isPrimaryFamilyMember === false && (
                                         <span className="radio-dot" />
