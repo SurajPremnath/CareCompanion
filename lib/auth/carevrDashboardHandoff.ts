@@ -154,12 +154,13 @@ const permissions =
 // Without module access, the user cannot enter Dashboard.
 //--------------------------------------------------------
 
-if (permissions.length === 0) {
-
+if (
+    access.access_type !== "PRIMARY" &&
+    permissions.length === 0
+) {
     throw new Error(
         "No CareVR modules are assigned. Please reach out to Primary for module access."
     );
-
 }
 
 
