@@ -5,8 +5,8 @@ import {
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-const supabaseServiceRoleKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseSecretKey =
+  process.env.SUPABASE_SECRET_KEY;
 
 if (!supabaseUrl) {
   throw new Error(
@@ -14,16 +14,16 @@ if (!supabaseUrl) {
   );
 }
 
-if (!supabaseServiceRoleKey) {
+if (!supabaseSecretKey) {
   throw new Error(
-    "Missing SUPABASE_SERVICE_ROLE_KEY"
+    "Missing SUPABASE_SECRET_KEY"
   );
 }
 
 export const supabaseAdmin =
   createClient(
     supabaseUrl,
-    supabaseServiceRoleKey,
+    supabaseSecretKey,
     {
       auth: {
         autoRefreshToken: false,
