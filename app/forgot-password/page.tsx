@@ -14,6 +14,10 @@ import {
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
+import { Turnstile } from "@marsidev/react-turnstile";
+
+import { authSecurity } from "@/lib/auth/authSecurity";
+
 //------------------------------------------------------------
 // Forgot Password Page
 //------------------------------------------------------------
@@ -34,6 +38,9 @@ export default function ForgotPasswordPage() {
 
   const [success, setSuccess] =
     useState("");
+
+const [captchaToken, setCaptchaToken] =
+  useState<string | null>(null);
 
   //----------------------------------------------------------
   // Send Reset Link
@@ -65,18 +72,22 @@ export default function ForgotPasswordPage() {
 
       }
 
-      try {
+const verifiedCaptchaToken =
+  authSecurity.requireCaptchaToken(captchaToken);
 
-        setLoading(true);
+try {
 
-        await authService
-          .requestPasswordReset(
-            trimmedEmail
-          );
+  setLoading(true);
 
-        setSuccess(
-          "If an account exists for this email address, a password reset link has been sent."
-        );
+  await authService
+    .requestPasswordReset(
+      trimmedEmail,
+      verifiedCaptchaToken
+    );
+
+  setSuccess(
+    "If an account exists for this email address, a password reset link has been sent."
+  );
 
       }
       catch (err) {
@@ -151,40 +162,64 @@ return (
             Email Address
           </label>
 
-          <input
-            type="email"
-            value={email}
-            onChange={(event) =>
-              setEmail(event.target.value)
-            }
-            onKeyDown={(event) => {
-              if (
-                event.key === "Enter" &&
-                !loading
-              ) {
-                void handleSubmit();
-              }
-            }}
-            placeholder="Enter your email"
-            style={inputStyle}
-            disabled={loading}
-            autoComplete="email"
-          />
+<input
+  type="email"
+  value={email}
+  onChange={(event) =>
+    setEmail(event.target.value)
+  }
+  onKeyDown={(event) => {
+    if (
+      event.key === "Enter" &&
+      !loading
+    ) {
+      void handleSubmit();
+    }
+  }}
+  placeholder="Enter your email"
+  style={inputStyle}
+  disabled={loading}
+  autoComplete="email"
+/>
 
-          <button
-            type="button"
-            onClick={() =>
-              void handleSubmit()
-            }
-            disabled={loading}
-            style={{
-              ...primaryButtonStyle,
-              opacity: loading ? 0.7 : 1,
-              cursor: loading
-                ? "not-allowed"
-                : "pointer",
-            }}
-          >
+<div
+  style={{
+    marginTop: "18px",
+    display: "flex",
+    justifyContent: "center",
+    width: "100%",
+  }}
+>
+  <Turnstile
+    siteKey={
+      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!
+    }
+    onSuccess={(token) =>
+      setCaptchaToken(token)
+    }
+    onExpire={() =>
+      setCaptchaToken(null)
+    }
+    onError={() =>
+      setCaptchaToken(null)
+    }
+  />
+</div>
+
+<button
+  type="button"
+  onClick={() =>
+    void handleSubmit()
+  }
+  disabled={loading}
+  style={{
+    ...primaryButtonStyle,
+    opacity: loading ? 0.7 : 1,
+    cursor: loading
+      ? "not-allowed"
+      : "pointer",
+  }}
+>
             {loading
               ? "Sending..."
               : "Send Reset Link"}

@@ -11,32 +11,47 @@ export async function POST(request: Request) {
         ? body.email.trim()
         : "";
 
-    const password =
-      typeof body.password === "string"
-        ? body.password
-        : "";
+const password =
+  typeof body.password === "string"
+    ? body.password
+    : "";
 
-    if (!email) {
+const captchaToken =
+  typeof body.captchaToken === "string"
+    ? body.captchaToken
+    : "";
+
+if (!email) {
       return NextResponse.json(
         { message: "Email is required." },
         { status: 400 }
       );
     }
 
-    if (!password) {
-      return NextResponse.json(
-        { message: "Password is required." },
-        { status: 400 }
-      );
-    }
+if (!password) {
+  return NextResponse.json(
+    { message: "Password is required." },
+    { status: 400 }
+  );
+}
 
-    const supabase = await createSupabaseServerClient();
+if (!captchaToken) {
+  return NextResponse.json(
+    { message: "Security verification is required." },
+    { status: 400 }
+  );
+}
 
-    const { data, error } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+const supabase = await createSupabaseServerClient();
+
+const { data, error } =
+  await supabase.auth.signInWithPassword({
+    email,
+    password,
+    options: {
+      captchaToken,
+    },
+  });
 
     if (error) {
       return NextResponse.json(

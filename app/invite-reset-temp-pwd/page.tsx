@@ -15,7 +15,11 @@ import MobileHeader from "@/Components/common/MobileHeader";
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
+import { Turnstile } from "@marsidev/react-turnstile";
+
 import { authService } from "@/lib/auth/authService";
+
+import { authSecurity } from "@/lib/auth/authSecurity";
 
 import { acceptInvitation } from "./acceptInvitation";
 
@@ -91,6 +95,11 @@ function InviteResetTempPwdContent({
         setSuccessMessage,
     ] = useState("");
 
+const [
+    captchaToken,
+    setCaptchaToken,
+] = useState<string | null>(null);
+
     const passwordRequirements = [
         {
             label: "At least 8 characters",
@@ -146,11 +155,16 @@ function InviteResetTempPwdContent({
             return;
         }
 
-        setSubmitting(true);
+setSubmitting(true);
 
-        try {
-            const currentUser =
-                await authService.getCurrentUser();
+try {
+    const verifiedCaptchaToken =
+        authSecurity.requireCaptchaToken(
+            captchaToken
+        );
+
+    const currentUser =
+        await authService.getCurrentUser();
 
             if (!currentUser) {
                 throw new Error(
@@ -171,10 +185,11 @@ function InviteResetTempPwdContent({
              * Verify the temporary password supplied
              * in the Old Password field.
              */
-            await authService.login(
-                email,
-                oldPassword
-            );
+await authService.login(
+    email,
+    oldPassword,
+    verifiedCaptchaToken
+);
 
             /*
              * Replace the temporary password with
@@ -507,6 +522,30 @@ function InviteResetTempPwdContent({
                                     )
                                 )}
                             </ul>
+                        </div>
+
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                width: "100%",
+                            }}
+                        >
+                            <Turnstile
+                                siteKey={
+                                    process.env
+                                        .NEXT_PUBLIC_TURNSTILE_SITE_KEY!
+                                }
+                                onSuccess={(token) =>
+                                    setCaptchaToken(token)
+                                }
+                                onExpire={() =>
+                                    setCaptchaToken(null)
+                                }
+                                onError={() =>
+                                    setCaptchaToken(null)
+                                }
+                            />
                         </div>
 
                         {errorMessage && (

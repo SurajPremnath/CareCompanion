@@ -10,7 +10,11 @@ import { useRouter } from "next/navigation";
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
+import { Turnstile } from "@marsidev/react-turnstile";
+
 import { authService } from "@/lib/auth/authService";
+
+import { authSecurity } from "@/lib/auth/authSecurity";
 
 import {
   authSessionService,
@@ -46,8 +50,23 @@ const [password, setPassword] = useState("");
 const [loading, setLoading] = useState(false);
 const [googleLoading, setGoogleLoading] = useState(false);
 const [error, setError] = useState("");
+
+const [captchaToken, setCaptchaToken] =
+    useState<string | null>(null);
+
 const [showPassword, setShowPassword] =
     useState(false);
+
+const [totpLogin, setTotpLogin] =
+    useState<{
+        user: Awaited<
+            ReturnType<typeof authService.login>
+        >;
+        factorId: string;
+    } | null>(null);
+
+const [totpCode, setTotpCode] =
+    useState("");
 
 /*
  * Care context and role are selected at Login.
@@ -79,6 +98,184 @@ const [selectedRole, setSelectedRole] =
     });
   }, []);
 
+const completeLogin = async (
+  authenticatedUser: Awaited<
+    ReturnType<typeof authService.login>
+  >
+) => {
+  const invitationRole =
+    selectedRole === "DOCTOR"
+      ? "DOCTOR"
+      : selectedRole === "CARETAKER"
+        ? "CARETAKER"
+        : selectedRole === "FAMILY"
+          ? "SECONDARY_FAMILY_MEMBER"
+          : "SELF";
+
+  const invitationValidation =
+    await validateInvitedUserLogin({
+      email: email.trim(),
+      userId: authenticatedUser.id,
+      selectedRole: invitationRole,
+      mode: "NORMAL",
+    });
+
+  if (
+    invitationValidation.status ===
+    "PRIMARY"
+  ) {
+    carevrAuthorizationHandoff.set({
+      userId: authenticatedUser.id,
+      carevrRole: "PRIMARY",
+      familyId: null,
+      patientId: null,
+      consentStage: "COMPLETED",
+      governanceId: null,
+      governanceVersion: null,
+    });
+
+    await resolveCareVRDashboardHandoff(
+      authenticatedUser.id,
+      selectedRole
+    );
+
+    void authSessionService
+      .start()
+      .catch(() => {
+        // Analytics must never block navigation.
+      });
+
+    router.replace("/dashboard");
+    return;
+  }
+
+  if (
+    invitationValidation.status ===
+    "VALID_INVITATION"
+  ) {
+    if (!invitationValidation.invitationId) {
+      throw new Error(
+        "Invitation information is missing."
+      );
+    }
+
+    router.replace(
+      `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
+        invitationValidation.invitationId
+      )}`
+    );
+    return;
+  }
+
+  if (
+    invitationValidation.status ===
+    "CONSENT_REQUIRED"
+  ) {
+    const carevrRole =
+      selectedRole === "DOCTOR"
+        ? "DOCTOR"
+        : selectedRole === "CARETAKER"
+          ? "CARETAKER"
+          : selectedRole === "FAMILY"
+            ? "SECONDARY_FAMILY_MEMBER"
+            : "PRIMARY";
+
+    carevrAuthorizationHandoff.set({
+      userId: authenticatedUser.id,
+      carevrRole,
+      familyId:
+        invitationValidation.familyId ?? null,
+      patientId: null,
+      consentStage: "POST_LOGIN",
+      governanceId: null,
+      governanceVersion: null,
+    });
+
+    router.replace("/consent");
+    return;
+  }
+
+  if (
+    invitationValidation.status ===
+    "ACCEPTED"
+  ) {
+    const carevrRole =
+      selectedRole === "DOCTOR"
+        ? "DOCTOR"
+        : selectedRole === "CARETAKER"
+          ? "CARETAKER"
+          : selectedRole === "FAMILY"
+            ? "SECONDARY_FAMILY_MEMBER"
+            : "PRIMARY";
+
+    carevrAuthorizationHandoff.set({
+      userId: authenticatedUser.id,
+      carevrRole,
+      familyId:
+        invitationValidation.familyId ?? null,
+      patientId: null,
+      consentStage: "COMPLETED",
+      governanceId: null,
+      governanceVersion: null,
+    });
+
+    await resolveCareVRDashboardHandoff(
+      authenticatedUser.id,
+      selectedRole
+    );
+
+    void authSessionService
+      .start()
+      .catch(() => {
+        // Analytics must never block navigation.
+      });
+
+    router.replace("/dashboard");
+    return;
+  }
+
+  if (
+    invitationValidation.status ===
+    "ROLE_MISMATCH"
+  ) {
+    throw new Error(
+      invitationValidation.message
+    );
+  }
+
+  if (
+    invitationValidation.status ===
+    "INVALID_INVITATION"
+  ) {
+    throw new Error(
+      invitationValidation.message
+    );
+  }
+
+  if (
+    invitationValidation.status ===
+    "NOT_INVITED"
+  ) {
+    await resolveCareVRDashboardHandoff(
+      authenticatedUser.id,
+      selectedRole
+    );
+
+    void authSessionService
+      .start()
+      .catch(() => {
+        // Analytics must never block navigation.
+      });
+
+    router.replace("/dashboard");
+    return;
+  }
+
+  throw new Error(
+    invitationValidation.message
+  );
+};
+
 const handleLogin = async () => {
   setError("");
 
@@ -101,180 +298,31 @@ const handleLogin = async () => {
       feature: "LOGIN_TO_DASHBOARD",
     });
 
-    const authenticatedUser =
-      await authService.login(
-        email.trim(),
-        password
-      );
+const authenticatedUser =
+  await authService.login(
+    email.trim(),
+    password,
+    authSecurity.requireCaptchaToken(
+      captchaToken
+    )
+  );
 
-    const invitationRole =
-      selectedRole === "DOCTOR"
-        ? "DOCTOR"
-        : selectedRole === "CARETAKER"
-          ? "CARETAKER"
-          : selectedRole === "FAMILY"
-            ? "SECONDARY_FAMILY_MEMBER"
-            : "SELF";
-
-const invitationValidation =
-    await validateInvitedUserLogin({
-        email: email.trim(),
-        userId: authenticatedUser.id,
-        selectedRole: invitationRole,
-        mode: "NORMAL",
-    });
-
-    if (
-      invitationValidation.status ===
-      "PRIMARY"
-    ) {
-      carevrAuthorizationHandoff.set({
-        userId: authenticatedUser.id,
-        carevrRole: "PRIMARY",
-        familyId: null,
-        patientId: null,
-        consentStage: "COMPLETED",
-        governanceId: null,
-        governanceVersion: null,
-      });
-
-      await resolveCareVRDashboardHandoff(
-        authenticatedUser.id,
-        selectedRole
-      );
-
-      void authSessionService
-        .start()
-        .catch(() => {
-          // Analytics must never block navigation.
-        });
-
-      router.replace("/dashboard");
-
-      return;
-    }
-
-    if (
-      invitationValidation.status ===
-      "VALID_INVITATION"
-    ) {
-      if (!invitationValidation.invitationId) {
-        throw new Error(
-          "Invitation information is missing."
-        );
-      }
-
-      router.replace(
-        `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
-          invitationValidation.invitationId
-        )}`
-      );
-
-      return;
-    }
+const totpStatus =
+  await authService.getTOTPLoginStatus();
 
 if (
-  invitationValidation.status ===
-  "CONSENT_REQUIRED"
+  totpStatus.requiresMFA &&
+  totpStatus.factorId
 ) {
-  const carevrRole =
-    selectedRole === "DOCTOR"
-      ? "DOCTOR"
-      : selectedRole === "CARETAKER"
-        ? "CARETAKER"
-        : selectedRole === "FAMILY"
-          ? "SECONDARY_FAMILY_MEMBER"
-          : "PRIMARY";
-
-  carevrAuthorizationHandoff.set({
-    userId: authenticatedUser.id,
-    carevrRole,
-    familyId: invitationValidation.familyId ?? null,
-    patientId: null,
-    consentStage: "POST_LOGIN",
-    governanceId: null,
-    governanceVersion: null,
+  setTotpLogin({
+    user: authenticatedUser,
+    factorId: totpStatus.factorId,
   });
-
-  router.replace(
-    "/consent"
-  );
 
   return;
 }
 
-if (
-  invitationValidation.status ===
-  "ACCEPTED"
-) {
-  const carevrRole =
-    selectedRole === "DOCTOR"
-      ? "DOCTOR"
-      : selectedRole === "CARETAKER"
-        ? "CARETAKER"
-        : selectedRole === "FAMILY"
-          ? "SECONDARY_FAMILY_MEMBER"
-          : "PRIMARY";
-
-  carevrAuthorizationHandoff.set({
-    userId: authenticatedUser.id,
-    carevrRole,
-    familyId: invitationValidation.familyId ?? null,
-    patientId: null,
-    consentStage: "COMPLETED",
-    governanceId: null,
-    governanceVersion: null,
-  });
-
-  await resolveCareVRDashboardHandoff(
-    authenticatedUser.id,
-    selectedRole
-  );
-
-  void authSessionService
-    .start()
-    .catch(() => {
-      // Analytics must never block navigation.
-    });
-
-  router.replace("/dashboard");
-
-  return;
-}
-
-if (
-  invitationValidation.status ===
-  "ROLE_MISMATCH"
-) {
-      throw new Error(
-        invitationValidation.message
-      );
-    }
-
-    if (
-      invitationValidation.status ===
-      "INVALID_INVITATION"
-    ) {
-      throw new Error(
-        invitationValidation.message
-      );
-    }
-
-    // NOT_INVITED:
-    // Continue with the existing normal login flow.
-
-    await resolveCareVRDashboardHandoff(
-      authenticatedUser.id,
-      selectedRole
-    );
-
-    void authSessionService
-      .start()
-      .catch(() => {
-        // Analytics must never block navigation.
-      });
-
-    router.replace("/dashboard");
+await completeLogin(authenticatedUser);
 
   } catch (err) {
     performanceTracker.cancel();
@@ -287,6 +335,60 @@ if (
     setError(message);
   } finally {
     setLoading(false);
+  }
+};
+
+const handleVerifyLoginTOTP = async () => {
+
+  if (!totpLogin) {
+    setError("TOTP verification is not available.");
+    return;
+  }
+
+  if (totpCode.length !== 6) {
+    setError(
+      "Please enter the 6-digit code from your authenticator."
+    );
+    return;
+  }
+
+  try {
+
+    setLoading(true);
+
+    setError("");
+
+    const challengeId =
+      await authService.challengeTOTP(
+        totpLogin.factorId
+      );
+
+await authService.verifyTOTP(
+  totpLogin.factorId,
+  challengeId,
+  totpCode
+);
+
+const authenticatedUser = totpLogin.user;
+
+setTotpLogin(null);
+setTotpCode("");
+
+await completeLogin(authenticatedUser);
+
+  } catch (err) {
+
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Unable to verify your authenticator code.";
+
+    setError(message);
+
+  } finally {
+
+    setLoading(false);
+
   }
 };
 
@@ -312,6 +414,98 @@ if (
 
 return (
   <>
+    {totpLogin ? (
+      <main className="login-page">
+        <section className="login-shell">
+          <div className="login-left">
+
+            <div className="login-content">
+
+              <div className="login-heading">
+                <h1>Verify Your CareVR Account</h1>
+
+                <p>
+                  Open your authenticator app and
+                  enter the 6-digit verification code.
+                </p>
+              </div>
+
+              {error && (
+                <div
+                  className="login-error"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {error}
+                </div>
+              )}
+
+              <div className="field">
+
+                <label htmlFor="loginTotpCode">
+                  Authenticator Code
+                </label>
+
+                <div className="input-wrap">
+
+                  <input
+                    id="loginTotpCode"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    value={totpCode}
+                    onChange={(e) =>
+                      setTotpCode(
+                        e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 6)
+                      )
+                    }
+                    placeholder="000000"
+                    className="login-input"
+                    disabled={loading}
+                    maxLength={6}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        void handleVerifyLoginTOTP();
+                      }
+                    }}
+                  />
+
+                </div>
+
+              </div>
+
+              <button
+                type="button"
+                className="primary-button"
+                onClick={() =>
+                  void handleVerifyLoginTOTP()
+                }
+                disabled={
+                  loading ||
+                  totpCode.length !== 6
+                }
+              >
+                {loading
+                  ? "Verifying..."
+                  : "Verify & Continue"}
+              </button>
+
+            </div>
+
+          </div>
+
+          <div
+            className="login-right"
+            aria-hidden="true"
+          />
+
+        </section>
+      </main>
+    ) : (
+      <>
 <style jsx global>{`
       * {
         box-sizing: border-box;
@@ -1789,6 +1983,31 @@ return (
               </div>
             </div>
 
+<div
+  style={{
+    marginTop: "10px",
+    marginBottom: "12px",
+    display: "flex",
+    justifyContent: "center",
+    width: "100%",
+  }}
+>
+  <Turnstile
+    siteKey={
+      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!
+    }
+    onSuccess={(token) =>
+      setCaptchaToken(token)
+    }
+    onExpire={() =>
+      setCaptchaToken(null)
+    }
+    onError={() =>
+      setCaptchaToken(null)
+    }
+  />
+</div>
+
             <div className="login-actions">
               <button
                 type="button"
@@ -1889,7 +2108,9 @@ return (
 
 <div className="login-right" aria-hidden="true" />
       </section>
-    </main>
+</main>
+      </>
+    )}
   </>
 );
 }

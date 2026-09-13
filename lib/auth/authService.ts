@@ -66,12 +66,90 @@ options: {
 
 }
 
+  async enrollTOTP(): Promise<{
+    id: string;
+    type: "totp";
+    totp: {
+      qr_code: string;
+      secret: string;
+      uri: string;
+    };
+  }> {
+    const { data, error } = await supabase.auth.mfa.enroll({
+      factorType: "totp",
+      friendlyName: "CareVR Authenticator",
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.id || !data.totp) {
+      throw new Error("Unable to enroll TOTP.");
+    }
+
+    return {
+      id: data.id,
+      type: "totp",
+      totp: {
+        qr_code: data.totp.qr_code,
+        secret: data.totp.secret,
+        uri: data.totp.uri,
+      },
+    };
+  }
+
+  /**
+   * Creates a TOTP challenge for an enrolled factor.
+   */
+  async challengeTOTP(
+    factorId: string
+  ): Promise<string> {
+
+    const { data, error } =
+      await supabase.auth.mfa.challenge({
+        factorId,
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.id) {
+      throw new Error("Unable to create TOTP challenge.");
+    }
+
+    return data.id;
+  }
+
+  /**
+   * Verifies a TOTP code for an enrolled factor.
+   */
+  async verifyTOTP(
+    factorId: string,
+    challengeId: string,
+    code: string
+  ): Promise<void> {
+
+    const { error } =
+      await supabase.auth.mfa.verify({
+        factorId,
+        challengeId,
+        code,
+      });
+
+    if (error) {
+      throw error;
+    }
+  }
+
   /**
    * Login.
    */
 async login(
   email: string,
-  password: string
+  password: string,
+  captchaToken: string
 ): Promise<User> {
 
   const response = await fetch("/api/auth/login", {
@@ -82,6 +160,7 @@ async login(
     body: JSON.stringify({
       email,
       password,
+      captchaToken,
     }),
   });
 
@@ -120,6 +199,34 @@ async login(
   return result.user;
 }
 
+  /**
+   * Returns the MFA state required for login.
+   *
+   * No TOTP secret or enrollment data is exposed.
+   */
+  async getTOTPLoginStatus(): Promise<{
+    requiresMFA: boolean;
+    factorId: string | null;
+  }> {
+
+    const { data, error } =
+      await supabase.auth.mfa.listFactors();
+
+    if (error) {
+      throw error;
+    }
+
+    const totpFactor =
+      data?.totp?.find(
+        (factor) =>
+          factor.status === "verified"
+      );
+
+    return {
+      requiresMFA: Boolean(totpFactor),
+      factorId: totpFactor?.id ?? null,
+    };
+  }
 
 /**
  * Sign in using Google OAuth.
@@ -265,26 +372,28 @@ async login(
   /**
    * Sends password reset email.
    */
-  async requestPasswordReset(
-    email: string
-  ): Promise<void> {
+async requestPasswordReset(
+  email: string,
+  captchaToken: string
+): Promise<void> {
 
-const redirectTo =
-  `${window.location.origin}/reset-password`;
+  const redirectTo =
+    `${window.location.origin}/reset-password`;
 
-    const { error } =
-      await supabase.auth.resetPasswordForEmail(
-        email,
-        {
-          redirectTo,
-        }
-      );
+  const { error } =
+    await supabase.auth.resetPasswordForEmail(
+      email,
+      {
+        redirectTo,
+        captchaToken,
+      }
+    );
 
-    if (error) {
-      throw error;
-    }
-
+  if (error) {
+    throw error;
   }
+
+}
 
   /**
    * Updates password for the active

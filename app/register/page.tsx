@@ -11,6 +11,8 @@ import { provisionPrimaryAccess } from "@/lib/authorization/provisionPrimaryAcce
 
 import { carevrMessages } from "@/lib/messages/carevrMessages";
 
+import { authSecurity } from "@/lib/auth/authSecurity";
+
 export default function RegisterPage() {
 
     const router = useRouter();
@@ -57,6 +59,18 @@ const [captchaToken, setCaptchaToken] =
 
 const [registrationCompleted, setRegistrationCompleted] =
     useState(false);
+
+const [totpEnrollment, setTotpEnrollment] =
+    useState<{
+        factorId: string;
+        qrCode: string;
+        secret: string;
+        uri: string;
+        challengeId: string;
+    } | null>(null);
+
+const [totpCode, setTotpCode] =
+    useState("");
 
     const validateForm = (): boolean => {
 
@@ -105,16 +119,74 @@ const [registrationCompleted, setRegistrationCompleted] =
 
     };
 
+    const handleVerifyTOTP = async () => {
+
+        if (!totpEnrollment) {
+            setError("TOTP enrollment is not available.");
+            return;
+        }
+
+        if (totpCode.length !== 6) {
+            setError("Please enter the 6-digit code from your authenticator.");
+            return;
+        }
+
+        try {
+
+            setLoading(true);
+
+            setError("");
+
+            setSuccess("");
+
+const challengeId =
+    await authService.challengeTOTP(
+        totpEnrollment.factorId
+    );
+
+await authService.verifyTOTP(
+    totpEnrollment.factorId,
+    challengeId,
+    totpCode
+);
+
+            setTotpEnrollment(null);
+
+            setTotpCode("");
+
+            setRegistrationCompleted(true);
+
+            setSuccess(
+                `${carevrMessages.registration.primaryCompleted.title}\n\n${carevrMessages.registration.primaryCompleted.message}\n\n${carevrMessages.registration.primaryCompleted.footer}`
+            );
+
+            await authService.logout();
+
+        } catch (err) {
+
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Unable to verify your authenticator code.";
+
+            setError(message);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
     const handleRegister = async () => {
 
         if (!validateForm()) {
             return;
         }
 
-if (!captchaToken) {
-    setError("Please complete the security verification.");
-    return;
-}
+const verifiedCaptchaToken =
+  authSecurity.requireCaptchaToken(captchaToken);
 
         try {
 
@@ -128,26 +200,31 @@ if (!captchaToken) {
              * Existing registration service remains unchanged.
              * No Primary/family/database logic is added in this UI step.
              */
-            const result =
-                await authService.register(
-                    fullName.trim(),
-                    email.trim(),
-                    password,
-                    "PRIMARY",
-                    captchaToken
-                );
+const result =
+    await authService.register(
+        fullName.trim(),
+        email.trim(),
+        password,
+        "PRIMARY",
+        verifiedCaptchaToken
+    );
 
-            setRegistrationCompleted(true);
+if (!result.session) {
+    throw new Error(
+        "Account created, but an authenticated session was not established. Please try again."
+    );
+}
 
-            setSuccess(
-                `${carevrMessages.registration.primaryCompleted.title}\n\n${carevrMessages.registration.primaryCompleted.message}\n\n${carevrMessages.registration.primaryCompleted.footer}`
-            );
+const enrollment =
+    await authService.enrollTOTP();
 
-            if (result.session) {
-
-                await authService.logout();
-
-            }
+setTotpEnrollment({
+    factorId: enrollment.id,
+    qrCode: enrollment.totp.qr_code,
+    secret: enrollment.totp.secret,
+    uri: enrollment.totp.uri,
+    challengeId: "",
+});
 
         } catch (err) {
 
@@ -372,236 +449,340 @@ if (!captchaToken) {
 
     <div className="registration-panel">
 
-        {!registrationCompleted ? (
+{!registrationCompleted && !totpEnrollment ? (
 
-            <>
-                <div className="registration-panel-heading">
+    <>
+        <div className="registration-panel-heading">
 
-                    <h2>
-                        Create Your Account
-                    </h2>
+            <h2>
+                Create Your Account
+            </h2>
 
-                    <p>
-                        Register once to securely manage
-                        your family's health records.
-                    </p>
+            <p>
+                Register once to securely manage
+                your family's health records.
+            </p>
 
-                </div>
+        </div>
 
-                {error && (
-
-                    <div
-                        className="error-message"
-                        role="alert"
-                    >
-                        {error}
-                    </div>
-
-                )}
-
-                <label
-                    className="field-label"
-                    htmlFor="fullName"
-                >
-                    Full Name
-                </label>
-
-                <input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) =>
-                        setFullName(e.target.value)
-                    }
-                    placeholder="Enter your full name"
-                    className="form-input"
-                    disabled={loading}
-                    autoComplete="name"
-                />
-
-                <label
-                    className="field-label"
-                    htmlFor="email"
-                >
-                    Email Address
-                </label>
-
-                <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) =>
-                        setEmail(e.target.value)
-                    }
-                    placeholder="Enter your email"
-                    className="form-input"
-                    disabled={loading}
-                    autoComplete="email"
-                />
-
-                <label
-                    className="field-label"
-                    htmlFor="password"
-                >
-                    Password
-                </label>
-
-                <div className="password-wrap">
-
-                    <input
-                        id="password"
-                        type={
-                            showPassword
-                                ? "text"
-                                : "password"
-                        }
-                        value={password}
-                        onChange={(e) =>
-                            setPassword(e.target.value)
-                        }
-                        placeholder="Create a password"
-                        className="form-input password-input"
-                        disabled={loading}
-                        autoComplete="new-password"
-                    />
-
-                    <button
-                        type="button"
-                        onClick={() =>
-                            setShowPassword(
-                                !showPassword
-                            )
-                        }
-                        className="password-toggle"
-                        aria-label={
-                            showPassword
-                                ? "Hide password"
-                                : "Show password"
-                        }
-                    >
-                        {showPassword ? "🙈" : "👁"}
-                    </button>
-
-                </div>
-
-                <label
-                    className="field-label"
-                    htmlFor="confirmPassword"
-                >
-                    Confirm Password
-                </label>
-
-                <div className="password-wrap">
-
-                    <input
-                        id="confirmPassword"
-                        type={
-                            showConfirmPassword
-                                ? "text"
-                                : "password"
-                        }
-                        value={confirmPassword}
-                        onChange={(e) =>
-                            setConfirmPassword(
-                                e.target.value
-                            )
-                        }
-                        placeholder="Re-enter your password"
-                        className="form-input password-input"
-                        disabled={loading}
-                        autoComplete="new-password"
-                    />
-
-                    <button
-                        type="button"
-                        onClick={() =>
-                            setShowConfirmPassword(
-                                !showConfirmPassword
-                            )
-                        }
-                        className="password-toggle"
-                        aria-label={
-                            showConfirmPassword
-                                ? "Hide password"
-                                : "Show password"
-                        }
-                    >
-                        {showConfirmPassword ? "🙈" : "👁"}
-                    </button>
-
-                </div>
-
-<div className="captcha-container">
-    <Turnstile
-        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-        onSuccess={(token) => setCaptchaToken(token)}
-        onExpire={() => setCaptchaToken(null)}
-        onError={() => setCaptchaToken(null)}
-    />
-</div>
-
-                <button
-                    type="button"
-                    onClick={() =>
-                        void handleRegister()
-                    }
-                    disabled={loading}
-                    className="create-account-button"
-                >
-                    {loading
-                        ? "Creating Account..."
-                        : "Create Account"}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={() =>
-                        router.replace("/login")
-                    }
-                    disabled={loading}
-                    className="login-link-button"
-                >
-                    Already have an account? Login
-                </button>
-
-            </>
-
-        ) : (
+        {error && (
 
             <div
-                className="registration-success-panel"
-                role="status"
+                className="error-message"
+                role="alert"
             >
-
-                <div className="registration-success-icon">
-                    💙
-                </div>
-
-                <h2>
-                    {carevrMessages.registration.primaryCompleted.title}
-                </h2>
-
-                <p>
-                    {carevrMessages.registration.primaryCompleted.message}
-                </p>
-
-                <p>
-                    {carevrMessages.registration.primaryCompleted.footer}
-                </p>
-
-                <button
-                    type="button"
-                    className="create-account-button"
-                    onClick={() =>
-                        router.replace("/login")
-                    }
-                >
-                    Continue to Login
-                </button>
-
+                {error}
             </div>
 
         )}
+
+        <label
+            className="field-label"
+            htmlFor="fullName"
+        >
+            Full Name
+        </label>
+
+        <input
+            id="fullName"
+            type="text"
+            value={fullName}
+            onChange={(e) =>
+                setFullName(e.target.value)
+            }
+            placeholder="Enter your full name"
+            className="form-input"
+            disabled={loading}
+            autoComplete="name"
+        />
+
+        <label
+            className="field-label"
+            htmlFor="email"
+        >
+            Email Address
+        </label>
+
+        <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) =>
+                setEmail(e.target.value)
+            }
+            placeholder="Enter your email"
+            className="form-input"
+            disabled={loading}
+            autoComplete="email"
+        />
+
+        <label
+            className="field-label"
+            htmlFor="password"
+        >
+            Password
+        </label>
+
+        <div className="password-wrap">
+
+            <input
+                id="password"
+                type={
+                    showPassword
+                        ? "text"
+                        : "password"
+                }
+                value={password}
+                onChange={(e) =>
+                    setPassword(e.target.value)
+                }
+                placeholder="Create a password"
+                className="form-input password-input"
+                disabled={loading}
+                autoComplete="new-password"
+            />
+
+            <button
+                type="button"
+                onClick={() =>
+                    setShowPassword(
+                        !showPassword
+                    )
+                }
+                className="password-toggle"
+                aria-label={
+                    showPassword
+                        ? "Hide password"
+                        : "Show password"
+                }
+            >
+                {showPassword ? "🙈" : "👁"}
+            </button>
+
+        </div>
+
+        <label
+            className="field-label"
+            htmlFor="confirmPassword"
+        >
+            Confirm Password
+        </label>
+
+        <div className="password-wrap">
+
+            <input
+                id="confirmPassword"
+                type={
+                    showConfirmPassword
+                        ? "text"
+                        : "password"
+                }
+                value={confirmPassword}
+                onChange={(e) =>
+                    setConfirmPassword(
+                        e.target.value
+                    )
+                }
+                placeholder="Re-enter your password"
+                className="form-input password-input"
+                disabled={loading}
+                autoComplete="new-password"
+            />
+
+            <button
+                type="button"
+                onClick={() =>
+                    setShowConfirmPassword(
+                        !showConfirmPassword
+                    )
+                }
+                className="password-toggle"
+                aria-label={
+                    showConfirmPassword
+                        ? "Hide password"
+                        : "Show password"
+                }
+            >
+                {showConfirmPassword ? "🙈" : "👁"}
+            </button>
+
+        </div>
+
+        <div className="captcha-container">
+            <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                onSuccess={(token) => setCaptchaToken(token)}
+                onExpire={() => setCaptchaToken(null)}
+                onError={() => setCaptchaToken(null)}
+            />
+        </div>
+
+        <button
+            type="button"
+            onClick={() =>
+                void handleRegister()
+            }
+            disabled={loading}
+            className="create-account-button"
+        >
+            {loading
+                ? "Creating Account..."
+                : "Create Account"}
+        </button>
+
+        <button
+            type="button"
+            onClick={() =>
+                router.replace("/login")
+            }
+            disabled={loading}
+            className="login-link-button"
+        >
+            Already have an account? Login
+        </button>
+
+    </>
+
+) : !registrationCompleted && totpEnrollment ? (
+
+    <div className="totp-enrollment-panel">
+
+        <div className="registration-panel-heading">
+
+            <h2>
+                Secure Your CareVR Account
+            </h2>
+
+            <p>
+                Set up an authenticator app to protect
+                your CareVR account with two-factor
+                authentication.
+            </p>
+
+        </div>
+
+        {error && (
+
+            <div
+                className="error-message"
+                role="alert"
+            >
+                {error}
+            </div>
+
+        )}
+
+        <div className="totp-instructions">
+
+            <p>
+                Open an authenticator app such as
+                Google Authenticator, Microsoft
+                Authenticator, Authy, or another
+                TOTP-compatible authenticator.
+            </p>
+
+            <p>
+                Scan the QR code below to add your
+                CareVR account.
+            </p>
+
+        </div>
+
+        <div className="totp-qr-container">
+
+<img
+    src={totpEnrollment.qrCode}
+    alt="CareVR authenticator setup QR code"
+    className="totp-qr-code"
+/>
+
+        </div>
+
+
+        <div className="totp-code-section">
+
+            <label
+                className="field-label"
+                htmlFor="totpCode"
+            >
+                Enter the 6-digit code from your authenticator
+            </label>
+
+            <input
+                id="totpCode"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={totpCode}
+                onChange={(e) =>
+                    setTotpCode(
+                        e.target.value
+                            .replace(/\D/g, "")
+                            .slice(0, 6)
+                    )
+                }
+                placeholder="000000"
+                className="form-input totp-code-input"
+                disabled={loading}
+                maxLength={6}
+            />
+
+        </div>
+
+        <button
+            type="button"
+            className="create-account-button"
+            onClick={() =>
+                void handleVerifyTOTP()
+            }
+            disabled={
+                loading ||
+                totpCode.length !== 6
+            }
+        >
+            {loading
+                ? "Verifying..."
+                : "Verify & Complete Registration"}
+        </button>
+
+    </div>
+
+) : (
+
+    <div
+        className="registration-success-panel"
+        role="status"
+    >
+
+        <div className="registration-success-icon">
+            💙
+        </div>
+
+        <h2>
+            {carevrMessages.registration.primaryCompleted.title}
+        </h2>
+
+        <p>
+            {carevrMessages.registration.primaryCompleted.message}
+        </p>
+
+        <p>
+            {carevrMessages.registration.primaryCompleted.footer}
+        </p>
+
+        <button
+            type="button"
+            className="create-account-button"
+            onClick={() =>
+                router.replace("/login")
+            }
+        >
+            Continue to Login
+        </button>
+
+    </div>
+
+)}
 
     </div>
 
