@@ -199,31 +199,21 @@ useEffect(() => {
 
       }
 
-      try {
+try {
+  setLoading(true);
 
-        setLoading(true);
+  await authService
+    .updatePassword(
+      password
+    );
 
-        await authService
-          .updatePassword(
-            password
-          );
+  setSuccess(
+    "Your password has been updated successfully."
+  );
 
-        setSuccess(
-          "Your password has been updated successfully."
-        );
-
-        setPassword("");
-        setConfirmPassword("");
-
-        setTimeout(() => {
-
-          router.replace(
-            "/login"
-          );
-
-        }, 2000);
-
-      }
+  setPassword("");
+  setConfirmPassword("");
+}
       catch (err) {
 
         console.error(
@@ -352,13 +342,27 @@ useEffect(() => {
 
         )}
 
-        {success && (
+{success && (
 
-          <div style={successStyle}>
-            {success}
-          </div>
+  <>
+    <div style={successStyle}>
+      {success}
+    </div>
 
-        )}
+    <button
+      type="button"
+      onClick={() =>
+        router.replace(
+          "/login"
+        )
+      }
+      style={primaryButtonStyle}
+    >
+      Back to Login
+    </button>
+  </>
+
+)}
 
         <label style={labelStyle}>
           New Password

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { useRouter } from "next/navigation";
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
@@ -50,6 +51,9 @@ const [inviteePrimaryConfirmed, setInviteePrimaryConfirmed] =
     const [error, setError] = useState("");
 
     const [success, setSuccess] = useState("");
+
+const [captchaToken, setCaptchaToken] =
+    useState<string | null>(null);
 
 const [registrationCompleted, setRegistrationCompleted] =
     useState(false);
@@ -107,6 +111,11 @@ const [registrationCompleted, setRegistrationCompleted] =
             return;
         }
 
+if (!captchaToken) {
+    setError("Please complete the security verification.");
+    return;
+}
+
         try {
 
             setLoading(true);
@@ -124,7 +133,8 @@ const [registrationCompleted, setRegistrationCompleted] =
                     fullName.trim(),
                     email.trim(),
                     password,
-                    "PRIMARY"
+                    "PRIMARY",
+                    captchaToken
                 );
 
             setRegistrationCompleted(true);
@@ -520,6 +530,15 @@ const [registrationCompleted, setRegistrationCompleted] =
                     </button>
 
                 </div>
+
+<div className="captcha-container">
+    <Turnstile
+        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+        onSuccess={(token) => setCaptchaToken(token)}
+        onExpire={() => setCaptchaToken(null)}
+        onError={() => setCaptchaToken(null)}
+    />
+</div>
 
                 <button
                     type="button"
@@ -1137,6 +1156,13 @@ Primary Family Member.
                     color: #7f879d;
                     cursor: pointer;
                 }
+
+.captcha-container {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
 
                 .create-account-button {
                     width: 100%;

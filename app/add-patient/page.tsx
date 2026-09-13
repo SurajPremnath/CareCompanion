@@ -244,7 +244,9 @@ AppAlert.success(
   t("addPatient.saveSuccess")
 );
 
-router.push("/dashboard");
+router.replace(
+  "/dashboard"
+);
 
       }
       catch {

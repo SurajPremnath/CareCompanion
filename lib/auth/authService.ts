@@ -18,7 +18,8 @@ async register(
   fullName: string,
   email: string,
   password: string,
-  familyMemberType: "PRIMARY" | "SECONDARY" | "OTHER"
+  familyMemberType: "PRIMARY" | "SECONDARY" | "OTHER",
+  captchaToken: string
 ): Promise<{
   user: User;
   session: Session | null;
@@ -31,17 +32,19 @@ async register(
 
       password,
 
-      options: {
+options: {
 
-        data: {
+  captchaToken,
 
-          full_name: fullName,
+  data: {
 
-          family_member_type: familyMemberType
+    full_name: fullName,
 
-        }
+    family_member_type: familyMemberType
 
-      }
+  }
+
+}
 
     });
 

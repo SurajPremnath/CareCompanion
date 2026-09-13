@@ -3394,90 +3394,213 @@ const handleCopyInvitationTemplate = async () => {
 
 @media (max-width: 650px) {
     .invite-care-family-page {
-        padding: 0 10px;
+        width: 100%;
+        min-width: 0;
+        padding: 0 8px;
+        overflow-x: hidden;
+    }
+
+    .invite-care-family-shell {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        overflow-x: hidden;
     }
 
     .invite-care-family-content {
-        padding: 24px 4px 28px;
+        width: 100%;
+        min-width: 0;
+        padding: 18px 2px 22px;
     }
 
     .invite-heading-row {
         display: block;
+        width: 100%;
+        min-width: 0;
+        margin-bottom: 18px;
+    }
+
+    .invite-heading-row h1 {
+        font-size: 28px;
+        line-height: 1.12;
+        letter-spacing: -0.4px;
+    }
+
+    .invite-heading-row p {
+        max-width: 100%;
+        margin-top: 8px;
+        font-size: 13px;
+        line-height: 1.45;
     }
 
     .invite-welcome {
-        margin-top: 15px;
+        width: 100%;
+        min-width: 0;
         max-width: none;
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 13px;
+    }
+
+    .invite-layout,
+    .invite-main,
+    .invite-sidebar {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .invite-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .invite-card {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        padding: 16px;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .step-heading {
+        gap: 9px;
+        margin-bottom: 14px;
+    }
+
+    .step-heading h2 {
+        font-size: 18px;
+        line-height: 1.2;
+    }
+
+    .step-heading p {
+        font-size: 11px;
+        line-height: 1.45;
     }
 
     .role-grid {
         grid-template-columns: 1fr;
+        gap: 10px;
     }
 
     .role-card {
-        min-height: 120px;
+        width: 100%;
+        min-width: 0;
+        min-height: 92px;
+        padding: 13px 42px 13px 13px;
         text-align: left;
-        padding: 15px 48px 15px 15px;
     }
 
     .role-card-icon {
-        margin: 0 0 8px;
+        margin: 0 0 7px;
     }
 
     .module-list {
         grid-template-columns: 1fr;
+        gap: 8px;
     }
 
     .invitation-summary {
         grid-template-columns: 1fr;
+        gap: 8px;
     }
 
     .access-row {
         align-items: flex-start;
         flex-direction: column;
-        gap: 8px;
+        gap: 5px;
     }
 
     .access-value {
+        width: 100%;
         text-align: left;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
+    /* ========================================================
+       TEMPORARY PASSWORD — MOBILE
+    ======================================================== */
+
+    .temporary-password-card {
+        width: 100%;
+        min-width: 0;
+        padding: 13px;
+        border-radius: 14px;
+    }
+
+    .temporary-password-content {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .temporary-password-value-box {
+        min-height: 48px;
+        padding: 0 12px;
+    }
+
+    .temporary-password-value-box strong {
+        font-size: 13px;
+        overflow-wrap: anywhere;
+        word-break: break-all;
+    }
+
+    .temporary-password-expiry {
+        padding: 8px 0 0;
+        border-left: 0;
+        border-top: 1px solid #e3ebf3;
+    }
 
     /* ========================================================
        STEP 5 — MOBILE
     ======================================================== */
 
     .step-five-heading h2 {
-        font-size: 21px;
+        font-size: 19px;
+        line-height: 1.2;
     }
 
     .step-five-heading p {
-        font-size: 12px;
-        line-height: 1.55;
+        font-size: 11px;
+        line-height: 1.45;
     }
 
     .email-template-card {
-        padding: 10px;
-        border-radius: 15px;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        padding: 8px;
+        border-radius: 13px;
+        overflow: hidden;
     }
 
     .email-subject-row {
-        padding: 13px;
+        padding: 10px;
     }
 
     .email-field-copy strong {
-        font-size: 13px;
+        font-size: 12px;
+        line-height: 1.35;
         overflow-wrap: anywhere;
         word-break: break-word;
     }
 
+    .email-body-section,
+    .email-body-content {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
     .email-body-content pre {
-        min-height: 280px;
-        max-height: 420px;
-        padding: 14px;
-        font-size: 11px;
-        line-height: 1.65;
-        overflow-x: auto;
+        min-height: 160px;
+        max-height: 280px;
+        padding: 11px;
+        font-size: 10px;
+        line-height: 1.5;
+        overflow-x: hidden;
+        overflow-y: auto;
         white-space: pre-wrap;
         overflow-wrap: anywhere;
         word-break: break-word;
@@ -3485,16 +3608,31 @@ const handleCopyInvitationTemplate = async () => {
 
     .copy-email-template-button {
         width: 100%;
-        min-height: 58px;
-        padding: 9px 14px;
+        min-height: 52px;
+        padding: 8px 12px;
+    }
+
+    .copy-email-template-button strong {
+        font-size: 11px;
+    }
+
+    .copy-email-template-button small {
+        font-size: 9px;
     }
 
     .invitation-send-notice {
-        padding: 11px 12px;
+        width: 100%;
+        padding: 10px 11px;
+    }
+
+    .invitation-send-notice span {
+        font-size: 9px;
+        line-height: 1.4;
     }
 
     .finish-invitation-button {
-        min-height: 52px;
+        width: 100%;
+        min-height: 50px;
     }
 }
 
