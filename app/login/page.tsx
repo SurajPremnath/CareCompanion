@@ -755,6 +755,94 @@ return (
   overflow: visible;
 }
 
+.login-action-grid {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+
+  width: 100%;
+
+  column-gap: 24px;
+  row-gap: 6px;
+
+  align-items: center;
+  justify-items: center;
+
+  margin: 0;
+}
+
+.login-action-grid .forgot-password {
+  grid-column: 1;
+  grid-row: 1;
+
+  justify-self: center;
+
+  width: auto;
+  margin: 0;
+  padding: 0;
+
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.login-register-prompt {
+  grid-column: 2;
+  grid-row: 1;
+
+  justify-self: center;
+
+  margin: 0;
+
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.login-action-grid .primary-button {
+  grid-column: 1;
+  grid-row: 2;
+
+  justify-self: center;
+
+  width: 72px;
+  height: 32px;
+
+  margin: 0;
+  padding: 0;
+
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.login-create-account {
+  grid-column: 2;
+  grid-row: 2;
+
+  justify-self: center;
+
+  width: 118px;
+  height: 32px;
+
+  margin: 0;
+  padding: 0;
+
+  border: 1px solid #7043f5;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #7043f5;
+
+  font-size: 11px;
+  font-weight: 650;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+}
+
 .login-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1481,71 +1569,99 @@ return (
      FORGOT PASSWORD + SIGN IN
      --------------------------------------------------------- */
 
-  .login-actions {
-    display: grid;
+.login-actions {
+  display: none;
+}
 
-    grid-template-columns: 1fr 1.65fr;
+.login-action-grid {
+  display: grid;
 
-    align-items: center;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
 
-    gap: 8px;
+  width: 100%;
 
-    margin-top: 1px;
-  }
+  column-gap: 24px;
+  row-gap: 6px;
 
-  .forgot-password {
-    order: 1;
+  align-items: center;
+  justify-items: center;
 
-    align-self: center;
-    justify-self: start;
+  margin: 0;
+}
 
-    margin: 0;
+.login-action-grid .forgot-password {
+  grid-column: 1;
+  grid-row: 1;
 
-    padding: 2px 0;
+  justify-self: center;
 
-    border: 0;
+  width: auto;
+  margin: 0;
+  padding: 0;
 
-    background: transparent;
+  font-size: 12px;
+  line-height: 1.2;
 
-    color: #7043f5;
+  white-space: nowrap;
+}
 
-    font-size: 14px;
-    font-weight: 650;
+.login-register-prompt {
+  grid-column: 2;
+  grid-row: 1;
 
-    white-space: nowrap;
+  justify-self: center;
 
-    cursor: pointer;
-  }
+  margin: 0;
 
-  .primary-button {
-    order: 2;
+  font-size: 12px;
+  line-height: 1.2;
 
-    width: 100%;
-    height: 41px;
+  white-space: nowrap;
+}
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.login-action-grid .primary-button {
+  grid-column: 1;
+  grid-row: 2;
 
-    border: 0;
-    border-radius: 11px;
+  justify-self: center;
 
-    background:
-      linear-gradient(
-        135deg,
-        #7545f5,
-        #6432e8
-      );
+  width: 72px;
+  height: 32px;
 
-    color: #ffffff;
+  margin: 0;
+  padding: 0;
 
-    font-size: 12.5px;
-    font-weight: 700;
+  border-radius: 8px;
 
-    box-shadow:
-      0 6px 14px
-      rgba(106, 62, 239, 0.17);
-  }
+  font-size: 11px;
+}
+
+.login-create-account {
+  grid-column: 2;
+  grid-row: 2;
+
+  justify-self: center;
+
+  width: 118px;
+  height: 32px;
+
+  margin: 0;
+  padding: 0;
+
+  border: 1px solid #7043f5;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #7043f5;
+
+  font-size: 11px;
+  font-weight: 650;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+}
 
   /* ---------------------------------------------------------
      MOBILE LOGIN METHOD TABS
