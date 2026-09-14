@@ -1239,7 +1239,7 @@ return (
 }
 
 .login-footer {
-  display: block;
+  display: None;
 }
 
   /* ---------------------------------------------------------
@@ -1521,6 +1521,83 @@ return (
 
     background: rgba(255, 255, 255, 0.72);
   }
+
+/* ---------------------------------------------------------
+   MOBILE LOGIN METHOD TABS
+   --------------------------------------------------------- */
+
+.login-method-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  width: 100%;
+  height: 32px;
+
+  margin-bottom: 8px;
+  padding: 2px;
+
+  border: 1px solid #ddd7f2;
+  border-radius: 9px;
+
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.login-method-content[data-login-method="EMAIL"]
+  .login-google-panel,
+.login-method-content[data-login-method="EMAIL"]
+  .divider {
+  display: none;
+}
+
+.login-method-content[data-login-method="GOOGLE"]
+  .login-email-panel {
+  display: none;
+}
+
+.login-method-content[data-login-method="GOOGLE"]
+  .divider {
+  display: none;
+}
+
+.login-method-content[data-login-method="GOOGLE"]
+  .login-google-panel {
+  display: block;
+}
+
+.login-method-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  border: 0;
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #737b91;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.login-method-tab-active {
+  background: #ffffff;
+
+  color: #7043f5;
+
+  box-shadow:
+    0 1px 4px
+    rgba(36, 28, 75, 0.08);
+}
+
+/* ---------------------------------------------------------
+   GOOGLE
+   --------------------------------------------------------- */
 
 .login-method-content[data-login-method="EMAIL"]
   .login-google-panel,
@@ -2104,26 +2181,18 @@ return (
 
 <div
   style={{
-    marginTop: "10px",
-    marginBottom: "12px",
     display: "flex",
     justifyContent: "center",
     width: "100%",
+    transform: "scale(0.9)",
+    transformOrigin: "center",
   }}
 >
   <Turnstile
-    siteKey={
-      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!
-    }
-    onSuccess={(token) =>
-      setCaptchaToken(token)
-    }
-    onExpire={() =>
-      setCaptchaToken(null)
-    }
-    onError={() =>
-      setCaptchaToken(null)
-    }
+    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+    onSuccess={(token) => setCaptchaToken(token)}
+    onExpire={() => setCaptchaToken(null)}
+    onError={() => setCaptchaToken(null)}
   />
 </div>
 
