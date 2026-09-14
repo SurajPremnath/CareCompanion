@@ -285,17 +285,22 @@ const filteredTimeline =
         []
     ).filter(
         event => {
+            if (!patientId) {
+                const eventDate =
+                    event.date.slice(0, 10);
+
+                return (
+                    eventDate >= startDate &&
+                    eventDate <= endDate
+                );
+            }
 
             const eventDate =
-                new Date(
-                    event.date
-                );
+                new Date(event.date);
 
             return (
-                eventDate >=
-                    reportStart &&
-                eventDate <=
-                    reportEnd
+                eventDate >= reportStart &&
+                eventDate <= reportEnd
             );
         }
     );
@@ -469,6 +474,11 @@ filteredTimeline.forEach(
 const groupedTimeline = [
     bucket
 ];
+
+console.log(
+    "[ExecutiveSummary SELF DEBUG] groupedTimeline:",
+    groupedTimeline
+);
 
 const story =
     buildClinicalStory(

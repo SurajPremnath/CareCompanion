@@ -76,27 +76,20 @@ recorded_at
     const selfResult =
         await selfDailyCareRepository.getByUserId();
 
-    dailyCare =
-        selfResult
-            .filter(record => {
+dailyCare =
+    selfResult
+        .filter(record => {
 
-                const recordedAt =
-                    new Date(
-                        record.recordedAt
-                    );
+            const recordedDate =
+                record.recordedAt
+                    .slice(0, 10);
 
-                return (
-                    recordedAt >=
-                        new Date(
-                            `${startDate}T00:00:00`
-                        ) &&
-                    recordedAt <=
-                        new Date(
-                            `${endDate}T23:59:59`
-                        )
-                );
+            return (
+                recordedDate >= startDate &&
+                recordedDate <= endDate
+            );
 
-            })
+        })
             .map(record => ({
 
                 temperature:

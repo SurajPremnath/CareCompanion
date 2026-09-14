@@ -96,9 +96,6 @@ useEffect(() => {
         return;
     }
 
-    if (!patientId) {
-        return;
-    }
 
     if (!startDate || !endDate) {
         return;

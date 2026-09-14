@@ -122,11 +122,24 @@ async getByUserId(
 
 
 
-    if (error || !data) {
+if (error) {
 
-      return [];
+    console.error(
+        "Supabase Self Daily Care Query Error:",
+        error
+    );
 
-    }
+    throw new Error(
+        error.message
+    );
+
+}
+
+if (!data) {
+
+    return [];
+
+}
 
     return data.map(row =>
       SelfDailyCareMapper.toDomain(

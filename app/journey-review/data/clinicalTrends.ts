@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-
+import { selfDailyCareRepository } from "@/lib/repositories/SelfDailyCareRepository";
 
 
 export interface ClinicalTrendSummary {
@@ -21,69 +21,115 @@ export interface ClinicalTrendSummary {
 
 
 export async function buildClinicalTrends(
-    patientId: string,
+    patientId: string | null,
     startDate: string,
     endDate: string
 ):
-
 Promise<ClinicalTrendSummary[]> {
 
 
 
-const { data,error } = await supabase
+let records: {
+    temperature: number | null;
+    pulse: number | null;
+    spo2: number | null;
+    systolic: number | null;
+    diastolic: number | null;
+    weight_kg: number | null;
+}[] = [];
 
-.from("daily_care")
+if (patientId) {
+    const { data, error } = await supabase
+        .from("daily_care")
+        .select(
+            `
+            temperature,
+            pulse,
+            spo2,
+            systolic,
+            diastolic,
+            weight_kg
+            `
+        )
+        .eq(
+            "patient_id",
+            patientId
+        )
+        .gte(
+            "recorded_at",
+            `${startDate} 00:00:00`
+        )
+        .lte(
+            "recorded_at",
+            `${endDate} 23:59:59`
+        )
+        .order(
+            "recorded_at",
+            {
+                ascending: true
+            }
+        );
 
-.select(
-`
-temperature,
-pulse,
-spo2,
-systolic,
-diastolic,
-weight_kg
-`
-)
-
-.eq(
-    "patient_id",
-    patientId
-)
-
-.gte(
-    "recorded_at",
-    `${startDate} 00:00:00`
-)
-
-.lte(
-    "recorded_at",
-    `${endDate} 23:59:59`
-)
-
-.order(
-    "recorded_at",
-    {
-        ascending: true
+    if (error) {
+        throw error;
     }
-);
 
+    records = data ?? [];
+} else {
+    const selfRecords =
+        await selfDailyCareRepository.getByUserId();
 
-if(error){
+    records = selfRecords
+        .filter(record => {
+            const recordedDate =
+                record.recordedAt.slice(0, 10);
 
-    throw error;
+            return (
+                recordedDate >= startDate &&
+                recordedDate <= endDate
+            );
+        })
+        .sort(
+            (a, b) =>
+                a.recordedAt.localeCompare(
+                    b.recordedAt
+                )
+        )
+        .map(record => ({
+            temperature:
+                record.temperature ?? null,
 
+            pulse:
+                record.pulse ?? null,
+
+            spo2:
+                record.spo2 ?? null,
+
+            systolic:
+                record.systolic ?? null,
+
+            diastolic:
+                record.diastolic ?? null,
+
+            weight_kg:
+                record.weightKg ?? null,
+        }));
 }
-
-
-
-const records =
-    data ?? [];
 
 if (records.length === 0) {
     return [];
 }
 
 
+const numericValues = (
+    values: (number | null | undefined)[]
+): number[] => {
+    return values.filter(
+        (value): value is number =>
+            value !== null &&
+            value !== undefined
+    );
+};
 
 
 const calculate = (
@@ -153,56 +199,46 @@ const calculate = (
 
 const temperature =
 calculate(
-records
-.map(r=>r.temperature)
-.filter(Boolean)
+    numericValues(
+        records.map(r => r.temperature)
+    )
 );
-
 
 
 const pulse =
 calculate(
-records
-.map(r=>r.pulse)
-.filter(Boolean)
+    numericValues(
+        records.map(r => r.pulse)
+    )
 );
-
-
 
 const spo2 =
 calculate(
-records
-.map(r=>r.spo2)
-.filter(Boolean)
+    numericValues(
+        records.map(r => r.spo2)
+    )
 );
-
-
 
 const systolic =
 calculate(
-records
-.map(r=>r.systolic)
-.filter(Boolean)
+    numericValues(
+        records.map(r => r.systolic)
+    )
 );
-
-
 
 const diastolic =
 calculate(
-records
-.map(r=>r.diastolic)
-.filter(Boolean)
+    numericValues(
+        records.map(r => r.diastolic)
+    )
 );
-
-
 
 const weight =
 calculate(
-records
-.map(r=>r.weight_kg)
-.filter(Boolean)
+    numericValues(
+        records.map(r => r.weight_kg)
+    )
 );
-
 
 
 
