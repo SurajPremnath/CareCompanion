@@ -761,29 +761,26 @@ return (
 }
 
 .login-actions {
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
   align-items: center;
   justify-content: center;
-
-  gap: 8px;
-
+  gap: 5px;
   width: 100%;
   margin: 0;
 }
 
-.forgot-password {
-  align-self: center;
-  font-size: 12px;
-  line-height: 1.2;
+.login-actions .forgot-password {
+  display: block;
+  width: auto;
+  order: 1;
 }
 
 .login-actions .primary-button {
+  display: flex;
   width: 86px;
   height: 34px;
-  align-self: center;
-  border-radius: 9px;
-  font-size: 11px;
+  order: 2;
 }
 
       .primary-button {
