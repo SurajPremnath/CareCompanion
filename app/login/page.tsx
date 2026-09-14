@@ -825,6 +825,8 @@ return (
   font-size: 11.5px;
   font-weight: 700;
 
+transform: translateY(-5px);
+
   box-shadow:
     0 4px 10px
     rgba(106, 62, 239, 0.14);
@@ -838,6 +840,8 @@ return (
 
   width: 132px;
   height: 34px;
+
+ transform: translateY(-5px);
 
   margin: 0;
   padding: 0;
@@ -1386,6 +1390,10 @@ return (
 
 .login-footer {
   display: None;
+}
+
+.login-register-desktop {
+  display: none;
 }
 
   /* ---------------------------------------------------------
