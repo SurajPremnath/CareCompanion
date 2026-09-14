@@ -763,13 +763,13 @@ return (
 
   width: 100%;
 
-  column-gap: 24px;
-  row-gap: 6px;
+  column-gap: 20px;
+  row-gap: 7px;
 
   align-items: center;
   justify-items: center;
 
-  margin: 0;
+  margin: 2px 0 0;
 }
 
 .login-action-grid .forgot-password {
@@ -782,8 +782,12 @@ return (
   margin: 0;
   padding: 0;
 
-  font-size: 12px;
+  color: #7043f5;
+
+  font-size: 11.5px;
+  font-weight: 650;
   line-height: 1.2;
+
   white-space: nowrap;
 }
 
@@ -795,8 +799,12 @@ return (
 
   margin: 0;
 
-  font-size: 12px;
+  color: #5f6780;
+
+  font-size: 11.5px;
+  font-weight: 600;
   line-height: 1.2;
+
   white-space: nowrap;
 }
 
@@ -806,14 +814,20 @@ return (
 
   justify-self: center;
 
-  width: 72px;
-  height: 32px;
+  width: 104px;
+  height: 34px;
 
   margin: 0;
   padding: 0;
 
-  border-radius: 8px;
-  font-size: 11px;
+  border-radius: 9px;
+
+  font-size: 11.5px;
+  font-weight: 700;
+
+  box-shadow:
+    0 4px 10px
+    rgba(106, 62, 239, 0.14);
 }
 
 .login-create-account {
@@ -822,20 +836,19 @@ return (
 
   justify-self: center;
 
-  width: 118px;
-  height: 32px;
+  width: 132px;
+  height: 34px;
 
   margin: 0;
   padding: 0;
 
   border: 1px solid #7043f5;
-  border-radius: 8px;
+  border-radius: 9px;
 
-  background: #ffffff;
-
+  background: rgba(255, 255, 255, 0.88);
   color: #7043f5;
 
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 650;
 
   white-space: nowrap;
