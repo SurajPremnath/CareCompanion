@@ -1,23 +1,39 @@
 import { supabase } from "@/lib/supabase";
+import {
+    selfDailyCareRepository
+} from "@/lib/repositories/SelfDailyCareRepository";
 import type {
     ExecutiveSummaryViewModel
 } from "../components/types";
 
 
 export async function buildExecutiveSummary(
-    patientId: string,
+    patientId: string | null,
     startDate: string,
     endDate: string
 ): Promise<ExecutiveSummaryViewModel> {
 
 
-    const {
-        data: dailyCare,
-        error: dailyCareError
-    } =
-    await supabase
-        .from("daily_care")
-        .select(
+let dailyCare: {
+    temperature: number | null;
+    pulse: number | null;
+    spo2: number | null;
+    systolic: number | null;
+    diastolic: number | null;
+    weight_kg: number | null;
+    symptoms: string[] | null;
+    other_symptom: string | null;
+    recorded_at: string;
+}[] = [];
+
+let dailyCareError: unknown = null;
+
+if (patientId) {
+
+    const result =
+        await supabase
+            .from("daily_care")
+            .select(
 `
 temperature,
 pulse,
@@ -29,44 +45,90 @@ symptoms,
 other_symptom,
 recorded_at
 `
-        )
-        .eq(
-            "patient_id",
-            patientId
-        )
-        .gte(
-            "recorded_at",
-            `${startDate}T00:00:00`
-        )
-        .lte(
-            "recorded_at",
-            `${endDate}T23:59:59`
-        )
-    .order(
-        "recorded_at",
-        {
-            ascending:true
-        }
-    );
+            )
+            .eq(
+                "patient_id",
+                patientId
+            )
+            .gte(
+                "recorded_at",
+                `${startDate}T00:00:00`
+            )
+            .lte(
+                "recorded_at",
+                `${endDate}T23:59:59`
+            )
+            .order(
+                "recorded_at",
+                {
+                    ascending: true
+                }
+            );
 
-console.log(
-    "[EXEC SUMMARY DEBUG] daily_care",
-    {
-        patientId,
-        startDate,
-        endDate,
-        recordCount:
-            dailyCare?.length ?? 0,
-        firstRecord:
-            dailyCare?.[0] ?? null,
-        lastRecord:
-            dailyCare?.[
-                (dailyCare?.length ?? 1) - 1
-            ] ?? null,
-        error:
-            dailyCareError ?? null
-    }
-);
+    dailyCare =
+        result.data ?? [];
+
+    dailyCareError =
+        result.error ?? null;
+
+} else {
+
+    const selfResult =
+        await selfDailyCareRepository.getByUserId();
+
+    dailyCare =
+        selfResult
+            .filter(record => {
+
+                const recordedAt =
+                    new Date(
+                        record.recordedAt
+                    );
+
+                return (
+                    recordedAt >=
+                        new Date(
+                            `${startDate}T00:00:00`
+                        ) &&
+                    recordedAt <=
+                        new Date(
+                            `${endDate}T23:59:59`
+                        )
+                );
+
+            })
+            .map(record => ({
+
+                temperature:
+                    record.temperature,
+
+                pulse:
+                    record.pulse,
+
+                spo2:
+                    record.spo2,
+
+                systolic:
+                    record.systolic,
+
+                diastolic:
+                    record.diastolic,
+
+                weight_kg:
+                    record.weightKg,
+
+                symptoms:
+                    record.symptoms,
+
+                other_symptom:
+                    record.otherSymptom ?? null,
+
+                recorded_at:
+                    record.recordedAt,
+
+            }));
+
+}
 
 
 const {
@@ -115,39 +177,75 @@ await supabase
 const records =
     dailyCare ?? [];
 
-const {
-    data: previousDailyCare,
-    error: previousDailyCareError
-} =
-    await supabase
-        .from("daily_care")
-        .select(`
-            temperature,
-            pulse,
-            spo2,
-            systolic,
-            diastolic,
-            weight_kg,
-            recorded_at
-        `)
-        .eq("patient_id", patientId)
-        .lt(
-            "recorded_at",
-            `${startDate}T00:00:00`
-        )
-        .order(
-            "recorded_at",
-            {
-                ascending: false
-            }
-        );
+let previousRecords: {
+    temperature: number | null;
+    pulse: number | null;
+    spo2: number | null;
+    systolic: number | null;
+    diastolic: number | null;
+    weight_kg: number | null;
+    recorded_at: string;
+}[] = [];
 
-if (previousDailyCareError) {
-    throw previousDailyCareError;
+if (patientId) {
+    const {
+        data: previousDailyCare,
+        error: previousDailyCareError
+    } =
+        await supabase
+            .from("daily_care")
+            .select(`
+                temperature,
+                pulse,
+                spo2,
+                systolic,
+                diastolic,
+                weight_kg,
+                recorded_at
+            `)
+            .eq("patient_id", patientId)
+            .lt(
+                "recorded_at",
+                `${startDate}T00:00:00`
+            )
+            .order(
+                "recorded_at",
+                {
+                    ascending: false
+                }
+            );
+
+    if (previousDailyCareError) {
+        throw previousDailyCareError;
+    }
+
+    previousRecords =
+        previousDailyCare ?? [];
+} else {
+    const selfDailyCare =
+        await selfDailyCareRepository.getByUserId();
+
+    previousRecords =
+        selfDailyCare
+            .filter(record =>
+                new Date(record.recordedAt) <
+                new Date(`${startDate}T00:00:00`)
+            )
+            .sort(
+                (a, b) =>
+                    new Date(b.recordedAt).getTime() -
+                    new Date(a.recordedAt).getTime()
+            )
+            .map(record => ({
+                temperature: record.temperature,
+                pulse: record.pulse,
+                spo2: record.spo2,
+                systolic: record.systolic,
+                diastolic: record.diastolic,
+                weight_kg: record.weightKg,
+                recorded_at: record.recordedAt
+            }));
 }
-
-const previousRecords =
-    previousDailyCare ?? [];
 
 const selectedVitalValues = {
     temperature:

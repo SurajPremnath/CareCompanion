@@ -130,11 +130,11 @@ if (
 
     // DOCTOR
 
-    return {
-        showToggle: false,
-        showSelf: false,
-        showFamily: false,
-        initialMode: null,
-    };
+return {
+    showToggle: false,
+    showSelf: false,
+    showFamily: true,
+    initialMode: "FAMILY",
+};
 
 }

@@ -298,23 +298,28 @@ const handleLogin = async () => {
     return;
   }
 
-  try {
-    setLoading(true);
+try {
+  setLoading(true);
 
-    performanceTracker.start({
-      fromPath: "/login",
-      toPath: "/dashboard",
-      feature: "LOGIN_TO_DASHBOARD",
-    });
-
-const authenticatedUser =
-  await authService.login(
-    email.trim(),
-    password,
+  const verifiedCaptchaToken =
     authSecurity.requireCaptchaToken(
       captchaToken
-    )
-  );
+    );
+
+  setCaptchaToken(null);
+
+  performanceTracker.start({
+    fromPath: "/login",
+    toPath: "/dashboard",
+    feature: "LOGIN_TO_DASHBOARD",
+  });
+
+  const authenticatedUser =
+    await authService.login(
+      email.trim(),
+      password,
+      verifiedCaptchaToken
+    );
 
 const totpStatus =
   await authService.getTOTPLoginStatus();
