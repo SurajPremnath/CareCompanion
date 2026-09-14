@@ -1600,7 +1600,7 @@ return (
   align-items: center;
   justify-items: center;
 
-  margin: 0;
+  margin: -8px 0 0;
 }
 
 .login-action-grid .forgot-password {
@@ -1769,13 +1769,14 @@ return (
 
 .login-method-tab-active {
   background: #ffffff;
+
   color: #7043f5;
 
   border: 1px solid #7043f5;
 
   box-shadow:
-    0 1px 4px
-    rgba(112, 67, 245, 0.10);
+    0 2px 6px
+    rgba(112, 67, 245, 0.12);
 }
 
 /* ---------------------------------------------------------
