@@ -743,7 +743,7 @@ return (
   flex-direction: column;
   align-items: center;
   width: 100%;
-  gap: 8px;
+  gap: 4px;
 }
 
 .login-captcha {
@@ -769,7 +769,7 @@ return (
   align-items: center;
   justify-items: center;
 
-  margin: -10px 0 0;
+  margin: -14px 0 0;
 }
 
 .login-action-grid .forgot-password {
@@ -1770,7 +1770,12 @@ return (
 .login-method-tab-active {
   background: #ffffff;
   color: #7043f5;
-  box-shadow: none;
+
+  border: 1px solid #7043f5;
+
+  box-shadow:
+    0 1px 4px
+    rgba(112, 67, 245, 0.10);
 }
 
 /* ---------------------------------------------------------
