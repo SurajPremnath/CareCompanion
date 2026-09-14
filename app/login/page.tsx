@@ -769,7 +769,7 @@ return (
   align-items: center;
   justify-items: center;
 
-  margin: 2px 0 0;
+  margin: -2px 0 0;
 }
 
 .login-action-grid .forgot-password {
