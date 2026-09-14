@@ -742,8 +742,8 @@ return (
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
   width: 100%;
+  gap: 8px;
 }
 
 .login-captcha {
@@ -751,32 +751,50 @@ return (
   align-items: center;
   justify-content: center;
   width: 100%;
+  min-width: 0;
+  overflow: visible;
 }
 
 .login-actions {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
   width: 100%;
+  gap: 5px 12px;
   margin: 0;
 }
 
 .login-actions .forgot-password {
+  grid-column: 1;
+  grid-row: 1;
+
+  justify-self: center;
+
   display: block;
   width: auto;
+
   margin: 0;
+  padding: 0;
+
   font-size: 12px;
   line-height: 1.2;
 }
 
 .login-actions .primary-button {
+  grid-column: 1;
+  grid-row: 2;
+
+  justify-self: center;
+
   display: flex;
-  width: 86px;
+
+  width: 82px;
   height: 34px;
+
   margin: 0;
+
   border-radius: 9px;
+
   font-size: 11px;
 }
 
@@ -2220,7 +2238,7 @@ return (
     />
   </div>
 
-  <div className="login-actions">
+  <div className="login-action-grid">
     <button
       type="button"
       className="forgot-password"
@@ -2231,6 +2249,10 @@ return (
     >
       Forgot Password?
     </button>
+
+    <span className="registerPrompt login-register-prompt">
+      New to CareVR?
+    </span>
 
     <button
       type="button"
@@ -2243,6 +2265,18 @@ return (
       {loading
         ? "Signing In..."
         : "Sign In"}
+    </button>
+
+    <button
+      type="button"
+      className="login-create-account"
+      onClick={() => {
+        inviteeToPrimaryHandoff.clear();
+        router.replace("/register");
+      }}
+      disabled={loading}
+    >
+      Create an Account
     </button>
   </div>
 </div>
@@ -2298,7 +2332,7 @@ return (
 	</div>
 </div>
 
-<div className="register">
+<div className="register login-register-desktop">
   <span className="registerPrompt">New to CareVR?  </span>{" "}
   <button
     type="button"
