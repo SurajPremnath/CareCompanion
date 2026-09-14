@@ -185,34 +185,36 @@ if (!user) {
     );
 }
 
-if (!patientId) {
-    throw new Error(
-        "Patient is required to generate the report."
-    );
-}
+let selectedPatient = null;
 
-const patientResult =
-    await patientStorage.getPatients();
+if (patientId) {
 
-if (
-    !patientResult.success ||
-    !patientResult.data
-) {
-    throw new Error(
-        "Unable to load patient information."
-    );
-}
+    const patientResult =
+        await patientStorage.getPatients();
 
-const selectedPatient =
-    patientResult.data.find(
-        patient =>
-            patient.id === patientId
-    );
+    if (
+        !patientResult.success ||
+        !patientResult.data
+    ) {
+        throw new Error(
+            "Unable to load patient information."
+        );
+    }
 
-if (!selectedPatient) {
-    throw new Error(
-        "Selected patient could not be found."
-    );
+    const patient =
+        patientResult.data.find(
+            patient =>
+                patient.id === patientId
+        );
+
+    if (!patient) {
+        throw new Error(
+            "Selected patient could not be found."
+        );
+    }
+
+    selectedPatient = patient;
+
 }
 
 const prescriptionHistory =
@@ -477,35 +479,68 @@ const story =
                 "Generating PDF..."
             );
 
-const careVrPatient =
-    buildPatient();
+let reportPatient;
+
+if (patientId) {
+
+    const careVrPatient =
+        buildPatient();
+
+    reportPatient = {
+        id: patientId,
+
+        name:
+            patientName,
+
+age:
+    calculateAge(
+        selectedPatient!.dateOfBirth
+    ),
+
+gender:
+    selectedPatient!.gender ??
+    "Unknown",
+
+doctor:
+    careVrPatient.doctor,
+
+hospital:
+    careVrPatient.hospital,
+
+status:
+    selectedPatient!.status,
+    };
+
+} else {
+
+    reportPatient = {
+        id: user.id,
+
+name:
+    patientName,
+
+        age: null,
+
+        gender:
+            "Self",
+
+        doctor:
+            undefined,
+
+        hospital:
+            undefined,
+
+        status:
+            "Self",
+    };
+
+}
 
 const bytes =
     await executiveSummaryPdf.generate({
-        patient: {
-            id: patientId,
 
-            name:
-                patientName,
-
-            age:
-                calculateAge(
-                    selectedPatient.dateOfBirth
-                ),
-
-            gender:
-                selectedPatient.gender ??
-                "Unknown",
-
-            doctor:
-                careVrPatient.doctor,
-
-            hospital:
-                careVrPatient.hospital,
-
-            status:
-                selectedPatient.status,
-        },
+        patient:
+            reportPatient,
 
         reportPeriod:
             `${formatReportDate(
@@ -516,7 +551,8 @@ const bytes =
 
         summary,
 
-        clinicalStory: story,
+        clinicalStory:
+            story,
     });
 
             const pdfBytes =
