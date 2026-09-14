@@ -763,8 +763,8 @@ return (
 
   width: 100%;
 
-  column-gap: 20px;
-  row-gap: 7px;
+  column-gap: 10px;
+  row-gap: 4px;
 
   align-items: center;
   justify-items: center;
