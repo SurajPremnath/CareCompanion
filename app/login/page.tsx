@@ -1587,12 +1587,8 @@ return (
 
 .login-method-tab-active {
   background: #ffffff;
-
   color: #7043f5;
-
-  box-shadow:
-    0 1px 4px
-    rgba(36, 28, 75, 0.08);
+  box-shadow: none;
 }
 
 /* ---------------------------------------------------------
