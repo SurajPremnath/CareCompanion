@@ -10,7 +10,10 @@ import { useRouter } from "next/navigation";
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
-import { Turnstile } from "@marsidev/react-turnstile";
+import {
+  Turnstile,
+  type TurnstileInstance,
+} from "@marsidev/react-turnstile";
 
 import { authService } from "@/lib/auth/authService";
 
@@ -53,6 +56,9 @@ const [error, setError] = useState("");
 
 const [captchaToken, setCaptchaToken] =
     useState<string | null>(null);
+
+const turnstileRef =
+  useRef<TurnstileInstance>(null);
 
 const [showPassword, setShowPassword] =
     useState(false);
@@ -336,9 +342,11 @@ await completeLogin(authenticatedUser);
         : "Unable to login.";
 
     setError(message);
-  } finally {
-    setLoading(false);
-  }
+} finally {
+  setCaptchaToken(null);
+  turnstileRef.current?.reset();
+  setLoading(false);
+}
 };
 
 const handleVerifyLoginTOTP = async () => {
@@ -2374,7 +2382,8 @@ transform: translateY(-10px);
 <div className="login-security-actions">
   <div className="login-captcha">
     <Turnstile
-      siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+  ref={turnstileRef}
+  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
       onSuccess={(token) => setCaptchaToken(token)}
       onExpire={() => setCaptchaToken(null)}
       onError={() => setCaptchaToken(null)}
