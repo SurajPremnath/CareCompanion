@@ -220,7 +220,9 @@ if (patientId) {
 const prescriptionHistory =
     await prescriptionRepository.getPrescriptionHistory(
         user.id,
-        "FAMILY",
+        patientId
+            ? "FAMILY"
+            : "SELF",
         patientId,
         startDate,
         endDate
