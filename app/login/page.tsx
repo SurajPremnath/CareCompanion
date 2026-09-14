@@ -57,6 +57,9 @@ const [captchaToken, setCaptchaToken] =
 const [showPassword, setShowPassword] =
     useState(false);
 
+const [loginMethod, setLoginMethod] =
+  useState<"EMAIL" | "GOOGLE">("EMAIL");
+
 const [totpLogin, setTotpLogin] =
     useState<{
         user: Awaited<
@@ -428,9 +431,11 @@ return (
                   Open your authenticator app and
                   enter the 6-digit verification code.
                 </p>
-              </div>
+</div>
 
-              {error && (
+
+
+{error && (
                 <div
                   className="login-error"
                   role="alert"
@@ -873,6 +878,8 @@ return (
         z-index: 5;
       }
 
+
+
       /* ==============================
          RIGHT â€” BRAND IMAGE
       ============================== */
@@ -1232,7 +1239,7 @@ return (
 }
 
 .login-footer {
-  display: none;
+  display: block;
 }
 
   /* ---------------------------------------------------------
@@ -1493,6 +1500,72 @@ return (
     box-shadow:
       0 6px 14px
       rgba(106, 62, 239, 0.17);
+  }
+
+  /* ---------------------------------------------------------
+     MOBILE LOGIN METHOD TABS
+     --------------------------------------------------------- */
+
+  .login-method-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    width: 100%;
+    height: 38px;
+
+    margin-bottom: 9px;
+    padding: 3px;
+
+    border: 1px solid #ddd7f2;
+    border-radius: 11px;
+
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+.login-method-content[data-login-method="EMAIL"]
+  .login-google-panel,
+.login-method-content[data-login-method="EMAIL"]
+  .divider {
+  display: none;
+}
+
+.login-method-content[data-login-method="GOOGLE"]
+  .login-email-panel {
+  display: none;
+}
+
+.login-method-content[data-login-method="GOOGLE"]
+  .divider {
+  display: none;
+}
+
+.login-method-content[data-login-method="GOOGLE"]
+  .login-google-panel {
+  display: block;
+}
+
+  .login-method-tab {
+    border: 0;
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: #737b91;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+  }
+
+  .login-method-tab-active {
+    background: #ffffff;
+
+    color: #7043f5;
+
+    box-shadow:
+      0 2px 6px
+      rgba(36, 28, 75, 0.08);
   }
 
   /* ---------------------------------------------------------
@@ -1821,11 +1894,50 @@ return (
             <span className="role-label">
                 Family Member
             </span>
-        </button>
+    </button>
 
     </div>
 </div>
 
+<div
+  className="login-method-tabs"
+  role="tablist"
+  aria-label="Login method"
+>
+  <button
+    type="button"
+    className={`login-method-tab ${
+      loginMethod === "EMAIL"
+        ? "login-method-tab-active"
+        : ""
+    }`}
+    role="tab"
+    aria-selected={loginMethod === "EMAIL"}
+    onClick={() =>
+      setLoginMethod("EMAIL")
+    }
+    disabled={loading || googleLoading}
+  >
+    Email
+  </button>
+
+  <button
+    type="button"
+    className={`login-method-tab ${
+      loginMethod === "GOOGLE"
+        ? "login-method-tab-active"
+        : ""
+    }`}
+    role="tab"
+    aria-selected={loginMethod === "GOOGLE"}
+    onClick={() =>
+      setLoginMethod("GOOGLE")
+    }
+    disabled={loading || googleLoading}
+  >
+    Google
+  </button>
+</div>
 {error && (
   <div
     className="login-error"
@@ -1836,7 +1948,14 @@ return (
   </div>
 )}
 
-            {/* EMAIL */}
+<div
+  className="login-method-content"
+  data-login-method={loginMethod}
+>
+
+  <div className="login-email-panel">
+
+    {/* EMAIL */}
 
             <div className="field">
 
@@ -2033,6 +2152,7 @@ return (
                   : "Sign In"}
               </button>
             </div>
+ </div>
 
             <div className="divider">
               <span className="divider-line" />
@@ -2042,6 +2162,7 @@ return (
               <span className="divider-line" />
             </div>
 
+<div className="login-google-panel">
             <button
               type="button"
               className="google-button"
@@ -2080,6 +2201,8 @@ return (
                 ? "Connecting..."
                 : "Continue with Google"}
             </button>
+	</div>
+</div>
 
 <div className="register">
   <span className="registerPrompt">New to CareVR?  </span>{" "}
