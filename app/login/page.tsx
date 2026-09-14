@@ -738,25 +738,46 @@ return (
         color: #7043f5;
       }
 
-      .login-actions {
-        display: flex;
-        flex-direction: column;
-      }
+.login-security-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.login-captcha {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  overflow: hidden;
+  transform: scale(0.9);
+  transform-origin: left center;
+}
+
+.login-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  margin: 0;
+}
 
 .forgot-password {
-  order: 1;
   align-self: center;
-  justify-self: start;
-  margin: 0;
-  padding: 2px 0;
-  border: 0;
-  background: transparent;
-  color: #7043f5;
-  font-size: 16px;
-  line-height: 1.4;
-  font-weight: 650;
-  white-space: nowrap;
-  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.login-actions .primary-button {
+  width: 86px;
+  height: 34px;
+  align-self: center;
+  border-radius: 9px;
+  font-size: 11px;
 }
 
       .primary-button {
@@ -1046,7 +1067,7 @@ return (
       }
 
 .role-option-selected {
-  border: 2px solid #7043f5;
+  border: 1px solid #7043f5;
 
   background: #f7f3ff;
 
@@ -1186,11 +1207,17 @@ return (
           gap: 7px;
         }
 
-        .role-option {
-          min-height: 78px;
-          padding: 8px 4px;
-          border-radius: 12px;
-        }
+.role-option {
+  height: 58px;
+  min-height: 58px;
+  padding: 4px;
+  border-radius: 10px;
+
+  box-sizing: border-box;
+
+  align-items: center;
+  justify-content: center;
+}
 
         .role-icon {
           width: 27px;
@@ -1571,6 +1598,13 @@ return (
 
   width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  margin: 0;
+  padding: 0;
+
+  box-sizing: border-box;
 
   border: 0;
   border-radius: 7px;
@@ -1581,6 +1615,7 @@ return (
 
   font-size: 11px;
   font-weight: 700;
+  line-height: 1;
 
   cursor: pointer;
 }
@@ -2175,48 +2210,42 @@ return (
               </div>
             </div>
 
-<div
-  style={{
-    display: "flex",
-    justifyContent: "center",
-    width: "100%",
-    transform: "scale(0.9)",
-    transformOrigin: "center",
-  }}
->
-  <Turnstile
-    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-    onSuccess={(token) => setCaptchaToken(token)}
-    onExpire={() => setCaptchaToken(null)}
-    onError={() => setCaptchaToken(null)}
-  />
+<div className="login-security-actions">
+  <div className="login-captcha">
+    <Turnstile
+      siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+      onSuccess={(token) => setCaptchaToken(token)}
+      onExpire={() => setCaptchaToken(null)}
+      onError={() => setCaptchaToken(null)}
+    />
+  </div>
+
+  <div className="login-actions">
+    <button
+      type="button"
+      className="forgot-password"
+      onClick={() =>
+        router.push("/forgot-password")
+      }
+      disabled={loading}
+    >
+      Forgot Password?
+    </button>
+
+    <button
+      type="button"
+      className="primary-button"
+      onClick={() =>
+        void handleLogin()
+      }
+      disabled={loading}
+    >
+      {loading
+        ? "Signing In..."
+        : "Sign In"}
+    </button>
+  </div>
 </div>
-
-            <div className="login-actions">
-              <button
-                type="button"
-                className="forgot-password"
-                onClick={() =>
-                  router.push("/forgot-password")
-                }
-                disabled={loading}
-              >
-                Forgot Password?
-              </button>
-
-              <button
-                type="button"
-                className="primary-button"
-                onClick={() =>
-                  void handleLogin()
-                }
-                disabled={loading}
-              >
-                {loading
-                  ? "Signing In..."
-                  : "Sign In"}
-              </button>
-            </div>
  </div>
 
             <div className="divider">
