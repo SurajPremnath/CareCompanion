@@ -740,7 +740,7 @@ return (
 
 .login-security-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.35fr 0.85fr;
   align-items: center;
   gap: 10px;
   width: 100%;
@@ -750,18 +750,24 @@ return (
   display: flex;
   align-items: center;
   justify-content: flex-start;
+
   width: 100%;
-  overflow: hidden;
-  transform: scale(0.9);
+  min-width: 0;
+
+  overflow: visible;
+
+  transform: scale(1);
   transform-origin: left center;
 }
 
 .login-actions {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
-  gap: 7px;
+
+  gap: 8px;
+
   width: 100%;
   margin: 0;
 }
