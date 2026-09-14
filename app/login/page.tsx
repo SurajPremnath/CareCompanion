@@ -739,33 +739,26 @@ return (
       }
 
 .login-security-actions {
-  display: grid;
-  grid-template-columns: 1.35fr 0.85fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 7px;
   width: 100%;
 }
 
 .login-captcha {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-
+  justify-content: center;
   width: 100%;
-  min-width: 0;
-
-  overflow: visible;
-
-  transform: scale(1);
-  transform-origin: left center;
 }
 
 .login-actions {
-  display: flex !important;
-  flex-direction: column !important;
+  display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 12px;
   width: 100%;
   margin: 0;
 }
@@ -773,14 +766,18 @@ return (
 .login-actions .forgot-password {
   display: block;
   width: auto;
-  order: 1;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.2;
 }
 
 .login-actions .primary-button {
   display: flex;
   width: 86px;
   height: 34px;
-  order: 2;
+  margin: 0;
+  border-radius: 9px;
+  font-size: 11px;
 }
 
       .primary-button {
