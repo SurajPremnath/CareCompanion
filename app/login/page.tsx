@@ -825,7 +825,7 @@ return (
   font-size: 11.5px;
   font-weight: 700;
 
-transform: translateY(-5px);
+transform: translateY(-10px);
 
   box-shadow:
     0 4px 10px
@@ -841,7 +841,7 @@ transform: translateY(-5px);
   width: 132px;
   height: 34px;
 
- transform: translateY(-5px);
+ transform: translateY(-10px);
 
   margin: 0;
   padding: 0;
