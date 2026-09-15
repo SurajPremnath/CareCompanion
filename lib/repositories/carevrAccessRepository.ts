@@ -56,6 +56,57 @@ export class CareVRAccessRepository extends BaseRepository {
   }
 
   /**
+   * Returns all ACTIVE CareVR access records
+   * belonging to the authenticated user.
+   *
+   * carevr_access is the source of truth for
+   * the user's available CareVR contexts.
+   *
+   * This method does not select a role.
+   * It only returns the contexts that actually exist
+   * and are ACTIVE for the user.
+   */
+  async getActiveAccessForUser(
+    userId: string
+  ): Promise<ActiveCareVRAccess[]> {
+
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("carevr_access")
+      .select(`
+        id,
+        user_id,
+        family_id,
+        patient_id,
+        access_type,
+        access_status
+      `)
+      .eq("user_id", userId)
+      .eq("access_status", "ACTIVE")
+      .order("created_at", {
+        ascending: true,
+      });
+
+    if (error) {
+      this.handleError(error);
+    }
+
+    return (data ?? []).map(
+      (access) => ({
+        id: access.id,
+        userId: access.user_id,
+        familyId: access.family_id,
+        patientId: access.patient_id,
+        accessType:
+          access.access_type as CareVRAccessType,
+        accessStatus: "ACTIVE",
+      })
+    );
+  }
+
+  /**
    * Returns an ACTIVE CareVR access record that is valid
    * for the role selected at Login.
    *

@@ -6,6 +6,8 @@ import React, {
   useState,
 } from "react";
 
+import { supabase } from "@/lib/supabase";
+
 import { useRouter } from "next/navigation";
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
@@ -35,6 +37,10 @@ import {
 import {
   carevrAuthorizationHandoff,
 } from "@/lib/authorization/carevrAuthorizationHandoff";
+
+import {
+  carevrContextResolver,
+} from "@/lib/auth/carevrContextResolver";
 
 import {
   validateInvitedUserLogin,
@@ -88,11 +94,11 @@ const [totpCode, setTotpCode] =
     useState("");
 
 /*
- * Care context and role are selected at Login.
+ * Care context is resolved from the authenticated user's
+ * ACTIVE carevr_access records.
  *
- * These values are currently UI state only. The subsequent
- * CareVR authorization layer will receive them with the login
- * request and validate the user's actual authorization.
+ * The selected context is an actual CareVR access record.
+ * Display labels are handled by the context resolver.
  */
 const [selectedContext, setSelectedContext] =
     useState<"FAMILY" | "ORGANISATION">("FAMILY");
@@ -104,6 +110,18 @@ const [selectedRole, setSelectedRole] =
         "CARETAKER" |
         "FAMILY"
     >("SELF");
+
+const [availableCareVRContexts, setAvailableCareVRContexts] =
+    useState<
+        import("@/lib/auth/carevrContextResolver")
+            .CareVRAvailableContext[]
+    >([]);
+
+const [selectedCareVRContextId, setSelectedCareVRContextId] =
+    useState<string | null>(null);
+
+const [showCareVRContextSelection, setShowCareVRContextSelection] =
+    useState(false);
 
   useEffect(() => {
     if (loginPageReadyRef.current) {
@@ -120,22 +138,70 @@ const [selectedRole, setSelectedRole] =
 const completeLogin = async (
   authenticatedUser: Awaited<
     ReturnType<typeof authService.login>
-  >
+  >,
+  selectedAccessId?: string
 ) => {
-  const invitationRole =
-    selectedRole === "DOCTOR"
-      ? "DOCTOR"
-      : selectedRole === "CARETAKER"
-        ? "CARETAKER"
-        : selectedRole === "FAMILY"
-          ? "SECONDARY_FAMILY_MEMBER"
-          : "SELF";
+  const availableContexts =
+    await carevrContextResolver
+      .getAvailableContexts(
+        authenticatedUser.id
+      );
+
+  if (
+    availableContexts.length === 0
+  ) {
+    throw new Error(
+      "No active CareVR access is assigned to this account."
+    );
+  }
+
+  setAvailableCareVRContexts(
+    availableContexts
+  );
+
+  if (
+    availableContexts.length > 1 &&
+    !selectedAccessId
+  ) {
+    setShowCareVRContextSelection(
+      true
+    );
+    return;
+  }
+
+  const context =
+    selectedAccessId
+      ? availableContexts.find(
+          (availableContext) =>
+            availableContext.accessId ===
+            selectedAccessId
+        )
+      : availableContexts[0];
+
+  if (!context) {
+    throw new Error(
+      "Selected CareVR context is no longer available."
+    );
+  }
+
+  setSelectedCareVRContextId(
+    context.accessId
+  );
 
   const invitationValidation =
     await validateInvitedUserLogin({
       email: email.trim(),
       userId: authenticatedUser.id,
-      selectedRole: invitationRole,
+      selectedRole:
+        context.loginRole === "DOCTOR"
+          ? "DOCTOR"
+          : context.loginRole ===
+              "CARETAKER"
+            ? "CARETAKER"
+            : context.loginRole ===
+                "FAMILY"
+              ? "SECONDARY_FAMILY_MEMBER"
+              : "SELF",
       mode: "NORMAL",
     });
 
@@ -146,8 +212,10 @@ const completeLogin = async (
     carevrAuthorizationHandoff.set({
       userId: authenticatedUser.id,
       carevrRole: "PRIMARY",
-      familyId: null,
-      patientId: null,
+      familyId:
+        context.familyId,
+      patientId:
+        context.patientId,
       consentStage: "COMPLETED",
       governanceId: null,
       governanceVersion: null,
@@ -155,7 +223,7 @@ const completeLogin = async (
 
     await resolveCareVRDashboardHandoff(
       authenticatedUser.id,
-      selectedRole
+      context.loginRole
     );
 
     void authSessionService
@@ -172,7 +240,9 @@ const completeLogin = async (
     invitationValidation.status ===
     "VALID_INVITATION"
   ) {
-    if (!invitationValidation.invitationId) {
+    if (
+      !invitationValidation.invitationId
+    ) {
       throw new Error(
         "Invitation information is missing."
       );
@@ -191,11 +261,13 @@ const completeLogin = async (
     "CONSENT_REQUIRED"
   ) {
     const carevrRole =
-      selectedRole === "DOCTOR"
+      context.loginRole === "DOCTOR"
         ? "DOCTOR"
-        : selectedRole === "CARETAKER"
+        : context.loginRole ===
+            "CARETAKER"
           ? "CARETAKER"
-          : selectedRole === "FAMILY"
+          : context.loginRole ===
+              "FAMILY"
             ? "SECONDARY_FAMILY_MEMBER"
             : "PRIMARY";
 
@@ -203,8 +275,9 @@ const completeLogin = async (
       userId: authenticatedUser.id,
       carevrRole,
       familyId:
-        invitationValidation.familyId ?? null,
-      patientId: null,
+        context.familyId,
+      patientId:
+        context.patientId,
       consentStage: "POST_LOGIN",
       governanceId: null,
       governanceVersion: null,
@@ -219,11 +292,13 @@ const completeLogin = async (
     "ACCEPTED"
   ) {
     const carevrRole =
-      selectedRole === "DOCTOR"
+      context.loginRole === "DOCTOR"
         ? "DOCTOR"
-        : selectedRole === "CARETAKER"
+        : context.loginRole ===
+            "CARETAKER"
           ? "CARETAKER"
-          : selectedRole === "FAMILY"
+          : context.loginRole ===
+              "FAMILY"
             ? "SECONDARY_FAMILY_MEMBER"
             : "PRIMARY";
 
@@ -231,8 +306,9 @@ const completeLogin = async (
       userId: authenticatedUser.id,
       carevrRole,
       familyId:
-        invitationValidation.familyId ?? null,
-      patientId: null,
+        context.familyId,
+      patientId:
+        context.patientId,
       consentStage: "COMPLETED",
       governanceId: null,
       governanceVersion: null,
@@ -240,7 +316,7 @@ const completeLogin = async (
 
     await resolveCareVRDashboardHandoff(
       authenticatedUser.id,
-      selectedRole
+      context.loginRole
     );
 
     void authSessionService
@@ -277,7 +353,7 @@ const completeLogin = async (
   ) {
     await resolveCareVRDashboardHandoff(
       authenticatedUser.id,
-      selectedRole
+      context.loginRole
     );
 
     void authSessionService
@@ -1706,9 +1782,11 @@ style={{
   background-size: 100% 100%;
 }
 
-/* Desktop artwork panel is not used on mobile */
-.login-right {
-  display: none;
+@media (max-width: 600px) {
+  /* Desktop artwork panel is not used on mobile */
+  .login-right {
+    display: none;
+  }
 }
 
 .login-footer {
@@ -2296,6 +2374,121 @@ style={{
         }
       }
 
+      /* =========================================================
+         CAREVR LOGIN VISUAL RESTORATION
+         
+         Visual-only override.
+         Authentication, TOTP, CAPTCHA, CareVR access,
+         context resolution and navigation are untouched.
+      ========================================================= */
+
+      @media (min-width: 601px) {
+
+        .login-method-tabs {
+          display: none !important;
+        }
+
+        .login-page {
+          min-height: 100vh;
+          min-height: 100dvh;
+          padding: 28px;
+          background: #f1eaff;
+        }
+
+        .login-shell {
+          width: min(1180px, 100%);
+          min-height: 720px;
+          display: grid;
+          grid-template-columns: 47% 53%;
+          position: relative;
+          overflow: hidden;
+          border-radius: 28px;
+          border: 1px solid #e9e5f3;
+          background: #ffffff;
+          box-shadow:
+            0 30px 80px rgba(36, 28, 75, 0.10),
+            0 6px 20px rgba(36, 28, 75, 0.04);
+        }
+
+        .login-left {
+          display: flex;
+          flex-direction: column;
+          padding: 34px 54px 30px;
+          background: #ffffff;
+        }
+
+        .carevr-logo {
+          display: block;
+          width: 250px;
+          height: 150px;
+          margin-bottom: 28px;
+          background-image: url("/images/CareVR%20v1.0.png");
+          background-repeat: no-repeat;
+          background-position: left top;
+          background-size: contain;
+        }
+
+.login-right {
+  position: relative;
+  min-height: 720px;
+  overflow: hidden;
+  background:
+    #f2edff
+    url("/images/Desktop%20Login%20Background.png")
+    center center / 100% 100%
+    no-repeat;
+}
+      }
+
+      @media (max-width: 600px) {
+
+        .login-page {
+          display: block;
+          width: 100%;
+          height: 100dvh;
+          min-height: 100dvh;
+          padding: 0;
+          overflow: hidden;
+          background: #f1eaff;
+        }
+
+        .login-shell {
+          position: relative;
+          width: 100%;
+          height: 100dvh;
+          min-height: 100dvh;
+          display: block;
+          overflow: hidden;
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
+          background-color: #f1eaff;
+          background-image:
+            url("/images/Mobile%20Login%20Background.png");
+          background-repeat: no-repeat;
+          background-position: center top;
+          background-size: 100% 100%;
+        }
+
+        .login-right {
+          display: none;
+        }
+
+        .login-left {
+          position: absolute;
+          z-index: 2;
+          inset: 0;
+          display: block;
+          min-height: 0;
+          padding: 0;
+          background: transparent;
+        }
+
+        .carevr-logo {
+          display: none;
+        }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         *,
         *::before,
@@ -2378,116 +2571,109 @@ style={{
   </div>
 </div>
 
-<div className="role-selection">
-  <div className="role-selection-title">Select Your Role</div>
+{showCareVRContextSelection && (
+  <div className="role-selection">
+    <div className="role-selection-title">
+      Continue as...
+    </div>
 
-  <div className="role-options">
+    <div className="role-options">
 
-<button
-    type="button"
-    className={`role-option ${
-        selectedRole === "SELF"
-            ? "role-option-selected"
-            : ""
-    }`}
-    onClick={() =>
-        setSelectedRole("SELF")
+      {availableCareVRContexts.map(
+        (context) => (
+          <button
+            key={context.accessId}
+            type="button"
+            className={`role-option ${
+              selectedCareVRContextId ===
+              context.accessId
+                ? "role-option-selected"
+                : ""
+            }`}
+onClick={async () => {
+  try {
+    setLoading(true);
+    setError("");
+
+    setSelectedCareVRContextId(
+      context.accessId
+    );
+
+    setSelectedRole(
+      context.loginRole
+    );
+
+    setShowCareVRContextSelection(
+      false
+    );
+
+    const {
+      data: {
+        user,
+      },
+    } =
+      await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error(
+        "Unable to identify the authenticated user."
+      );
     }
-    disabled={
-        loading ||
-        googleLoading
-    }
->
-    <span className="role-icon">
-        👤
-    </span>
 
-    <span className="role-label">
-        Self
-    </span>
-</button>
+    await completeLogin(
+      user,
+      context.accessId
+    );
 
+  } catch (err) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Unable to continue with the selected CareVR context.";
 
-        <button
-            type="button"
-            className={`role-option ${
-                selectedRole === "DOCTOR"
-                    ? "role-option-selected"
-                    : ""
-            }`}
-            onClick={() =>
-                setSelectedRole("DOCTOR")
-            }
+    setError(message);
+    setShowCareVRContextSelection(
+      true
+    );
+  } finally {
+    setLoading(false);
+  }
+}}
             disabled={
-                loading ||
-                googleLoading
+              loading ||
+              googleLoading
             }
-        >
+          >
             <span className="role-icon">
-                🩺
+              {context.loginRole === "SELF"
+                ? "👤"
+                : context.loginRole ===
+                    "DOCTOR"
+                  ? "🩺"
+                  : context.loginRole ===
+                      "CARETAKER"
+                    ? "♡"
+                    : "👥"}
             </span>
 
             <span className="role-label">
-                Doctor
+              {context.label}
             </span>
-        </button>
-
-        <button
-            type="button"
-            className={`role-option ${
-                selectedRole === "CARETAKER"
-                    ? "role-option-selected"
-                    : ""
-            }`}
-            onClick={() =>
-                setSelectedRole("CARETAKER")
-            }
-            disabled={
-                loading ||
-                googleLoading
-            }
-        >
-            <span className="role-icon">
-                ♡
-            </span>
-
-            <span className="role-label">
-                CareTaker
-            </span>
-        </button>
-
-        <button
-            type="button"
-            className={`role-option ${
-                selectedRole === "FAMILY"
-                    ? "role-option-selected"
-                    : ""
-            }`}
-            onClick={() =>
-                setSelectedRole("FAMILY")
-            }
-            disabled={
-                loading ||
-                googleLoading
-            }
-        >
-            <span className="role-icon">
-                👥
-            </span>
-
-            <span className="role-label">
-                Family Member
-            </span>
-    </button>
+          </button>
+        )
+      )}
 
     </div>
-</div>
+  </div>
+)}
 
-<div
-  className="login-method-tabs"
-  role="tablist"
-  aria-label="Login method"
->
+    </div>
+
+    <div
+      className="login-method-tabs"
+      role="tablist"
+      aria-label="Login method"
+    >
   <button
     type="button"
     className={`login-method-tab ${
@@ -2801,18 +2987,22 @@ style={{
     Create an account
   </button>
 </div>
-          </div>
-        </div>
 
 <div className="login-footer">
   <CareVRFooter />
 </div>
 
 {/* ============================
-    RIGHT â€” BRAND EXPERIENCE
+    RIGHT — BRAND EXPERIENCE
 ============================ */}
 
-<div className="login-right" aria-hidden="true" />
+    </div>
+
+    <div
+      className="login-right"
+      aria-hidden="true"
+    />
+
       </section>
 </main>
       </>
