@@ -2,7 +2,10 @@
 
 import React, { useState } from "react";
 import { Turnstile } from "@marsidev/react-turnstile";
-import { useRouter } from "next/navigation";
+import {
+    useRouter,
+    useSearchParams,
+} from "next/navigation"
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 import { authService } from "@/lib/auth/authService";
@@ -13,11 +16,19 @@ import { carevrMessages } from "@/lib/messages/carevrMessages";
 
 import { authSecurity } from "@/lib/auth/authSecurity";
 
-export default function RegisterPage() {
+function RegisterPageContent() {
 
-    const router = useRouter();
+const router = useRouter();
+const searchParams = useSearchParams();
+
+const productInvitationToken =
+    searchParams.get(
+        "productInvitationToken"
+    );
+
 const inviteePrimaryHandoff = inviteeToPrimaryHandoff.get();
 const isInviteeToPrimary = inviteePrimaryHandoff !== null;
+
     /*
      * Primary Family Member declaration is the first registration-flow gate.
      *
@@ -149,6 +160,57 @@ await authService.verifyTOTP(
     challengeId,
     totpCode
 );
+
+            /*
+             * Product Invitation is consumed only after
+             * successful TOTP verification.
+             *
+             * The raw token is sent only to the authenticated
+             * server endpoint. The server hashes it and performs
+             * the atomic database consumption.
+             */
+            if (productInvitationToken) {
+
+const session =
+    await authService.getCurrentSession();
+
+if (!session?.access_token) {
+    throw new Error(
+        "Authenticated session could not be established."
+    );
+}
+
+                const response =
+                    await fetch(
+                        "/api/access-management/access-to-carevr/invitations/consume",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type":
+                                    "application/json",
+                                Authorization:
+                                    `Bearer ${session.access_token}`,
+                            },
+                            body: JSON.stringify({
+                                token:
+                                    productInvitationToken,
+                            }),
+                        }
+                    );
+
+                const result =
+                    await response.json();
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        result.error ??
+                        "Unable to activate the CareVR invitation."
+                    );
+
+                }
+
+            }
 
             setTotpEnrollment(null);
 
@@ -1615,5 +1677,14 @@ Primary Family Member.
 
         </main>
 
+    );
+}
+
+export default function RegisterPage() {
+
+    return (
+        <React.Suspense fallback={null}>
+            <RegisterPageContent />
+        </React.Suspense>
     );
 }

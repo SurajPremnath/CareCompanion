@@ -40,7 +40,6 @@ import {
   validateInvitedUserLogin,
 } from "@/lib/invitations/invitedUserLoginValidation";
 
-
 import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 
 export default function LoginPage() {
@@ -309,13 +308,58 @@ const handleLogin = async () => {
     return;
   }
 
-try {
-  setLoading(true);
+  try {
 
-  const verifiedCaptchaToken =
-    authSecurity.requireCaptchaToken(
-      captchaToken
-    );
+const productInvitationResponse =
+  await fetch(
+    "/api/access-management/access-to-carevr/validation",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: email.trim(),
+      }),
+    }
+  );
+
+const productInvitation =
+  await productInvitationResponse.json();
+
+if (!productInvitationResponse.ok) {
+  throw new Error(
+    productInvitation.message ||
+      "Unable to validate the CareVR invitation."
+  );
+}
+
+if (
+  productInvitation.status ===
+  "NO_INVITATION"
+) {
+  setError(
+    "You do not have an invitation to access CareVR."
+  );
+  return;
+}
+
+if (
+  productInvitation.status ===
+  "PENDING"
+) {
+  setError(
+    "Your CareVR invitation is still pending. Please complete your registration before signing in."
+  );
+  return;
+}
+
+    setLoading(true);
+
+    const verifiedCaptchaToken =
+      authSecurity.requireCaptchaToken(
+        captchaToken
+      );
 
   setCaptchaToken(null);
 

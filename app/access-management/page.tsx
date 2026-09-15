@@ -459,6 +459,74 @@ export default function AccessManagementPage() {
 
                         <button
                             type="button"
+                            className="access-management-option access-management-option-purple"
+                            onClick={() =>
+                                router.push(
+                                    "/access-management/access-to-carevr"
+                                )
+                            }
+                        >
+
+                            <span className="access-management-option-icon">
+
+                                <svg
+                                    width="34"
+                                    height="34"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        d="M12 3L19 6V11C19 15.5 16.2 18.7 12 20C7.8 18.7 5 15.5 5 11V6L12 3Z"
+                                        stroke="currentColor"
+                                        strokeWidth="1.8"
+                                        strokeLinejoin="round"
+                                    />
+
+                                    <path
+                                        d="M9 12H15"
+                                        stroke="currentColor"
+                                        strokeWidth="1.8"
+                                        strokeLinecap="round"
+                                    />
+
+                                    <path
+                                        d="M12 9V15"
+                                        stroke="currentColor"
+                                        strokeWidth="1.8"
+                                        strokeLinecap="round"
+                                    />
+                                </svg>
+
+                            </span>
+
+
+                            <span className="access-management-option-copy">
+
+                                <strong>
+                                    Access to CareVR
+                                </strong>
+
+                                <span>
+                                    Invite a person to access the
+                                    CareVR application.
+                                </span>
+
+                            </span>
+
+
+                            <span
+                                className="access-management-chevron"
+                                aria-hidden="true"
+                            >
+                                →
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            type="button"
                             className="access-management-option access-management-option-green"
                             onClick={() =>
                                 router.push(
