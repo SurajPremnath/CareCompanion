@@ -679,30 +679,30 @@ return (
             loading ||
             totpCode.length !== 6
           }
-          style={{
-            width: "15%",
-            height: "33px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: 0,
-            borderRadius: "13px",
-            background:
-              "linear-gradient(135deg, #2563eb, #1d4ed8)",
-            color: "#ffffff",
-            fontSize: "15px",
-            fontWeight: 700,
-            cursor:
-              loading || totpCode.length !== 6
-                ? "not-allowed"
-                : "pointer",
-            opacity:
-              loading || totpCode.length !== 6
-                ? 0.6
-                : 1,
-            boxShadow:
-              "0 10px 22px rgba(106, 62, 239, 0.19)",
-          }}
+style={{
+  width: "min(100%, 220px)",
+  height: "44px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  border: 0,
+  borderRadius: "13px",
+  background:
+    "linear-gradient(135deg, #2563eb, #1d4ed8)",
+  color: "#ffffff",
+  fontSize: "15px",
+  fontWeight: 700,
+  cursor:
+    loading || totpCode.length !== 6
+      ? "not-allowed"
+      : "pointer",
+  opacity:
+    loading || totpCode.length !== 6
+      ? 0.6
+      : 1,
+  boxShadow:
+    "0 10px 22px rgba(106, 62, 239, 0.19)",
+}}
         >
           {loading
             ? "Verifying..."
