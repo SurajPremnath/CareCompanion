@@ -1068,37 +1068,27 @@ gap: "18px",
 
 .login-action-grid {
   display: grid;
-
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
-
   width: 100%;
-
   column-gap: 24px;
-  row-gap: 2px;
-
+  row-gap: 0;
   align-items: center;
-
   margin: -8px 0 0;
 }
 
 .login-action-grid .primary-button {
   grid-column: 1;
   grid-row: 1 / span 2;
-
   justify-self: center;
-
   width: 104px;
   height: 34px;
-
   margin: 0;
   padding: 0;
-
   border-radius: 9px;
-
   font-size: 11.5px;
   font-weight: 700;
-
+  transform: translateY(-2px);
   box-shadow:
     0 4px 10px
     rgba(106, 62, 239, 0.14);
