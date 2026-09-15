@@ -355,6 +355,32 @@ return;
                             className="carevr-mobile-account-menu"
                             role="menu"
                         >
+<div className="carevr-mobile-account-menu-section">
+    <div className="carevr-mobile-account-menu-section-title">
+        ACCOUNT & SECURITY
+    </div>
+
+    <button
+        type="button"
+        className="carevr-mobile-account-menu-primary"
+        onClick={() => {
+            router.push("/forgot-password");
+        }}
+    >
+        Forgot Password
+    </button>
+
+    <button
+        type="button"
+        className="carevr-mobile-account-menu-primary"
+        onClick={() => {
+            router.push("/reset-password");
+        }}
+    >
+        Reset Password
+    </button>
+</div>
+
 {showSwitchProfile && (
     <div className="carevr-mobile-account-menu-section">
         <div className="carevr-mobile-account-menu-section-title">
