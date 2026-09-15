@@ -1075,7 +1075,7 @@ gap: "18px",
   width: 100%;
 
   column-gap: 24px;
-  row-gap: 6px;
+  row-gap: 2px;
 
   align-items: center;
 
@@ -1107,23 +1107,19 @@ gap: "18px",
 .login-action-grid .forgot-password {
   grid-column: 2;
   grid-row: 1;
-
   justify-self: start;
-
   width: auto;
   margin: 0;
   padding: 0;
-
   border: 0;
   background: transparent;
   color: #7043f5;
-
   font-size: 11.5px;
   font-weight: 650;
   line-height: 1.2;
-
   white-space: nowrap;
   cursor: pointer;
+  transform: translateY(2px);
 }
 
 .login-create-account {
