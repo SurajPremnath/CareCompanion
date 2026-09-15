@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { authService } from "@/lib/auth/authService";
 import { hasPrimaryAccess } from "@/lib/carevr/hasPrimaryAccess";
 import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
+import { supabase } from "@/lib/supabase";
 
 export type MobileCareMode = "FAMILY" | "SELF";
 
@@ -28,6 +29,7 @@ onHomeClick?: () => void;
     onAccountMenuToggle: () => void;
 
     consentGranted: boolean;
+    canAddPatient: boolean;
 
     onAddPatient: () => void;
     onCareVRJourney: () => void;
@@ -57,7 +59,7 @@ onHomeClick,
     onAccountMenuToggle,
 
     consentGranted,
-
+    canAddPatient,
     languageSelector,
 
     onLogout,
@@ -65,10 +67,85 @@ onHomeClick,
 }: MobileHeaderProps) {
     const router = useRouter();
 
-    const [switchingProfile, setSwitchingProfile] =
-        useState(false);
+const [switchingProfile, setSwitchingProfile] =
+    useState(false);
 
-    const handleSwitchProfile = async () => {
+const [showSwitchProfile, setShowSwitchProfile] =
+    useState(false);
+
+useEffect(() => {
+    let cancelled = false;
+
+    const resolveSwitchProfileVisibility =
+        async () => {
+            try {
+                const user =
+                    await authService.getCurrentUser();
+
+                if (!user) {
+                    if (!cancelled) {
+                        setShowSwitchProfile(false);
+                    }
+                    return;
+                }
+
+                const {
+                    data: activeAccess,
+                    error,
+                } = await supabase
+                    .from("carevr_access")
+                    .select("access_type")
+                    .eq("user_id", user.id)
+                    .eq("access_status", "ACTIVE");
+
+                if (error) {
+                    throw error;
+                }
+
+                const hasPrimary =
+                    (activeAccess ?? []).some(
+                        (access) =>
+                            access.access_type ===
+                            "PRIMARY"
+                    );
+
+                const hasOriginalInviteeRole =
+                    (activeAccess ?? []).some(
+                        (access) =>
+                            access.access_type ===
+                                "CARETAKER" ||
+                            access.access_type ===
+                                "DOCTOR" ||
+                            access.access_type ===
+                                "SECONDARY_FAMILY_MEMBER"
+                    );
+
+                if (!cancelled) {
+                    setShowSwitchProfile(
+                        hasPrimary &&
+                        hasOriginalInviteeRole
+                    );
+                }
+            } catch (error) {
+                console.error(
+                    "Unable to determine Switch Profile visibility.",
+                    error
+                );
+
+                if (!cancelled) {
+                    setShowSwitchProfile(false);
+                }
+            }
+        };
+
+    void resolveSwitchProfileVisibility();
+
+    return () => {
+        cancelled = true;
+    };
+}, []);
+
+const handleSwitchProfile = async () => {
         if (switchingProfile || loggingOut) {
             return;
         }
@@ -278,33 +355,37 @@ return;
                             className="carevr-mobile-account-menu"
                             role="menu"
                         >
-                            <div className="carevr-mobile-account-menu-section">
-                                <div className="carevr-mobile-account-menu-section-title">
-                                    CAREVR FAMILY
-                                </div>
+{showSwitchProfile && (
+    <div className="carevr-mobile-account-menu-section">
+        <div className="carevr-mobile-account-menu-section-title">
+            CAREVR FAMILY
+        </div>
 
-                                <button
-                                    type="button"
-                                    className="carevr-mobile-account-menu-primary"
-                                    disabled={switchingProfile || loggingOut}
-                                    onClick={handleSwitchProfile}
-                                >
-                                    {loggingOut
-                                        ? "Switching profile…"
-                                        : "Switch Profile"}
-                                </button>
-                            </div>
+        <button
+            type="button"
+            className="carevr-mobile-account-menu-primary"
+            disabled={switchingProfile || loggingOut}
+            onClick={handleSwitchProfile}
+        >
+            {loggingOut
+                ? "Switching profile…"
+                : "Switch Profile"}
+        </button>
+    </div>
+)}
 
-                            <button
-                                type="button"
-                                className="carevr-mobile-account-menu-primary"
-                                disabled={!consentGranted}
-                                onClick={() => {
-                                    router.push("/add-patient");
-                                }}
-                            >
-                                Add Patient
-                            </button>
+{canAddPatient && (
+    <button
+        type="button"
+        className="carevr-mobile-account-menu-primary"
+        disabled={!consentGranted}
+        onClick={() => {
+            router.push("/add-patient");
+        }}
+    >
+        Add Patient
+    </button>
+)}
 
                             <button
                                 type="button"

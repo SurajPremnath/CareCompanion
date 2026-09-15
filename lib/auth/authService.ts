@@ -202,11 +202,13 @@ async login(
   /**
    * Returns the MFA state required for login.
    *
-   * No TOTP secret or enrollment data is exposed.
+   * TOTP is mandatory for all CareVR users.
+   * No TOTP secret or enrollment data is exposed here.
    */
   async getTOTPLoginStatus(): Promise<{
     requiresMFA: boolean;
     factorId: string | null;
+    requiresEnrollment: boolean;
   }> {
 
     const { data, error } =
@@ -225,6 +227,7 @@ async login(
     return {
       requiresMFA: Boolean(totpFactor),
       factorId: totpFactor?.id ?? null,
+      requiresEnrollment: !totpFactor,
     };
   }
 

@@ -1616,6 +1616,7 @@ const mobileSnapshotKey =
         )
     }
     consentGranted={consentGranted}
+    canAddPatient={hasDashboardModule("ADD_PATIENT")}
     onAddPatient={() => {
         setMobileAccountMenuOpen(false);
         router.push("/add-patient");

@@ -1845,7 +1845,7 @@ if (loading) {
                     consentGranted={
                         consentGranted
                     }
-
+                    canAddPatient={false}
                     onAddPatient={() => {
                         /*
                          * Intentionally unused on

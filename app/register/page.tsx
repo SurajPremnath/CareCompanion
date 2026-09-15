@@ -445,7 +445,9 @@ setTotpEnrollment({
                         EXISTING REGISTRATION FORM
                         ============================ */}
 
-{isPrimaryFamilyMember === true && !isInviteeToPrimary && (
+{isPrimaryFamilyMember === true &&
+    !isInviteeToPrimary &&
+    !inviteePrimaryConfirmed && (
 
     <div className="registration-panel">
 

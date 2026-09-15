@@ -319,6 +319,7 @@ export default function AccessManagementPage() {
                         )
                     }
                     consentGranted={consentGranted}
+                    canAddPatient={false}
                     onAddPatient={handleAddPatient}
                     onCareVRJourney={handleCareVRJourney}
                     onHelp={handleHelp}

@@ -28,6 +28,9 @@ import MobileHeader, {
 import CareVRFooter
     from "@/Components/common/CareVRFooter";
 
+import ResponsivePageLayout
+    from "@/Components/common/ResponsivePageLayout";
+
 import LanguageSelector
     from "@/Components/language/LanguageSelector";
 
@@ -547,6 +550,10 @@ const [invitationTemplateCopied, setInvitationTemplateCopied] =
                 role
             );
 
+        setInviteeEmail(
+            ""
+        );
+
             setInvitationCreated(
                 false
             );
@@ -820,6 +827,8 @@ const handleCopyInvitationTemplate = async () => {
 
     return (
 
+<ResponsivePageLayout>
+
         <main className="invite-care-family-page">
 
             <div className="invite-care-family-shell">
@@ -862,6 +871,7 @@ const handleCopyInvitationTemplate = async () => {
                     consentGranted={
                         consentGranted
                     }
+                    canAddPatient={false}
                     onAddPatient={
                         handleAddPatient
                     }
@@ -1132,14 +1142,6 @@ const handleCopyInvitationTemplate = async () => {
                                                             )
                                                         }
                                                     />
-
-
-                                                    <span className="module-check">
-                                                        {selected ? (
-                                                            <Check size={14} strokeWidth={3} aria-hidden="true" />
-                                                        ) : null}
-                                                    </span>
-
 
                                                     <span className="module-copy">
 
@@ -3639,6 +3641,8 @@ const handleCopyInvitationTemplate = async () => {
 `}</style>
 
 </main>
+
+ </ResponsivePageLayout>
 
     );
 

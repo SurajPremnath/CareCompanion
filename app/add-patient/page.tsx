@@ -439,6 +439,7 @@ const handleLogout = async () => {
   }
 
   consentGranted={true}
+  canAddPatient={false}
 
   onAddPatient={
     handleAddPatient

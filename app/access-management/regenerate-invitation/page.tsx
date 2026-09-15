@@ -679,6 +679,7 @@ export default function RegenerateInvitationPage() {
                     consentGranted={
                         consentGranted
                     }
+                    canAddPatient={false}
                     onAddPatient={() =>
                         router.push(
                             "/add-patient"

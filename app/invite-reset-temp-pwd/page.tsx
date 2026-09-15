@@ -3,6 +3,7 @@
 import {
     FormEvent,
     Suspense,
+    useEffect,
     useState,
 } from "react";
 
@@ -21,7 +22,10 @@ import { authService } from "@/lib/auth/authService";
 
 import { authSecurity } from "@/lib/auth/authSecurity";
 
-import { acceptInvitation } from "./acceptInvitation";
+import {
+    acceptInvitation,
+    getInvitationContext,
+} from "./acceptInvitation";
 
 export interface InviteResetTempPwdProps {
     roleName?: string;
@@ -30,7 +34,7 @@ export interface InviteResetTempPwdProps {
 }
 
 function InviteResetTempPwdContent({
-    roleName = "Caretaker",
+    roleName,
     familyName = "My Family",
     userName = "User",
 }: InviteResetTempPwdProps) {
@@ -44,6 +48,43 @@ function InviteResetTempPwdContent({
         searchParams.get(
             "invitationId"
         );
+
+    const [
+        resolvedRoleName,
+        setResolvedRoleName,
+    ] = useState(
+        roleName ?? ""
+    );
+
+    useEffect(() => {
+        if (!invitationId) {
+            return;
+        }
+
+        getInvitationContext(
+            invitationId
+        )
+            .then((context) => {
+                const displayRole =
+                    context.role ===
+                    "SECONDARY_FAMILY_MEMBER"
+                        ? "Family Member"
+                        : context.role ===
+                            "CARETAKER"
+                            ? "Caretaker"
+                            : "Doctor";
+
+                setResolvedRoleName(
+                    displayRole
+                );
+            })
+            .catch((error) => {
+                console.error(
+                    "Unable to load invitation role.",
+                    error
+                );
+            });
+    }, [invitationId]);
 
     const [
         oldPassword,
@@ -262,6 +303,7 @@ await authService.login(
                     )
                 }
                 consentGranted={false}
+                canAddPatient={false}
                 onAddPatient={() => {}}
                 onCareVRJourney={() => {}}
                 onHelp={() => {}}
@@ -298,7 +340,8 @@ await authService.login(
                             </span>
 
                             <span className="invite-context-value">
-                                {roleName}
+                                {resolvedRoleName ||
+                                    "Loading..."}
                             </span>
                         </div>
 

@@ -74,6 +74,17 @@ const [totpLogin, setTotpLogin] =
         factorId: string;
     } | null>(null);
 
+const [totpEnrollment, setTotpEnrollment] =
+    useState<{
+        user: Awaited<
+            ReturnType<typeof authService.login>
+        >;
+        factorId: string;
+        qrCode: string;
+        secret: string;
+        uri: string;
+    } | null>(null);
+
 const [totpCode, setTotpCode] =
     useState("");
 
@@ -336,6 +347,21 @@ if (
   return;
 }
 
+if (totpStatus.requiresEnrollment) {
+  const enrollment =
+    await authService.enrollTOTP();
+
+  setTotpEnrollment({
+    user: authenticatedUser,
+    factorId: enrollment.id,
+    qrCode: enrollment.totp.qr_code,
+    secret: enrollment.totp.secret,
+    uri: enrollment.totp.uri,
+  });
+
+  return;
+}
+
 await completeLogin(authenticatedUser);
 
   } catch (err) {
@@ -352,6 +378,61 @@ await completeLogin(authenticatedUser);
   turnstileRef.current?.reset();
   setLoading(false);
 }
+};
+
+const handleVerifyTOTPEnrollment = async () => {
+
+  if (!totpEnrollment) {
+    setError("TOTP enrollment is not available.");
+    return;
+  }
+
+  if (totpCode.length !== 6) {
+    setError(
+      "Please enter the 6-digit code from your authenticator."
+    );
+    return;
+  }
+
+  try {
+
+    setLoading(true);
+
+    setError("");
+
+    const challengeId =
+      await authService.challengeTOTP(
+        totpEnrollment.factorId
+      );
+
+    await authService.verifyTOTP(
+      totpEnrollment.factorId,
+      challengeId,
+      totpCode
+    );
+
+    const authenticatedUser =
+      totpEnrollment.user;
+
+    setTotpEnrollment(null);
+    setTotpCode("");
+
+    await completeLogin(authenticatedUser);
+
+  } catch (err) {
+
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Unable to verify your authenticator.";
+
+    setError(message);
+
+  } finally {
+
+    setLoading(false);
+
+  }
 };
 
 const handleVerifyLoginTOTP = async () => {
@@ -430,12 +511,198 @@ await completeLogin(authenticatedUser);
 
 return (
   <>
-    {totpLogin ? (
-      <main className="login-page">
+
+
+{totpEnrollment ? (
+<main
+  className="login-page"
+  style={{
+    position: "fixed",
+    inset: 0,
+    width: "100%",
+    height: "100vh",
+    minHeight: "100vh",
+    margin: 0,
+    padding: 0,
+    background: "#f1eaff",
+    overflow: "auto",
+  }}
+>
+  <section className="login-shell">
+    <div className="login-left">
+
+      <div
+        className="login-content"
+        style={{
+          marginLeft: "60px",
+          marginTop: "60px",
+          gap: "18px",
+        }}
+      >
+
+        <div className="login-heading">
+          <h1>Secure Your CareVR Account</h1>
+
+          <p>
+            Scan the QR code with your authenticator app,
+            then enter the 6-digit code to continue.
+          </p>
+        </div>
+
+        {error && (
+          <div
+            className="login-error"
+            role="alert"
+            aria-live="polite"
+          >
+            {error}
+          </div>
+        )}
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "14px",
+            marginBottom: "22px",
+          }}
+        >
+          <img
+            src={totpEnrollment.qrCode}
+            alt="CareVR authenticator setup QR code"
+            style={{
+              width: "180px",
+              height: "180px",
+              background: "#ffffff",
+              padding: "10px",
+              borderRadius: "12px",
+            }}
+          />
+
+
+        </div>
+
+        <div
+          className="field"
+          style={{
+            marginTop: "22px",
+            marginBottom: "22px",
+          }}
+        >
+          <label htmlFor="loginTotpEnrollmentCode">
+            Authenticator Code
+          </label>
+
+          <div className="input-wrap">
+
+            <input
+              id="loginTotpEnrollmentCode"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              value={totpCode}
+              onChange={(e) =>
+                setTotpCode(
+                  e.target.value
+                    .replace(/\D/g, "")
+                    .slice(0, 6)
+                )
+              }
+              placeholder="000000"
+              className="login-input"
+              disabled={loading}
+              maxLength={6}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  void handleVerifyTOTPEnrollment();
+                }
+              }}
+            />
+
+          </div>
+
+        </div>
+
+        <button
+          type="button"
+          className="primary-button"
+          onClick={() =>
+            void handleVerifyTOTPEnrollment()
+          }
+          disabled={
+            loading ||
+            totpCode.length !== 6
+          }
+          style={{
+            width: "15%",
+            height: "33px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: 0,
+            borderRadius: "13px",
+            background:
+              "linear-gradient(135deg, #2563eb, #1d4ed8)",
+            color: "#ffffff",
+            fontSize: "15px",
+            fontWeight: 700,
+            cursor:
+              loading || totpCode.length !== 6
+                ? "not-allowed"
+                : "pointer",
+            opacity:
+              loading || totpCode.length !== 6
+                ? 0.6
+                : 1,
+            boxShadow:
+              "0 10px 22px rgba(106, 62, 239, 0.19)",
+          }}
+        >
+          {loading
+            ? "Verifying..."
+            : "Verify & Continue"}
+        </button>
+
+      </div>
+    </div>
+
+    <div
+      className="login-right"
+      aria-hidden="true"
+    />
+  </section>
+</main>
+
+) : totpLogin ? (
+
+
+<main
+  className="login-page"
+  style={{
+    position: "fixed",
+    inset: 0,
+    width: "100%",
+    height: "100vh",
+    minHeight: "100vh",
+    margin: 0,
+    padding: 0,
+    background: "#f1eaff",
+    overflow: "auto",
+  }}
+>
         <section className="login-shell">
           <div className="login-left">
 
-            <div className="login-content">
+            <div
+  className="login-content"
+  style={{
+    marginLeft: "60px",
+marginTop: "60px",
+gap: "18px",
+  }}
+>
 
               <div className="login-heading">
                 <h1>Verify Your CareVR Account</h1>
@@ -458,7 +725,13 @@ return (
                 </div>
               )}
 
-              <div className="field">
+              <div
+  className="field"
+  style={{
+    marginTop: "22px",
+    marginBottom: "22px",
+  }}
+>
 
                 <label htmlFor="loginTotpCode">
                   Authenticator Code
@@ -495,21 +768,45 @@ return (
 
               </div>
 
-              <button
-                type="button"
-                className="primary-button"
-                onClick={() =>
-                  void handleVerifyLoginTOTP()
-                }
-                disabled={
-                  loading ||
-                  totpCode.length !== 6
-                }
-              >
-                {loading
-                  ? "Verifying..."
-                  : "Verify & Continue"}
-              </button>
+<button
+  type="button"
+  className="primary-button"
+  onClick={() =>
+    void handleVerifyLoginTOTP()
+  }
+  disabled={
+    loading ||
+    totpCode.length !== 6
+  }
+  style={{
+    width: "15%",
+    height: "33px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: 0,
+    borderRadius: "13px",
+    background:
+      "linear-gradient(135deg, #2563eb, #1d4ed8)",
+    color: "#ffffff",
+    fontSize: "15px",
+    fontWeight: 700,
+    cursor:
+      loading || totpCode.length !== 6
+        ? "not-allowed"
+        : "pointer",
+    opacity:
+      loading || totpCode.length !== 6
+        ? 0.6
+        : 1,
+    boxShadow:
+      "0 10px 22px rgba(106, 62, 239, 0.19)",
+  }}
+>
+  {loading
+    ? "Verifying..."
+    : "Verify & Continue"}
+</button>
 
             </div>
 
@@ -522,9 +819,10 @@ return (
 
         </section>
       </main>
+
     ) : (
       <>
-<style jsx global>{`
+        <style jsx global>{`
       * {
         box-sizing: border-box;
       }

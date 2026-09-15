@@ -404,9 +404,17 @@ try {
             disabled={loading}
             style={eyeButtonStyle}
           >
-            {showPassword
-              ? "🙈"
-              : "👁"}
+<span
+  aria-hidden="true"
+  style={{
+    display: "inline-block",
+    lineHeight: 1,
+  }}
+>
+  {showPassword
+    ? "🙈"
+    : "👁"}
+</span>
           </button>
 
         </div>
@@ -464,9 +472,17 @@ try {
             disabled={loading}
             style={eyeButtonStyle}
           >
-            {showConfirmPassword
-              ? "🙈"
-              : "👁"}
+<span
+  aria-hidden="true"
+  style={{
+    display: "inline-block",
+    lineHeight: 1,
+  }}
+>
+  {showPassword
+    ? "🙈"
+    : "👁"}
+</span>
           </button>
 
         </div>
@@ -608,12 +624,18 @@ const eyeButtonStyle:
     top: "50%",
     transform:
       "translateY(-50%)",
+    width: "36px",
+    height: "36px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     border: "none",
     background: "transparent",
     cursor: "pointer",
-    fontSize: "18px",
     padding: 0,
     color: "#6b7280",
+    fontSize: "20px",
+    lineHeight: 1,
 
   };
 
