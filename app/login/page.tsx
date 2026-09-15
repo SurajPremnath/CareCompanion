@@ -1074,54 +1074,17 @@ gap: "18px",
 
   width: 100%;
 
-  column-gap: 10px;
-  row-gap: 4px;
+  column-gap: 24px;
+  row-gap: 6px;
 
   align-items: center;
-  justify-items: center;
 
-  margin: -14px 0 0;
-}
-
-.login-action-grid .forgot-password {
-  grid-column: 1;
-  grid-row: 1;
-
-  justify-self: center;
-
-  width: auto;
-  margin: 0;
-  padding: 0;
-
-  color: #7043f5;
-
-  font-size: 11.5px;
-  font-weight: 650;
-  line-height: 1.2;
-
-  white-space: nowrap;
-}
-
-.login-register-prompt {
-  grid-column: 2;
-  grid-row: 1;
-
-  justify-self: center;
-
-  margin: 0;
-
-  color: #5f6780;
-
-  font-size: 11.5px;
-  font-weight: 600;
-  line-height: 1.2;
-
-  white-space: nowrap;
+  margin: -8px 0 0;
 }
 
 .login-action-grid .primary-button {
   grid-column: 1;
-  grid-row: 2;
+  grid-row: 1 / span 2;
 
   justify-self: center;
 
@@ -1136,38 +1099,56 @@ gap: "18px",
   font-size: 11.5px;
   font-weight: 700;
 
-transform: translateY(-10px);
-
   box-shadow:
     0 4px 10px
     rgba(106, 62, 239, 0.14);
+}
+
+.login-action-grid .forgot-password {
+  grid-column: 2;
+  grid-row: 1;
+
+  justify-self: start;
+
+  width: auto;
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+  color: #7043f5;
+
+  font-size: 11.5px;
+  font-weight: 650;
+  line-height: 1.2;
+
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 .login-create-account {
   grid-column: 2;
   grid-row: 2;
 
-  justify-self: center;
+  justify-self: start;
 
-  width: 132px;
-  height: 34px;
-
- transform: translateY(-10px);
+  width: auto;
+  height: auto;
 
   margin: 0;
   padding: 0;
 
-  border: 1px solid #7043f5;
-  border-radius: 9px;
+  border: 0;
+  border-radius: 0;
 
-  background: rgba(255, 255, 255, 0.88);
+  background: transparent;
   color: #7043f5;
 
   font-size: 11.5px;
   font-weight: 650;
+  line-height: 1.2;
 
   white-space: nowrap;
-
   cursor: pointer;
 }
 
@@ -1914,84 +1895,76 @@ transform: translateY(-10px);
   width: 100%;
 
   column-gap: 24px;
-  row-gap: 6px;
+  row-gap: 5px;
 
   align-items: center;
-  justify-items: center;
 
   margin: -8px 0 0;
 }
 
-.login-action-grid .forgot-password {
+.login-action-grid .primary-button {
   grid-column: 1;
-  grid-row: 1;
+  grid-row: 1 / span 2;
 
   justify-self: center;
+
+  width: 104px;
+  height: 40px;
+
+  margin: 0;
+  padding: 0;
+
+  border-radius: 10px;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.login-action-grid .forgot-password {
+  grid-column: 2;
+  grid-row: 1;
+
+  justify-self: start;
 
   width: auto;
   margin: 0;
   padding: 0;
 
+  border: 0;
+  background: transparent;
+  color: #7043f5;
+
   font-size: 12px;
+  font-weight: 650;
   line-height: 1.2;
 
   white-space: nowrap;
-}
-
-.login-register-prompt {
-  grid-column: 2;
-  grid-row: 1;
-
-  justify-self: center;
-
-  margin: 0;
-
-  font-size: 12px;
-  line-height: 1.2;
-
-  white-space: nowrap;
-}
-
-.login-action-grid .primary-button {
-  grid-column: 1;
-  grid-row: 2;
-
-  justify-self: center;
-
-  width: 72px;
-  height: 32px;
-
-  margin: 0;
-  padding: 0;
-
-  border-radius: 8px;
-
-  font-size: 11px;
+  cursor: pointer;
 }
 
 .login-create-account {
   grid-column: 2;
   grid-row: 2;
 
-  justify-self: center;
+  justify-self: start;
 
-  width: 118px;
-  height: 32px;
+  width: auto;
+  height: auto;
 
   margin: 0;
   padding: 0;
 
-  border: 1px solid #7043f5;
-  border-radius: 8px;
+  border: 0;
+  border-radius: 0;
 
-  background: #ffffff;
+  background: transparent;
   color: #7043f5;
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 650;
+  line-height: 1.2;
 
   white-space: nowrap;
-
   cursor: pointer;
 }
 
@@ -2696,21 +2669,6 @@ transform: translateY(-10px);
   <div className="login-action-grid">
     <button
       type="button"
-      className="forgot-password"
-      onClick={() =>
-        router.push("/forgot-password")
-      }
-      disabled={loading}
-    >
-      Forgot Password?
-    </button>
-
-    <span className="registerPrompt login-register-prompt">
-      New to CareVR?
-    </span>
-
-    <button
-      type="button"
       className="primary-button"
       onClick={() =>
         void handleLogin()
@@ -2720,6 +2678,17 @@ transform: translateY(-10px);
       {loading
         ? "Signing In..."
         : "Sign In"}
+    </button>
+
+    <button
+      type="button"
+      className="forgot-password"
+      onClick={() =>
+        router.push("/forgot-password")
+      }
+      disabled={loading}
+    >
+      Forgot Password?
     </button>
 
     <button
