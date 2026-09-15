@@ -1136,6 +1136,7 @@ gap: "18px",
 
   white-space: nowrap;
   cursor: pointer;
+  transform: translateY(-6px);
 }
 
 .login-actions {
