@@ -2953,18 +2953,18 @@ onClick={async () => {
   </div>
 
   <div className="login-action-grid">
-    <button
-      type="button"
-      className="primary-button"
-      onClick={() =>
-        void handleLogin()
-      }
-      disabled={loading}
-    >
-      {loading
-        ? "Signing In..."
-        : "Sign In"}
-    </button>
+<button
+  type="button"
+  className="primary-button"
+  onClick={() =>
+    void handleLogin()
+  }
+  disabled={loading || !captchaToken}
+>
+  {loading
+    ? "Signing In..."
+    : "Sign In"}
+</button>
 
     <button
       type="button"
