@@ -1834,7 +1834,7 @@ style={{
 .login-content {
   position: absolute;
 
-  top: 28%;
+top: calc(28% + 5px);
   left: 6%;
   right: 6%;
 
