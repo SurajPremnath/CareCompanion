@@ -2388,11 +2388,11 @@ top: calc(28%);
          context resolution and navigation are untouched.
       ========================================================= */
 
-      @media (min-width: 601px) {
+@media (min-width: 601px) {
 
-        .login-method-tabs {
-          display: none !important;
-        }
+  .login-method-tabs {
+    display: grid !important;
+  }
 
         .login-page {
           min-height: 100vh;

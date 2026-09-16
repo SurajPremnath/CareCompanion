@@ -35,116 +35,141 @@ class CareVRContextResolver {
                     userId
                 );
 
-        const contexts =
-            activeAccess
-                .map(
-                    (access) => {
+        const contexts: CareVRAvailableContext[] = [];
 
-                        switch (
-                            access.accessType
-                        ) {
+        const seenRoles =
+            new Set<CareVRLoginRole>();
 
-                            case "PRIMARY":
+        for (
+            const access
+            of activeAccess
+        ) {
 
-                                return {
-                                    accessId:
-                                        access.id,
+            let context:
+                CareVRAvailableContext | null =
+                null;
 
-                                    loginRole:
-                                        "SELF",
+            switch (
+                access.accessType
+            ) {
 
-                                    accessType:
-                                        access.accessType,
+                case "PRIMARY":
 
-                                    familyId:
-                                        access.familyId,
+                    context = {
+                        accessId:
+                            access.id,
 
-                                    patientId:
-                                        access.patientId,
+                        loginRole:
+                            "SELF",
 
-                                    label:
-                                        "Self",
-                                };
+                        accessType:
+                            access.accessType,
 
-                            case "SECONDARY_FAMILY_MEMBER":
+                        familyId:
+                            access.familyId,
 
-                                return {
-                                    accessId:
-                                        access.id,
+                        patientId:
+                            access.patientId,
 
-                                    loginRole:
-                                        "FAMILY",
+                        label:
+                            "Self",
+                    };
 
-                                    accessType:
-                                        access.accessType,
+                    break;
 
-                                    familyId:
-                                        access.familyId,
+                case "SECONDARY_FAMILY_MEMBER":
 
-                                    patientId:
-                                        access.patientId,
+                    context = {
+                        accessId:
+                            access.id,
 
-                                    label:
-                                        "Family Member",
-                                };
+                        loginRole:
+                            "FAMILY",
 
-                            case "CARETAKER":
+                        accessType:
+                            access.accessType,
 
-                                return {
-                                    accessId:
-                                        access.id,
+                        familyId:
+                            access.familyId,
 
-                                    loginRole:
-                                        "CARETAKER",
+                        patientId:
+                            access.patientId,
 
-                                    accessType:
-                                        access.accessType,
+                        label:
+                            "Family Member",
+                    };
 
-                                    familyId:
-                                        access.familyId,
+                    break;
 
-                                    patientId:
-                                        access.patientId,
+                case "CARETAKER":
 
-                                    label:
-                                        "CareTaker",
-                                };
+                    context = {
+                        accessId:
+                            access.id,
 
-                            case "DOCTOR":
+                        loginRole:
+                            "CARETAKER",
 
-                                return {
-                                    accessId:
-                                        access.id,
+                        accessType:
+                            access.accessType,
 
-                                    loginRole:
-                                        "DOCTOR",
+                        familyId:
+                            access.familyId,
 
-                                    accessType:
-                                        access.accessType,
+                        patientId:
+                            access.patientId,
 
-                                    familyId:
-                                        access.familyId,
+                        label:
+                            "CareTaker",
+                    };
 
-                                    patientId:
-                                        access.patientId,
+                    break;
 
-                                    label:
-                                        "Doctor",
-                                };
+                case "DOCTOR":
 
-                            default:
+                    context = {
+                        accessId:
+                            access.id,
 
-                                return null;
-                        }
+                        loginRole:
+                            "DOCTOR",
 
-                    }
+                        accessType:
+                            access.accessType,
+
+                        familyId:
+                            access.familyId,
+
+                        patientId:
+                            access.patientId,
+
+                        label:
+                            "Doctor",
+                    };
+
+                    break;
+
+                default:
+
+                    context = null;
+            }
+
+            if (
+                context &&
+                !seenRoles.has(
+                    context.loginRole
                 )
-                .filter(
-                    (
-                        context
-                    ): context is CareVRAvailableContext =>
-                        context !== null
+            ) {
+
+                seenRoles.add(
+                    context.loginRole
                 );
+
+                contexts.push(
+                    context
+                );
+            }
+        }
 
         return contexts;
     }
