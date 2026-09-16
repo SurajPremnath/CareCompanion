@@ -75,10 +75,42 @@ options: {
       uri: string;
     };
   }> {
-    const { data, error } = await supabase.auth.mfa.enroll({
-      factorType: "totp",
-      friendlyName: "CareVR Authenticator",
-    });
+
+    const { data: factors, error: listError } =
+      await supabase.auth.mfa.listFactors();
+
+    if (listError) {
+      throw listError;
+    }
+
+    const existingTotpFactors =
+      factors?.all?.filter(
+        (factor) =>
+          factor.factor_type === "totp"
+      ) ?? [];
+
+    const unverifiedTotpFactors =
+      existingTotpFactors.filter(
+        (factor) =>
+          factor.status !== "verified"
+      );
+
+    for (const factor of unverifiedTotpFactors) {
+      const { error: unenrollError } =
+        await supabase.auth.mfa.unenroll({
+          factorId: factor.id,
+        });
+
+      if (unenrollError) {
+        throw unenrollError;
+      }
+    }
+
+    const { data, error } =
+      await supabase.auth.mfa.enroll({
+        factorType: "totp",
+        friendlyName: "CareVR Authenticator",
+      });
 
     if (error) {
       throw error;
