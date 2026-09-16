@@ -2081,21 +2081,22 @@ top: calc(28% + 5px);
      MOBILE LOGIN METHOD TABS
      --------------------------------------------------------- */
 
-  .login-method-tabs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+.login-method-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 
-    width: 100%;
-    height: 38px;
+  width: 100%;
+  height: 32px;
 
-    margin-bottom: 9px;
-    padding: 3px;
+  margin-top: 5px;
+  margin-bottom: 8px;
+  padding: 2px;
 
-    border: 1px solid #ddd7f2;
-    border-radius: 11px;
+  border: 1px solid #ddd7f2;
+  border-radius: 9px;
 
-    background: rgba(255, 255, 255, 0.72);
-  }
+  background: rgba(255, 255, 255, 0.72);
+}
 
 /* ---------------------------------------------------------
    MOBILE LOGIN METHOD TABS
