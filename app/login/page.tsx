@@ -2096,7 +2096,7 @@ top: calc(28% + 5px);
 
   background: rgba(255, 255, 255, 0.72);
 
-  transform: translateY(10px);
+  transform: translateY(35px);
 }
 
 /* ---------------------------------------------------------
