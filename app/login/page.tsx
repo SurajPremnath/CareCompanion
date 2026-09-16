@@ -1838,7 +1838,7 @@ style={{
 .login-content {
   position: absolute;
 
-top: calc(28% + 10px);
+top: calc(28%);
   left: 6%;
   right: 6%;
 
@@ -2931,6 +2931,57 @@ onClick={async () => {
 
 </div>
 
+</div>
+
+            <div className="divider">
+              <span className="divider-line" />
+              <span className="divider-text">
+                or
+              </span>
+              <span className="divider-line" />
+            </div>
+
+            <div className="login-google-panel">
+              <button
+                type="button"
+                className="google-button"
+                onClick={() =>
+                  void handleGoogleLogin()
+                }
+                disabled={
+                  loading ||
+                  googleLoading
+                }
+              >
+                <svg
+                  className="google-icon"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill="#4285F4"
+                    d="M21.6 12.23c0-.79-.07-1.55-.21-2.28H12v4.31h5.38a4.6 4.6 0 0 1-1.99 3.02v2.51h3.23c1.89-1.74 2.98-4.31 2.98-7.56Z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 22c2.7 0 4.97-.9 6.62-2.45l-3.23-2.51c-.9.6-2.04.96-3.39.96-2.61 0-4.83-1.76-5.62-4.13H3.04v2.59A10 10 0 0 0 12 22Z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M6.38 13.87A6.01 6.01 0 0 1 6.06 12c0-.65.11-1.28.32-1.87V7.54H3.04A10 10 0 0 0 2 12c0 1.61.38 3.13 1.04 4.46l3.34-2.59Z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 6c1.47 0 2.79.51 3.83 1.51l2.87-2.87C16.96 2.99 14.69 2 12 2a10 10 0 0 0-8.96 5.54l3.34 2.59C7.17 7.76 9.39 6 12 6Z"
+                  />
+                </svg>
+
+                {googleLoading
+                  ? "Connecting..."
+                  : "Continue with Google"}
+              </button>
+            </div>
+
 <div className="register login-register-desktop">
   <span className="registerPrompt">New to CareVR?  </span>{" "}
   <button
@@ -2947,7 +2998,6 @@ onClick={async () => {
 </div>
 
     </div>
-  </div>
 
 <div className="login-footer">
   <CareVRFooter />

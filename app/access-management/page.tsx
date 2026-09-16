@@ -530,7 +530,7 @@ export default function AccessManagementPage() {
                             className="access-management-option access-management-option-green"
                             onClick={() =>
                                 router.push(
-                                    "/access-management/invite-care-family"
+                                    "/access-management/invite-care-family-token"
                                 )
                             }
                         >
@@ -596,7 +596,7 @@ export default function AccessManagementPage() {
                             className="access-management-option access-management-option-orange"
                             onClick={() =>
                                 router.push(
-                                    "/access-management/regenerate-invitation"
+                                    "/access-management/regenerate-invitation-token"
                                 )
                             }
                         >
