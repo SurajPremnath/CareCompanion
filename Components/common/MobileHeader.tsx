@@ -102,13 +102,6 @@ useEffect(() => {
                     throw error;
                 }
 
-                const hasPrimary =
-                    (activeAccess ?? []).some(
-                        (access) =>
-                            access.access_type ===
-                            "PRIMARY"
-                    );
-
                 const hasOriginalInviteeRole =
                     (activeAccess ?? []).some(
                         (access) =>
@@ -122,7 +115,6 @@ useEffect(() => {
 
                 if (!cancelled) {
                     setShowSwitchProfile(
-                        hasPrimary &&
                         hasOriginalInviteeRole
                     );
                 }
@@ -161,17 +153,69 @@ const handleSwitchProfile = async () => {
                 return;
             }
 
-            const isPrimary =
-                await hasPrimaryAccess(user.id);
+const isPrimary =
+    await hasPrimaryAccess(user.id);
 
-            if (isPrimary) {
-                await onLogout();
-                return;
-            }
+if (isPrimary) {
+    await onLogout();
+    return;
+}
+
+const {
+    data: activeAccess,
+    error: activeAccessError,
+} = await supabase
+    .from("carevr_access")
+    .select("access_type")
+    .eq("user_id", user.id)
+    .eq("access_status", "ACTIVE");
+
+if (activeAccessError) {
+    throw activeAccessError;
+}
+
+let sourceRole:
+    | "CARETAKER"
+    | "SECONDARY_FAMILY_MEMBER"
+    | "DOCTOR"
+    | null = null;
+
+if (
+    (activeAccess ?? []).some(
+        (access) =>
+            access.access_type ===
+            "CARETAKER"
+    )
+) {
+    sourceRole = "CARETAKER";
+} else if (
+    (activeAccess ?? []).some(
+        (access) =>
+            access.access_type ===
+            "SECONDARY_FAMILY_MEMBER"
+    )
+) {
+    sourceRole =
+        "SECONDARY_FAMILY_MEMBER";
+} else if (
+    (activeAccess ?? []).some(
+        (access) =>
+            access.access_type ===
+            "DOCTOR"
+    )
+) {
+    sourceRole = "DOCTOR";
+}
+
+if (!sourceRole) {
+    throw new Error(
+        "Unable to determine the current invitee role."
+    );
+}
 
 inviteeToPrimaryHandoff.set({
     userId: user.id,
-    sourceRole: "CARETAKER",
+    sourceRole,
     targetRole: "PRIMARY",
     createdAt: new Date().toISOString(),
 });
