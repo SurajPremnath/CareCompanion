@@ -2190,8 +2190,10 @@ top: calc(28%);
    GOOGLE
    --------------------------------------------------------- */
 
-.login-method-content[data-login-method="EMAIL"]
-  .login-google-panel,
+.login-google-panel {
+  display: none;
+}
+
 .login-method-content[data-login-method="EMAIL"]
   .divider {
   display: none;
