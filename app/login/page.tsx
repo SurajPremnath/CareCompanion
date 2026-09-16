@@ -2667,8 +2667,6 @@ onClick={async () => {
   </div>
 )}
 
-    </div>
-
     <div
       className="login-method-tabs"
       role="tablist"
@@ -2988,6 +2986,9 @@ onClick={async () => {
   </button>
 </div>
 
+    </div>
+  </div>
+
 <div className="login-footer">
   <CareVRFooter />
 </div>
@@ -2995,8 +2996,6 @@ onClick={async () => {
 {/* ============================
     RIGHT — BRAND EXPERIENCE
 ============================ */}
-
-    </div>
 
     <div
       className="login-right"
