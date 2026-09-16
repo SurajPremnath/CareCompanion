@@ -2394,6 +2394,23 @@ top: calc(28%);
     display: grid !important;
   }
 
+  .login-method-content[data-login-method="EMAIL"]
+    .login-google-panel,
+  .login-method-content[data-login-method="EMAIL"]
+    .divider {
+    display: none !important;
+  }
+
+  .login-method-content[data-login-method="GOOGLE"]
+    .login-email-panel {
+    display: none !important;
+  }
+
+  .login-method-content[data-login-method="GOOGLE"]
+    .login-google-panel {
+    display: block !important;
+  }
+
         .login-page {
           min-height: 100vh;
           min-height: 100dvh;
