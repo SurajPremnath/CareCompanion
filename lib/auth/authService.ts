@@ -231,38 +231,6 @@ async login(
   return result.user;
 }
 
-  /**
-   * Returns the MFA state required for login.
-   *
-   * TOTP is mandatory for all CareVR users.
-   * No TOTP secret or enrollment data is exposed here.
-   */
-  async getTOTPLoginStatus(): Promise<{
-    requiresMFA: boolean;
-    factorId: string | null;
-    requiresEnrollment: boolean;
-  }> {
-
-    const { data, error } =
-      await supabase.auth.mfa.listFactors();
-
-    if (error) {
-      throw error;
-    }
-
-    const totpFactor =
-      data?.totp?.find(
-        (factor) =>
-          factor.status === "verified"
-      );
-
-    return {
-      requiresMFA: Boolean(totpFactor),
-      factorId: totpFactor?.id ?? null,
-      requiresEnrollment: !totpFactor,
-    };
-  }
-
 /**
  * Sign in using Google OAuth.
  */

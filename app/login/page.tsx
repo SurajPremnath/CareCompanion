@@ -48,6 +48,8 @@ import {
 
 import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 
+import { checkTOTP } from "@/lib/auth/totpCheck";
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -141,6 +143,146 @@ const completeLogin = async (
   >,
   selectedAccessId?: string
 ) => {
+  const { data: invitationData, error: invitationError } =
+    await supabase
+      .from("carevr_invitation")
+      .select(
+        "id, family_id, role, status, invitation_attempt_number"
+      )
+      .eq(
+        "invited_email",
+        email.trim().toLowerCase()
+      )
+      .eq("status", "ACCEPTED")
+      .order("created_at", {
+        ascending: false,
+      })
+      .limit(1)
+      .maybeSingle();
+
+  if (invitationError) {
+    console.error(
+      "Unable to determine CareVR invitation context.",
+      invitationError
+    );
+
+    throw new Error(
+      "Unable to determine the CareVR account context."
+    );
+  }
+
+  if (invitationData) {
+    const invitationRole =
+      invitationData.role as
+        | "SECONDARY_FAMILY_MEMBER"
+        | "CARETAKER"
+        | "DOCTOR";
+
+    const invitationValidation =
+      await validateInvitedUserLogin({
+        email: email.trim(),
+        userId: authenticatedUser.id,
+        selectedRole: invitationRole,
+        mode: "NORMAL",
+      });
+
+    if (
+      invitationValidation.status ===
+      "VALID_INVITATION"
+    ) {
+      if (
+        !invitationValidation.invitationId
+      ) {
+        throw new Error(
+          "Invitation information is missing."
+        );
+      }
+
+      router.replace(
+        `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
+          invitationValidation.invitationId
+        )}`
+      );
+      return;
+    }
+
+    if (
+      invitationValidation.status ===
+      "CONSENT_REQUIRED"
+    ) {
+      carevrAuthorizationHandoff.set({
+        userId: authenticatedUser.id,
+        carevrRole: invitationRole,
+        familyId:
+          invitationValidation.familyId ??
+          invitationData.family_id ??
+          null,
+        patientId: null,
+        consentStage: "POST_LOGIN",
+        governanceId: null,
+        governanceVersion: null,
+      });
+
+      router.replace("/consent");
+      return;
+    }
+
+    if (
+      invitationValidation.status ===
+      "ACCEPTED"
+    ) {
+      const loginRole =
+        invitationRole ===
+        "SECONDARY_FAMILY_MEMBER"
+          ? "FAMILY"
+          : invitationRole;
+
+      carevrAuthorizationHandoff.set({
+        userId: authenticatedUser.id,
+        carevrRole: invitationRole,
+        familyId:
+          invitationValidation.familyId ??
+          invitationData.family_id ??
+          null,
+        patientId: null,
+        consentStage: "COMPLETED",
+        governanceId: null,
+        governanceVersion: null,
+      });
+
+      await resolveCareVRDashboardHandoff(
+        authenticatedUser.id,
+        loginRole
+      );
+
+      void authSessionService
+        .start()
+        .catch(() => {
+          // Analytics must never block navigation.
+        });
+
+      router.replace("/dashboard");
+      return;
+    }
+
+    if (
+      invitationValidation.status ===
+        "ROLE_MISMATCH" ||
+      invitationValidation.status ===
+        "INVALID_INVITATION" ||
+      invitationValidation.status ===
+        "NOT_INVITED"
+    ) {
+      throw new Error(
+        invitationValidation.message
+      );
+    }
+
+    throw new Error(
+      invitationValidation.message
+    );
+  }
+
   const availableContexts =
     await carevrContextResolver
       .getAvailableContexts(
@@ -188,25 +330,27 @@ const completeLogin = async (
     context.accessId
   );
 
-  const invitationValidation =
+  const selectedRole =
+    context.loginRole === "DOCTOR"
+      ? "DOCTOR"
+      : context.loginRole ===
+          "CARETAKER"
+        ? "CARETAKER"
+        : context.loginRole ===
+            "FAMILY"
+          ? "SECONDARY_FAMILY_MEMBER"
+          : "SELF";
+
+  const finalValidation =
     await validateInvitedUserLogin({
       email: email.trim(),
       userId: authenticatedUser.id,
-      selectedRole:
-        context.loginRole === "DOCTOR"
-          ? "DOCTOR"
-          : context.loginRole ===
-              "CARETAKER"
-            ? "CARETAKER"
-            : context.loginRole ===
-                "FAMILY"
-              ? "SECONDARY_FAMILY_MEMBER"
-              : "SELF",
+      selectedRole,
       mode: "NORMAL",
     });
 
   if (
-    invitationValidation.status ===
+    finalValidation.status ===
     "PRIMARY"
   ) {
     carevrAuthorizationHandoff.set({
@@ -237,118 +381,18 @@ const completeLogin = async (
   }
 
   if (
-    invitationValidation.status ===
-    "VALID_INVITATION"
-  ) {
-    if (
-      !invitationValidation.invitationId
-    ) {
-      throw new Error(
-        "Invitation information is missing."
-      );
-    }
-
-    router.replace(
-      `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
-        invitationValidation.invitationId
-      )}`
-    );
-    return;
-  }
-
-  if (
-    invitationValidation.status ===
-    "CONSENT_REQUIRED"
-  ) {
-    const carevrRole =
-      context.loginRole === "DOCTOR"
-        ? "DOCTOR"
-        : context.loginRole ===
-            "CARETAKER"
-          ? "CARETAKER"
-          : context.loginRole ===
-              "FAMILY"
-            ? "SECONDARY_FAMILY_MEMBER"
-            : "PRIMARY";
-
-    carevrAuthorizationHandoff.set({
-      userId: authenticatedUser.id,
-      carevrRole,
-      familyId:
-        context.familyId,
-      patientId:
-        context.patientId,
-      consentStage: "POST_LOGIN",
-      governanceId: null,
-      governanceVersion: null,
-    });
-
-    router.replace("/consent");
-    return;
-  }
-
-  if (
-    invitationValidation.status ===
-    "ACCEPTED"
-  ) {
-    const carevrRole =
-      context.loginRole === "DOCTOR"
-        ? "DOCTOR"
-        : context.loginRole ===
-            "CARETAKER"
-          ? "CARETAKER"
-          : context.loginRole ===
-              "FAMILY"
-            ? "SECONDARY_FAMILY_MEMBER"
-            : "PRIMARY";
-
-    carevrAuthorizationHandoff.set({
-      userId: authenticatedUser.id,
-      carevrRole,
-      familyId:
-        context.familyId,
-      patientId:
-        context.patientId,
-      consentStage: "COMPLETED",
-      governanceId: null,
-      governanceVersion: null,
-    });
-
-    await resolveCareVRDashboardHandoff(
-      authenticatedUser.id,
-      context.loginRole
-    );
-
-    void authSessionService
-      .start()
-      .catch(() => {
-        // Analytics must never block navigation.
-      });
-
-    router.replace("/dashboard");
-    return;
-  }
-
-  if (
-    invitationValidation.status ===
-    "ROLE_MISMATCH"
-  ) {
-    throw new Error(
-      invitationValidation.message
-    );
-  }
-
-  if (
-    invitationValidation.status ===
+    finalValidation.status ===
+    "ROLE_MISMATCH" ||
+    finalValidation.status ===
     "INVALID_INVITATION"
   ) {
     throw new Error(
-      invitationValidation.message
+      finalValidation.message
     );
   }
 
   if (
-    invitationValidation.status ===
+    finalValidation.status ===
     "NOT_INVITED"
   ) {
     await resolveCareVRDashboardHandoff(
@@ -367,7 +411,7 @@ const completeLogin = async (
   }
 
   throw new Error(
-    invitationValidation.message
+    finalValidation.message
   );
 };
 
@@ -453,21 +497,23 @@ if (
     );
 
 const totpStatus =
-  await authService.getTOTPLoginStatus();
+  await checkTOTP();
 
 if (
-  totpStatus.requiresMFA &&
+  totpStatus.status === "VERIFIED" &&
   totpStatus.factorId
 ) {
   setTotpLogin({
     user: authenticatedUser,
     factorId: totpStatus.factorId,
   });
-
   return;
 }
 
-if (totpStatus.requiresEnrollment) {
+if (
+  totpStatus.status ===
+  "ENROLLMENT_REQUIRED"
+) {
   const enrollment =
     await authService.enrollTOTP();
 
@@ -478,7 +524,6 @@ if (totpStatus.requiresEnrollment) {
     secret: enrollment.totp.secret,
     uri: enrollment.totp.uri,
   });
-
   return;
 }
 
