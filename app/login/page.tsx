@@ -147,8 +147,94 @@ const completeLogin = async (
   >,
   selectedAccessId?: string
 ) => {
-  const { data: invitationData, error: invitationError } =
-    await supabase
+
+  /*
+   * CareVR contexts are resolved first from the
+   * authenticated user's ACTIVE carevr_access records.
+   *
+   * This is the authoritative source for established
+   * CareVR profiles.
+   *
+   * If multiple profiles exist, Layer 5 must be completed
+   * before any single invitation context can short-circuit
+   * the login flow.
+   */
+  const availableContexts =
+    await carevrContextResolver
+      .getAvailableContexts(
+        authenticatedUser.id
+      );
+
+  if (
+    availableContexts.length > 1 &&
+    !selectedAccessId
+  ) {
+
+    setAvailableCareVRContexts(
+      availableContexts
+    );
+
+    router.replace(
+      "/profile-selection"
+    );
+
+    return;
+  }
+
+  /*
+   * If Login received a selected context from the
+   * dedicated Profile Selection page, re-resolve the
+   * active contexts and verify that the selected access
+   * record still belongs to the authenticated user.
+   */
+  const contextSelectionHandoff =
+    carevrContextSelectionHandoff.get();
+
+  const hasValidSelectionHandoff =
+    contextSelectionHandoff !== null &&
+    contextSelectionHandoff.userId ===
+      authenticatedUser.id;
+
+  const resolvedSelectedAccessId =
+    selectedAccessId ??
+    (
+      hasValidSelectionHandoff
+        ? contextSelectionHandoff.context
+            .accessId
+        : null
+    );
+
+  /*
+   * For an established single-context account,
+   * the resolver already provides the context.
+   *
+   * For a selected multi-context account, the selected
+   * accessId must match one of the freshly resolved
+   * ACTIVE contexts.
+   */
+  const context =
+    resolvedSelectedAccessId
+      ? availableContexts.find(
+          (availableContext) =>
+            availableContext.accessId ===
+            resolvedSelectedAccessId
+        )
+      : availableContexts.length === 1
+        ? availableContexts[0]
+        : null;
+
+  /*
+   * If there is no established active context,
+   * continue into the invitation lifecycle below.
+   */
+  if (
+    availableContexts.length === 0
+  ) {
+
+    const {
+      data: invitationData,
+      error: invitationError,
+    } = await supabase
       .from("carevr_invitation")
       .select(
         "id, family_id, role, status, invitation_attempt_number"
@@ -164,203 +250,151 @@ const completeLogin = async (
       .limit(1)
       .maybeSingle();
 
-  if (invitationError) {
-    console.error(
-      "Unable to determine CareVR invitation context.",
-      invitationError
-    );
+    if (invitationError) {
 
-    throw new Error(
-      "Unable to determine the CareVR account context."
-    );
-  }
+      console.error(
+        "Unable to determine CareVR invitation context.",
+        invitationError
+      );
 
-  if (invitationData) {
-    const invitationRole =
-      invitationData.role as
-        | "SECONDARY_FAMILY_MEMBER"
-        | "CARETAKER"
-        | "DOCTOR";
+      throw new Error(
+        "Unable to determine the CareVR account context."
+      );
+    }
 
-    const invitationValidation =
-      await validateInvitedUserLogin({
-        email: email.trim(),
-        userId: authenticatedUser.id,
-        selectedRole: invitationRole,
-        mode: "NORMAL",
-      });
+    if (invitationData) {
 
-    if (
-      invitationValidation.status ===
-      "VALID_INVITATION"
-    ) {
+      const invitationRole =
+        invitationData.role as
+          | "SECONDARY_FAMILY_MEMBER"
+          | "CARETAKER"
+          | "DOCTOR";
+
+      const invitationValidation =
+        await validateInvitedUserLogin({
+          email: email.trim(),
+          userId: authenticatedUser.id,
+          selectedRole: invitationRole,
+          mode: "NORMAL",
+        });
+
       if (
-        !invitationValidation.invitationId
+        invitationValidation.status ===
+        "VALID_INVITATION"
       ) {
+
+        if (
+          !invitationValidation.invitationId
+        ) {
+          throw new Error(
+            "Invitation information is missing."
+          );
+        }
+
+        router.replace(
+          `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
+            invitationValidation.invitationId
+          )}`
+        );
+
+        return;
+      }
+
+      if (
+        invitationValidation.status ===
+        "CONSENT_REQUIRED"
+      ) {
+
+        carevrAuthorizationHandoff.set({
+          userId: authenticatedUser.id,
+          carevrRole: invitationRole,
+          familyId:
+            invitationValidation.familyId ??
+            invitationData.family_id ??
+            null,
+          patientId: null,
+          consentStage: "POST_LOGIN",
+          governanceId: null,
+          governanceVersion: null,
+        });
+
+        router.replace("/consent");
+
+        return;
+      }
+
+      if (
+        invitationValidation.status ===
+        "ACCEPTED"
+      ) {
+
+        const loginRole =
+          invitationRole ===
+          "SECONDARY_FAMILY_MEMBER"
+            ? "FAMILY"
+            : invitationRole;
+
+        carevrAuthorizationHandoff.set({
+          userId: authenticatedUser.id,
+          carevrRole: invitationRole,
+          familyId:
+            invitationValidation.familyId ??
+            invitationData.family_id ??
+            null,
+          patientId: null,
+          consentStage: "COMPLETED",
+          governanceId: null,
+          governanceVersion: null,
+        });
+
+        await resolveCareVRDashboardHandoff(
+          authenticatedUser.id,
+          loginRole
+        );
+
+        void authSessionService
+          .start()
+          .catch(() => {
+            // Analytics must never block navigation.
+          });
+
+        router.replace("/dashboard");
+
+        return;
+      }
+
+      if (
+        invitationValidation.status ===
+          "ROLE_MISMATCH" ||
+        invitationValidation.status ===
+          "INVALID_INVITATION" ||
+        invitationValidation.status ===
+          "NOT_INVITED"
+      ) {
+
         throw new Error(
-          "Invitation information is missing."
+          invitationValidation.message
         );
       }
 
-      router.replace(
-        `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
-          invitationValidation.invitationId
-        )}`
-      );
-      return;
-    }
-
-    if (
-      invitationValidation.status ===
-      "CONSENT_REQUIRED"
-    ) {
-      carevrAuthorizationHandoff.set({
-        userId: authenticatedUser.id,
-        carevrRole: invitationRole,
-        familyId:
-          invitationValidation.familyId ??
-          invitationData.family_id ??
-          null,
-        patientId: null,
-        consentStage: "POST_LOGIN",
-        governanceId: null,
-        governanceVersion: null,
-      });
-
-      router.replace("/consent");
-      return;
-    }
-
-    if (
-      invitationValidation.status ===
-      "ACCEPTED"
-    ) {
-      const loginRole =
-        invitationRole ===
-        "SECONDARY_FAMILY_MEMBER"
-          ? "FAMILY"
-          : invitationRole;
-
-      carevrAuthorizationHandoff.set({
-        userId: authenticatedUser.id,
-        carevrRole: invitationRole,
-        familyId:
-          invitationValidation.familyId ??
-          invitationData.family_id ??
-          null,
-        patientId: null,
-        consentStage: "COMPLETED",
-        governanceId: null,
-        governanceVersion: null,
-      });
-
-      await resolveCareVRDashboardHandoff(
-        authenticatedUser.id,
-        loginRole
-      );
-
-      void authSessionService
-        .start()
-        .catch(() => {
-          // Analytics must never block navigation.
-        });
-
-      router.replace("/dashboard");
-      return;
-    }
-
-    if (
-      invitationValidation.status ===
-        "ROLE_MISMATCH" ||
-      invitationValidation.status ===
-        "INVALID_INVITATION" ||
-      invitationValidation.status ===
-        "NOT_INVITED"
-    ) {
       throw new Error(
         invitationValidation.message
       );
     }
 
     throw new Error(
-      invitationValidation.message
-    );
-  }
-
-  const availableContexts =
-    await carevrContextResolver
-      .getAvailableContexts(
-        authenticatedUser.id
-      );
-
-  if (
-    availableContexts.length === 0
-  ) {
-    throw new Error(
       "No active CareVR access is assigned to this account."
     );
   }
 
-  setAvailableCareVRContexts(
-    availableContexts
-  );
-
   /*
-   * Layer 5:
+   * An active context exists.
    *
-   * When multiple active CareVR contexts exist,
-   * Login delegates context selection to the
-   * dedicated Profile Selection page.
-   *
-   * No authorization is granted here.
+   * A selected accessId must correspond to a freshly
+   * resolved ACTIVE access record.
    */
-  const contextSelectionHandoff =
-    carevrContextSelectionHandoff.get();
-
-  const hasValidSelectionHandoff =
-    contextSelectionHandoff !== null &&
-    contextSelectionHandoff.userId ===
-      authenticatedUser.id;
-
-  if (
-    availableContexts.length > 1 &&
-    !selectedAccessId &&
-    !hasValidSelectionHandoff
-  ) {
-    router.replace(
-      "/profile-selection"
-    );
-
-    return;
-  }
-
-  /*
-   * A selected context may have come from the
-   * dedicated Profile Selection page.
-   *
-   * Always resolve the active contexts again and
-   * confirm the selected accessId belongs to the
-   * authenticated user before continuing.
-   */
-  const resolvedSelectedAccessId =
-    selectedAccessId ??
-    (
-      hasValidSelectionHandoff
-        ? contextSelectionHandoff.context
-            .accessId
-        : null
-    );
-
-  const context =
-    resolvedSelectedAccessId
-      ? availableContexts.find(
-          (availableContext) =>
-            availableContext.accessId ===
-            resolvedSelectedAccessId
-        )
-      : availableContexts[0];
-
   if (!context) {
+
     carevrContextSelectionHandoff.clear();
 
     throw new Error(
@@ -368,14 +402,18 @@ const completeLogin = async (
     );
   }
 
+  setAvailableCareVRContexts(
+    availableContexts
+  );
+
   setSelectedCareVRContextId(
     context.accessId
   );
 
   /*
-   * The handoff has served its purpose.
-   * The authoritative context is the freshly
-   * resolved active access record above.
+   * The transient selection handoff has served its
+   * purpose. The context above is authoritative because
+   * it was freshly resolved from carevr_access.
    */
   if (
     hasValidSelectionHandoff
@@ -406,6 +444,7 @@ const completeLogin = async (
     finalValidation.status ===
     "PRIMARY"
   ) {
+
     carevrAuthorizationHandoff.set({
       userId: authenticatedUser.id,
       carevrRole: "PRIMARY",
@@ -430,15 +469,17 @@ const completeLogin = async (
       });
 
     router.replace("/dashboard");
+
     return;
   }
 
   if (
     finalValidation.status ===
-    "ROLE_MISMATCH" ||
+      "ROLE_MISMATCH" ||
     finalValidation.status ===
-    "INVALID_INVITATION"
+      "INVALID_INVITATION"
   ) {
+
     throw new Error(
       finalValidation.message
     );
@@ -448,6 +489,7 @@ const completeLogin = async (
     finalValidation.status ===
     "NOT_INVITED"
   ) {
+
     await resolveCareVRDashboardHandoff(
       authenticatedUser.id,
       context.loginRole
@@ -460,6 +502,7 @@ const completeLogin = async (
       });
 
     router.replace("/dashboard");
+
     return;
   }
 
@@ -467,7 +510,6 @@ const completeLogin = async (
     finalValidation.message
   );
 };
-
 const handleLogin = async () => {
   setError("");
 
@@ -628,6 +670,26 @@ const handleVerifyTOTPEnrollment = async () => {
       challengeId,
       totpCode
     );
+
+const {
+  data: sessionCheck,
+  error: sessionCheckError,
+} =
+  await supabase.auth.getSession();
+
+console.log(
+  "POST-TOTP SESSION CHECK",
+  {
+    hasSession:
+      !!sessionCheck.session,
+    userId:
+      sessionCheck.session?.user?.id ??
+      null,
+    error:
+      sessionCheckError?.message ??
+      null,
+  }
+);
 
     const authenticatedUser =
       totpEnrollment.user;

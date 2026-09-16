@@ -19,8 +19,20 @@ import {
 } from "@/lib/auth/carevrContextResolver";
 
 import {
-    carevrContextSelectionHandoff,
-} from "@/lib/auth/carevrContextSelectionHandoff";
+    validateInvitedUserLogin,
+} from "@/lib/invitations/invitedUserLoginValidation";
+
+import {
+    resolveCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
+
+import {
+    carevrAuthorizationHandoff,
+} from "@/lib/authorization/carevrAuthorizationHandoff";
+
+import {
+    authSessionService,
+} from "@/lib/analytics/authSessionService";
 
 export default function ProfileSelectionPage() {
 
@@ -162,80 +174,197 @@ export default function ProfileSelectionPage() {
      * The Login page will re-resolve the user's
      * active CareVR contexts before continuing.
      */
-    const handleSelectedContext = async () => {
+const handleSelectedContext = async () => {
 
-        if (
-            continuing ||
-            !selectedContextId
-        ) {
-            return;
-        }
+    if (
+        continuing ||
+        !selectedContextId
+    ) {
+        return;
+    }
 
-        try {
+    try {
 
-            setContinuing(true);
-            setError("");
+        setContinuing(true);
+        setError("");
 
-            const user =
-                await authService.getCurrentUser();
+        const user =
+            await authService.getCurrentUser();
 
-            if (!user) {
-
-                router.replace("/login");
-
-                return;
-            }
-
-            const selectedContext =
-                availableContexts.find(
-                    (context) =>
-                        context.accessId ===
-                        selectedContextId
-                );
-
-            if (!selectedContext) {
-
-                throw new Error(
-                    "The selected CareVR profile is no longer available."
-                );
-            }
-
-            /*
-             * Store only a short-lived application handoff.
-             *
-             * This does not grant access. Login must
-             * re-resolve and validate the selected
-             * access record after returning.
-             */
-            carevrContextSelectionHandoff.set({
-
-                userId: user.id,
-
-                context: selectedContext,
-
-                createdAt:
-                    new Date().toISOString(),
-
-            });
+        if (!user) {
 
             router.replace("/login");
 
-        } catch (err) {
-
-            console.error(
-                "Unable to continue with the selected CareVR profile.",
-                err
-            );
-
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : "Unable to continue with the selected CareVR profile."
-            );
-
-            setContinuing(false);
+            return;
         }
-    };
+
+        /*
+         * Re-resolve the user's active contexts before
+         * accepting the selection.
+         *
+         * The UI selection itself is never authoritative.
+         */
+        const currentContexts =
+            await carevrContextResolver
+                .getAvailableContexts(
+                    user.id
+                );
+
+        const selectedContext =
+            currentContexts.find(
+                (context) =>
+                    context.accessId ===
+                    selectedContextId
+            );
+
+        if (!selectedContext) {
+
+            throw new Error(
+                "Selected CareVR context is no longer available."
+            );
+        }
+
+        const selectedRole =
+            selectedContext.loginRole ===
+                "DOCTOR"
+                ? "DOCTOR"
+                : selectedContext.loginRole ===
+                    "CARETAKER"
+                    ? "CARETAKER"
+                    : selectedContext.loginRole ===
+                        "FAMILY"
+                        ? "SECONDARY_FAMILY_MEMBER"
+                        : "SELF";
+
+        /*
+         * Use the same normal CareVR login validation
+         * used by the existing Login flow.
+         */
+        const validation =
+            await validateInvitedUserLogin({
+                email:
+                    user.email ?? "",
+                userId:
+                    user.id,
+                selectedRole,
+                mode: "NORMAL",
+            });
+
+        if (
+            validation.status ===
+            "CONSENT_REQUIRED"
+        ) {
+
+            carevrAuthorizationHandoff.set({
+                userId:
+                    user.id,
+                carevrRole:
+                    selectedRole,
+                familyId:
+                    validation.familyId ??
+                    selectedContext.familyId,
+                patientId:
+                    selectedContext.patientId,
+                consentStage:
+                    "POST_LOGIN",
+                governanceId:
+                    null,
+                governanceVersion:
+                    null,
+            });
+
+            router.replace(
+                "/consent"
+            );
+
+            return;
+        }
+
+        if (
+            validation.status ===
+                "PRIMARY" ||
+            validation.status ===
+                "ACCEPTED" ||
+            validation.status ===
+                "NOT_INVITED"
+        ) {
+
+            const dashboardRole =
+                selectedContext.loginRole;
+
+            const carevrRole =
+                selectedRole === "SELF"
+                    ? "PRIMARY"
+                    : selectedRole;
+
+            carevrAuthorizationHandoff.set({
+                userId:
+                    user.id,
+                carevrRole,
+                familyId:
+                    selectedContext.familyId,
+                patientId:
+                    selectedContext.patientId,
+                consentStage:
+                    "COMPLETED",
+                governanceId:
+                    null,
+                governanceVersion:
+                    null,
+            });
+
+            await resolveCareVRDashboardHandoff(
+                user.id,
+                dashboardRole
+            );
+
+            void authSessionService
+                .start()
+                .catch(() => {
+                    // Analytics must never block navigation.
+                });
+
+            router.replace(
+                "/dashboard"
+            );
+
+            return;
+        }
+
+        if (
+            validation.status ===
+                "ROLE_MISMATCH" ||
+            validation.status ===
+                "INVALID_INVITATION" ||
+            validation.status ===
+                "VALID_INVITATION"
+        ) {
+
+            throw new Error(
+                validation.message
+            );
+        }
+
+        throw new Error(
+            validation.message
+        );
+
+    } catch (err) {
+
+        console.error(
+            "Unable to continue with the selected CareVR profile.",
+            err
+        );
+
+        setError(
+            err instanceof Error
+                ? err.message
+                : "Unable to continue with the selected CareVR profile."
+        );
+
+        setContinuing(false);
+    }
+};
 
     return (
         <main className="profile-selection-page">
