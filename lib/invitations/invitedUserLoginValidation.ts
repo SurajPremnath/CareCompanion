@@ -24,7 +24,7 @@ export type InvitedUserLoginAuthenticationMode =
 export interface InvitedUserLoginValidationInput {
     email: string;
     userId: string;
-    selectedRole: InvitedUserLoginRole;
+    selectedRole?: InvitedUserLoginRole;
     mode: InvitedUserLoginAuthenticationMode;
 }
 
@@ -143,12 +143,54 @@ export async function validateInvitedUserLogin(
     const suppliedEmail =
         input.email.trim().toLowerCase();
 
+    let selectedRole =
+        input.selectedRole;
+
+    if (!selectedRole) {
+        const {
+            data: latestAcceptedInvitation,
+            error: latestAcceptedInvitationError,
+        } =
+            await serverSupabase
+                .from("carevr_invitation")
+                .select(
+                    "id, family_id, invited_user_id, invited_by, invited_email, role, invitation_attempt_number, status, token_hash, expires_at, consent_accepted_at, authorised_at"
+                )
+                .eq("invited_email", suppliedEmail)
+                .eq("status", "ACCEPTED")
+                .order("created_at", {
+                    ascending: false,
+                })
+                .limit(1)
+                .maybeSingle();
+
+        if (latestAcceptedInvitationError) {
+            console.error(
+                "Unable to discover accepted CareVR invitation role.",
+                latestAcceptedInvitationError
+            );
+
+            throw new Error(
+                "Unable to determine the CareVR login role."
+            );
+        }
+
+        if (latestAcceptedInvitation) {
+            selectedRole =
+                latestAcceptedInvitation.role as InvitedUserLoginRole;
+        }
+    }
+
+    if (!selectedRole) {
+        selectedRole = "SELF";
+    }
+
     const accessType =
-        input.selectedRole === "SELF"
+        selectedRole === "SELF"
             ? "PRIMARY"
-            : input.selectedRole === "SECONDARY_FAMILY_MEMBER"
+            : selectedRole === "SECONDARY_FAMILY_MEMBER"
                 ? "SECONDARY_FAMILY_MEMBER"
-                : input.selectedRole;
+                : selectedRole;
 
     const {
         data: activeCareVRAccess,
@@ -159,7 +201,7 @@ export async function validateInvitedUserLogin(
             .select(
                 "id, family_id, patient_id, access_type, access_status"
             )
-.eq("user_id", authenticatedUserId)
+            .eq("user_id", authenticatedUserId)
             .eq("access_status", "ACTIVE")
             .eq("access_type", accessType)
             .limit(1)
@@ -177,7 +219,7 @@ export async function validateInvitedUserLogin(
     }
 
     if (
-        input.selectedRole === "SELF" &&
+        selectedRole === "SELF" &&
         activeCareVRAccess?.access_type === "PRIMARY"
     ) {
         return {
@@ -217,7 +259,7 @@ export async function validateInvitedUserLogin(
 
     if (
         primaryProfile &&
-        input.selectedRole === "SELF"
+        selectedRole === "SELF"
     ) {
         return {
             status: "PRIMARY",
@@ -252,7 +294,7 @@ export async function validateInvitedUserLogin(
                 ].join(",")
             )
 .eq("invited_user_id", authenticatedUserId)
-            .eq("role", input.selectedRole)
+            .eq("role", selectedRole)
             .eq("status", "ACCEPTED")
             .not("consent_accepted_at", "is", null)
             .order("created_at", {
@@ -401,8 +443,8 @@ export async function validateInvitedUserLogin(
                 .trim()
                 .toLowerCase();
 
-    const roleMatches =
-        input.selectedRole === invitationRole;
+const roleMatches =
+    selectedRole === invitationRole;
 
     const checks: InvitedUserLoginValidationChecks = {
         invitationExists: true,
