@@ -2088,7 +2088,7 @@ top: calc(28% + 5px);
   width: 100%;
   height: 32px;
 
-  margin-bottom: 13px;
+  margin-bottom: 23px;
   padding: 2px;
 
   border: 1px solid #ddd7f2;
@@ -2096,7 +2096,7 @@ top: calc(28% + 5px);
 
   background: rgba(255, 255, 255, 0.72);
 
-  transform: translateY(5px);
+  transform: translateY(10px);
 }
 
 /* ---------------------------------------------------------
