@@ -1,0 +1,726 @@
+"use client";
+
+import React, {
+    useEffect,
+    useState,
+} from "react";
+
+import { useRouter } from "next/navigation";
+
+import Image from "next/image";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
+
+import { authService } from "@/lib/auth/authService";
+
+import {
+    carevrContextResolver,
+    type CareVRAvailableContext,
+} from "@/lib/auth/carevrContextResolver";
+
+import {
+    carevrContextSelectionHandoff,
+} from "@/lib/auth/carevrContextSelectionHandoff";
+
+export default function ProfileSelectionPage() {
+
+    const router = useRouter();
+
+    const [
+        availableContexts,
+        setAvailableContexts,
+    ] = useState<
+        CareVRAvailableContext[]
+    >([]);
+
+    const [
+        selectedContextId,
+        setSelectedContextId,
+    ] = useState<string | null>(null);
+
+    const [
+        loading,
+        setLoading,
+    ] = useState(true);
+
+    const [
+        continuing,
+        setContinuing,
+    ] = useState(false);
+
+    const [
+        error,
+        setError,
+    ] = useState("");
+
+    useEffect(() => {
+
+        let cancelled = false;
+
+        const loadContexts = async () => {
+
+            try {
+
+                setLoading(true);
+                setError("");
+
+                const user =
+                    await authService.getCurrentUser();
+
+                if (!user) {
+
+                    router.replace("/login");
+
+                    return;
+                }
+
+                const contexts =
+                    await carevrContextResolver
+                        .getAvailableContexts(
+                            user.id
+                        );
+
+                if (cancelled) {
+                    return;
+                }
+
+                if (
+                    contexts.length === 0
+                ) {
+
+                    setError(
+                        "No active CareVR profiles are available for this account."
+                    );
+
+                    return;
+                }
+
+                setAvailableContexts(
+                    contexts
+                );
+
+            } catch (err) {
+
+                if (cancelled) {
+                    return;
+                }
+
+                console.error(
+                    "Unable to load CareVR profiles.",
+                    err
+                );
+
+                setError(
+                    "Unable to load your CareVR profiles."
+                );
+
+            } finally {
+
+                if (!cancelled) {
+                    setLoading(false);
+                }
+
+            }
+        };
+
+        void loadContexts();
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, [router]);
+
+    const getRoleIcon = (
+        loginRole:
+            CareVRAvailableContext["loginRole"]
+    ) => {
+
+        switch (loginRole) {
+
+            case "SELF":
+                return "👤";
+
+            case "DOCTOR":
+                return "🩺";
+
+            case "CARETAKER":
+                return "♡";
+
+            case "FAMILY":
+                return "👥";
+
+            default:
+                return "👤";
+        }
+    };
+
+
+    /*
+     * The selected context is handed back to Login.
+     *
+     * The Login page will re-resolve the user's
+     * active CareVR contexts before continuing.
+     */
+    const handleSelectedContext = async () => {
+
+        if (
+            continuing ||
+            !selectedContextId
+        ) {
+            return;
+        }
+
+        try {
+
+            setContinuing(true);
+            setError("");
+
+            const user =
+                await authService.getCurrentUser();
+
+            if (!user) {
+
+                router.replace("/login");
+
+                return;
+            }
+
+            const selectedContext =
+                availableContexts.find(
+                    (context) =>
+                        context.accessId ===
+                        selectedContextId
+                );
+
+            if (!selectedContext) {
+
+                throw new Error(
+                    "The selected CareVR profile is no longer available."
+                );
+            }
+
+            /*
+             * Store only a short-lived application handoff.
+             *
+             * This does not grant access. Login must
+             * re-resolve and validate the selected
+             * access record after returning.
+             */
+            carevrContextSelectionHandoff.set({
+
+                userId: user.id,
+
+                context: selectedContext,
+
+                createdAt:
+                    new Date().toISOString(),
+
+            });
+
+            router.replace("/login");
+
+        } catch (err) {
+
+            console.error(
+                "Unable to continue with the selected CareVR profile.",
+                err
+            );
+
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Unable to continue with the selected CareVR profile."
+            );
+
+            setContinuing(false);
+        }
+    };
+
+    return (
+        <main className="profile-selection-page">
+
+            <div className="profile-selection-shell">
+
+                <header className="profile-selection-header">
+
+                    <button
+                        type="button"
+                        className="home-button"
+                        onClick={() =>
+                            router.replace("/")
+                        }
+                        aria-label="Go to CareVR home"
+                    >
+                        <span aria-hidden="true">
+                            ←
+                        </span>
+
+                        <span>
+                            Home
+                        </span>
+                    </button>
+
+                    <div className="profile-selection-brand">
+
+                        <Image
+                            src="/images/CareVR v1.0.png"
+                            alt="CareVR"
+                            width={180}
+                            height={60}
+                            priority
+                            className="carevr-logo"
+                        />
+
+                    </div>
+
+                    <div
+                        className="header-spacer"
+                        aria-hidden="true"
+                    />
+
+                </header>
+
+                <section className="profile-selection-content">
+
+                    <div className="profile-selection-heading">
+
+                        <p className="eyebrow">
+                            CareVR
+                        </p>
+
+                        <h1>
+                            Continue as...
+                        </h1>
+
+                        <p className="subtitle">
+                            Choose the profile you want
+                            to use for this session.
+                        </p>
+
+                    </div>
+
+                    {loading && (
+
+                        <div className="state-message">
+                            Loading your profiles...
+                        </div>
+
+                    )}
+
+                    {!loading &&
+                        error && (
+
+                            <div
+                                className="error-message"
+                                role="alert"
+                            >
+                                {error}
+                            </div>
+
+                        )}
+
+                    {!loading &&
+                        !error &&
+                        availableContexts.length > 0 && (
+
+                            <>
+
+                                <div className="profile-grid">
+
+                                    {availableContexts.map(
+                                        (context) => {
+
+                                            const selected =
+                                                selectedContextId ===
+                                                context.accessId;
+
+                                            return (
+                                                <button
+                                                    key={
+                                                        context.accessId
+                                                    }
+                                                    type="button"
+                                                    className={`profile-card ${
+                                                        selected
+                                                            ? "profile-card-selected"
+                                                            : ""
+                                                    }`}
+                                                    onClick={() =>
+                                                        setSelectedContextId(
+                                                            context.accessId
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        continuing
+                                                    }
+                                                    aria-pressed={
+                                                        selected
+                                                    }
+                                                >
+
+                                                    <span
+                                                        className="profile-icon"
+                                                        aria-hidden="true"
+                                                    >
+                                                        {
+                                                            getRoleIcon(
+                                                                context.loginRole
+                                                            )
+                                                        }
+                                                    </span>
+
+                                                    <span className="profile-label">
+                                                        {
+                                                            context.label
+                                                        }
+                                                    </span>
+
+                                                    <span className="profile-description">
+
+                                                        {context.loginRole ===
+                                                            "SELF" &&
+                                                            "Your personal CareVR profile"}
+
+                                                        {context.loginRole ===
+                                                            "DOCTOR" &&
+                                                            "Access your assigned doctor context"}
+
+                                                        {context.loginRole ===
+                                                            "CARETAKER" &&
+                                                            "Care for the people assigned to you"}
+
+                                                        {context.loginRole ===
+                                                            "FAMILY" &&
+                                                            "Access your family care context"}
+
+                                                    </span>
+
+                                                    {selected && (
+
+                                                        <span
+                                                            className="profile-selected-indicator"
+                                                            aria-hidden="true"
+                                                        >
+                                                            ✓
+                                                        </span>
+
+                                                    )}
+
+                                                </button>
+                                            );
+                                        }
+                                    )}
+
+                                </div>
+
+                                <button
+                                    type="button"
+                                    className="continue-button"
+                                    onClick={
+                                        handleSelectedContext
+                                    }
+                                    disabled={
+                                        !selectedContextId ||
+                                        continuing
+                                    }
+                                >
+                                    {continuing
+                                        ? "Continuing..."
+                                        : "Continue"}
+                                </button>
+
+                            </>
+
+                        )}
+
+                    <CareVRFooter />
+
+                </section>
+
+            </div>
+
+            <style jsx>{`
+
+                .profile-selection-page {
+                    min-height: 100vh;
+                    background: #ffffff;
+                    color: #172033;
+                    display: flex;
+                    justify-content: center;
+                    box-sizing: border-box;
+                }
+
+                .profile-selection-shell {
+                    width: 100%;
+                    max-width: 960px;
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    padding: 0 24px;
+                    box-sizing: border-box;
+                }
+
+                .profile-selection-header {
+                    width: 100%;
+                    min-height: 84px;
+                    display: grid;
+                    grid-template-columns: 1fr auto 1fr;
+                    align-items: center;
+                    border-bottom: 1px solid #eef0f4;
+                }
+
+                .profile-selection-brand {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                .carevr-logo {
+                    width: auto;
+                    height: 46px;
+                    object-fit: contain;
+                }
+
+                .home-button {
+                    justify-self: start;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    border: 0;
+                    background: transparent;
+                    color: #596579;
+                    font-size: 13px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    padding: 8px 4px;
+                }
+
+                .home-button:hover {
+                    color: #172033;
+                }
+
+                .header-spacer {
+                    width: 1px;
+                }
+
+                .profile-selection-content {
+                    width: 100%;
+                    max-width: 760px;
+                    margin: 0 auto;
+                    padding: 58px 0 30px;
+                    box-sizing: border-box;
+                }
+
+                .profile-selection-heading {
+                    text-align: center;
+                    margin-bottom: 34px;
+                }
+
+                .eyebrow {
+                    margin: 0 0 8px;
+                    color: #7b8799;
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                }
+
+                h1 {
+                    margin: 0;
+                    color: #172033;
+                    font-size: 30px;
+                    line-height: 1.2;
+                    font-weight: 700;
+                    letter-spacing: -0.02em;
+                }
+
+                .subtitle {
+                    margin: 10px auto 0;
+                    max-width: 500px;
+                    color: #7a8597;
+                    font-size: 14px;
+                    line-height: 1.55;
+                }
+
+                .profile-grid {
+                    display: grid;
+                    grid-template-columns:
+                        repeat(
+                            auto-fit,
+                            minmax(210px, 1fr)
+                        );
+                    gap: 16px;
+                }
+
+                .profile-card {
+                    position: relative;
+                    min-height: 190px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 28px 20px;
+                    border: 1px solid #e6e9ef;
+                    border-radius: 18px;
+                    background: #ffffff;
+                    box-shadow:
+                        0 4px 18px
+                        rgba(23, 32, 51, 0.04);
+                    cursor: pointer;
+                    transition:
+                        border-color 0.18s ease,
+                        box-shadow 0.18s ease,
+                        transform 0.18s ease;
+                    box-sizing: border-box;
+                    text-align: center;
+                }
+
+                .profile-card:hover {
+                    border-color: #cfd5df;
+                    box-shadow:
+                        0 8px 24px
+                        rgba(23, 32, 51, 0.08);
+                    transform: translateY(-2px);
+                }
+
+                .profile-card-selected {
+                    border-color: #172033;
+                    box-shadow:
+                        0 8px 28px
+                        rgba(23, 32, 51, 0.11);
+                }
+
+                .profile-icon {
+                    width: 64px;
+                    height: 64px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 16px;
+                    border-radius: 50%;
+                    background: #f5f7fa;
+                    font-size: 28px;
+                    line-height: 1;
+                }
+
+                .profile-label {
+                    color: #172033;
+                    font-size: 17px;
+                    line-height: 1.3;
+                    font-weight: 700;
+                }
+
+                .profile-description {
+                    margin-top: 7px;
+                    max-width: 190px;
+                    color: #8a94a8;
+                    font-size: 11px;
+                    line-height: 1.45;
+                }
+
+                .profile-selected-indicator {
+                    position: absolute;
+                    top: 12px;
+                    right: 12px;
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    background: #172033;
+                    color: #ffffff;
+                    font-size: 13px;
+                    font-weight: 700;
+                }
+
+                .continue-button {
+                    width: 100%;
+                    height: 48px;
+                    margin-top: 24px;
+                    border: 0;
+                    border-radius: 10px;
+                    background: #172033;
+                    color: #ffffff;
+                    font-size: 14px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition:
+                        opacity 0.18s ease,
+                        transform 0.18s ease;
+                }
+
+                .continue-button:hover:not(:disabled) {
+                    transform: translateY(-1px);
+                }
+
+                .continue-button:disabled {
+                    opacity: 0.42;
+                    cursor: not-allowed;
+                }
+
+                .state-message {
+                    padding: 40px 20px;
+                    text-align: center;
+                    color: #7a8597;
+                    font-size: 14px;
+                }
+
+                .error-message {
+                    padding: 14px 16px;
+                    border: 1px solid #ead7d7;
+                    border-radius: 10px;
+                    background: #fff8f8;
+                    color: #9a4545;
+                    font-size: 13px;
+                    line-height: 1.5;
+                    text-align: center;
+                }
+
+                @media (max-width: 640px) {
+
+                    .profile-selection-shell {
+                        padding: 0 16px;
+                    }
+
+                    .profile-selection-header {
+                        min-height: 72px;
+                    }
+
+                    .carevr-logo {
+                        height: 38px;
+                    }
+
+                    .home-button {
+                        font-size: 12px;
+                    }
+
+                    .profile-selection-content {
+                        padding-top: 42px;
+                    }
+
+                    h1 {
+                        font-size: 26px;
+                    }
+
+                    .subtitle {
+                        font-size: 13px;
+                    }
+
+                    .profile-grid {
+                        grid-template-columns: 1fr;
+                        gap: 12px;
+                    }
+
+                    .profile-card {
+                        min-height: 150px;
+                    }
+
+                }
+
+            `}</style>
+
+        </main>
+    );
+}

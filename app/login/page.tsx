@@ -50,6 +50,10 @@ import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHan
 
 import { checkTOTP } from "@/lib/auth/totpCheck";
 
+import {
+  carevrContextSelectionHandoff,
+} from "@/lib/auth/carevrContextSelectionHandoff";
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -301,26 +305,64 @@ const completeLogin = async (
     availableContexts
   );
 
+  /*
+   * Layer 5:
+   *
+   * When multiple active CareVR contexts exist,
+   * Login delegates context selection to the
+   * dedicated Profile Selection page.
+   *
+   * No authorization is granted here.
+   */
+  const contextSelectionHandoff =
+    carevrContextSelectionHandoff.get();
+
+  const hasValidSelectionHandoff =
+    contextSelectionHandoff !== null &&
+    contextSelectionHandoff.userId ===
+      authenticatedUser.id;
+
   if (
     availableContexts.length > 1 &&
-    !selectedAccessId
+    !selectedAccessId &&
+    !hasValidSelectionHandoff
   ) {
-    setShowCareVRContextSelection(
-      true
+    router.replace(
+      "/profile-selection"
     );
+
     return;
   }
 
+  /*
+   * A selected context may have come from the
+   * dedicated Profile Selection page.
+   *
+   * Always resolve the active contexts again and
+   * confirm the selected accessId belongs to the
+   * authenticated user before continuing.
+   */
+  const resolvedSelectedAccessId =
+    selectedAccessId ??
+    (
+      hasValidSelectionHandoff
+        ? contextSelectionHandoff.context
+            .accessId
+        : null
+    );
+
   const context =
-    selectedAccessId
+    resolvedSelectedAccessId
       ? availableContexts.find(
           (availableContext) =>
             availableContext.accessId ===
-            selectedAccessId
+            resolvedSelectedAccessId
         )
       : availableContexts[0];
 
   if (!context) {
+    carevrContextSelectionHandoff.clear();
+
     throw new Error(
       "Selected CareVR context is no longer available."
     );
@@ -329,6 +371,17 @@ const completeLogin = async (
   setSelectedCareVRContextId(
     context.accessId
   );
+
+  /*
+   * The handoff has served its purpose.
+   * The authoritative context is the freshly
+   * resolved active access record above.
+   */
+  if (
+    hasValidSelectionHandoff
+  ) {
+    carevrContextSelectionHandoff.clear();
+  }
 
   const selectedRole =
     context.loginRole === "DOCTOR"
