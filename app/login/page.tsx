@@ -2096,7 +2096,7 @@ top: calc(28% + 5px);
 
   background: rgba(255, 255, 255, 0.72);
 
-  transform: translateY(35px);
+  transform: none;
 }
 
 /* ---------------------------------------------------------
@@ -2342,7 +2342,7 @@ top: calc(28% + 5px);
         }
 
         .login-heading {
-          margin-bottom: 8px;
+          margin-bottom: 15px;
         }
 
         .login-heading h1 {
@@ -2517,6 +2517,7 @@ top: calc(28% + 5px);
 
 <div className="login-content">
 
+<div className="mobile-login-form-block">
 
 <div className="context-selection">
   <div className="context-selection-title"></div>
@@ -2922,7 +2923,7 @@ onClick={async () => {
   </div>
 </div>
  </div>
-
+</div>
             <div className="divider">
               <span className="divider-line" />
               <span className="divider-text">
