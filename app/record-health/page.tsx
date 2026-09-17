@@ -1943,7 +1943,7 @@ if (loading) {
                             </div>
 
                             <span className="self-mode-check">
-                                âœ“
+                                ✓
                             </span>
 
                         </section>
@@ -2064,7 +2064,7 @@ if (loading) {
                                     patientId
                                 }
                             >
-                                âœ“{" "}
+                                ✓{" "}
                                 {patient?.fullName ??
                                     patientId}
                             </div>
@@ -2868,7 +2868,7 @@ onNoData={() => {
         >
 
             <span className="record-method-icon voice-icon">
-                ðŸŽ™
+                🎙️
             </span>
 
             <strong>
@@ -2895,7 +2895,7 @@ onNoData={() => {
         >
 
             <span className="record-method-icon upload-icon">
-                ðŸ“·
+                📷
             </span>
 
             <strong>
@@ -2922,7 +2922,7 @@ onNoData={() => {
         >
 
             <span className="record-method-icon manual-icon">
-                âœŽ
+                ✎
             </span>
 
             <strong>

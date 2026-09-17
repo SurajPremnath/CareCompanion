@@ -6,6 +6,8 @@ import {
     useState,
 } from "react";
 
+import Image from "next/image";
+
 import {
     useRouter,
     useSearchParams,
@@ -299,18 +301,21 @@ function InviteeRegistrationContent() {
                 <div className="page-shell">
 
                     <header className="mobile-header">
-                        <button
-                            type="button"
-                            className="logo-button"
-                            onClick={handleLogin}
-                        >
-                            <span className="care">
-                                Care
-                            </span>
-                            <span className="vr">
-                                VR
-                            </span>
-                        </button>
+<button
+    type="button"
+    className="logo-button"
+    onClick={handleLogin}
+    aria-label="CareVR"
+>
+    <Image
+        src="/images/CareVR v1.0.png"
+        alt="CareVR"
+        width={160}
+        height={48}
+        className="carevr-header-logo"
+        priority
+    />
+</button>
 
                         <button
                             type="button"
@@ -377,13 +382,7 @@ function InviteeRegistrationContent() {
                             </span>
                         </button>
 
-                        <button
-                            type="button"
-                            className="login-link"
-                            onClick={handleLogin}
-                        >
-                            Login
-                        </button>
+
                     </header>
 
                     <section className="success-card">
@@ -830,36 +829,6 @@ function InviteeRegistrationContent() {
 
                         </div>
 
-                        <div className="security-note">
-
-                            <span className="lock">
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="1.8"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <rect
-                                        x="4"
-                                        y="10"
-                                        width="16"
-                                        height="11"
-                                        rx="2"
-                                    />
-                                    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-                                </svg>
-                            </span>
-
-                            Your account will use
-                            CareVR's secure
-                            authentication process.
-
-                        </div>
-
                     </div>
 
                 </section>
@@ -901,9 +870,11 @@ const styles = `
         font: inherit;
     }
 
-    .invitee-page {
-        min-height: 100vh;
-        min-height: 100dvh;
+.invitee-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
+    overflow-x: hidden;
         background:
             radial-gradient(
                 circle at 10% 10%,
@@ -947,6 +918,12 @@ const styles = `
         cursor: pointer;
         letter-spacing: -1.5px;
         line-height: 1;
+    }
+
+    .carevr-header-logo {
+        display: block;
+        width: 160px;
+        height: auto;
     }
 
     .carevr-logo {
@@ -1199,11 +1176,13 @@ const styles = `
             box-shadow 160ms ease;
     }
 
+
     .form-input:focus {
         border-color: #7043f5;
         box-shadow:
             0 0 0 3px
             rgba(112, 67, 245, 0.10);
+        scroll-margin: 0;
     }
 
     .form-input:disabled {
@@ -1533,6 +1512,13 @@ const styles = `
                 10px
                 14px
                 12px;
+            min-height: 100dvh;
+            box-sizing: border-box;
+        }
+
+        .carevr-header-logo {
+            width: 130px;
+            height: auto;
         }
 
         .mobile-header {

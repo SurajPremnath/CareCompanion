@@ -1653,6 +1653,7 @@ Primary Family Member.
 
                     .carevr-logo {
                         width: 130px;
+                        height: auto;
                     }
 
                     .welcome-block h1 {
