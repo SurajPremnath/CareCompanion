@@ -1,4 +1,3 @@
-import { Patient } from "../types/patient";
 import { Result } from "../types/result";
 import { StorageResult } from "../storage/storageResult";
 
@@ -17,10 +16,18 @@ export class PatientValidator {
      * Validates patient details before saving.
      */
 validate(
-    patient: Omit<
-        Patient,
-        "id" | "userId" | "createdAt" | "updatedAt"
-    >
+    patient: {
+        fullName: string;
+        dateOfBirth: string | null;
+        gender:
+            | "Male"
+            | "Female"
+            | "Other"
+            | "Prefer not to say"
+            | null;
+        relationship: string | null;
+        status?: "ACTIVE" | "INACTIVE";
+    }
 ): Result<void> {
 
     if (!patient.fullName.trim()) {

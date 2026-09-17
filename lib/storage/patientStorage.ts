@@ -5,6 +5,8 @@ import { patientValidator } from "../validators/patientValidator";
 import { patientRepository } from "../repositories/patientRepository";
 import type { Result } from "@/lib/types/result";
 
+
+
 /**
  * PatientStorage
  *
@@ -33,74 +35,168 @@ class PatientStorage {
     try {
 
       //------------------------------------------------------
-      // Validation
+      // Client-side validation
+      // -----------------------------------------------------
+      // Kept for immediate UX feedback.
+      // Server validation remains authoritative.
       //------------------------------------------------------
 
-      const validation = patientValidator.validate(patient);
+      const validation =
+        patientValidator.validate(patient);
 
-if (!validation.success) {
+      if (!validation.success) {
 
-  return StorageResult.failure(
+        return StorageResult.failure(
+          "VALIDATION_FAILED",
+          validation.error ?? "Validation failed."
+        );
 
-    "VALIDATION_FAILED",
-
-    validation.error ?? "Validation failed."
-
-  );
-
-}
+      }
 
       //------------------------------------------------------
-      // Duplicate check
+      // Create Patient through protected server boundary
       //------------------------------------------------------
 
-      if (patient.dateOfBirth) {
+      const response =
+        await fetch(
+          "/api/patients/create",
+          {
+            method: "POST",
 
-        const existingPatient =
-          await patientRepository.findPatientByNameAndDob(
-            patient.fullName,
-            patient.dateOfBirth
-          );
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-        if (existingPatient) {
+            body: JSON.stringify({
+              fullName:
+                patient.fullName,
+
+              dateOfBirth:
+                patient.dateOfBirth,
+
+              gender:
+                patient.gender,
+
+              relationship:
+                patient.relationship,
+
+              status:
+                patient.status,
+            }),
+          }
+        );
+
+      //------------------------------------------------------
+      // Read API response
+      //------------------------------------------------------
+
+      const result =
+        await response.json();
+
+      if (!response.ok) {
+
+        if (
+          response.status === 409 &&
+          result.error ===
+            "A patient with the same name and date of birth already exists."
+        ) {
 
           return StorageResult.failure(
             "PATIENT_ALREADY_EXISTS",
-            "A patient with the same name and date of birth already exists."
+            result.error
           );
 
         }
 
+        if (
+          response.status === 409 &&
+          result.error ===
+            "Standard accounts can manage only one family member."
+        ) {
+
+          return StorageResult.failure(
+            "PATIENT_LIMIT_REACHED",
+            "Standard accounts can manage only one family member. Please contact the CareVR administrator if you need additional family members."
+          );
+
+        }
+
+        if (response.status === 403) {
+
+          return StorageResult.failure(
+            "PATIENT_SAVE_FAILED",
+            result.error ??
+              "You are not authorized to create this patient."
+          );
+
+        }
+
+        return StorageResult.failure(
+          "PATIENT_SAVE_FAILED",
+          result.error ??
+            "Unable to save patient."
+        );
+
       }
 
-//------------------------------------------------------
-// Patient Limit Validation
-//------------------------------------------------------
-
-const access =
-  await patientRepository.getPatientAccess();
-
-if (
-  access.role === "STANDARD" &&
-  access.patientCount >= 1
-) {
-
-  return StorageResult.failure(
-
-    "PATIENT_LIMIT_REACHED",
-
-    "Standard accounts can manage only one family member. Please contact the CareVR administrator if you need additional family members."
-
-  );
-
-}
-
       //------------------------------------------------------
-      // Save
+      // The server intentionally returns only the ID.
+      // The existing Patient domain object is not available
+      // yet because retrieval/decryption is a later step.
       //------------------------------------------------------
 
-      const savedPatient =
-        await patientRepository.createPatient(patient);
+      if (
+        !result?.success ||
+        !result?.data?.id
+      ) {
+
+        return StorageResult.failure(
+          "PATIENT_SAVE_FAILED",
+          "Patient was created but no patient identifier was returned."
+        );
+
+      }
+
+      //------------------------------------------------------
+      // Return a temporary domain object.
+      // Full protected retrieval/decryption will be wired
+      // separately.
+      //------------------------------------------------------
+
+      const now =
+        new Date().toISOString();
+
+      const savedPatient:
+        Patient = {
+
+        id:
+          result.data.id,
+
+        userId:
+          "",
+
+        fullName:
+          patient.fullName,
+
+        dateOfBirth:
+          patient.dateOfBirth,
+
+        gender:
+          patient.gender,
+
+        relationship:
+          patient.relationship,
+
+        status:
+          patient.status,
+
+        createdAt:
+          now,
+
+        updatedAt:
+          now,
+      };
 
       return StorageResult.success(
         savedPatient,
@@ -113,13 +209,9 @@ if (
       console.error(error);
 
       return StorageResult.failure(
-
         "PATIENT_SAVE_FAILED",
-
         "Unable to save patient. Please try again.",
-
         error
-
       );
 
     }
