@@ -153,75 +153,7 @@ const handleSwitchProfile = async () => {
                 return;
             }
 
-const isPrimary =
-    await hasPrimaryAccess(user.id);
-
-if (isPrimary) {
-    await onLogout();
-    return;
-}
-
-const {
-    data: activeAccess,
-    error: activeAccessError,
-} = await supabase
-    .from("carevr_access")
-    .select("access_type")
-    .eq("user_id", user.id)
-    .eq("access_status", "ACTIVE");
-
-if (activeAccessError) {
-    throw activeAccessError;
-}
-
-let sourceRole:
-    | "CARETAKER"
-    | "SECONDARY_FAMILY_MEMBER"
-    | "DOCTOR"
-    | null = null;
-
-if (
-    (activeAccess ?? []).some(
-        (access) =>
-            access.access_type ===
-            "CARETAKER"
-    )
-) {
-    sourceRole = "CARETAKER";
-} else if (
-    (activeAccess ?? []).some(
-        (access) =>
-            access.access_type ===
-            "SECONDARY_FAMILY_MEMBER"
-    )
-) {
-    sourceRole =
-        "SECONDARY_FAMILY_MEMBER";
-} else if (
-    (activeAccess ?? []).some(
-        (access) =>
-            access.access_type ===
-            "DOCTOR"
-    )
-) {
-    sourceRole = "DOCTOR";
-}
-
-if (!sourceRole) {
-    throw new Error(
-        "Unable to determine the current invitee role."
-    );
-}
-
-inviteeToPrimaryHandoff.set({
-    userId: user.id,
-    sourceRole,
-    targetRole: "PRIMARY",
-    createdAt: new Date().toISOString(),
-});
-
-router.replace("/register");
-return;
+            router.replace("/profile-selection");
         }
         catch (error) {
             console.error(

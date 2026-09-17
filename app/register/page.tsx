@@ -456,7 +456,10 @@ setTotpEnrollment({
             setInviteePrimaryConfirmed(false);
         }
     }}
-    disabled={registrationCompleted}
+    disabled={
+    registrationCompleted ||
+    inviteePrimaryConfirmed
+}
 >
     <span className="radio-circle">
         {isPrimaryFamilyMember === true && (
@@ -485,7 +488,10 @@ setTotpEnrollment({
 
         router.replace("/login");
     }}
-    disabled={registrationCompleted}
+    disabled={
+    registrationCompleted ||
+    inviteePrimaryConfirmed
+}
 >
                                 <span className="radio-circle">
                                     {isPrimaryFamilyMember === false && (
