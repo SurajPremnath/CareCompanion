@@ -247,6 +247,55 @@ class PatientStorage {
 
   }
 
+  async getProtectedPatient(
+    patientId: string
+  ): Promise<Result<Patient>> {
+    try {
+      const response = await fetch(
+        `/api/patients/${patientId}`
+      );
+
+      const result =
+        await response.json();
+
+      if (!response.ok) {
+        return StorageResult.failure(
+          "PATIENT_FETCH_FAILED",
+          result?.error ??
+            "Unable to retrieve patient."
+        );
+      }
+
+      if (
+        !result?.success ||
+        !result?.data?.id
+      ) {
+        return StorageResult.failure(
+          "PATIENT_FETCH_FAILED",
+          "Patient could not be retrieved."
+        );
+      }
+
+      const patient =
+        result.data as Patient;
+
+      return StorageResult.success(
+        patient,
+        "Patient retrieved successfully."
+      );
+
+    } catch (error) {
+      console.error(error);
+
+      return StorageResult.failure(
+        "PATIENT_FETCH_FAILED",
+        "Unable to retrieve patient. Please try again.",
+        error
+      );
+    }
+  }
+
+
   /**
    * Returns one patient.
    */

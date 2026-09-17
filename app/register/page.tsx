@@ -262,6 +262,12 @@ const verifiedCaptchaToken =
              * Existing registration service remains unchanged.
              * No Primary/family/database logic is added in this UI step.
              */
+console.log(
+    "CareVR registration fullName:",
+    JSON.stringify(fullName.trim())
+);
+
+
 const result =
     await authService.register(
         fullName.trim(),

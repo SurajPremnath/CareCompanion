@@ -6,6 +6,7 @@ import {
 
 import {
   protectPatientData,
+  unprotectPatientData,
 } from "@/lib/security/dataProtection/patientDataProtectionService";
 
 import {
@@ -299,4 +300,286 @@ export async function createProtectedPatient(
   }
 
   return data;
+}
+
+export async function getProtectedPatient(
+  patientId: string,
+  familyId?: string
+) {
+
+  const supabase =
+    await createSupabaseServerClient();
+
+  //------------------------------------------------------
+  // Authentication
+  //------------------------------------------------------
+
+  const {
+    data: {
+      user
+    },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw userError;
+  }
+
+  if (!user) {
+    throw new Error(
+      "User is not authenticated."
+    );
+  }
+
+  //------------------------------------------------------
+  // Retrieve through Supabase RLS
+  //------------------------------------------------------
+
+  let query =
+    supabase
+      .from("patients")
+      .select(
+        "id, user_id, family_id, full_name, date_of_birth, full_name_ciphertext, full_name_lookup_hash, date_of_birth_ciphertext, date_of_birth_lookup_hash, gender, relationship, status, created_at, updated_at"
+      )
+      .eq("id", patientId)
+      .eq("status", "ACTIVE");
+
+if (familyId) {
+  query =
+    query.eq(
+      "family_id",
+      familyId
+    );
+}
+
+  const {
+    data,
+    error,
+  } =
+    await query.maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  //------------------------------------------------------
+  // Decrypt protected fields
+  //------------------------------------------------------
+
+  const decrypted =
+    unprotectPatientData(
+      data as Record<string, unknown>
+    );
+
+  //------------------------------------------------------
+  // Return application-level patient data
+  //------------------------------------------------------
+
+  return {
+    id:
+      decrypted.id as string,
+
+    userId:
+      decrypted.user_id as string,
+
+    familyId:
+      decrypted.family_id as string | null,
+
+    fullName:
+      decrypted.fullName as string,
+
+    dateOfBirth:
+      decrypted.dateOfBirth as string | null,
+
+    gender:
+      decrypted.gender as
+        | "Male"
+        | "Female"
+        | "Other"
+        | "Prefer not to say"
+        | null,
+
+    relationship:
+      decrypted.relationship as string | null,
+
+    status:
+      decrypted.status as
+        | "ACTIVE"
+        | "INACTIVE",
+
+    createdAt:
+      decrypted.created_at as string,
+
+    updatedAt:
+      decrypted.updated_at as string,
+  };
+}
+
+export async function getProtectedPatientScopeForAccess(
+  accessId: string,
+  selectedRole:
+    | "SELF"
+    | "FAMILY"
+    | "CARETAKER"
+    | "DOCTOR"
+) {
+  const supabase =
+    await createSupabaseServerClient();
+
+  const {
+    data: {
+      user,
+    },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw userError;
+  }
+
+  if (!user) {
+    throw new Error(
+      "User is not authenticated."
+    );
+  }
+
+  const {
+    data: access,
+    error: accessError,
+  } =
+    await supabase
+      .from("carevr_access")
+      .select(
+        "id, user_id, family_id, patient_id, access_type, access_status"
+      )
+      .eq("id", accessId)
+      .eq("user_id", user.id)
+      .eq("access_status", "ACTIVE")
+      .maybeSingle();
+
+  if (accessError) {
+    throw accessError;
+  }
+
+  if (!access) {
+    throw new Error(
+      "CareVR access is not available."
+    );
+  }
+
+  const allowedAccessTypes =
+    selectedRole === "SELF"
+      ? ["PRIMARY"]
+      : selectedRole === "FAMILY"
+        ? [
+            "PRIMARY",
+            "SECONDARY_FAMILY_MEMBER",
+          ]
+        : selectedRole === "CARETAKER"
+          ? ["CARETAKER"]
+          : ["DOCTOR"];
+
+  if (
+    !allowedAccessTypes.includes(
+      access.access_type
+    )
+  ) {
+    throw new Error(
+      "Selected CareVR role is not authorized for this access."
+    );
+  }
+
+  let query =
+    supabase
+      .from("patients")
+      .select(
+        "id, user_id, family_id, full_name, date_of_birth, full_name_ciphertext, full_name_lookup_hash, date_of_birth_ciphertext, date_of_birth_lookup_hash, gender, relationship, status, created_at, updated_at"
+      )
+      .eq("status", "ACTIVE");
+
+  let scope:
+    | "SELF_ONLY"
+    | "PATIENTS" = "PATIENTS";
+
+  if (
+    selectedRole === "SELF"
+  ) {
+    scope = "SELF_ONLY";
+
+    if (!access.family_id) {
+      return {
+        scope,
+        patients: [],
+      };
+    }
+
+    query =
+      query.eq(
+        "family_id",
+        access.family_id
+      );
+  } else if (access.patient_id) {
+    query =
+      query.eq(
+        "id",
+        access.patient_id
+      );
+  } else if (access.family_id) {
+    query =
+      query.eq(
+        "family_id",
+        access.family_id
+      );
+  } else {
+    return {
+      scope,
+      patients: [],
+    };
+  }
+
+  const {
+    data,
+    error,
+  } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  const patients =
+    (data ?? [])
+      .map((row) => {
+        const decrypted =
+          unprotectPatientData(
+            row as Record<string, unknown>
+          );
+
+        return {
+          id:
+            decrypted.id as string,
+          userId:
+            decrypted.user_id as string,
+          fullName:
+            decrypted.fullName as string,
+          relationship:
+            decrypted.relationship as
+              | string
+              | null,
+        };
+      })
+      .sort(
+        (a, b) =>
+          a.fullName.localeCompare(
+            b.fullName
+          )
+      );
+
+  return {
+    scope,
+    patients,
+  };
 }

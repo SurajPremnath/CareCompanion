@@ -313,10 +313,46 @@ const handleSelectedContext = async () => {
                     null,
             });
 
-            await resolveCareVRDashboardHandoff(
-                user.id,
-                dashboardRole
-            );
+const encryptionResponse =
+    await fetch(
+        "/api/security/legacy-patient-encryption",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+            body: JSON.stringify({
+                accessId:
+                    selectedContext.accessId,
+                selectedRole:
+                    selectedRole === "SELF"
+                        ? "SELF"
+                        : selectedRole ===
+                            "SECONDARY_FAMILY_MEMBER"
+                            ? "FAMILY"
+                            : selectedRole,
+            }),
+        }
+    );
+
+const encryptionResult =
+    await encryptionResponse.json();
+
+if (
+    !encryptionResponse.ok ||
+    !encryptionResult?.success
+) {
+    throw new Error(
+        encryptionResult?.error ||
+            "Unable to secure patient data."
+    );
+}
+
+await resolveCareVRDashboardHandoff(
+    user.id,
+    dashboardRole
+);
 
             void authSessionService
                 .start()
@@ -819,6 +855,7 @@ const handleSelectedContext = async () => {
 
                     .carevr-logo {
                         height: 38px;
+                        width: auto;
                     }
 
                     .home-button {

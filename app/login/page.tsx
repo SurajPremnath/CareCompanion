@@ -54,6 +54,7 @@ import {
   carevrContextSelectionHandoff,
 } from "@/lib/auth/carevrContextSelectionHandoff";
 
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -347,20 +348,51 @@ const completeLogin = async (
           governanceVersion: null,
         });
 
-        await resolveCareVRDashboardHandoff(
-          authenticatedUser.id,
-          loginRole
-        );
+const encryptionResponse =
+  await fetch(
+    "/api/security/legacy-patient-encryption",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        selectedRole:
+          invitationRole ===
+          "SECONDARY_FAMILY_MEMBER"
+            ? "FAMILY"
+            : invitationRole,
+      }),
+    }
+  );
 
-        void authSessionService
-          .start()
-          .catch(() => {
-            // Analytics must never block navigation.
-          });
+const encryptionResult =
+  await encryptionResponse.json();
 
-        router.replace("/dashboard");
+if (
+  !encryptionResponse.ok ||
+  !encryptionResult?.success
+) {
+  throw new Error(
+    encryptionResult?.error ||
+      "Unable to secure patient data."
+  );
+}
 
-        return;
+await resolveCareVRDashboardHandoff(
+  authenticatedUser.id,
+  context!.loginRole
+);
+
+void authSessionService
+  .start()
+  .catch(() => {
+    // Analytics must never block navigation.
+  });
+
+router.replace("/dashboard");
+
+return;
       }
 
       if (
@@ -457,20 +489,49 @@ const completeLogin = async (
       governanceVersion: null,
     });
 
-    await resolveCareVRDashboardHandoff(
-      authenticatedUser.id,
-      context.loginRole
-    );
+const encryptionResponse =
+  await fetch(
+    "/api/security/legacy-patient-encryption",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        accessId:
+          context.accessId,
+        selectedRole,
+      }),
+    }
+  );
 
-    void authSessionService
-      .start()
-      .catch(() => {
-        // Analytics must never block navigation.
-      });
+const encryptionResult =
+  await encryptionResponse.json();
 
-    router.replace("/dashboard");
+if (
+  !encryptionResponse.ok ||
+  !encryptionResult?.success
+) {
+  throw new Error(
+    encryptionResult?.error ||
+      "Unable to secure patient data."
+  );
+}
 
-    return;
+await resolveCareVRDashboardHandoff(
+  authenticatedUser.id,
+  context!.loginRole
+);
+
+void authSessionService
+  .start()
+  .catch(() => {
+    // Analytics must never block navigation.
+  });
+
+router.replace("/dashboard");
+
+return;
   }
 
   if (
@@ -490,20 +551,20 @@ const completeLogin = async (
     "NOT_INVITED"
   ) {
 
-    await resolveCareVRDashboardHandoff(
-      authenticatedUser.id,
-      context.loginRole
-    );
+await resolveCareVRDashboardHandoff(
+  authenticatedUser.id,
+  context.loginRole
+);
 
-    void authSessionService
-      .start()
-      .catch(() => {
-        // Analytics must never block navigation.
-      });
+void authSessionService
+  .start()
+  .catch(() => {
+    // Analytics must never block navigation.
+  });
 
-    router.replace("/dashboard");
+router.replace("/dashboard");
 
-    return;
+return;
   }
 
   throw new Error(
@@ -660,44 +721,24 @@ const handleVerifyTOTPEnrollment = async () => {
 
     setError("");
 
-    const challengeId =
-      await authService.challengeTOTP(
-        totpEnrollment.factorId
-      );
+const challengeId =
+  await authService.challengeTOTP(
+    totpEnrollment.factorId
+  );
 
-    await authService.verifyTOTP(
-      totpEnrollment.factorId,
-      challengeId,
-      totpCode
-    );
-
-const {
-  data: sessionCheck,
-  error: sessionCheckError,
-} =
-  await supabase.auth.getSession();
-
-console.log(
-  "POST-TOTP SESSION CHECK",
-  {
-    hasSession:
-      !!sessionCheck.session,
-    userId:
-      sessionCheck.session?.user?.id ??
-      null,
-    error:
-      sessionCheckError?.message ??
-      null,
-  }
+await authService.verifyTOTP(
+  totpEnrollment.factorId,
+  challengeId,
+  totpCode
 );
 
-    const authenticatedUser =
-      totpEnrollment.user;
+const authenticatedUser =
+  totpEnrollment.user;
 
-    setTotpEnrollment(null);
-    setTotpCode("");
+setTotpEnrollment(null);
+setTotpCode("");
 
-    await completeLogin(authenticatedUser);
+await completeLogin(authenticatedUser);
 
   } catch (err) {
 
@@ -746,7 +787,8 @@ await authService.verifyTOTP(
   totpCode
 );
 
-const authenticatedUser = totpLogin.user;
+const authenticatedUser =
+  totpLogin.user;
 
 setTotpLogin(null);
 setTotpCode("");

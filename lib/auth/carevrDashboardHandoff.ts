@@ -186,35 +186,71 @@ const modules:
     // Resolve Patient scope assigned to that access.
     //--------------------------------------------------------
 
-    const patientScope =
-        await carevrAccessRepository
-            .getPatientScope(
-                access,
-                selectedRole
-            );
+const patientScopeResponse =
+    await fetch(
+        "/api/patients/scope",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+            body: JSON.stringify({
+                accessId: access.id,
+                selectedRole,
+            }),
+        }
+    );
 
-    const handoff: CareVRDashboardHandoff = {
-        userId,
-        role: selectedRole,
-        access: {
-            id: access.id,
-            accessType: access.accessType,
-            familyId: access.familyId,
-            patientId: access.patientId,
-        },
-        modules,
-        moduleCount: modules.length,
-        patients: patientScope.patients.map(
-            (patient) => ({
+const patientScopeResult =
+    await patientScopeResponse.json();
+
+if (
+    !patientScopeResponse.ok ||
+    !patientScopeResult?.success
+) {
+    throw new Error(
+        patientScopeResult?.error ??
+            "Unable to retrieve protected patient scope."
+    );
+}
+
+const patientScope =
+    patientScopeResult.data;
+
+const handoff: CareVRDashboardHandoff = {
+    userId,
+    role: selectedRole,
+    access: {
+        id: access.id,
+        accessType: access.accessType,
+        familyId: access.familyId,
+        patientId: access.patientId,
+    },
+    modules,
+    moduleCount: modules.length,
+    patients:
+        patientScope.patients.map(
+            (patient: {
+                id: string;
+                userId: string | null;
+                fullName: string;
+                relationship:
+                    | string
+                    | null;
+            }) => ({
                 id: patient.id,
                 userId: patient.userId,
                 name: patient.fullName,
-                relationship: patient.relationship,
+                relationship:
+                    patient.relationship,
             })
         ),
-        patientCount: patientScope.patients.length,
-        scope: patientScope.scope,
-    };
+    patientCount:
+        patientScope.patients.length,
+    scope:
+        patientScope.scope,
+};
 
 
 
