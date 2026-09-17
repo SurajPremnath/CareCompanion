@@ -117,7 +117,7 @@ class PatientStorage {
 
           return StorageResult.failure(
             "PATIENT_LIMIT_REACHED",
-            "Standard accounts can manage only one family member. Please contact the CareVR administrator if you need additional family members."
+            "Standard accounts can manage up to two family members. Please upgrade your CareVR plan to add more."
           );
 
         }

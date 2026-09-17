@@ -95,7 +95,7 @@ export async function POST(
         error.message ===
           "A patient with the same name and date of birth already exists." ||
         error.message ===
-          "Standard accounts can manage only one family member."
+          "Standard accounts can manage up to two family members. Please upgrade your CareVR plan to add more."
       )
     ) {
 

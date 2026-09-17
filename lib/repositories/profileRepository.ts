@@ -36,6 +36,7 @@ return {
   email: data.email,
   fullName: data.full_name,
   role: data.role,
+  isFounder: data.is_founder,
   createdAt: data.created_at,
   updatedAt: data.updated_at
 };
@@ -66,6 +67,7 @@ return {
   email: data.email,
   fullName: data.full_name,
   role: data.role,
+  isFounder: data.is_founder,
   createdAt: data.created_at,
   updatedAt: data.updated_at
 };

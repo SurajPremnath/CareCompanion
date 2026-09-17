@@ -7,6 +7,8 @@ export interface Profile {
 
   role: string;
 
+  isFounder: boolean;
+
   createdAt: string;
 
   updatedAt: string;

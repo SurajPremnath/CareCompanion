@@ -45,6 +45,8 @@ import LanguageSelector from "@/Components/language/LanguageSelector";
 
 type AccessManagementUser = {
     fullName: string;
+
+    isFounder: boolean;
 };
 
 
@@ -146,10 +148,13 @@ export default function AccessManagementPage() {
                         consent
                     );
 
-                    setUser({
-                        fullName:
-                            profile.fullName,
-                    });
+setUser({
+    fullName:
+        profile.fullName,
+
+    isFounder:
+        profile.isFounder,
+});
 
                 }
 
@@ -457,6 +462,7 @@ export default function AccessManagementPage() {
                         </button>
 
 
+{user.isFounder && (
                         <button
                             type="button"
                             className="access-management-option access-management-option-purple"
@@ -524,6 +530,7 @@ export default function AccessManagementPage() {
 
                         </button>
 
+)}
 
                         <button
                             type="button"

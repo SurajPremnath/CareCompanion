@@ -155,9 +155,9 @@ export async function createProtectedPatient(
       throw countError;
     }
 
-    if ((count ?? 0) >= 1) {
+    if ((count ?? 0) >= 2) {
       throw new Error(
-        "Standard accounts can manage only one family member."
+        "Standard accounts can manage up to two family members. Please upgrade your CareVR plan to add more."
       );
     }
   }

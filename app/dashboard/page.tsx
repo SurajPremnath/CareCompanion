@@ -81,15 +81,13 @@ import {
 
 import {
     resolveCareVRDashboardHandoff,
+    getCareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
 
 import type {
     CareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
 
-import {
-    carevrAuthorizationHandoff,
-} from "@/lib/authorization/carevrAuthorizationHandoff";
 
 import type {
     CareVRToggleConfiguration,
@@ -511,44 +509,32 @@ async function loadDashboard() {
 // on stale sessionStorage state.
 //--------------------------------------------------------
 
-const authorizationHandoff =
-    carevrAuthorizationHandoff.get();
+const existingDashboardHandoff =
+    getCareVRDashboardHandoff();
 
-if (!authorizationHandoff) {
+if (!existingDashboardHandoff) {
 
     throw new Error(
-        "CareVR Authorization handoff is required."
+        "CareVR Dashboard handoff is required."
     );
 
 }
 
 if (
-    authorizationHandoff.userId !==
+    existingDashboardHandoff.userId !==
     authUser.id
 ) {
 
     throw new Error(
-        "CareVR Authorization handoff does not match the authenticated user."
+        "CareVR Dashboard handoff does not match the authenticated user."
     );
 
 }
 
-const selectedRole =
-    authorizationHandoff.carevrRole ===
-        "DOCTOR"
-        ? "DOCTOR"
-        : authorizationHandoff.carevrRole ===
-            "CARETAKER"
-            ? "CARETAKER"
-            : authorizationHandoff.carevrRole ===
-                "SECONDARY_FAMILY_MEMBER"
-                ? "FAMILY"
-                : "SELF";
-
 const dashboardHandoff =
     await resolveCareVRDashboardHandoff(
-        authorizationHandoff.userId,
-        selectedRole
+        authUser.id,
+        existingDashboardHandoff.role
     );
 
 const toggleConfiguration =
