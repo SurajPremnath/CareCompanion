@@ -36,9 +36,6 @@ import {
     trendReportPdf
 } from "@/lib/pdf/trendReportPdf";
 
-import {
-    buildPatient,
-} from "@/app/journey-review/data/patient";
 
 import ClinicalTrendGraphs
     from "./ClinicalTrendGraphs";
@@ -845,9 +842,6 @@ async function handleGeneratePdf() {
 
         setDownloadingPdf(true);
 
-const careVrPatient =
-    buildPatient();
-
 console.log(
     "PDF INPUT TRENDS:",
     trends
@@ -864,62 +858,65 @@ console.log(
 const pdfBytes =
     await trendReportPdf.generate(
 
-trends.map(
-    trend => ({
+        trends.map(
+            trend => ({
 
-        parameter:
-            trend.parameter,
+                parameter:
+                    trend.parameter,
 
-        status:
-            trendMeta[
-                trend.parameter
-            ]?.status ?? "Unknown",
-
-        current:
-            trend.current,
-
-history:
-    trend.history,
-
-        periods: [
-
-            {
-
-                label:
-                    "Current",
+                status:
+                    trendMeta[
+                        trend.parameter
+                    ]?.status ?? "Unknown",
 
                 current:
                     trend.current,
 
-                minimum:
-                    trend.minimum,
+                history:
+                    trend.history,
 
-                maximum:
-                    trend.maximum,
+                periods: [
 
-                average:
-                    trend.average
+                    {
 
-            }
+                        label:
+                            "Current",
 
-        ]
+                        current:
+                            trend.current,
 
-    })
-),
+                        minimum:
+                            trend.minimum,
+
+                        maximum:
+                            trend.maximum,
+
+                        average:
+                            trend.average
+
+                    }
+
+                ]
+
+            })
+        ),
 
         {
 
-            patientName: patient.name,
+            patientName:
+                patient.name,
 
-            age: patient.age?.toString(),
+            age:
+                patient.age?.toString(),
 
-            sex: patient.gender,
+            sex:
+                patient.gender,
 
-                doctorName:
-        careVrPatient.doctor,
+            doctorName:
+                patient.doctor,
 
-    hospitalName:
-        careVrPatient.hospital,
+            hospitalName:
+                patient.hospital,
 
         }
 

@@ -123,7 +123,7 @@ export default function FamilyAssessmentDetailPage() {
 if (result.data?.patientId) {
 
 const patientResult =
-  await patientStorage.getPatient(
+  await patientStorage.getProtectedPatient(
     result.data.patientId
   );
 

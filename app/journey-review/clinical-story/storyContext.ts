@@ -1,8 +1,14 @@
+import type {
+    DoctorsNote
+} from "@/lib/types/doctorsNote";
+
 export interface ClinicalStoryContext {
 
     startDate: string;
 
     endDate: string;
+
+    doctorsNotes?: DoctorsNote[];
 
 }
 

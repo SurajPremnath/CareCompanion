@@ -7,6 +7,9 @@ import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 import { patientStorage } from "@/lib/storage/patientStorage";
 import type { Patient } from "@/lib/types/patient";
 
+import {
+  getCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
 
 import type {
   AssessmentRecord,
@@ -32,6 +35,9 @@ import {
 export default function FamilyAssessmentHistoryPage() {
 
   const router = useRouter();
+
+const dashboardHandoff =
+  getCareVRDashboardHandoff();
 
   //------------------------------------------------------------
   // State
@@ -66,24 +72,41 @@ const [selectedHistoryId, setSelectedHistoryId] =
 
     const loadPatients = async () => {
 
-      const result =
-        await patientStorage.getPatients();
+const response =
+  await fetch(
+    "/api/patients/scope",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify({
+        accessId:
+          dashboardHandoff?.access.id,
+        selectedRole:
+          dashboardHandoff?.role,
+      }),
+    }
+  );
 
-      if (!result.success) {
+const result =
+  await response.json();
 
-        setError(
-          result.error ??
-          "Unable to load patients."
-        );
+if (!response.ok) {
 
-        setLoading(false);
+  setError(
+    result?.error ??
+    "Unable to load patients."
+  );
 
-        return;
+  setLoading(false);
 
-      }
+  return;
+}
 
-      const patientList =
-        result.data ?? [];
+const patientList =
+  result?.data?.patients ?? [];
 
       setPatients(patientList);
 

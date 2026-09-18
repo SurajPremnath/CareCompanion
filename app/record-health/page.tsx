@@ -25,6 +25,10 @@ import {
     patientStorage,
 } from "@/lib/storage/patientStorage";
 
+import {
+    getCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
+
 import type {
     Patient,
 } from "@/lib/types/patient";
@@ -1408,40 +1412,89 @@ setReportHandoff(
                 );
 
 
-                const patientResult =
-                    await patientStorage
-                        .getPatients();
+const dashboardHandoff =
+    getCareVRDashboardHandoff();
 
 
-                if (cancelled) {
-                    return;
+if (!dashboardHandoff) {
+
+    throw new Error(
+        "CareVR Dashboard handoff is required."
+    );
+
+}
+
+
+/*
+ * The Dashboard handoff contains the patients
+ * already resolved for the authenticated user's
+ * selected CareVR role and active CareVR access.
+ *
+ * Use those patient IDs as the scope for Record Health.
+ *
+ * Retrieve the complete Patient domain objects
+ * through the protected patient API rather than
+ * constructing incomplete Patient objects from
+ * the lightweight Dashboard handoff.
+ */
+const scopedPatientIds =
+    dashboardHandoff.patients.map(
+        patient => patient.id
+    );
+
+
+const loadedPatients =
+    (
+        await Promise.all(
+            scopedPatientIds.map(
+                async (patientId) => {
+
+                    const result =
+                        await patientStorage
+                            .getProtectedPatient(
+                                patientId
+                            );
+
+                    if (!result.success) {
+                        return null;
+                    }
+
+                    return result.data ?? null;
+
                 }
+            )
+        )
+    ).filter(
+        (
+            patient
+        ): patient is Patient =>
+            patient !== null
+    );
 
 
-                const loadedPatients =
-                    patientResult.success
-                        ? patientResult.data ?? []
-                        : [];
+if (cancelled) {
+    return;
+}
 
 
-                setPatients(
-                    loadedPatients
-                );
+setPatients(
+    loadedPatients
+);
 
 
-                /*
-                 * Family mode defaults to
-                 * the first active patient.
-                 */
-                if (
-                    loadedPatients.length > 0
-                ) {
+/*
+ * Family mode defaults to
+ * the first authorized patient.
+ */
+if (
+    loadedPatients.length > 0
+) {
 
-                    setSelectedPatientId(
-                        loadedPatients[0].id
-                    );
+    setSelectedPatientId(
+        loadedPatients[0].id
+    );
 
-                }
+}
 
             }
             catch (loadError) {
@@ -2714,23 +2767,23 @@ setReportExecutionType(
             : selectedPatient?.fullName ??
                 reportHandoff.patientName
     }
-    startDate={
-        reportStartDate
+    startDate={reportStartDate}
+    endDate={reportEndDate}
+    accessId={
+        getCareVRDashboardHandoff()?.access.id ?? null
     }
-    endDate={
-        reportEndDate
+    selectedRole={
+        getCareVRDashboardHandoff()?.role ?? null
     }
-onComplete={() => {
-    setReportExecutionType(null);
-}}
-
-onNoData={() => {
-    setReportExecutionType(null);
-
-    setReportNoDataMessage(
-        "No data available for the selected period."
-    );
-}}
+    onComplete={() => {
+        setReportExecutionType(null);
+    }}
+    onNoData={() => {
+        setReportExecutionType(null);
+        setReportNoDataMessage(
+            "No data available for the selected period."
+        );
+    }}
 />
 
                         )}
@@ -2755,6 +2808,12 @@ onNoData={() => {
     }
     endDate={
         reportEndDate
+    }
+    accessId={
+        getCareVRDashboardHandoff()?.access.id ?? null
+    }
+    selectedRole={
+        getCareVRDashboardHandoff()?.role ?? null
     }
     onComplete={() => {
         setReportExecutionType(null);
@@ -2806,7 +2865,7 @@ onNoData={() => {
         <button
             type="button"
             className="assessment-start-option"
-            onClick={() => {
+            onClick={async () => {
 
                 if (
                     careMode === "SELF"
@@ -2819,22 +2878,42 @@ onNoData={() => {
                     return;
                 }
 
-                if (
-                    careMode === "FAMILY" &&
-                    selectedPatient
-                ) {
+if (
+    careMode === "FAMILY" &&
+    selectedPatient
+) {
+    localStorage.setItem(
+        "assessmentType",
+        "family"
+    );
 
-                    router.push(
-                        "/family/page2"
-                    );
+    localStorage.setItem(
+        "patientId",
+        selectedPatient.id
+    );
 
-                }
+    localStorage.setItem(
+        "patientName",
+        selectedPatient.fullName
+    );
+
+    if (user?.fullName) {
+        localStorage.setItem(
+            "observerName",
+            user.fullName
+        );
+    }
+
+    router.push(
+        "/family/page2"
+    );
+}
 
             }}
         >
 
             <span className="assessment-start-icon">
-                ðŸ©º
+                &#x1FA7A;
             </span>
 
             <strong>

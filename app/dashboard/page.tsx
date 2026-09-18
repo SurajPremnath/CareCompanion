@@ -1978,6 +1978,28 @@ const mobileSnapshotKey =
     </button>
 )}
 
+{/* Doctors Notes is available to all CareVR roles. */}
+<button
+    type="button"
+    onClick={() =>
+        router.push("/doctors-notes")
+    }
+    disabled={!consentGranted}
+>
+    <span className="mobile-action-icon mobile-action-purple">
+        📝
+    </span>
+
+    <strong>
+        Doctors Notes
+    </strong>
+
+    <span>
+        Doctor notes & care updates
+    </span>
+</button>
+
+
 {hasDashboardModule("ACCESS_MANAGEMENT") && (
     <button
         type="button"
@@ -2429,6 +2451,52 @@ headerAccessory={<LanguageSelector />}
 
     </button>
 )}
+
+{/* Desktop - Doctors Notes is available to all CareVR roles. */}
+<button
+    type="button"
+    disabled={!consentGranted}
+    onClick={() => {
+
+        if (!consentGranted) {
+            return;
+        }
+
+        router.push(
+            "/doctors-notes"
+        );
+
+    }}
+    style={{
+        ...mainActionButton,
+
+        opacity:
+            consentGranted
+                ? 1
+                : 0.55,
+
+        cursor:
+            consentGranted
+                ? "pointer"
+                : "not-allowed",
+    }}
+>
+    <span
+        style={{
+            ...mainActionCircle,
+        }}
+    >
+        📝
+    </span>
+
+    <span
+        style={{
+            ...mainActionLabel,
+        }}
+    >
+        Doctors Notes
+    </span>
+</button>
 
 
 {hasDashboardModule("ACCESS_MANAGEMENT") && (

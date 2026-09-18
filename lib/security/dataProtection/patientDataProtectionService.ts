@@ -26,15 +26,15 @@ export function protectPatientData(
   patient: PatientDataProtectionInput
 ): PatientDataProtectionResult {
 
-const result =
-  dataProtectionBoundary.protect(
-    "PATIENT",
-    patient
-  );
+  const result =
+    dataProtectionBoundary.protect(
+      "PATIENT",
+      patient
+    );
 
   return {
     protectedData:
-      result.protectedData,
+      result.protectedData as PatientDataProtectionResult["protectedData"],
 
     operationalData:
       result.operationalData,

@@ -15,18 +15,31 @@ import {
 }
 from "./storyContext";
 
-import type { ClinicalAnswers } from "./answers";
+import type {
+    ClinicalAnswers
+} from "./answers";
+
+import type {
+    DoctorsNote
+} from "@/lib/types/doctorsNote";
 
 
 
 export function buildClinicalStory(
-    weeklyData: any[]
+    weeklyData: any[],
+    doctorsNotes: DoctorsNote[] = [],
 ) {
 
 
     const context =
         getClinicalStoryContext();
 
+
+    const clinicalStoryContext = {
+        ...context,
+
+        doctorsNotes,
+    };
 
 
     const weeklyAnswers =
@@ -46,7 +59,7 @@ export function buildClinicalStory(
                     answers:
                         generateClinicalAnswers(
                             week,
-                            context
+                            clinicalStoryContext
                         )
 
                 };
@@ -59,37 +72,37 @@ export function buildClinicalStory(
         question => {
 
 
-return {
+            return {
 
-    id:
-        question.id,
+                id:
+                    question.id,
 
-    icon:
-        question.icon,
+                icon:
+                    question.icon,
 
-    title:
-        question.title,
+                title:
+                    question.title,
 
-    question:
-        question.question,
-
-
-    order:
-        question.order,
+                question:
+                    question.question,
 
 
-    periods:
-        weeklyAnswers.map(
+                order:
+                    question.order,
+
+
+                periods:
+                    weeklyAnswers.map(
                         week => ({
 
                             weekLabel:
                                 week.weekLabel,
 
 
-answer:
-    week.answers[
-        question.id as keyof ClinicalAnswers
-    ] ?? ""
+                            answer:
+                                week.answers[
+                                    question.id as keyof ClinicalAnswers
+                                ] ?? ""
 
                         })
                     )
@@ -100,6 +113,7 @@ answer:
     );
 
 }
+
 
 function removeDuplicateWords(
     text: string

@@ -16,11 +16,56 @@ import {
     patientStorage,
 } from "@/lib/storage/patientStorage";
 
-import {
-    buildPatient,
-} from "@/app/journey-review/data/patient";
 
 
+
+
+const REPORT_PERIOD_DAYS = 21;
+
+
+function calculateAge(
+    dateOfBirth: string | null | undefined
+): number | null {
+
+    if (!dateOfBirth) {
+        return null;
+    }
+
+    const birthDate =
+        new Date(dateOfBirth);
+
+    if (
+        Number.isNaN(
+            birthDate.getTime()
+        )
+    ) {
+        return null;
+    }
+
+    const today =
+        new Date();
+
+    let age =
+        today.getFullYear() -
+        birthDate.getFullYear();
+
+    const monthDifference =
+        today.getMonth() -
+        birthDate.getMonth();
+
+    if (
+        monthDifference < 0 ||
+        (
+            monthDifference === 0 &&
+            today.getDate() <
+                birthDate.getDate()
+        )
+    ) {
+        age--;
+    }
+
+    return age;
+}
 
 
 function formatReportDate(
@@ -51,6 +96,15 @@ interface ClinicalTrendPdfGeneratorProps {
 
     endDate: string;
 
+    accessId: string | null;
+
+    selectedRole:
+        | "SELF"
+        | "FAMILY"
+        | "CARETAKER"
+        | "DOCTOR"
+        | null;
+
     onComplete?: () => void;
 
     onNoData?: () => void;
@@ -66,6 +120,10 @@ export default function ClinicalTrendPdfGenerator({
     startDate,
 
     endDate,
+
+    accessId,
+
+    selectedRole,
 
     onComplete,
 
@@ -107,153 +165,208 @@ useEffect(() => {
 
     generationStartedRef.current = true;
 
-    async function startGeneration() {
+async function startGeneration() {
 
-        setProgress(20);
+    setProgress(20);
 
-        setMessage(
-            "Loading patient information..."
-        );
-
-        await delay(300);
-
-        setProgress(40);
-
-        setMessage(
-            "Loading clinical data..."
-        );
-
-const data =
-    await buildClinicalTrends(
-        patientId!,
-        startDate,
-        endDate
+    setMessage(
+        "Loading patient information..."
     );
 
-if (data.length === 0) {
-    onNoData?.();
-    return;
-}
+    await delay(300);
 
-setTrends(data);
+    let reportAge = "";
+    let reportSex = "";
+    let reportDoctorName = "";
+    let reportHospitalName = "";
 
-const pdfTrends =
-    data.map(
-        trend => ({
+    if (patientId) {
 
-            parameter:
-                trend.parameter,
+        if (!accessId || !selectedRole) {
+            throw new Error(
+                "CareVR patient context is unavailable."
+            );
+        }
 
-            status:
-                "Recorded",
-
-            current:
-                trend.current,
-
-            history:
-                trend.history,
-
-            periods: [
+        const contextResponse =
+            await fetch(
+                `/api/reports/executive-summary/patient-context?patientId=${encodeURIComponent(
+                    patientId
+                )}&accessId=${encodeURIComponent(
+                    accessId
+                )}&selectedRole=${encodeURIComponent(
+                    selectedRole
+                )}`,
                 {
-
-                    label:
-                        `${formatReportDate(
-                            startDate
-                        )} - ${formatReportDate(
-                            endDate
-                        )}`,
-
-                    current:
-                        trend.current,
-
-                    minimum:
-                        trend.minimum,
-
-                    maximum:
-                        trend.maximum,
-
-                    average:
-                        trend.average
-
+                    method: "GET",
+                    cache: "no-store",
                 }
-            ]
+            );
 
-        })
-    );
-
-setProgress(70);
-
-setMessage(
-    "Generating PDF..."
-);
-
-const careVrPatient =
-    buildPatient();
-
-const pdfBytes =
-    await trendReportPdf.generate(
-        pdfTrends,
-        {
-
-            patientName:
-                patientName || "Patient",
-
-            age:
-                String(
-                    careVrPatient.age
-                ),
-
-            sex:
-                careVrPatient.gender,
-
-            doctorName:
-                careVrPatient.doctor,
-
-            hospitalName:
-                careVrPatient.hospital,
-
-            reportPeriod:
-                `${formatReportDate(
-                    startDate
-                )} - ${formatReportDate(
-                    endDate
-                )}`
-
+        if (!contextResponse.ok) {
+            throw new Error(
+                "Unable to load patient information."
+            );
         }
-    );
 
-const pdfData =
-    new Uint8Array(pdfBytes);
+        const patientContext =
+            await contextResponse.json();
 
-const blob =
-    new Blob(
-        [pdfData],
-        {
-            type: "application/pdf",
-        }
-    );
+        const reportPatient =
+            patientContext.patient;
 
-const url =
-    URL.createObjectURL(blob);
+        const reportDoctor =
+            patientContext.doctors?.[0] ?? null;
 
-setProgress(100);
+        reportAge =
+            String(
+                calculateAge(
+                    reportPatient.dateOfBirth
+                ) ?? ""
+            );
 
-setMessage(
-    "Opening report..."
-);
+        reportSex =
+            reportPatient.gender ?? "";
 
-window.open(
-    url,
-    "_blank"
-);
+        reportDoctorName =
+            reportDoctor?.doctorName ?? "";
 
-setTimeout(() => {
-
-    onComplete?.();
-
-}, 300);
-
+        reportHospitalName =
+            reportDoctor?.hospitalName ?? "";
     }
+
+    setProgress(40);
+
+    setMessage(
+        "Loading clinical data..."
+    );
+
+    const data =
+        await buildClinicalTrends(
+            patientId!,
+            startDate,
+            endDate
+        );
+
+    if (data.length === 0) {
+        onNoData?.();
+        return;
+    }
+
+    setTrends(data);
+
+    const pdfTrends =
+        data.map(
+            trend => ({
+
+                parameter:
+                    trend.parameter,
+
+                status:
+                    "Recorded",
+
+                current:
+                    trend.current,
+
+                history:
+                    trend.history,
+
+                periods: [
+                    {
+
+                        label:
+                            `${formatReportDate(
+                                startDate
+                            )} - ${formatReportDate(
+                                endDate
+                            )}`,
+
+                        current:
+                            trend.current,
+
+                        minimum:
+                            trend.minimum,
+
+                        maximum:
+                            trend.maximum,
+
+                        average:
+                            trend.average
+
+                    }
+                ]
+
+            })
+        );
+
+    setProgress(70);
+
+    setMessage(
+        "Generating PDF..."
+    );
+
+    const pdfBytes =
+        await trendReportPdf.generate(
+            pdfTrends,
+            {
+
+                patientName:
+                    patientName || "Patient",
+
+                age:
+                    reportAge,
+
+                sex:
+                    reportSex,
+
+                doctorName:
+                    reportDoctorName,
+
+                hospitalName:
+                    reportHospitalName,
+
+                reportPeriod:
+                    `${formatReportDate(
+                        startDate
+                    )} - ${formatReportDate(
+                        endDate
+                    )}`
+
+            }
+        );
+
+    const pdfData =
+        new Uint8Array(pdfBytes);
+
+    const blob =
+        new Blob(
+            [pdfData],
+            {
+                type: "application/pdf",
+            }
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    setProgress(100);
+
+    setMessage(
+        "Opening report..."
+    );
+
+    window.open(
+        url,
+        "_blank"
+    );
+
+    setTimeout(() => {
+
+        onComplete?.();
+
+    }, 300);
+
+}
 
     startGeneration();
 
@@ -263,6 +376,8 @@ setTimeout(() => {
     startDate,
     endDate,
     patientName,
+    accessId,
+    selectedRole,
     onComplete
 ]);
 

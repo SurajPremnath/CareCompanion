@@ -7,6 +7,9 @@ import {
 } from "./symptomMapper";
 
 
+import type {
+    DoctorsNote
+} from "@/lib/types/doctorsNote";
 /*
  * ==================================================
  * DATE HELPERS
@@ -1198,20 +1201,55 @@ function generateCurrentTreatment(
 
 
 function generateLatestClinicalPlan(
-    _week: any
+    _week: any,
+    context: ClinicalStoryContext
 ): string {
 
+    const doctorsNotes =
+        context.doctorsNotes ?? [];
+
+
+    if (doctorsNotes.length === 0) {
+
+        return [
+            "Doctor notes",
+            "No doctor notes were recorded during this period."
+        ].join("\n");
+    }
+
+
+    const noteSections =
+        doctorsNotes.map(
+            note => {
+
+                const noteDate =
+                    new Date(
+                        note.noteAt
+                    ).toLocaleString(
+                        "en-GB",
+                        {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }
+                    );
+
+
+                return [
+                    `${noteDate} — Doctor note`,
+                    note.note.trim()
+                ].join("\n");
+
+            }
+        );
+
+
     return [
-        "Latest consultation",
-        "03 Aug 2026 — Doctor consultation",
-        "",
-        "Doctor instructions",
-        "Can consume sugar once in a while but avoid sugary stuff.",
-        "No alternative medicines to Rahika.",
-        "Medicines can continue for the next 3 weeks. Doctor may then change the dosage.",
-        "Blood test every 15 days.",
-        "PET CT scan after 3 months."
-    ].join("\n");
+        "Doctor notes",
+        ...noteSections
+    ].join("\n\n");
 }
 
 
@@ -1242,10 +1280,11 @@ export function generateClinicalAnswers(
                 week
             ),
 
-        Q5:
-            generateLatestClinicalPlan(
-                week
-            )
+Q5:
+    generateLatestClinicalPlan(
+        week,
+        _context
+    )
 
     };
 

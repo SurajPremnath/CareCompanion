@@ -7,7 +7,10 @@ import { clearAssessmentData } from "@/lib/assessmentStorage";
 
 import { authService } from "@/lib/auth/authService";
 import { profileRepository } from "@/lib/repositories/profileRepository";
-import { patientStorage } from "@/lib/storage/patientStorage";
+
+import {
+  getCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
 import AppHeader from "@/app/components/AppHeader";
 import type { Patient } from "@/lib/types/patient";
 
@@ -36,6 +39,9 @@ type UserProfile = {
 
 export default function FamilyPage() {
   const router = useRouter();
+
+  const dashboardHandoff =
+    getCareVRDashboardHandoff();
 
 const {
   t,
@@ -115,15 +121,33 @@ const handleBackToDashboard = () => {
           fullName: profile.fullName,
         });
 
-        const result =
-          await patientStorage.getPatients();
+const response =
+  await fetch(
+    "/api/patients/scope",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify({
+        accessId:
+          dashboardHandoff?.access.id,
+        selectedRole:
+          dashboardHandoff?.role,
+      }),
+    }
+  );
 
-        if (!mounted) return;
+const result =
+  await response.json();
 
-if (!result.success) {
+if (!mounted) return;
+
+if (!response.ok) {
   console.error(
     "Unable to load patients:",
-    result.error
+    result?.error
   );
 
   setError(
@@ -133,17 +157,16 @@ if (!result.success) {
   return;
 }
 
+const loadedPatients =
+  result?.data?.patients ?? [];
 
-        const loadedPatients =
-          result.data ?? [];
+setPatients(loadedPatients);
 
-        setPatients(loadedPatients);
-
-        if (loadedPatients.length > 0) {
-          setSelectedPatientId(
-            loadedPatients[0].id
-          );
-        }
+if (loadedPatients.length > 0) {
+  setSelectedPatientId(
+    loadedPatients[0].id
+  );
+}
       } catch (err) {
         console.error(err);
 

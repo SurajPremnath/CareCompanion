@@ -27,10 +27,6 @@ import {
     patientStorage,
 } from "@/lib/storage/patientStorage";
 
-import {
-    buildPatient,
-} from "@/app/journey-review/data/patient";
-
 
 const REPORT_PERIOD_DAYS = 21;
 
@@ -112,15 +108,49 @@ function formatReportDate(
 interface ExecutiveSummaryPdfGeneratorProps {
     patientId: string | null;
     patientName: string;
+    accessId: string | null;
+    selectedRole:
+        | "SELF"
+        | "FAMILY"
+        | "CARETAKER"
+        | "DOCTOR"
+        | null;
     startDate: string;
     endDate: string;
     onComplete?: () => void;
     onNoData?: () => void;
 }
 
+interface ExecutiveSummaryPatientContextResponse {
+    patient: {
+        id: string;
+        fullName: string;
+        dateOfBirth: string | null;
+        gender:
+            | "Male"
+            | "Female"
+            | "Other"
+            | "Prefer not to say"
+            | null;
+        status:
+            | "ACTIVE"
+            | "INACTIVE";
+    };
+
+    doctors: Array<{
+        providerId: string;
+        doctorName: string;
+        specialisation: string | null;
+        facilityId: string | null;
+        hospitalName: string | null;
+    }>;
+}
+
 export default function ExecutiveSummaryPdfGenerator({
     patientId,
     patientName,
+    accessId,
+    selectedRole,
     startDate,
     endDate,
     onComplete,
@@ -139,7 +169,8 @@ const [message, setMessage] =
 const [trends, setTrends] =
     useState<ClinicalTrendSummary[]>([]);
 
-
+const [doctorsNotes, setDoctorsNotes] =
+    useState<any[]>([]);
 
 const [generating, setGenerating] =
     useState(true);
@@ -190,7 +221,9 @@ let selectedPatient = null;
 if (patientId) {
 
     const patientResult =
-        await patientStorage.getPatients();
+        await patientStorage.getProtectedPatient(
+            patientId
+        );
 
     if (
         !patientResult.success ||
@@ -201,19 +234,8 @@ if (patientId) {
         );
     }
 
-    const patient =
-        patientResult.data.find(
-            patient =>
-                patient.id === patientId
-        );
-
-    if (!patient) {
-        throw new Error(
-            "Selected patient could not be found."
-        );
-    }
-
-    selectedPatient = patient;
+    selectedPatient =
+        patientResult.data;
 
 }
 
@@ -231,6 +253,53 @@ const prescriptionHistory =
 const latestPrescription =
     prescriptionHistory[0] ?? null;
 
+
+let retrievedDoctorsNotes: any[] = [];
+
+if (patientId) {
+
+    const doctorsNotesResponse =
+        await fetch(
+            `/api/reports/executive-summary/doctors-notes?patientId=${encodeURIComponent(
+                patientId,
+            )}&startDate=${encodeURIComponent(
+                startDate,
+            )}&endDate=${encodeURIComponent(
+                endDate,
+            )}`,
+            {
+                method: "GET",
+                cache: "no-store",
+            },
+        );
+
+    if (!doctorsNotesResponse.ok) {
+
+        const errorBody =
+            await doctorsNotesResponse
+                .json()
+                .catch(() => null);
+
+        throw new Error(
+            errorBody?.error ??
+                "Unable to load Doctors Notes.",
+        );
+    }
+
+    const doctorsNotesResult =
+        await doctorsNotesResponse.json();
+
+    retrievedDoctorsNotes =
+        Array.isArray(
+            doctorsNotesResult?.doctorsNotes,
+        )
+            ? doctorsNotesResult.doctorsNotes
+            : [];
+
+    setDoctorsNotes(
+        retrievedDoctorsNotes,
+    );
+}
 
             setProgress(20);
 
@@ -482,7 +551,8 @@ console.log(
 
 const story =
     buildClinicalStory(
-        groupedTimeline
+        groupedTimeline,
+        retrievedDoctorsNotes
     );
 
             setProgress(70);
@@ -495,32 +565,69 @@ let reportPatient;
 
 if (patientId) {
 
-    const careVrPatient =
-        buildPatient();
+const contextResponse =
+    await fetch(
+        `/api/reports/executive-summary/patient-context?patientId=${encodeURIComponent(
+            patientId,
+        )}&accessId=${encodeURIComponent(
+            accessId ?? "",
+        )}&selectedRole=${encodeURIComponent(
+            selectedRole ?? "",
+        )}`,
+        {
+            method: "GET",
+            cache: "no-store",
+        },
+    );
+
+    if (!contextResponse.ok) {
+
+        const errorBody =
+            await contextResponse
+                .json()
+                .catch(() => null);
+
+        throw new Error(
+            errorBody?.error ??
+                "Unable to load patient context.",
+        );
+    }
+
+    const patientContext =
+        (await contextResponse.json()) as
+            ExecutiveSummaryPatientContextResponse;
+
+    const reportDoctor =
+        patientContext.doctors[0] ??
+        null;
 
     reportPatient = {
-        id: patientId,
+        id:
+            patientContext.patient.id,
 
         name:
-            patientName,
+            patientContext.patient.fullName,
 
-age:
-    calculateAge(
-        selectedPatient!.dateOfBirth
-    ),
+        age:
+            calculateAge(
+                patientContext.patient
+                    .dateOfBirth,
+            ),
 
-gender:
-    selectedPatient!.gender ??
-    "Unknown",
+        gender:
+            patientContext.patient.gender ??
+            "Unknown",
 
-doctor:
-    careVrPatient.doctor,
+        doctor:
+            reportDoctor?.doctorName ??
+            undefined,
 
-hospital:
-    careVrPatient.hospital,
+        hospital:
+            reportDoctor?.hospitalName ??
+            undefined,
 
-status:
-    selectedPatient!.status,
+        status:
+            patientContext.patient.status,
     };
 
 } else {
@@ -528,8 +635,8 @@ status:
     reportPatient = {
         id: user.id,
 
-name:
-    patientName,
+        name:
+            patientName,
 
         age: null,
 
@@ -647,6 +754,8 @@ setGenerating(false);
     endDate,
     patientId,
     patientName,
+    accessId,
+    selectedRole,
     onComplete,
 ]);
 

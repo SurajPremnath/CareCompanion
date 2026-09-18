@@ -1,8 +1,4 @@
 export {
-    buildPatient
-} from "./patient";
-
-export {
     buildTimeline
 } from "./timeline";
 

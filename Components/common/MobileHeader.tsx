@@ -15,7 +15,10 @@ interface MobileHeaderProps {
     careMode: MobileCareMode;
     onCareModeChange: (mode: MobileCareMode) => void;
 
-    userName: string;
+userName: string;
+
+pageTitle?: string;
+pageSubtitle?: string;
 
 showCareModeToggle?: boolean;
 
@@ -44,10 +47,12 @@ onHomeClick?: () => void;
 export default function MobileHeader({
     careMode,
     onCareModeChange,
-
     userName,
 
-showCareModeToggle = true,
+    pageTitle,
+    pageSubtitle,
+
+    showCareModeToggle = true,
 
 showSelfToggle = true,
 showFamilyToggle = showCareModeToggle,
@@ -185,17 +190,33 @@ const handleSwitchProfile = async () => {
         ).toUpperCase();
     };
 
-    return (
-        <header className="carevr-mobile-header">
-            <div className="carevr-mobile-brand">
-                <img
-                    src="/images/CareVR v1.0.png"
-                    alt="CareVR"
-                    className="carevr-mobile-logo"
-                />
-            </div>
+return (
+    <header
+    className={`carevr-mobile-header ${
+        pageTitle ? "carevr-mobile-header-with-title" : ""
+    }`}
+>
+        <div className="carevr-mobile-brand">
+            <img
+                src="/images/CareVR v1.0.png"
+                alt="CareVR"
+                className="carevr-mobile-logo"
+            />
+        </div>
 
-            <div className="carevr-mobile-header-actions">
+        {(pageTitle || pageSubtitle) && (
+            <div className="carevr-mobile-page-title">
+                {pageTitle && (
+                    <h1>{pageTitle}</h1>
+                )}
+
+                {pageSubtitle && (
+                    <p>{pageSubtitle}</p>
+                )}
+            </div>
+        )}
+
+        <div className="carevr-mobile-header-actions">
 
                 {showHomeButton && onHomeClick && (
 <button
@@ -455,6 +476,35 @@ const handleSwitchProfile = async () => {
                     min-width: 0;
                     flex: 1 1 auto;
                 }
+
+
+.carevr-mobile-header-with-title .carevr-mobile-brand {
+    flex: 0 0 auto;
+}
+
+.carevr-mobile-page-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 12px;
+    padding-right: 8px;
+}
+
+
+
+.carevr-mobile-page-title h1 {
+    margin: 0;
+    color: #1d2d62;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.carevr-mobile-page-title p {
+    margin: 5px 0 0;
+    color: #59627b;
+    font-size: 12px;
+    line-height: 1.3;
+}
 
                 .carevr-mobile-logo {
                     display: block;

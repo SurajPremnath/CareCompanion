@@ -11,6 +11,10 @@ import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 import type { AssessmentInput } from "@/lib/types/assessment";
 
 import {
+  patientStorage,
+} from "@/lib/storage/patientStorage";
+
+import {
   hasAssessmentBeenSaved,
   markAssessmentSaved,
 } from "@/lib/reportStorage";
@@ -36,6 +40,7 @@ type Row = {
 
 export default function ReportPage() {
   const router = useRouter();
+
 
   const [loaded, setLoaded] = useState(false);
 
@@ -66,13 +71,85 @@ const assessmentProcessingRef =
 
     setAssessmentType(type);
 
-    setPatientName(
-      localStorage.getItem("patientName") || ""
-    );
+if (type === "family") {
+  const patientId =
+    localStorage.getItem("patientId");
 
-    setPatientAge(
-      localStorage.getItem("patientAge") || ""
-    );
+  if (patientId) {
+    patientStorage
+      .getProtectedPatient(patientId)
+      .then((result) => {
+        if (
+          result.success &&
+          result.data
+        ) {
+          setPatientName(
+            result.data.fullName || ""
+          );
+
+          if (result.data.dateOfBirth) {
+            const birthDate =
+              new Date(
+                result.data.dateOfBirth
+              );
+
+            const today =
+              new Date();
+
+            let age =
+              today.getFullYear() -
+              birthDate.getFullYear();
+
+            const monthDifference =
+              today.getMonth() -
+              birthDate.getMonth();
+
+            if (
+              monthDifference < 0 ||
+              (
+                monthDifference === 0 &&
+                today.getDate() <
+                  birthDate.getDate()
+              )
+            ) {
+              age--;
+            }
+
+            setPatientAge(
+              String(age)
+            );
+          } else {
+            setPatientAge("");
+          }
+
+          return;
+        }
+
+        setPatientName("");
+        setPatientAge("");
+      })
+      .catch((error) => {
+        console.error(
+          "Unable to load protected patient:",
+          error
+        );
+
+        setPatientName("");
+        setPatientAge("");
+      });
+  } else {
+    setPatientName("");
+    setPatientAge("");
+  }
+} else {
+  setPatientName(
+    localStorage.getItem("patientName") || ""
+  );
+
+  setPatientAge(
+    localStorage.getItem("patientAge") || ""
+  );
+}
 
     setAssessmentDate(
       localStorage.getItem("assessmentDate") ||
