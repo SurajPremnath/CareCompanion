@@ -75,6 +75,8 @@ const [captchaToken, setCaptchaToken] =
 const [registrationCompleted, setRegistrationCompleted] =
     useState(false);
 
+const [passkeySetupRequired, setPasskeySetupRequired] =
+    useState(false);
 
     const validateForm = (): boolean => {
 
@@ -227,8 +229,8 @@ const handleRegister = async () => {
         return;
     }
 
-const verifiedCaptchaToken =
-  authSecurity.requireCaptchaToken(captchaToken);
+    const verifiedCaptchaToken =
+        authSecurity.requireCaptchaToken(captchaToken);
 
     try {
 
@@ -242,30 +244,65 @@ const verifiedCaptchaToken =
          * Existing registration service remains unchanged.
          * No Primary/family/database logic is added in this UI step.
          */
-console.log(
-    "CareVR registration fullName:",
-    JSON.stringify(fullName.trim())
-);
+        console.log(
+            "CareVR registration fullName:",
+            JSON.stringify(fullName.trim())
+        );
 
+        const result =
+            await authService.register(
+                fullName.trim(),
+                email.trim(),
+                password,
+                "PRIMARY",
+                verifiedCaptchaToken
+            );
 
-const result =
-    await authService.register(
-        fullName.trim(),
-        email.trim(),
-        password,
-        "PRIMARY",
-        verifiedCaptchaToken
-    );
+        if (!result.session) {
+            throw new Error(
+                "Account created, but an authenticated session was not established. Please try again."
+            );
+        }
 
-if (!result.session) {
-    throw new Error(
-        "Account created, but an authenticated session was not established. Please try again."
-    );
-}
+        /*
+         * Account creation is complete.
+         *
+         * Passkey setup is deliberately initiated by an explicit
+         * user interaction so the native browser/OS WebAuthn UI
+         * can be presented correctly, including on mobile.
+         */
+        setPasskeySetupRequired(true);
 
-await authService.enrollAndVerifyWebAuthn(
-    "CareVR Passkey"
-);
+    } catch (err) {
+
+        const message =
+            err instanceof Error
+                ? err.message
+                : "Unable to create your account.";
+
+        setError(message);
+
+    } finally {
+
+        setLoading(false);
+
+    }
+
+};
+
+const handlePasskeySetup = async () => {
+
+    try {
+
+        setLoading(true);
+
+        setError("");
+
+        setSuccess("");
+
+        await authService.enrollAndVerifyWebAuthn(
+            "CareVR Passkey"
+        );
 
         /*
          * Product Invitation is consumed only after
@@ -277,14 +314,14 @@ await authService.enrollAndVerifyWebAuthn(
          */
         if (productInvitationToken) {
 
-const session =
-    await authService.getCurrentSession();
+            const session =
+                await authService.getCurrentSession();
 
-if (!session?.access_token) {
-    throw new Error(
-        "Authenticated session could not be established."
-    );
-}
+            if (!session?.access_token) {
+                throw new Error(
+                    "Authenticated session could not be established."
+                );
+            }
 
             const response =
                 await fetch(
@@ -320,6 +357,8 @@ if (!session?.access_token) {
 
         setRegistrationCompleted(true);
 
+        setPasskeySetupRequired(false);
+
         setSuccess(
             `${carevrMessages.registration.primaryCompleted.title}\n\n${carevrMessages.registration.primaryCompleted.message}\n\n${carevrMessages.registration.primaryCompleted.footer}`
         );
@@ -331,7 +370,7 @@ if (!session?.access_token) {
         const message =
             err instanceof Error
                 ? err.message
-                : "Unable to create your account.";
+                : "Unable to set up your CareVR Passkey.";
 
         setError(message);
 
@@ -342,6 +381,7 @@ if (!session?.access_token) {
     }
 
 };
+
 
     /*
      * The initials shown in the public registration header are derived only
@@ -559,197 +599,251 @@ if (!session?.access_token) {
 
 {!registrationCompleted ? (
 
-    <>
-        <div className="registration-panel-heading">
+    passkeySetupRequired ? (
+
+        <div
+            className="registration-success-panel"
+            role="status"
+        >
+
+            <div className="registration-success-icon">
+                🔐
+            </div>
 
             <h2>
-                Create Your Account
+                Secure Your CareVR Account
             </h2>
 
             <p>
-                Register once to securely manage
-                your family's health records.
+                Your account has been created successfully.
             </p>
 
+            <p>
+                Set up your CareVR Passkey to protect your account
+                with your device's built-in security.
+            </p>
+
+            {error && (
+
+                <div
+                    className="error-message"
+                    role="alert"
+                >
+                    {error}
+                </div>
+
+            )}
+
+            <button
+                type="button"
+                className="create-account-button"
+                onClick={() =>
+                    void handlePasskeySetup()
+                }
+                disabled={loading}
+            >
+                {loading
+                    ? "Setting Up Passkey..."
+                    : "Set Up CareVR Passkey"}
+            </button>
+
         </div>
 
-        {error && (
+    ) : (
 
-            <div
-                className="error-message"
-                role="alert"
-            >
-                {error}
+        <>
+            <div className="registration-panel-heading">
+
+                <h2>
+                    Create Your Account
+                </h2>
+
+                <p>
+                    Register once to securely manage
+                    your family's health records.
+                </p>
+
             </div>
 
-        )}
+            {error && (
 
-        <label
-            className="field-label"
-            htmlFor="fullName"
-        >
-            Full Name
-        </label>
+                <div
+                    className="error-message"
+                    role="alert"
+                >
+                    {error}
+                </div>
 
-        <input
-            id="fullName"
-            type="text"
-            value={fullName}
-            onChange={(e) =>
-                setFullName(e.target.value)
-            }
-            placeholder="Enter your full name"
-            className="form-input"
-            disabled={loading}
-            autoComplete="name"
-        />
+            )}
 
-        <label
-            className="field-label"
-            htmlFor="email"
-        >
-            Email Address
-        </label>
-
-        <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) =>
-                setEmail(e.target.value)
-            }
-            placeholder="Enter your email"
-            className="form-input"
-            disabled={loading}
-            autoComplete="email"
-        />
-
-        <label
-            className="field-label"
-            htmlFor="password"
-        >
-            Password
-        </label>
-
-        <div className="password-wrap">
+            <label
+                className="field-label"
+                htmlFor="fullName"
+            >
+                Full Name
+            </label>
 
             <input
-                id="password"
-                type={
-                    showPassword
-                        ? "text"
-                        : "password"
-                }
-                value={password}
+                id="fullName"
+                type="text"
+                value={fullName}
                 onChange={(e) =>
-                    setPassword(e.target.value)
+                    setFullName(e.target.value)
                 }
-                placeholder="Create a password"
-                className="form-input password-input"
+                placeholder="Enter your full name"
+                className="form-input"
                 disabled={loading}
-                autoComplete="new-password"
+                autoComplete="name"
             />
+
+            <label
+                className="field-label"
+                htmlFor="email"
+            >
+                Email Address
+            </label>
+
+            <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) =>
+                    setEmail(e.target.value)
+                }
+                placeholder="Enter your email"
+                className="form-input"
+                disabled={loading}
+                autoComplete="email"
+            />
+
+            <label
+                className="field-label"
+                htmlFor="password"
+            >
+                Password
+            </label>
+
+            <div className="password-wrap">
+
+                <input
+                    id="password"
+                    type={
+                        showPassword
+                            ? "text"
+                            : "password"
+                    }
+                    value={password}
+                    onChange={(e) =>
+                        setPassword(e.target.value)
+                    }
+                    placeholder="Create a password"
+                    className="form-input password-input"
+                    disabled={loading}
+                    autoComplete="new-password"
+                />
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        setShowPassword(
+                            !showPassword
+                        )
+                    }
+                    className="password-toggle"
+                    aria-label={
+                        showPassword
+                            ? "Hide password"
+                            : "Show password"
+                    }
+                >
+                    {showPassword ? "🙈" : "👁"}
+                </button>
+
+            </div>
+
+            <label
+                className="field-label"
+                htmlFor="confirmPassword"
+            >
+                Confirm Password
+            </label>
+
+            <div className="password-wrap">
+
+                <input
+                    id="confirmPassword"
+                    type={
+                        showConfirmPassword
+                            ? "text"
+                            : "password"
+                    }
+                    value={confirmPassword}
+                    onChange={(e) =>
+                        setConfirmPassword(
+                            e.target.value
+                        )
+                    }
+                    placeholder="Re-enter your password"
+                    className="form-input password-input"
+                    disabled={loading}
+                    autoComplete="new-password"
+                />
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        setShowConfirmPassword(
+                            !showConfirmPassword
+                        )
+                    }
+                    className="password-toggle"
+                    aria-label={
+                        showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"
+                    }
+                >
+                    {showConfirmPassword ? "🙈" : "👁"}
+                </button>
+
+            </div>
+
+            <div className="captcha-container">
+                <Turnstile
+                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                    onSuccess={(token) => setCaptchaToken(token)}
+                    onExpire={() => setCaptchaToken(null)}
+                    onError={() => setCaptchaToken(null)}
+                />
+            </div>
 
             <button
                 type="button"
                 onClick={() =>
-                    setShowPassword(
-                        !showPassword
-                    )
+                    void handleRegister()
                 }
-                className="password-toggle"
-                aria-label={
-                    showPassword
-                        ? "Hide password"
-                        : "Show password"
-                }
-            >
-                {showPassword ? "🙈" : "👁"}
-            </button>
-
-        </div>
-
-        <label
-            className="field-label"
-            htmlFor="confirmPassword"
-        >
-            Confirm Password
-        </label>
-
-        <div className="password-wrap">
-
-            <input
-                id="confirmPassword"
-                type={
-                    showConfirmPassword
-                        ? "text"
-                        : "password"
-                }
-                value={confirmPassword}
-                onChange={(e) =>
-                    setConfirmPassword(
-                        e.target.value
-                    )
-                }
-                placeholder="Re-enter your password"
-                className="form-input password-input"
                 disabled={loading}
-                autoComplete="new-password"
-            />
+                className="create-account-button"
+            >
+                {loading
+                    ? "Creating Account..."
+                    : "Create Account"}
+            </button>
 
             <button
                 type="button"
                 onClick={() =>
-                    setShowConfirmPassword(
-                        !showConfirmPassword
-                    )
+                    router.replace("/login")
                 }
-                className="password-toggle"
-                aria-label={
-                    showConfirmPassword
-                        ? "Hide password"
-                        : "Show password"
-                }
+                disabled={loading}
+                className="login-link-button"
             >
-                {showConfirmPassword ? "🙈" : "👁"}
+                Already have an account? Login
             </button>
 
-        </div>
+        </>
 
-        <div className="captcha-container">
-            <Turnstile
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-                onSuccess={(token) => setCaptchaToken(token)}
-                onExpire={() => setCaptchaToken(null)}
-                onError={() => setCaptchaToken(null)}
-            />
-        </div>
-
-        <button
-            type="button"
-            onClick={() =>
-                void handleRegister()
-            }
-            disabled={loading}
-            className="create-account-button"
-        >
-            {loading
-                ? "Creating Account..."
-                : "Create Account"}
-        </button>
-
-        <button
-            type="button"
-            onClick={() =>
-                router.replace("/login")
-            }
-            disabled={loading}
-            className="login-link-button"
-        >
-            Already have an account? Login
-        </button>
-
-    </>
+    )
 
 ) : (
 
