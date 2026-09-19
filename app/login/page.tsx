@@ -112,6 +112,13 @@ const [passkeyLogin, setPasskeyLogin] =
     factorId: string;
   } | null>(null);
 
+const [passkeyEnrollment, setPasskeyEnrollment] =
+  useState<{
+    user: Awaited<
+      ReturnType<typeof authService.login>
+    >;
+  } | null>(null);
+
 /*
  * Care context is resolved from the authenticated user's
  * ACTIVE carevr_access records.
@@ -682,13 +689,9 @@ if (
   return;
 }
 
-await authService.enrollAndVerifyWebAuthn(
-  "CareVR Passkey"
-);
-
-await completeLogin(
-  authenticatedUser
-);
+setPasskeyEnrollment({
+  user: authenticatedUser,
+});
 
 return;
 
@@ -735,6 +738,40 @@ const handleVerifyPasskey = async () => {
       err instanceof Error
         ? err.message
         : "Unable to authenticate with your CareVR passkey.";
+
+    setError(message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleCreatePasskey = async () => {
+  if (!passkeyEnrollment) {
+    setError("Passkey enrollment is not available.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    setError("");
+
+    await authService.enrollAndVerifyWebAuthn(
+      "CareVR Passkey"
+    );
+
+    const authenticatedUser =
+      passkeyEnrollment.user;
+
+    setPasskeyEnrollment(null);
+
+    await completeLogin(
+      authenticatedUser
+    );
+  } catch (err) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Unable to create your CareVR passkey.";
 
     setError(message);
   } finally {
@@ -874,7 +911,73 @@ await completeLogin(authenticatedUser);
 
 return (
   <>
-    {passkeyLogin ? (
+    {passkeyEnrollment ? (
+      <main
+        className="login-page"
+        style={{
+          position: "fixed",
+          inset: 0,
+          width: "100%",
+          height: "100vh",
+          minHeight: "100vh",
+          margin: 0,
+          padding: 0,
+          background: "#f1eaff",
+          overflow: "auto",
+        }}
+      >
+        <section className="login-shell">
+          <div className="login-left">
+            <div
+              className="login-content"
+              style={{
+                marginLeft: "60px",
+                marginTop: "60px",
+                gap: "18px",
+              }}
+            >
+              <div className="login-heading">
+                <h1>Set Up Your CareVR Passkey</h1>
+
+                <p>
+                  Create a Passkey to securely continue to CareVR.
+                  Your device may ask you to use Face ID, fingerprint,
+                  PIN, or another device security method.
+                </p>
+              </div>
+
+              {error && (
+                <div
+                  className="login-error"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="primary-button"
+                onClick={() =>
+                  void handleCreatePasskey()
+                }
+                disabled={loading}
+              >
+                {loading
+                  ? "Creating..."
+                  : "Create Passkey"}
+              </button>
+            </div>
+          </div>
+
+          <div
+            className="login-right"
+            aria-hidden="true"
+          />
+        </section>
+      </main>
+    ) : passkeyLogin ? (
       <main
         className="login-page"
         style={{
