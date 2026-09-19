@@ -2953,251 +2953,268 @@ onClick={async () => {
 
     {/* EMAIL */}
 
-            <div className="field">
+    <div className="field">
 
-              <label htmlFor="email">
-                Email Address
-              </label>
+      <label htmlFor="email">
+        Email Address
+      </label>
 
-              <div className="input-wrap">
+      <div className="input-wrap">
 
-                <svg
-                  className="input-icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  aria-hidden="true"
-                >
-                  <rect
-                    x="3"
-                    y="5"
-                    width="18"
-                    height="14"
-                    rx="2.5"
-                  />
-                  <path d="m3 7 9 6 9-6" />
-                </svg>
+        <svg
+          className="input-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          aria-hidden="true"
+        >
+          <rect
+            x="3"
+            y="5"
+            width="18"
+            height="14"
+            rx="2.5"
+          />
+          <path d="m3 7 9 6 9-6" />
+        </svg>
 
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) =>
-                    setEmail(e.target.value)
-                  }
-                  placeholder="Enter your email"
-                  className="login-input"
-                  disabled={loading}
-                  autoComplete="email"
-                />
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
+          placeholder="Enter your email"
+          className="login-input"
+          disabled={loading}
+          autoComplete="email"
+        />
 
-              </div>
-            </div>
+      </div>
+    </div>
 
-            {/* PASSWORD */}
+    {/* PASSWORD */}
 
-            <div className="field">
+    <div className="field">
 
-              <label htmlFor="password">
-                Password
-              </label>
+      <label htmlFor="password">
+        Password
+      </label>
 
-              <div className="input-wrap">
+      <div className="input-wrap">
 
-                <svg
-                  className="input-icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  aria-hidden="true"
-                >
-                  <rect
-                    x="5"
-                    y="10"
-                    width="14"
-                    height="10"
-                    rx="2"
-                  />
-                  <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-                </svg>
+        <svg
+          className="input-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          aria-hidden="true"
+        >
+          <rect
+            x="5"
+            y="10"
+            width="14"
+            height="10"
+            rx="2"
+          />
+          <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+        </svg>
 
-                <input
-                  id="password"
-                  type={
-                    showPassword
-                      ? "text"
-                      : "password"
-                  }
-                  value={password}
-                  onChange={(e) =>
-                    setPassword(e.target.value)
-                  }
-                  placeholder="Enter your password"
-                  className="login-input"
-                  style={{
-                    paddingRight: "48px",
-                  }}
-                  disabled={loading}
-                  autoComplete="current-password"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      void handleLogin();
-                    }
-                  }}
-                />
+        <input
+          id="password"
+          type={
+            showPassword
+              ? "text"
+              : "password"
+          }
+          value={password}
+          onChange={(e) =>
+            setPassword(e.target.value)
+          }
+          placeholder="Enter your password"
+          className="login-input"
+          style={{
+            paddingRight: "48px",
+          }}
+          disabled={loading}
+          autoComplete="current-password"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              void handleLogin();
+            }
+          }}
+        />
 
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() =>
-                    setShowPassword(
-                      (value) => !value
-                    )
-                  }
-                  aria-label={
-                    showPassword
-                      ? "Hide password"
-                      : "Show password"
-                  }
-                >
-                  {showPassword ? (
-                    <svg
-                      width="19"
-                      height="19"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path d="M3 3l18 18" />
-                      <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
-                      <path d="M9.5 4.4A11 11 0 0 1 12 4c5.3 0 9 4.8 10 8-0.4 1.1-1.2 2.4-2.3 3.4" />
-                      <path d="M6.7 6.7C4.5 8.1 3.1 10.2 2 12c1 2.8 4.5 8 10 8 1.3 0 2.5-.2 3.6-.7" />
-                    </svg>
-                  ) : (
-                    <svg
-                      width="19"
-                      height="19"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="2.5"
-                      />
-                    </svg>
-                  )}
-                </button>
+        <button
+          type="button"
+          className="password-toggle"
+          onClick={() =>
+            setShowPassword(
+              (value) => !value
+            )
+          }
+          aria-label={
+            showPassword
+              ? "Hide password"
+              : "Show password"
+          }
+        >
+          {showPassword ? (
+            <svg
+              width="19"
+              height="19"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <path d="M3 3l18 18" />
+              <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+              <path d="M9.5 4.4A11 11 0 0 1 12 4c5.3 0 9 4.8 10 8-0.4 1.1-1.2 2.4-2.3 3.4" />
+              <path d="M6.7 6.7C4.5 8.1 3.1 10.2 2 12c1 2.8 4.5 8 10 8 1.3 0 2.5-.2 3.6-.7" />
+            </svg>
+          ) : (
+            <svg
+              width="19"
+              height="19"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+              <circle
+                cx="12"
+                cy="12"
+                r="2.5"
+              />
+            </svg>
+          )}
+        </button>
 
-              </div>
-            </div>
+      </div>
+    </div>
 
-<div className="login-security-actions">
-  <div className="login-captcha">
-    <Turnstile
-  ref={turnstileRef}
-  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-      onSuccess={(token) => setCaptchaToken(token)}
-      onExpire={() => setCaptchaToken(null)}
-      onError={() => setCaptchaToken(null)}
-    />
+    <div className="login-security-actions">
+
+      <div className="login-captcha">
+        <Turnstile
+          ref={turnstileRef}
+          siteKey={
+            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!
+          }
+          onSuccess={(token) =>
+            setCaptchaToken(token)
+          }
+          onExpire={() =>
+            setCaptchaToken(null)
+          }
+          onError={() =>
+            setCaptchaToken(null)
+          }
+        />
+      </div>
+
+      <div className="login-action-grid">
+
+        <button
+          type="button"
+          className="primary-button"
+          onClick={() =>
+            void handleLogin()
+          }
+          disabled={
+            loading || !captchaToken
+          }
+        >
+          {loading
+            ? "Signing In..."
+            : "Sign In"}
+        </button>
+
+        <button
+          type="button"
+          className="forgot-password"
+          onClick={() =>
+            router.push("/forgot-password")
+          }
+          disabled={loading}
+        >
+          Forgot Password?
+        </button>
+
+        <button
+          type="button"
+          className="login-create-account"
+          onClick={() => {
+            inviteeToPrimaryHandoff.clear();
+            router.replace("/register");
+          }}
+          disabled={loading}
+        >
+          Create an Account
+        </button>
+
+      </div>
+    </div>
+
   </div>
 
-  <div className="login-action-grid">
-<button
-  type="button"
-  className="primary-button"
-  onClick={() =>
-    void handleLogin()
-  }
-  disabled={loading || !captchaToken}
->
-  {loading
-    ? "Signing In..."
-    : "Sign In"}
-</button>
+  {/* GOOGLE LOGIN */}
+
+  <div className="divider">
+    <span className="divider-line" />
+    <span className="divider-text">
+      or
+    </span>
+    <span className="divider-line" />
+  </div>
+
+  <div className="login-google-panel">
 
     <button
       type="button"
-      className="forgot-password"
+      className="google-button"
       onClick={() =>
-        router.push("/forgot-password")
+        void handleGoogleLogin()
       }
-      disabled={loading}
+      disabled={
+        loading ||
+        googleLoading
+      }
     >
-      Forgot Password?
+      <svg
+        className="google-icon"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          fill="#4285F4"
+          d="M21.6 12.23c0-.79-.07-1.55-.21-2.28H12v4.31h5.38a4.6 4.6 0 0 1-1.99 3.02v2.51h3.23c1.89-1.74 2.98-4.31 2.98-7.56Z"
+        />
+        <path
+          fill="#34A853"
+          d="M12 22c2.7 0 4.97-.9 6.62-2.45l-3.23-2.51c-.9.6-2.04.96-3.39.96-2.61 0-4.83-1.76-5.62-4.13H3.04v2.59A10 10 0 0 0 12 22Z"
+        />
+        <path
+          fill="#FBBC05"
+          d="M6.38 13.87A6.01 6.01 0 0 1 6.06 12c0-.65.11-1.28.32-1.87V7.54H3.04A10 10 0 0 0 2 12c0 1.61.38 3.13 1.04 4.46l3.34-2.59Z"
+        />
+        <path
+          fill="#EA4335"
+          d="M12 6c1.47 0 2.79.51 3.83 1.51l2.87-2.87C16.96 2.99 14.69 2 12 2a10 10 0 0 0-8.96 5.54l3.34 2.59C7.17 7.76 9.39 6 12 6Z"
+        />
+      </svg>
+
+      {googleLoading
+        ? "Connecting..."
+        : "Continue with Google"}
     </button>
 
-    <button
-      type="button"
-      className="login-create-account"
-      onClick={() => {
-        inviteeToPrimaryHandoff.clear();
-        router.replace("/register");
-      }}
-      disabled={loading}
-    >
-      Create an Account
-    </button>
-</div>
-</div>
-
-            <div className="divider">
-              <span className="divider-line" />
-              <span className="divider-text">
-                or
-              </span>
-              <span className="divider-line" />
-            </div>
-
-            <div className="login-google-panel">
-              <button
-                type="button"
-                className="google-button"
-                onClick={() =>
-                  void handleGoogleLogin()
-                }
-                disabled={
-                  loading ||
-                  googleLoading
-                }
-              >
-                <svg
-                  className="google-icon"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    fill="#4285F4"
-                    d="M21.6 12.23c0-.79-.07-1.55-.21-2.28H12v4.31h5.38a4.6 4.6 0 0 1-1.99 3.02v2.51h3.23c1.89-1.74 2.98-4.31 2.98-7.56Z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 22c2.7 0 4.97-.9 6.62-2.45l-3.23-2.51c-.9.6-2.04.96-3.39.96-2.61 0-4.83-1.76-5.62-4.13H3.04v2.59A10 10 0 0 0 12 22Z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M6.38 13.87A6.01 6.01 0 0 1 6.06 12c0-.65.11-1.28.32-1.87V7.54H3.04A10 10 0 0 0 2 12c0 1.61.38 3.13 1.04 4.46l3.34-2.59Z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 6c1.47 0 2.79.51 3.83 1.51l2.87-2.87C16.96 2.99 14.69 2 12 2a10 10 0 0 0-8.96 5.54l3.34 2.59C7.17 7.76 9.39 6 12 6Z"
-                  />
-                </svg>
-
-                {googleLoading
-                  ? "Connecting..."
-                  : "Continue with Google"}
-              </button>
-            </div>
-
-</div>
+  </div>
 
 </div>
 
