@@ -51,6 +51,10 @@ import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHan
 import { checkTOTP } from "@/lib/auth/totpCheck";
 
 import {
+  checkWebAuthn,
+} from "@/lib/auth/webAuthnCheck";
+
+import {
   carevrContextSelectionHandoff,
 } from "@/lib/auth/carevrContextSelectionHandoff";
 
@@ -651,6 +655,37 @@ if (
       password,
       verifiedCaptchaToken
     );
+
+const webAuthnStatus =
+  await checkWebAuthn();
+
+if (
+  webAuthnStatus.status === "VERIFIED" &&
+  webAuthnStatus.factorId
+) {
+  try {
+    await authService.authenticateWebAuthn(
+      webAuthnStatus.factorId
+    );
+
+    await completeLogin(
+      authenticatedUser
+    );
+
+    return;
+
+  } catch (webAuthnError) {
+
+    const message =
+      webAuthnError instanceof Error
+        ? webAuthnError.message
+        : "Unable to authenticate with your CareVR passkey.";
+
+    setError(message);
+
+    return;
+  }
+}
 
 const totpStatus =
   await checkTOTP();

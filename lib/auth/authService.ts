@@ -176,8 +176,122 @@ options: {
   }
 
   /**
-   * Login.
+   * Enrolls a WebAuthn passkey as an MFA factor.
+   *
+   * The browser WebAuthn ceremony is handled by Supabase Auth.
+   * This method does not alter CareVR authorization, consent,
+   * invitation, or dashboard handling.
    */
+  async enrollWebAuthn(
+    friendlyName: string
+  ) {
+    const { data, error } =
+      await supabase.auth.mfa.enroll({
+        factorType: "webauthn",
+        friendlyName,
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.id) {
+      throw new Error(
+        "Unable to enroll a CareVR passkey."
+      );
+    }
+
+    return data;
+  }
+
+  /**
+   * Creates a WebAuthn MFA challenge.
+   *
+   * Supabase Auth determines whether the ceremony is
+   * credential creation or credential assertion.
+   */
+  async challengeWebAuthn(
+    factorId: string
+  ) {
+    const { data, error } =
+      await supabase.auth.mfa.challenge({
+        factorId,
+        webauthn: {
+          rpId: window.location.hostname,
+          rpOrigins: [window.location.origin],
+        },
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.id) {
+      throw new Error(
+        "Unable to create a CareVR passkey challenge."
+      );
+    }
+
+    return data;
+  }
+
+  /**
+   * Verifies a WebAuthn MFA challenge.
+   */
+  async verifyWebAuthn(
+    params: {
+      factorId: string;
+      challengeId: string;
+    } & import("@supabase/auth-js").MFAVerifyWebauthnParams
+  ): Promise<void> {
+
+    const { error } =
+      await supabase.auth.mfa.verify(
+        params
+      );
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Authenticates using an enrolled WebAuthn
+   * MFA factor.
+   *
+   * Supabase Auth performs the complete browser
+   * WebAuthn ceremony: challenge, authenticator
+   * interaction, credential response, and MFA
+   * verification.
+   */
+  async authenticateWebAuthn(
+    factorId: string
+  ) {
+    const { data, error } =
+      await supabase.auth.mfa.webauthn.authenticate({
+        factorId,
+        webauthn: {
+          rpId: window.location.hostname,
+          rpOrigins: [window.location.origin],
+        },
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error(
+        "Unable to authenticate with your CareVR passkey."
+      );
+    }
+
+    return data;
+  }
+
+  /**
+   * Login.
+  **/
 async login(
   email: string,
   password: string,
