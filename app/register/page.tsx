@@ -16,6 +16,10 @@ import { carevrMessages } from "@/lib/messages/carevrMessages";
 
 import { authSecurity } from "@/lib/auth/authSecurity";
 
+import {
+  checkWebAuthn,
+} from "@/lib/auth/webAuthnCheck";
+
 function RegisterPageContent() {
 
 const router = useRouter();
@@ -129,18 +133,22 @@ const handleVerifyPasskey = async () => {
 
         setSuccess("");
 
-        await authService.enrollAndVerifyWebAuthn(
-            "CareVR Passkey"
-        );
+await authService.enrollAndVerifyWebAuthn(
+    "CareVR Passkey"
+);
 
-            /*
-             * Product Invitation is consumed only after
-             * successful TOTP verification.
-             *
-             * The raw token is sent only to the authenticated
-             * server endpoint. The server hashes it and performs
-             * the atomic database consumption.
-             */
+const webAuthnStatus =
+    await checkWebAuthn();
+
+console.log(
+    "CareVR WebAuthn registration status:",
+    webAuthnStatus
+);
+
+/*
+ * Product Invitation is consumed only after
+ * successful Passkey verification.
+ */
             if (productInvitationToken) {
 
 const session =
