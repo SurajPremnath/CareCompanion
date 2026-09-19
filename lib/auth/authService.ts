@@ -66,6 +66,79 @@ options: {
 
 }
 
+  /**
+   * Authenticates an existing Supabase identity so an
+   * incomplete CareVR registration can be resumed.
+   *
+   * This does not establish CareVR authorization,
+   * consent, invitation acceptance, or dashboard access.
+   */
+  async resumeRegistration(
+    email: string,
+    password: string,
+    captchaToken: string
+  ): Promise<User> {
+
+    const response =
+      await fetch(
+        "/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+            captchaToken,
+          }),
+        }
+      );
+
+    let result: {
+      message?: string;
+      user?: User;
+      session?: Session;
+    };
+
+    try {
+      result =
+        await response.json();
+    } catch {
+      throw new Error(
+        "Unable to resume registration."
+      );
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        result.message ??
+        "Unable to resume registration."
+      );
+    }
+
+    if (!result.user || !result.session) {
+      throw new Error(
+        "Unable to resume registration."
+      );
+    }
+
+    const { error: sessionError } =
+      await supabase.auth.setSession({
+        access_token:
+          result.session.access_token,
+        refresh_token:
+          result.session.refresh_token,
+      });
+
+    if (sessionError) {
+      throw sessionError;
+    }
+
+    return result.user;
+  }
+
   async enrollTOTP(): Promise<{
     id: string;
     type: "totp";

@@ -282,34 +282,62 @@ const handleRegister = async () => {
          * Existing registration service remains unchanged.
          * No Primary/family/database logic is added in this UI step.
          */
-        console.log(
-            "CareVR registration fullName:",
-            JSON.stringify(fullName.trim())
+try {
+
+    const result =
+        await authService.register(
+            fullName.trim(),
+            email.trim(),
+            password,
+            "PRIMARY",
+            verifiedCaptchaToken
         );
 
-        const result =
-            await authService.register(
-                fullName.trim(),
-                email.trim(),
-                password,
-                "PRIMARY",
-                verifiedCaptchaToken
-            );
+    if (!result.session) {
+        throw new Error(
+            "Account created, but an authenticated session was not established. Please try again."
+        );
+    }
 
-        if (!result.session) {
-            throw new Error(
-                "Account created, but an authenticated session was not established. Please try again."
-            );
-        }
+} catch (registrationError) {
 
-        /*
-         * Account creation is complete.
-         *
-         * Passkey setup is deliberately initiated by an explicit
-         * user interaction so the native browser/OS WebAuthn UI
-         * can be presented correctly, including on mobile.
-         */
-        setPasskeySetupRequired(true);
+    const registrationMessage =
+        registrationError instanceof Error
+            ? registrationError.message
+            : "";
+
+    if (
+        registrationMessage !==
+        "User already registered"
+    ) {
+        throw registrationError;
+    }
+
+    /*
+     * The CareVR invitation is still PENDING,
+     * so registration is incomplete.
+     *
+     * The existing Auth identity must prove
+     * ownership through password + CAPTCHA
+     * before registration can resume.
+     */
+    await authService.resumeRegistration(
+        email.trim(),
+        password,
+        verifiedCaptchaToken
+    );
+}
+
+/*
+ * Account creation or registration resumption
+ * is complete.
+ *
+ * Passkey setup is deliberately initiated by
+ * explicit user interaction so the native
+ * browser/OS WebAuthn UI can be presented
+ * correctly, including on mobile.
+ */
+setPasskeySetupRequired(true);
 
     } catch (err) {
 
