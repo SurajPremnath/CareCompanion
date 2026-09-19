@@ -660,29 +660,35 @@ if (
     feature: "LOGIN_TO_DASHBOARD",
   });
 
-  const authenticatedUser =
-    await authService.login(
-      email.trim(),
-      password,
-      verifiedCaptchaToken
-    );
+const authenticatedUser =
+  await authService.login(
+    email.trim(),
+    password,
+    verifiedCaptchaToken
+  );
 
 const webAuthnStatus =
   await checkWebAuthn();
 
 if (
-  webAuthnStatus.status !== "VERIFIED" ||
-  !webAuthnStatus.factorId
+  webAuthnStatus.status === "VERIFIED" &&
+  webAuthnStatus.factorId
 ) {
-  throw new Error(
-    "A CareVR Passkey is required to continue."
-  );
+  setPasskeyLogin({
+    user: authenticatedUser,
+    factorId: webAuthnStatus.factorId,
+  });
+
+  return;
 }
 
-setPasskeyLogin({
-  user: authenticatedUser,
-  factorId: webAuthnStatus.factorId,
-});
+await authService.enrollAndVerifyWebAuthn(
+  "CareVR Passkey"
+);
+
+await completeLogin(
+  authenticatedUser
+);
 
 return;
 
