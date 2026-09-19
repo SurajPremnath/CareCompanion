@@ -241,6 +241,44 @@ const handleRegister = async () => {
         setSuccess("");
 
         /*
+         * A CareVR account may only be created when the
+         * registration email has a valid, unexpired
+         * PENDING CareVR product invitation.
+         */
+        const invitationResponse =
+            await fetch(
+                "/api/access-management/access-to-carevr/validation",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        email: email.trim(),
+                    }),
+                }
+            );
+
+        const invitationResult =
+            await invitationResponse.json();
+
+        if (!invitationResponse.ok) {
+            throw new Error(
+                invitationResult.message ??
+                "Unable to validate the CareVR invitation."
+            );
+        }
+
+        if (
+            invitationResult.status !==
+            "PENDING"
+        ) {
+            throw new Error(
+                "A valid CareVR invitation is required to register."
+            );
+        }
+
+        /*
          * Existing registration service remains unchanged.
          * No Primary/family/database logic is added in this UI step.
          */
