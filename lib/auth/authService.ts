@@ -238,56 +238,61 @@ options: {
   /**
    * Verifies a WebAuthn MFA challenge.
    */
-  async verifyWebAuthn(
-    params: {
-      factorId: string;
-      challengeId: string;
-    } & import("@supabase/auth-js").MFAVerifyWebauthnParams
-  ): Promise<void> {
+async verifyWebAuthn(
+  params: {
+    factorId: string;
+    challengeId: string;
+  } & import("@supabase/auth-js").MFAVerifyWebauthnParams
+): Promise<void> {
+  const { error } =
+    await supabase.auth.mfa.verify(params);
 
-    const { error } =
-      await supabase.auth.mfa.verify(
-        params
-      );
+  if (error) throw error;
+}
 
-    if (error) {
-      throw error;
-    }
+async enrollAndVerifyWebAuthn(
+  friendlyName: string
+): Promise<void> {
+  const { data, error } =
+    await supabase.auth.mfa.webauthn.register({
+      friendlyName,
+      webauthn: {
+        rpId: window.location.hostname,
+        rpOrigins: [window.location.origin],
+      },
+    });
+
+  if (error) {
+    throw error;
   }
 
-  /**
-   * Authenticates using an enrolled WebAuthn
-   * MFA factor.
-   *
-   * Supabase Auth performs the complete browser
-   * WebAuthn ceremony: challenge, authenticator
-   * interaction, credential response, and MFA
-   * verification.
-   */
-  async authenticateWebAuthn(
-    factorId: string
-  ) {
-    const { data, error } =
-      await supabase.auth.mfa.webauthn.authenticate({
-        factorId,
-        webauthn: {
-          rpId: window.location.hostname,
-          rpOrigins: [window.location.origin],
-        },
-      });
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error(
-        "Unable to authenticate with your CareVR passkey."
-      );
-    }
-
-    return data;
+  if (!data) {
+    throw new Error(
+      "Unable to enroll your CareVR passkey."
+    );
   }
+}
+
+async authenticateWebAuthn(factorId: string) {
+  const { data, error } =
+    await supabase.auth.mfa.webauthn.authenticate({
+      factorId,
+      webauthn: {
+        rpId: window.location.hostname,
+        rpOrigins: [window.location.origin],
+      },
+    });
+
+  if (error) throw error;
+
+  if (!data) {
+    throw new Error(
+      "Unable to authenticate with your CareVR passkey."
+    );
+  }
+
+  return data;
+}
 
   /**
    * Login.

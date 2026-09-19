@@ -71,17 +71,6 @@ const [captchaToken, setCaptchaToken] =
 const [registrationCompleted, setRegistrationCompleted] =
     useState(false);
 
-const [totpEnrollment, setTotpEnrollment] =
-    useState<{
-        factorId: string;
-        qrCode: string;
-        secret: string;
-        uri: string;
-        challengeId: string;
-    } | null>(null);
-
-const [totpCode, setTotpCode] =
-    useState("");
 
     const validateForm = (): boolean => {
 
@@ -130,36 +119,19 @@ const [totpCode, setTotpCode] =
 
     };
 
-    const handleVerifyTOTP = async () => {
+const handleVerifyPasskey = async () => {
 
-        if (!totpEnrollment) {
-            setError("TOTP enrollment is not available.");
-            return;
-        }
+    try {
 
-        if (totpCode.length !== 6) {
-            setError("Please enter the 6-digit code from your authenticator.");
-            return;
-        }
+        setLoading(true);
 
-        try {
+        setError("");
 
-            setLoading(true);
+        setSuccess("");
 
-            setError("");
-
-            setSuccess("");
-
-const challengeId =
-    await authService.challengeTOTP(
-        totpEnrollment.factorId
-    );
-
-await authService.verifyTOTP(
-    totpEnrollment.factorId,
-    challengeId,
-    totpCode
-);
+        await authService.enrollAndVerifyWebAuthn(
+            "CareVR Passkey"
+        );
 
             /*
              * Product Invitation is consumed only after
@@ -212,9 +184,9 @@ if (!session?.access_token) {
 
             }
 
-            setTotpEnrollment(null);
+            
 
-            setTotpCode("");
+            
 
             setRegistrationCompleted(true);
 
@@ -229,7 +201,7 @@ if (!session?.access_token) {
             const message =
                 err instanceof Error
                     ? err.message
-                    : "Unable to verify your authenticator code.";
+                    : "Unable to verify your CareVR passkey.";
 
             setError(message);
 
@@ -241,27 +213,27 @@ if (!session?.access_token) {
 
     };
 
-    const handleRegister = async () => {
+const handleRegister = async () => {
 
-        if (!validateForm()) {
-            return;
-        }
+    if (!validateForm()) {
+        return;
+    }
 
 const verifiedCaptchaToken =
   authSecurity.requireCaptchaToken(captchaToken);
 
-        try {
+    try {
 
-            setLoading(true);
+        setLoading(true);
 
-            setError("");
+        setError("");
 
-            setSuccess("");
+        setSuccess("");
 
-            /*
-             * Existing registration service remains unchanged.
-             * No Primary/family/database logic is added in this UI step.
-             */
+        /*
+         * Existing registration service remains unchanged.
+         * No Primary/family/database logic is added in this UI step.
+         */
 console.log(
     "CareVR registration fullName:",
     JSON.stringify(fullName.trim())
@@ -283,33 +255,85 @@ if (!result.session) {
     );
 }
 
-const enrollment =
-    await authService.enrollTOTP();
+await authService.enrollAndVerifyWebAuthn(
+    "CareVR Passkey"
+);
 
-setTotpEnrollment({
-    factorId: enrollment.id,
-    qrCode: enrollment.totp.qr_code,
-    secret: enrollment.totp.secret,
-    uri: enrollment.totp.uri,
-    challengeId: "",
-});
+        /*
+         * Product Invitation is consumed only after
+         * successful Passkey verification.
+         *
+         * The raw token is sent only to the authenticated
+         * server endpoint. The server hashes it and performs
+         * the atomic database consumption.
+         */
+        if (productInvitationToken) {
 
-        } catch (err) {
+const session =
+    await authService.getCurrentSession();
 
-            const message =
-                err instanceof Error
-                    ? err.message
-                    : "Unable to create your account.";
+if (!session?.access_token) {
+    throw new Error(
+        "Authenticated session could not be established."
+    );
+}
 
-            setError(message);
+            const response =
+                await fetch(
+                    "/api/access-management/access-to-carevr/invitations/consume",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                            Authorization:
+                                `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({
+                            token:
+                                productInvitationToken,
+                        }),
+                    }
+                );
 
-        } finally {
+            const result =
+                await response.json();
 
-            setLoading(false);
+            if (!response.ok) {
+
+                throw new Error(
+                    result.error ??
+                    "Unable to activate the CareVR invitation."
+                );
+
+            }
 
         }
 
-    };
+        setRegistrationCompleted(true);
+
+        setSuccess(
+            `${carevrMessages.registration.primaryCompleted.title}\n\n${carevrMessages.registration.primaryCompleted.message}\n\n${carevrMessages.registration.primaryCompleted.footer}`
+        );
+
+        await authService.logout();
+
+    } catch (err) {
+
+        const message =
+            err instanceof Error
+                ? err.message
+                : "Unable to create your account.";
+
+        setError(message);
+
+    } finally {
+
+        setLoading(false);
+
+    }
+
+};
 
     /*
      * The initials shown in the public registration header are derived only
@@ -525,7 +549,7 @@ setTotpEnrollment({
 
     <div className="registration-panel">
 
-{!registrationCompleted && !totpEnrollment ? (
+{!registrationCompleted ? (
 
     <>
         <div className="registration-panel-heading">
@@ -718,110 +742,6 @@ setTotpEnrollment({
         </button>
 
     </>
-
-) : !registrationCompleted && totpEnrollment ? (
-
-    <div className="totp-enrollment-panel">
-
-        <div className="registration-panel-heading">
-
-            <h2>
-                Secure Your CareVR Account
-            </h2>
-
-            <p>
-                Set up an authenticator app to protect
-                your CareVR account with two-factor
-                authentication.
-            </p>
-
-        </div>
-
-        {error && (
-
-            <div
-                className="error-message"
-                role="alert"
-            >
-                {error}
-            </div>
-
-        )}
-
-        <div className="totp-instructions">
-
-            <p>
-                Open an authenticator app such as
-                Google Authenticator, Microsoft
-                Authenticator, Authy, or another
-                TOTP-compatible authenticator.
-            </p>
-
-            <p>
-                Scan the QR code below to add your
-                CareVR account.
-            </p>
-
-        </div>
-
-        <div className="totp-qr-container">
-
-<img
-    src={totpEnrollment.qrCode}
-    alt="CareVR authenticator setup QR code"
-    className="totp-qr-code"
-/>
-
-        </div>
-
-
-        <div className="totp-code-section">
-
-            <label
-                className="field-label"
-                htmlFor="totpCode"
-            >
-                Enter the 6-digit code from your authenticator
-            </label>
-
-            <input
-                id="totpCode"
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                value={totpCode}
-                onChange={(e) =>
-                    setTotpCode(
-                        e.target.value
-                            .replace(/\D/g, "")
-                            .slice(0, 6)
-                    )
-                }
-                placeholder="000000"
-                className="form-input totp-code-input"
-                disabled={loading}
-                maxLength={6}
-            />
-
-        </div>
-
-        <button
-            type="button"
-            className="create-account-button"
-            onClick={() =>
-                void handleVerifyTOTP()
-            }
-            disabled={
-                loading ||
-                totpCode.length !== 6
-            }
-        >
-            {loading
-                ? "Verifying..."
-                : "Verify & Complete Registration"}
-        </button>
-
-    </div>
 
 ) : (
 

@@ -13,6 +13,10 @@ import {
 import { authService } from "@/lib/auth/authService";
 
 import {
+  checkWebAuthn,
+} from "@/lib/auth/webAuthnCheck";
+
+import {
   resolveCareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
 
@@ -70,19 +74,33 @@ function GoogleAuthComplete() {
 
           }
 
-          const authenticatedUser =
-            await authService.getCurrentUser();
+const authenticatedUser =
+  await authService.getCurrentUser();
 
-          if (!authenticatedUser) {
+if (!authenticatedUser) {
 
-            throw new Error(
-              "Unable to establish your CareVR session. Please return to Login."
-            );
+  throw new Error(
+    "Unable to establish your CareVR session. Please return to Login."
+  );
 
-          }
+}
 
-          const validationResult =
-            await validateInvitedUserLogin({
+const webAuthnStatus =
+  await checkWebAuthn();
+
+if (
+  webAuthnStatus.status === "VERIFIED" &&
+  webAuthnStatus.factorId
+) {
+
+  await authService.authenticateWebAuthn(
+    webAuthnStatus.factorId
+  );
+
+}
+
+const validationResult =
+  await validateInvitedUserLogin({
               email:
                 authenticatedUser.email ?? "",
               userId:
