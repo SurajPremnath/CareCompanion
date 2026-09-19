@@ -1,7 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
-import { Turnstile } from "@marsidev/react-turnstile";
+import React, {
+    useRef,
+    useState
+} from "react";
+
+import {
+    Turnstile,
+    type TurnstileInstance
+} from "@marsidev/react-turnstile";
 import {
     useRouter,
     useSearchParams,
@@ -72,10 +79,16 @@ const [inviteePrimaryConfirmed, setInviteePrimaryConfirmed] =
 const [captchaToken, setCaptchaToken] =
     useState<string | null>(null);
 
+const turnstileRef =
+    useRef<TurnstileInstance>(null);
+
 const [registrationCompleted, setRegistrationCompleted] =
     useState(false);
 
 const [passkeySetupRequired, setPasskeySetupRequired] =
+    useState(false);
+
+const [registrationResumeRequired, setRegistrationResumeRequired] =
     useState(false);
 
     const validateForm = (): boolean => {
@@ -282,50 +295,65 @@ const handleRegister = async () => {
          * Existing registration service remains unchanged.
          * No Primary/family/database logic is added in this UI step.
          */
-try {
+if (registrationResumeRequired) {
 
-    const result =
-        await authService.register(
-            fullName.trim(),
-            email.trim(),
-            password,
-            "PRIMARY",
-            verifiedCaptchaToken
-        );
-
-    if (!result.session) {
-        throw new Error(
-            "Account created, but an authenticated session was not established. Please try again."
-        );
-    }
-
-} catch (registrationError) {
-
-    const registrationMessage =
-        registrationError instanceof Error
-            ? registrationError.message
-            : "";
-
-    if (
-        registrationMessage !==
-        "User already registered"
-    ) {
-        throw registrationError;
-    }
-
-    /*
-     * The CareVR invitation is still PENDING,
-     * so registration is incomplete.
-     *
-     * The existing Auth identity must prove
-     * ownership through password + CAPTCHA
-     * before registration can resume.
-     */
     await authService.resumeRegistration(
         email.trim(),
         password,
         verifiedCaptchaToken
     );
+
+} else {
+
+    try {
+
+        const result =
+            await authService.register(
+                fullName.trim(),
+                email.trim(),
+                password,
+                "PRIMARY",
+                verifiedCaptchaToken
+            );
+
+        if (!result.session) {
+            throw new Error(
+                "Account created, but an authenticated session was not established. Please try again."
+            );
+        }
+
+    } catch (registrationError) {
+
+        const registrationMessage =
+            registrationError instanceof Error
+                ? registrationError.message
+                : "";
+
+        if (
+            registrationMessage !==
+            "User already registered"
+        ) {
+            throw registrationError;
+        }
+
+        /*
+         * The Auth identity already exists, but the
+         * CareVR invitation is still PENDING.
+         *
+         * The CAPTCHA token used for the first request
+         * has already been consumed. Reset Turnstile so
+         * the next attempt receives a fresh token.
+         */
+        setRegistrationResumeRequired(true);
+        setCaptchaToken(null);
+        turnstileRef.current?.reset();
+
+        setError(
+            "Your CareVR registration was started earlier. Please complete the security verification again to continue."
+        );
+
+        return;
+    }
 }
 
 /*
@@ -875,12 +903,13 @@ const handlePasskeySetup = async () => {
             </div>
 
             <div className="captcha-container">
-                <Turnstile
-                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-                    onSuccess={(token) => setCaptchaToken(token)}
-                    onExpire={() => setCaptchaToken(null)}
-                    onError={() => setCaptchaToken(null)}
-                />
+<Turnstile
+    ref={turnstileRef}
+    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+    onSuccess={(token) => setCaptchaToken(token)}
+    onExpire={() => setCaptchaToken(null)}
+    onError={() => setCaptchaToken(null)}
+/>
             </div>
 
             <button
