@@ -660,65 +660,36 @@ const webAuthnStatus =
   await checkWebAuthn();
 
 if (
-  webAuthnStatus.status === "VERIFIED" &&
-  webAuthnStatus.factorId
+  webAuthnStatus.status !== "VERIFIED" ||
+  !webAuthnStatus.factorId
 ) {
-  try {
-    await authService.authenticateWebAuthn(
-      webAuthnStatus.factorId
-    );
-
-    await completeLogin(
-      authenticatedUser
-    );
-
-    return;
-
-  } catch (webAuthnError) {
-
-    const message =
-      webAuthnError instanceof Error
-        ? webAuthnError.message
-        : "Unable to authenticate with your CareVR passkey.";
-
-    setError(message);
-
-    return;
-  }
+  throw new Error(
+    "A CareVR Passkey is required to continue."
+  );
 }
 
-const totpStatus =
-  await checkTOTP();
+try {
+  await authService.authenticateWebAuthn(
+    webAuthnStatus.factorId
+  );
 
-if (
-  totpStatus.status === "VERIFIED" &&
-  totpStatus.factorId
-) {
-  setTotpLogin({
-    user: authenticatedUser,
-    factorId: totpStatus.factorId,
-  });
+  await completeLogin(
+    authenticatedUser
+  );
+
+  return;
+
+} catch (webAuthnError) {
+
+  const message =
+    webAuthnError instanceof Error
+      ? webAuthnError.message
+      : "Unable to authenticate with your CareVR passkey.";
+
+  setError(message);
+
   return;
 }
-
-if (
-  totpStatus.status ===
-  "ENROLLMENT_REQUIRED"
-) {
-  const enrollment =
-    await authService.enrollTOTP();
-
-  setTotpEnrollment({
-    user: authenticatedUser,
-    factorId: enrollment.id,
-    qrCode: enrollment.totp.qr_code,
-    secret: enrollment.totp.secret,
-    uri: enrollment.totp.uri,
-  });
-  return;
-}
-
-await completeLogin(authenticatedUser);
 
   } catch (err) {
     performanceTracker.cancel();

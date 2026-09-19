@@ -324,16 +324,22 @@ async verifyWebAuthn(
 }
 
 async enrollAndVerifyWebAuthn(
-  _friendlyName: string
+  friendlyName: string
 ): Promise<void> {
   const { data, error } =
-    await supabase.auth.registerPasskey();
+    await supabase.auth.mfa.webauthn.register({
+      friendlyName,
+      webauthn: {
+        rpId: window.location.hostname,
+        rpOrigins: [window.location.origin],
+      },
+    });
 
   if (error) {
     throw error;
   }
 
-  if (!data?.id) {
+  if (!data) {
     throw new Error(
       "Unable to register your CareVR passkey."
     );
