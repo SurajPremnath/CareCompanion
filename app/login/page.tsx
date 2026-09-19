@@ -1188,7 +1188,7 @@ style={{
         display: grid;
         grid-template-columns: 47% 53%;
         position: relative;
-        overflow: hidden;
+        overflow: visible;
         border-radius: 28px;
         border: 1px solid #e9e5f3;
         background: #ffffff;
