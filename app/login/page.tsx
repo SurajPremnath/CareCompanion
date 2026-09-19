@@ -1188,7 +1188,7 @@ style={{
         display: grid;
         grid-template-columns: 47% 53%;
         position: relative;
-        overflow: visible;
+        overflow: hidden;
         border-radius: 28px;
         border: 1px solid #e9e5f3;
         background: #ffffff;
@@ -3147,7 +3147,6 @@ onClick={async () => {
     </button>
   </div>
 </div>
- </div>
 </div>
 
 </div>
@@ -3202,6 +3201,8 @@ onClick={async () => {
                   : "Continue with Google"}
               </button>
             </div>
+
+</div>
 
 <div className="register login-register-desktop">
   <span className="registerPrompt">New to CareVR?  </span>{" "}
