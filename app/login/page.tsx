@@ -83,26 +83,34 @@ const [loginMethod, setLoginMethod] =
   useState<"EMAIL" | "GOOGLE">("EMAIL");
 
 const [totpLogin, setTotpLogin] =
-    useState<{
-        user: Awaited<
-            ReturnType<typeof authService.login>
-        >;
-        factorId: string;
-    } | null>(null);
+  useState<{
+    user: Awaited<
+      ReturnType<typeof authService.login>
+    >;
+    factorId: string;
+  } | null>(null);
 
 const [totpEnrollment, setTotpEnrollment] =
-    useState<{
-        user: Awaited<
-            ReturnType<typeof authService.login>
-        >;
-        factorId: string;
-        qrCode: string;
-        secret: string;
-        uri: string;
-    } | null>(null);
+  useState<{
+    user: Awaited<
+      ReturnType<typeof authService.login>
+    >;
+    factorId: string;
+    qrCode: string;
+    secret: string;
+    uri: string;
+  } | null>(null);
 
 const [totpCode, setTotpCode] =
-    useState("");
+  useState("");
+
+const [passkeyLogin, setPasskeyLogin] =
+  useState<{
+    user: Awaited<
+      ReturnType<typeof authService.login>
+    >;
+    factorId: string;
+  } | null>(null);
 
 /*
  * Care context is resolved from the authenticated user's
@@ -575,6 +583,9 @@ return;
     finalValidation.message
   );
 };
+
+
+
 const handleLogin = async () => {
   setError("");
 
@@ -668,28 +679,12 @@ if (
   );
 }
 
-try {
-  await authService.authenticateWebAuthn(
-    webAuthnStatus.factorId
-  );
+setPasskeyLogin({
+  user: authenticatedUser,
+  factorId: webAuthnStatus.factorId,
+});
 
-  await completeLogin(
-    authenticatedUser
-  );
-
-  return;
-
-} catch (webAuthnError) {
-
-  const message =
-    webAuthnError instanceof Error
-      ? webAuthnError.message
-      : "Unable to authenticate with your CareVR passkey.";
-
-  setError(message);
-
-  return;
-}
+return;
 
   } catch (err) {
     performanceTracker.cancel();
@@ -705,6 +700,40 @@ try {
   turnstileRef.current?.reset();
   setLoading(false);
 }
+};
+
+const handleVerifyPasskey = async () => {
+  if (!passkeyLogin) {
+    setError("Passkey verification is not available.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    setError("");
+
+    await authService.authenticateWebAuthn(
+      passkeyLogin.factorId
+    );
+
+    const authenticatedUser =
+      passkeyLogin.user;
+
+    setPasskeyLogin(null);
+
+    await completeLogin(
+      authenticatedUser
+    );
+  } catch (err) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Unable to authenticate with your CareVR passkey.";
+
+    setError(message);
+  } finally {
+    setLoading(false);
+  }
 };
 
 const handleVerifyTOTPEnrollment = async () => {
@@ -839,9 +868,72 @@ await completeLogin(authenticatedUser);
 
 return (
   <>
+    {passkeyLogin ? (
+      <main
+        className="login-page"
+        style={{
+          position: "fixed",
+          inset: 0,
+          width: "100%",
+          height: "100vh",
+          minHeight: "100vh",
+          margin: 0,
+          padding: 0,
+          background: "#f1eaff",
+          overflow: "auto",
+        }}
+      >
+        <section className="login-shell">
+          <div className="login-left">
+            <div
+              className="login-content"
+              style={{
+                marginLeft: "60px",
+                marginTop: "60px",
+                gap: "18px",
+              }}
+            >
+              <div className="login-heading">
+                <h1>Verify Your CareVR Account</h1>
 
+                <p>
+                  Use your registered Passkey to continue to CareVR.
+                </p>
+              </div>
 
-{totpEnrollment ? (
+              {error && (
+                <div
+                  className="login-error"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="primary-button"
+                onClick={() =>
+                  void handleVerifyPasskey()
+                }
+                disabled={loading}
+              >
+                {loading
+                  ? "Verifying..."
+                  : "Verify with Passkey"}
+              </button>
+            </div>
+          </div>
+
+          <div
+            className="login-right"
+            aria-hidden="true"
+          />
+        </section>
+      </main>
+    ) : totpEnrollment ? (
+
 <main
   className="login-page"
   style={{
