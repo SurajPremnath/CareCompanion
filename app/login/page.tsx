@@ -3145,12 +3145,7 @@ onClick={async () => {
     >
       Create an Account
     </button>
-  </div>
 </div>
-</div>
-
-</div>
-
 </div>
 
             <div className="divider">
@@ -3204,6 +3199,8 @@ onClick={async () => {
 
 </div>
 
+</div>
+
 <div className="register login-register-desktop">
   <span className="registerPrompt">New to CareVR?  </span>{" "}
   <button
@@ -3221,6 +3218,7 @@ onClick={async () => {
 
     </div>
 
+</div>
 <div className="login-footer">
   <CareVRFooter />
 </div>
@@ -3234,6 +3232,7 @@ onClick={async () => {
       aria-hidden="true"
     />
 
+</div>
       </section>
 </main>
       </>
