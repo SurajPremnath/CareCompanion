@@ -53,15 +53,46 @@ console.log(
                 );
             }
 
-            if (!user) {
-                router.replace("/login");
-                return;
-            }
+if (!user) {
+    router.replace("/login");
+    return;
+}
 
-            const {
-                data,
-                error: passkeyError,
-            } = await supabase.auth.registerPasskey();
+const {
+    data: aal,
+    error: aalError,
+} =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+console.log(
+    "CareVR Secure Access: AAL",
+    {
+        currentLevel: aal?.currentLevel,
+        nextLevel: aal?.nextLevel,
+        currentAuthenticationMethods:
+            aal?.currentAuthenticationMethods,
+        aalError,
+    }
+);
+
+const {
+    data: factors,
+    error: factorsError,
+} =
+    await supabase.auth.mfa.listFactors();
+
+console.log(
+    "CareVR Secure Access: MFA factors",
+    {
+        factors,
+        factorsError,
+    }
+);
+
+const {
+    data,
+    error: passkeyError,
+} = await supabase.auth.registerPasskey();
 
             if (passkeyError) {
                 throw new Error(
