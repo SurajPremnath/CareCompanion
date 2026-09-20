@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 export default function SecureAccessPage() {
     const router = useRouter();
 
+
     const [creatingPasskey, setCreatingPasskey] =
         useState(false);
 
@@ -17,15 +18,18 @@ export default function SecureAccessPage() {
     const [error, setError] =
         useState("");
 
-    const handleCreatePasskey = async () => {
-        if (creatingPasskey) {
-            return;
-        }
+const handleCreatePasskey = async () => {
+    if (creatingPasskey) {
+        return;
+    }
 
-        setCreatingPasskey(true);
-        setError("");
+    setCreatingPasskey(true);
+    setError("");
 
-        try {
+    try {
+        const isLoginFlow =
+            new URLSearchParams(window.location.search).get("flow") ===
+            "LOGIN";
             const {
                 data: { user },
                 error: userError,
@@ -54,13 +58,18 @@ export default function SecureAccessPage() {
                 );
             }
 
-            if (!data) {
-                throw new Error(
-                    "Passkey registration did not return a credential."
-                );
-            }
+if (!data) {
+    throw new Error(
+        "Passkey registration did not return a credential."
+    );
+}
 
-            setPasskeyCreated(true);
+if (isLoginFlow) {
+    router.replace("/login?passkey=created");
+    return;
+}
+
+setPasskeyCreated(true);
         } catch (err) {
             setError(
                 err instanceof Error

@@ -5,6 +5,7 @@ import {
   useEffect,
 } from "react";
 
+
 import {
   useRouter,
   useSearchParams,
@@ -85,16 +86,18 @@ if (!authenticatedUser) {
 
 }
 
-const webAuthnStatus =
-  await checkWebAuthn();
+const passkeyAuthenticatedUser =
+  await authService.authenticatePasskey();
 
 if (
-  webAuthnStatus.status === "VERIFIED" &&
-  webAuthnStatus.factorId
+  passkeyAuthenticatedUser.id !==
+  authenticatedUser.id
 ) {
 
-  await authService.authenticateWebAuthn(
-    webAuthnStatus.factorId
+  await authService.logout();
+
+  throw new Error(
+    "The Passkey does not belong to the account you are trying to access."
   );
 
 }

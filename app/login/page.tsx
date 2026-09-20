@@ -104,13 +104,9 @@ const [totpEnrollment, setTotpEnrollment] =
 const [totpCode, setTotpCode] =
   useState("");
 
-const [passkeyLogin, setPasskeyLogin] =
-  useState<{
-    user: Awaited<
-      ReturnType<typeof authService.login>
-    >;
-    factorId: string;
-  } | null>(null);
+const [passkeyLogin, setPasskeyLogin] = useState<{
+  user: Awaited<ReturnType<typeof authService.login>>;
+} | null>(null);
 
 const [passkeyEnrollment, setPasskeyEnrollment] =
   useState<{
@@ -259,10 +255,13 @@ const completeLogin = async (
       .select(
         "id, family_id, role, status, invitation_attempt_number"
       )
-      .eq(
-        "invited_email",
-        email.trim().toLowerCase()
-      )
+.eq(
+  "invited_email",
+  (
+    authenticatedUser.email ??
+    ""
+  ).trim().toLowerCase()
+)
       .eq("status", "ACCEPTED")
       .order("created_at", {
         ascending: false,
@@ -483,13 +482,16 @@ return;
           ? "SECONDARY_FAMILY_MEMBER"
           : "SELF";
 
-  const finalValidation =
-    await validateInvitedUserLogin({
-      email: email.trim(),
-      userId: authenticatedUser.id,
-      selectedRole,
-      mode: "NORMAL",
-    });
+const finalValidation =
+  await validateInvitedUserLogin({
+    email: (
+      authenticatedUser.email ??
+      ""
+    ).trim(),
+    userId: authenticatedUser.id,
+    selectedRole,
+    mode: "NORMAL",
+  });
 
   if (
     finalValidation.status ===
@@ -592,6 +594,78 @@ return;
 };
 
 
+useEffect(() => {
+  const isPasskeyContinuation =
+    new URLSearchParams(
+      window.location.search
+    ).get("passkey") === "created";
+
+  if (!isPasskeyContinuation) {
+    return;
+  }
+
+  const continueWithPasskey =
+    async () => {
+
+      try {
+
+        setLoading(true);
+        setError("");
+
+        window.history.replaceState(
+          {},
+          "",
+          "/login"
+        );
+
+        const authenticatedUser =
+          await authService.getCurrentUser();
+
+        if (!authenticatedUser) {
+          throw new Error(
+            "Your CareVR session could not be restored. Please sign in again."
+          );
+        }
+
+        const passkeyAuthenticatedUser =
+          await authService.authenticatePasskey();
+
+        if (
+          passkeyAuthenticatedUser.id !==
+          authenticatedUser.id
+        ) {
+
+          await supabase.auth.signOut();
+
+          throw new Error(
+            "The Passkey does not belong to the account you are trying to access."
+          );
+        }
+
+        await completeLogin(
+          authenticatedUser
+        );
+
+      } catch (err) {
+
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Unable to complete Passkey authentication.";
+
+        setError(message);
+
+      } finally {
+
+        setLoading(false);
+
+      }
+    };
+
+  void continueWithPasskey();
+
+}, []);
+
 
 const handleLogin = async () => {
   setError("");
@@ -674,22 +748,15 @@ const authenticatedUser =
     verifiedCaptchaToken
   );
 
-const webAuthnStatus =
-  await checkWebAuthn();
+const hasPasskey =
+  await authService.hasPasskey();
 
-if (
-  webAuthnStatus.status === "VERIFIED" &&
-  webAuthnStatus.factorId
-) {
-  setPasskeyLogin({
-    user: authenticatedUser,
-    factorId: webAuthnStatus.factorId,
-  });
-
+if (!hasPasskey) {
+  router.replace("/secure-access?flow=LOGIN");
   return;
 }
 
-setPasskeyEnrollment({
+setPasskeyLogin({
   user: authenticatedUser,
 });
 
@@ -721,18 +788,28 @@ const handleVerifyPasskey = async () => {
     setLoading(true);
     setError("");
 
-    await authService.authenticateWebAuthn(
-      passkeyLogin.factorId
-    );
+const passkeyAuthenticatedUser =
+  await authService.authenticatePasskey();
 
-    const authenticatedUser =
-      passkeyLogin.user;
+if (
+  passkeyAuthenticatedUser.id !==
+  passkeyLogin.user.id
+) {
+  await supabase.auth.signOut();
 
-    setPasskeyLogin(null);
+  throw new Error(
+    "The Passkey does not belong to the account you are trying to access."
+  );
+}
 
-    await completeLogin(
-      authenticatedUser
-    );
+const authenticatedUser =
+  passkeyLogin.user;
+
+setPasskeyLogin(null);
+
+await completeLogin(
+  authenticatedUser
+);
   } catch (err) {
     const message =
       err instanceof Error

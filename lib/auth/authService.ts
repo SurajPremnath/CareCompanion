@@ -367,9 +367,57 @@ async authenticateWebAuthn(factorId: string) {
   return data;
 }
 
-  /**
-   * Login.
-  **/
+/**
+ * Returns whether the currently signed-in CareVR user
+ * has at least one registered Supabase Passkey.
+ *
+ * The Supabase Passkey registry is the authoritative
+ * source for this check. No CareVR database table
+ * is required.
+ */
+async hasPasskey(): Promise<boolean> {
+
+  const {
+    data,
+    error,
+  } = await supabase.auth.passkey.list();
+
+  if (error) {
+    throw error;
+  }
+
+  return data.length > 0;
+}
+
+/**
+ * Authenticates the currently signed-in CareVR user
+ * with a registered Supabase Passkey.
+ *
+ * Passkey authentication is a complete WebAuthn
+ * authentication ceremony. The caller must compare
+ * the returned user ID with the identity established
+ * by the preceding authentication step.
+ */
+async authenticatePasskey() {
+  const { data, error } =
+    await supabase.auth.signInWithPasskey();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.user) {
+    throw new Error(
+      "Unable to authenticate with your CareVR Passkey."
+    );
+  }
+
+  return data.user;
+}
+
+/**
+ * Login.
+ **/
 async login(
   email: string,
   password: string,
