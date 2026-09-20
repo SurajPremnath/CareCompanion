@@ -48,11 +48,7 @@ import {
 
 import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 
-import { checkTOTP } from "@/lib/auth/totpCheck";
 
-import {
-  checkWebAuthn,
-} from "@/lib/auth/webAuthnCheck";
 
 import {
   carevrContextSelectionHandoff,
@@ -81,28 +77,6 @@ const [showPassword, setShowPassword] =
 
 const [loginMethod, setLoginMethod] =
   useState<"EMAIL" | "GOOGLE">("EMAIL");
-
-const [totpLogin, setTotpLogin] =
-  useState<{
-    user: Awaited<
-      ReturnType<typeof authService.login>
-    >;
-    factorId: string;
-  } | null>(null);
-
-const [totpEnrollment, setTotpEnrollment] =
-  useState<{
-    user: Awaited<
-      ReturnType<typeof authService.login>
-    >;
-    factorId: string;
-    qrCode: string;
-    secret: string;
-    uri: string;
-  } | null>(null);
-
-const [totpCode, setTotpCode] =
-  useState("");
 
 const [passkeyLogin, setPasskeyLogin] = useState<{
   user: Awaited<ReturnType<typeof authService.login>>;
@@ -832,9 +806,23 @@ const handleCreatePasskey = async () => {
     setLoading(true);
     setError("");
 
-    await authService.enrollAndVerifyWebAuthn(
-      "CareVR Passkey"
-    );
+    const {
+      data,
+      error: passkeyError,
+    } = await supabase.auth.registerPasskey();
+
+    if (passkeyError) {
+      throw new Error(
+        passkeyError.message ||
+        "Unable to create your CareVR Passkey."
+      );
+    }
+
+    if (!data) {
+      throw new Error(
+        "Passkey registration did not return a credential."
+      );
+    }
 
     const authenticatedUser =
       passkeyEnrollment.user;
@@ -856,115 +844,7 @@ const handleCreatePasskey = async () => {
   }
 };
 
-const handleVerifyTOTPEnrollment = async () => {
 
-  if (!totpEnrollment) {
-    setError("TOTP enrollment is not available.");
-    return;
-  }
-
-  if (totpCode.length !== 6) {
-    setError(
-      "Please enter the 6-digit code from your authenticator."
-    );
-    return;
-  }
-
-  try {
-
-    setLoading(true);
-
-    setError("");
-
-const challengeId =
-  await authService.challengeTOTP(
-    totpEnrollment.factorId
-  );
-
-await authService.verifyTOTP(
-  totpEnrollment.factorId,
-  challengeId,
-  totpCode
-);
-
-const authenticatedUser =
-  totpEnrollment.user;
-
-setTotpEnrollment(null);
-setTotpCode("");
-
-await completeLogin(authenticatedUser);
-
-  } catch (err) {
-
-    const message =
-      err instanceof Error
-        ? err.message
-        : "Unable to verify your authenticator.";
-
-    setError(message);
-
-  } finally {
-
-    setLoading(false);
-
-  }
-};
-
-const handleVerifyLoginTOTP = async () => {
-
-  if (!totpLogin) {
-    setError("TOTP verification is not available.");
-    return;
-  }
-
-  if (totpCode.length !== 6) {
-    setError(
-      "Please enter the 6-digit code from your authenticator."
-    );
-    return;
-  }
-
-  try {
-
-    setLoading(true);
-
-    setError("");
-
-    const challengeId =
-      await authService.challengeTOTP(
-        totpLogin.factorId
-      );
-
-await authService.verifyTOTP(
-  totpLogin.factorId,
-  challengeId,
-  totpCode
-);
-
-const authenticatedUser =
-  totpLogin.user;
-
-setTotpLogin(null);
-setTotpCode("");
-
-await completeLogin(authenticatedUser);
-
-  } catch (err) {
-
-    const message =
-      err instanceof Error
-        ? err.message
-        : "Unable to verify your authenticator code.";
-
-    setError(message);
-
-  } finally {
-
-    setLoading(false);
-
-  }
-};
 
   const handleGoogleLogin = async () => {
     setError("");
@@ -1118,313 +998,8 @@ return (
           />
         </section>
       </main>
-    ) : totpEnrollment ? (
-
-<main
-  className="login-page"
-  style={{
-    position: "fixed",
-    inset: 0,
-    width: "100%",
-    height: "100vh",
-    minHeight: "100vh",
-    margin: 0,
-    padding: 0,
-    background: "#f1eaff",
-    overflow: "auto",
-  }}
->
-  <section className="login-shell">
-    <div className="login-left">
-
-      <div
-        className="login-content"
-        style={{
-          marginLeft: "60px",
-          marginTop: "60px",
-          gap: "18px",
-        }}
-      >
-
-        <div className="login-heading">
-          <h1>Secure Your CareVR Account</h1>
-
-          <p>
-            Scan the QR code with your authenticator app,
-            then enter the 6-digit code to continue.
-          </p>
-        </div>
-
-        {error && (
-          <div
-            className="login-error"
-            role="alert"
-            aria-live="polite"
-          >
-            {error}
-          </div>
-        )}
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "14px",
-            marginBottom: "22px",
-          }}
-        >
-          <img
-            src={totpEnrollment.qrCode}
-            alt="CareVR authenticator setup QR code"
-            style={{
-              width: "180px",
-              height: "180px",
-              background: "#ffffff",
-              padding: "10px",
-              borderRadius: "12px",
-            }}
-          />
 
 
-        </div>
-
-        <div
-          className="field"
-          style={{
-            marginTop: "22px",
-            marginBottom: "22px",
-          }}
-        >
-          <label htmlFor="loginTotpEnrollmentCode">
-            Authenticator Code
-          </label>
-
-          <div className="input-wrap">
-
-            <input
-              id="loginTotpEnrollmentCode"
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              value={totpCode}
-              onChange={(e) =>
-                setTotpCode(
-                  e.target.value
-                    .replace(/\D/g, "")
-                    .slice(0, 6)
-                )
-              }
-              placeholder="000000"
-              className="login-input"
-              disabled={loading}
-              maxLength={6}
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  void handleVerifyTOTPEnrollment();
-                }
-              }}
-            />
-
-          </div>
-
-        </div>
-
-        <button
-          type="button"
-          className="primary-button"
-          onClick={() =>
-            void handleVerifyTOTPEnrollment()
-          }
-          disabled={
-            loading ||
-            totpCode.length !== 6
-          }
-style={{
-  width: "min(100%, 220px)",
-  height: "44px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  border: 0,
-  borderRadius: "13px",
-  background:
-    "linear-gradient(135deg, #2563eb, #1d4ed8)",
-  color: "#ffffff",
-  fontSize: "15px",
-  fontWeight: 700,
-  cursor:
-    loading || totpCode.length !== 6
-      ? "not-allowed"
-      : "pointer",
-  opacity:
-    loading || totpCode.length !== 6
-      ? 0.6
-      : 1,
-  boxShadow:
-    "0 10px 22px rgba(106, 62, 239, 0.19)",
-}}
-        >
-          {loading
-            ? "Verifying..."
-            : "Verify & Continue"}
-        </button>
-
-      </div>
-    </div>
-
-    <div
-      className="login-right"
-      aria-hidden="true"
-    />
-  </section>
-</main>
-
-) : totpLogin ? (
-
-
-<main
-  className="login-page"
-  style={{
-    position: "fixed",
-    inset: 0,
-    width: "100%",
-    height: "100vh",
-    minHeight: "100vh",
-    margin: 0,
-    padding: 0,
-    background: "#f1eaff",
-    overflow: "auto",
-  }}
->
-        <section className="login-shell">
-          <div className="login-left">
-
-            <div
-  className="login-content"
-  style={{
-    marginLeft: "60px",
-marginTop: "60px",
-gap: "18px",
-  }}
->
-
-              <div className="login-heading">
-                <h1>Verify Your CareVR Account</h1>
-
-                <p>
-                  Open your authenticator app and
-                  enter the 6-digit verification code.
-                </p>
-</div>
-
-
-
-{error && (
-                <div
-                  className="login-error"
-                  role="alert"
-                  aria-live="polite"
-                >
-                  {error}
-                </div>
-              )}
-
-              <div
-  className="field"
-  style={{
-    marginTop: "22px",
-    marginBottom: "22px",
-  }}
->
-
-                <label htmlFor="loginTotpCode">
-                  Authenticator Code
-                </label>
-
-                <div className="input-wrap">
-
-                  <input
-                    id="loginTotpCode"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    value={totpCode}
-                    onChange={(e) =>
-                      setTotpCode(
-                        e.target.value
-                          .replace(/\D/g, "")
-                          .slice(0, 6)
-                      )
-                    }
-                    placeholder="000000"
-                    className="login-input"
-                    disabled={loading}
-                    maxLength={6}
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        void handleVerifyLoginTOTP();
-                      }
-                    }}
-                  />
-
-                </div>
-
-              </div>
-
-<button
-  type="button"
-  className="primary-button"
-  onClick={() =>
-    void handleVerifyLoginTOTP()
-  }
-  disabled={
-    loading ||
-    totpCode.length !== 6
-  }
-style={{
-  width: "min(100%, 220px)",
-  height: "44px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  border: 0,
-  borderRadius: "13px",
-  background:
-    "linear-gradient(135deg, #2563eb, #1d4ed8)",
-  color: "#ffffff",
-  fontSize: "15px",
-  fontWeight: 700,
-  cursor:
-    loading || totpCode.length !== 6
-      ? "not-allowed"
-      : "pointer",
-  opacity:
-    loading || totpCode.length !== 6
-      ? 0.6
-      : 1,
-  boxShadow:
-    "0 10px 22px rgba(106, 62, 239, 0.19)",
-}}
->
-  {loading
-    ? "Verifying..."
-    : "Verify & Continue"}
-</button>
-
-            </div>
-
-          </div>
-
-          <div
-            className="login-right"
-            aria-hidden="true"
-          />
-
-        </section>
-      </main>
 
     ) : (
       <>
@@ -2868,13 +2443,13 @@ top: calc(28%);
         }
       }
 
-      /* =========================================================
-         CAREVR LOGIN VISUAL RESTORATION
-         
-         Visual-only override.
-         Authentication, TOTP, CAPTCHA, CareVR access,
-         context resolution and navigation are untouched.
-      ========================================================= */
+/* =========================================================
+   CAREVR LOGIN VISUAL RESTORATION
+
+   Visual-only override.
+   Authentication, CAPTCHA, CareVR access,
+   context resolution and navigation are untouched.
+========================================================= */
 
 @media (min-width: 601px) {
 

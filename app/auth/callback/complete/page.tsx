@@ -14,10 +14,6 @@ import {
 import { authService } from "@/lib/auth/authService";
 
 import {
-  checkWebAuthn,
-} from "@/lib/auth/webAuthnCheck";
-
-import {
   resolveCareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
 
