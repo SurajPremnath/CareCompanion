@@ -29,23 +29,25 @@ const handleCreatePasskey = async () => {
     setError("");
 
     try {
-        const isLoginFlow =
-            new URLSearchParams(window.location.search).get("flow") ===
-            "LOGIN";
+const searchParams =
+    new URLSearchParams(
+        window.location.search
+    );
+
+const isLoginFlow =
+    searchParams.get("flow") ===
+    "LOGIN";
+
+const provider =
+    searchParams.get("provider");
+
+const role =
+    searchParams.get("role");
+
             const {
                 data: { user },
                 error: userError,
             } = await supabase.auth.getUser();
-
-console.log(
-    "CareVR Secure Access: authenticated user",
-    {
-        id: user?.id,
-        email: user?.email,
-        hasUser: !!user,
-        userError,
-    }
-);
 
             if (userError) {
                 throw new Error(
@@ -79,7 +81,24 @@ if (!data) {
 }
 
 if (isLoginFlow) {
-    router.replace("/login?passkey=created");
+
+    if (
+        provider === "GOOGLE" &&
+        role
+    ) {
+        router.replace(
+            `/auth/callback/complete?provider=GOOGLE&role=${encodeURIComponent(
+                role
+            )}`
+        );
+
+        return;
+    }
+
+    router.replace(
+        "/login?passkey=created"
+    );
+
     return;
 }
 

@@ -3,6 +3,7 @@
 import {
   Suspense,
   useEffect,
+  useRef,
 } from "react";
 
 
@@ -25,6 +26,10 @@ import {
   validateInvitedUserLogin,
 } from "@/lib/invitations/invitedUserLoginValidation";
 
+import PasskeyCaptcha, {
+  type PasskeyCaptchaHandle,
+} from "@/app/components/security/PasskeyCaptcha";
+
 type CareVRRole =
   | "SELF"
   | "DOCTOR"
@@ -42,6 +47,9 @@ function GoogleAuthComplete() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+
+const passkeyCaptchaRef =
+  useRef<PasskeyCaptchaHandle>(null);
 
   useEffect(() => {
 
@@ -82,8 +90,36 @@ if (!authenticatedUser) {
 
 }
 
+const hasPasskey =
+  await authService.hasPasskey();
+
+if (!hasPasskey) {
+
+  router.replace(
+    `/secure-access?flow=LOGIN&provider=GOOGLE&role=${encodeURIComponent(
+      selectedRole
+    )}`
+  );
+
+  return;
+
+}
+
+const captchaToken =
+  await passkeyCaptchaRef.current?.getToken();
+
+if (!captchaToken) {
+
+  throw new Error(
+    "Unable to complete Passkey security verification."
+  );
+
+}
+
 const passkeyAuthenticatedUser =
-  await authService.authenticatePasskey();
+  await authService.authenticatePasskey(
+    captchaToken
+  );
 
 if (
   passkeyAuthenticatedUser.id !==
@@ -309,13 +345,17 @@ throw new Error(
     searchParams,
   ]);
 
-  return (
-    <main>
-      <p>
-        Completing your CareVR login...
-      </p>
-    </main>
-  );
+return (
+  <main>
+    <PasskeyCaptcha
+      ref={passkeyCaptchaRef}
+    />
+
+    <p>
+      Completing your CareVR login...
+    </p>
+  </main>
+);
 
 }
 

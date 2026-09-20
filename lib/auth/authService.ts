@@ -172,9 +172,15 @@ async hasPasskey(): Promise<boolean> {
  * the returned user ID with the identity established
  * by the preceding authentication step.
  */
-async authenticatePasskey() {
+async authenticatePasskey(
+  captchaToken: string
+) {
   const { data, error } =
-    await supabase.auth.signInWithPasskey();
+    await supabase.auth.signInWithPasskey({
+      options: {
+        captchaToken,
+      },
+    });
 
   if (error) {
     throw error;

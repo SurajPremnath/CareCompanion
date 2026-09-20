@@ -48,6 +48,9 @@ import {
 
 import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 
+import PasskeyCaptcha, {
+  type PasskeyCaptchaHandle,
+} from "@/app/components/security/PasskeyCaptcha";
 
 
 import {
@@ -71,6 +74,9 @@ const [captchaToken, setCaptchaToken] =
 
 const turnstileRef =
   useRef<TurnstileInstance>(null);
+
+const passkeyCaptchaRef =
+  useRef<PasskeyCaptchaHandle>(null);
 
 const [showPassword, setShowPassword] =
     useState(false);
@@ -601,20 +607,31 @@ useEffect(() => {
           );
         }
 
-        const passkeyAuthenticatedUser =
-          await authService.authenticatePasskey();
+const captchaToken =
+  await passkeyCaptchaRef.current?.getToken();
 
-        if (
-          passkeyAuthenticatedUser.id !==
-          authenticatedUser.id
-        ) {
+if (!captchaToken) {
+  throw new Error(
+    "Unable to complete Passkey security verification."
+  );
+}
 
-          await supabase.auth.signOut();
+const passkeyAuthenticatedUser =
+  await authService.authenticatePasskey(
+    captchaToken
+  );
 
-          throw new Error(
-            "The Passkey does not belong to the account you are trying to access."
-          );
-        }
+if (
+  passkeyAuthenticatedUser.id !==
+  authenticatedUser.id
+) {
+
+  await supabase.auth.signOut();
+
+  throw new Error(
+    "The Passkey does not belong to the account you are trying to access."
+  );
+}
 
         await completeLogin(
           authenticatedUser
@@ -762,8 +779,19 @@ const handleVerifyPasskey = async () => {
     setLoading(true);
     setError("");
 
+const captchaToken =
+  await passkeyCaptchaRef.current?.getToken();
+
+if (!captchaToken) {
+  throw new Error(
+    "Unable to complete Passkey security verification."
+  );
+}
+
 const passkeyAuthenticatedUser =
-  await authService.authenticatePasskey();
+  await authService.authenticatePasskey(
+    captchaToken
+  );
 
 if (
   passkeyAuthenticatedUser.id !==
@@ -934,22 +962,26 @@ return (
           />
         </section>
       </main>
-    ) : passkeyLogin ? (
-      <main
-        className="login-page"
-        style={{
-          position: "fixed",
-          inset: 0,
-          width: "100%",
-          height: "100vh",
-          minHeight: "100vh",
-          margin: 0,
-          padding: 0,
-          background: "#f1eaff",
-          overflow: "auto",
-        }}
-      >
-        <section className="login-shell">
+) : passkeyLogin ? (
+  <main
+    className="login-page"
+    style={{
+      position: "fixed",
+      inset: 0,
+      width: "100%",
+      height: "100vh",
+      minHeight: "100vh",
+      margin: 0,
+      padding: 0,
+      background: "#f1eaff",
+      overflow: "auto",
+    }}
+  >
+    <PasskeyCaptcha
+      ref={passkeyCaptchaRef}
+    />
+
+    <section className="login-shell">
           <div className="login-left">
             <div
               className="login-content"
