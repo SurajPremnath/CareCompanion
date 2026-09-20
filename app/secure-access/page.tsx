@@ -83,10 +83,14 @@ const {
 
 console.log(
     "CareVR Secure Access: MFA factors",
-    {
-        factors,
-        factorsError,
-    }
+    JSON.stringify(
+        {
+            factors,
+            factorsError,
+        },
+        null,
+        2
+    )
 );
 
 const {
