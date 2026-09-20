@@ -1019,7 +1019,7 @@ setPasskeyCreated(true);
                     font-size: 18px;
                     font-weight: 700;
 
-                    cursor: not-allowed;
+                    cursor: pointer;
 
                     opacity: 1;
 
