@@ -23,10 +23,6 @@ import { carevrMessages } from "@/lib/messages/carevrMessages";
 
 import { authSecurity } from "@/lib/auth/authSecurity";
 
-import {
-  checkWebAuthn,
-} from "@/lib/auth/webAuthnCheck";
-
 function RegisterPageContent() {
 
 const router = useRouter();
@@ -85,8 +81,6 @@ const turnstileRef =
 const [registrationCompleted, setRegistrationCompleted] =
     useState(false);
 
-const [passkeySetupRequired, setPasskeySetupRequired] =
-    useState(false);
 
 const [registrationResumeRequired, setRegistrationResumeRequired] =
     useState(false);
@@ -135,104 +129,6 @@ const [registrationResumeRequired, setRegistrationResumeRequired] =
         }
 
         return true;
-
-    };
-
-const handleVerifyPasskey = async () => {
-
-    try {
-
-        setLoading(true);
-
-        setError("");
-
-        setSuccess("");
-
-await authService.enrollAndVerifyWebAuthn(
-    "CareVR Passkey"
-);
-
-const webAuthnStatus =
-    await checkWebAuthn();
-
-console.log(
-    "CareVR WebAuthn registration status:",
-    webAuthnStatus
-);
-
-/*
- * Product Invitation is consumed only after
- * successful Passkey verification.
- */
-            if (productInvitationToken) {
-
-const session =
-    await authService.getCurrentSession();
-
-if (!session?.access_token) {
-    throw new Error(
-        "Authenticated session could not be established."
-    );
-}
-
-                const response =
-                    await fetch(
-                        "/api/access-management/access-to-carevr/invitations/consume",
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type":
-                                    "application/json",
-                                Authorization:
-                                    `Bearer ${session.access_token}`,
-                            },
-                            body: JSON.stringify({
-                                token:
-                                    productInvitationToken,
-                            }),
-                        }
-                    );
-
-                const result =
-                    await response.json();
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        result.error ??
-                        "Unable to activate the CareVR invitation."
-                    );
-
-                }
-
-            }
-
-            
-
-            
-
-            setRegistrationCompleted(true);
-
-            setSuccess(
-                `${carevrMessages.registration.primaryCompleted.title}\n\n${carevrMessages.registration.primaryCompleted.message}\n\n${carevrMessages.registration.primaryCompleted.footer}`
-            );
-
-            await authService.logout();
-
-        } catch (err) {
-
-            const message =
-                err instanceof Error
-                    ? err.message
-                    : "Unable to verify your CareVR passkey.";
-
-            setError(message);
-
-        } finally {
-
-            setLoading(false);
-
-        }
 
     };
 
@@ -360,12 +256,18 @@ if (registrationResumeRequired) {
  * Account creation or registration resumption
  * is complete.
  *
- * Passkey setup is deliberately initiated by
- * explicit user interaction so the native
- * browser/OS WebAuthn UI can be presented
- * correctly, including on mobile.
+ * Move the user to the dedicated CareVR
+ * Passkey security page.
+ *
+ * Passkey creation itself is intentionally
+ * not performed in this step.
  */
-setPasskeySetupRequired(true);
+const secureAccessUrl =
+    productInvitationToken
+        ? `/secure-access?productInvitationToken=${encodeURIComponent(productInvitationToken)}`
+        : "/secure-access";
+
+router.replace(secureAccessUrl);
 
     } catch (err) {
 
@@ -373,98 +275,6 @@ setPasskeySetupRequired(true);
             err instanceof Error
                 ? err.message
                 : "Unable to create your account.";
-
-        setError(message);
-
-    } finally {
-
-        setLoading(false);
-
-    }
-
-};
-
-const handlePasskeySetup = async () => {
-
-    try {
-
-        setLoading(true);
-
-        setError("");
-
-        setSuccess("");
-
-        await authService.enrollAndVerifyWebAuthn(
-            "CareVR Passkey"
-        );
-
-        /*
-         * Product Invitation is consumed only after
-         * successful Passkey verification.
-         *
-         * The raw token is sent only to the authenticated
-         * server endpoint. The server hashes it and performs
-         * the atomic database consumption.
-         */
-        if (productInvitationToken) {
-
-            const session =
-                await authService.getCurrentSession();
-
-            if (!session?.access_token) {
-                throw new Error(
-                    "Authenticated session could not be established."
-                );
-            }
-
-            const response =
-                await fetch(
-                    "/api/access-management/access-to-carevr/invitations/consume",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                            Authorization:
-                                `Bearer ${session.access_token}`,
-                        },
-                        body: JSON.stringify({
-                            token:
-                                productInvitationToken,
-                        }),
-                    }
-                );
-
-            const result =
-                await response.json();
-
-            if (!response.ok) {
-
-                throw new Error(
-                    result.error ??
-                    "Unable to activate the CareVR invitation."
-                );
-
-            }
-
-        }
-
-        setRegistrationCompleted(true);
-
-        setPasskeySetupRequired(false);
-
-        setSuccess(
-            `${carevrMessages.registration.primaryCompleted.title}\n\n${carevrMessages.registration.primaryCompleted.message}\n\n${carevrMessages.registration.primaryCompleted.footer}`
-        );
-
-        await authService.logout();
-
-    } catch (err) {
-
-        const message =
-            err instanceof Error
-                ? err.message
-                : "Unable to set up your CareVR Passkey.";
 
         setError(message);
 
@@ -693,58 +503,6 @@ const handlePasskeySetup = async () => {
 
 {!registrationCompleted ? (
 
-    passkeySetupRequired ? (
-
-        <div
-            className="registration-success-panel"
-            role="status"
-        >
-
-            <div className="registration-success-icon">
-                🔐
-            </div>
-
-            <h2>
-                Secure Your CareVR Account
-            </h2>
-
-            <p>
-                Your account has been created successfully.
-            </p>
-
-            <p>
-                Set up your CareVR Passkey to protect your account
-                with your device's built-in security.
-            </p>
-
-            {error && (
-
-                <div
-                    className="error-message"
-                    role="alert"
-                >
-                    {error}
-                </div>
-
-            )}
-
-            <button
-                type="button"
-                className="create-account-button"
-                onClick={() =>
-                    void handlePasskeySetup()
-                }
-                disabled={loading}
-            >
-                {loading
-                    ? "Setting Up Passkey..."
-                    : "Set Up CareVR Passkey"}
-            </button>
-
-        </div>
-
-    ) : (
-
         <>
             <div className="registration-panel-heading">
 
@@ -938,7 +696,6 @@ const handlePasskeySetup = async () => {
 
         </>
 
-    )
 
 ) : (
 
