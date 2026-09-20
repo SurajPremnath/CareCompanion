@@ -747,10 +747,13 @@ if (!hasPasskey) {
   return;
 }
 
+await authService.diagnosePasskeyAuthenticationOptions(
+  verifiedCaptchaToken
+);
+
 setPasskeyLogin({
   user: authenticatedUser,
 });
-
 return;
 
   } catch (err) {

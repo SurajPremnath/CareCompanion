@@ -196,6 +196,76 @@ async authenticatePasskey(
 }
 
 /**
+ * Temporary diagnostic for inspecting the WebAuthn
+ * authentication options returned by Supabase.
+ *
+ * This does not start the browser Passkey ceremony
+ * and does not authenticate the user.
+ *
+ * No challenge, credential, signature, or authenticator
+ * data is logged.
+ */
+async diagnosePasskeyAuthenticationOptions(
+  captchaToken: string
+): Promise<void> {
+  const {
+    data,
+    error,
+  } =
+    await supabase.auth.passkey.startAuthentication({
+      options: {
+        captchaToken,
+      },
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.options) {
+    throw new Error(
+      "Unable to obtain CareVR Passkey authentication options."
+    );
+  }
+
+  const options =
+    data.options;
+
+  const allowCredentials =
+    Array.isArray(
+      options.allowCredentials
+    )
+      ? options.allowCredentials
+      : [];
+
+  console.log(
+    "CareVR Passkey Diagnostic:",
+    {
+      hasOptions: true,
+
+      challengePresent:
+        Boolean(options.challenge),
+
+      hasAllowCredentials:
+        Array.isArray(
+          options.allowCredentials
+        ),
+
+      allowCredentialsCount:
+        allowCredentials.length,
+
+      userVerification:
+        options.userVerification ??
+        null,
+
+      rpId:
+        options.rpId ??
+        null,
+    }
+  );
+}
+
+/**
  * Login.
  **/
 async login(
