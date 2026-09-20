@@ -58,40 +58,7 @@ if (!user) {
     return;
 }
 
-const {
-    data: aal,
-    error: aalError,
-} =
-    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
-console.log(
-    "CareVR Secure Access: AAL",
-    {
-        currentLevel: aal?.currentLevel,
-        nextLevel: aal?.nextLevel,
-        currentAuthenticationMethods:
-            aal?.currentAuthenticationMethods,
-        aalError,
-    }
-);
-
-const {
-    data: factors,
-    error: factorsError,
-} =
-    await supabase.auth.mfa.listFactors();
-
-console.log(
-    "CareVR Secure Access: MFA factors",
-    JSON.stringify(
-        {
-            factors,
-            factorsError,
-        },
-        null,
-        2
-    )
-);
 
 const {
     data,
