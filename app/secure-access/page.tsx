@@ -19,6 +19,8 @@ export default function SecureAccessPage() {
         useState("");
 
 const handleCreatePasskey = async () => {
+    console.log("CareVR Secure Access: Create Passkey clicked");
+
     if (creatingPasskey) {
         return;
     }
@@ -34,6 +36,16 @@ const handleCreatePasskey = async () => {
                 data: { user },
                 error: userError,
             } = await supabase.auth.getUser();
+
+console.log(
+    "CareVR Secure Access: authenticated user",
+    {
+        id: user?.id,
+        email: user?.email,
+        hasUser: !!user,
+        userError,
+    }
+);
 
             if (userError) {
                 throw new Error(
