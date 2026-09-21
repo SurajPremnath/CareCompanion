@@ -430,17 +430,24 @@ return (
                                 Help
                             </button>
 
-                            {languageSelector && (
-                                <div className="carevr-mobile-account-menu-language">
-                                    <span>
-                                        Language
-                                    </span>
-
-                                    <div>
-                                        {languageSelector}
-                                    </div>
-                                </div>
-                            )}
+{/*
+ * Language selection is temporarily hidden during
+ * the CareVR soft launch.
+ *
+ * Localization infrastructure remains active.
+ 
+// {languageSelector && (
+//     <div className="carevr-mobile-account-menu-language">
+//         <span>
+//             Language
+//         </span>
+//
+//         <div>
+//             {languageSelector}
+//         </div>
+//     </div>
+// 
+*/}
 
                             <button
                                 type="button"
