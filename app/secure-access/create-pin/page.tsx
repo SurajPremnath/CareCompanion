@@ -14,10 +14,12 @@ import { authService } from "@/lib/auth/authService";
 export default function CreatePin() {
     const router = useRouter();
 
-    const [pin, setPin] = useState("");
-    const [confirmPin, setConfirmPin] = useState("");
-    const [error, setError] = useState("");
-    const [saving, setSaving] = useState(false);
+const [pin, setPin] = useState("");
+const [confirmPin, setConfirmPin] = useState("");
+const [showPin, setShowPin] = useState(false);
+const [showConfirmPin, setShowConfirmPin] = useState(false);
+const [error, setError] = useState("");
+const [saving, setSaving] = useState(false);
 
     const handlePinChange = (
         value: string,
@@ -207,23 +209,79 @@ export default function CreatePin() {
                                 Create PIN
                             </label>
 
-                            <input
-                                id="carevr-pin"
-                                type="password"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                autoComplete="new-password"
-                                maxLength={6}
-                                value={pin}
-                                onChange={(event) =>
-                                    handlePinChange(
-                                        event.target.value,
-                                        setPin
-                                    )
-                                }
-                                disabled={saving}
-                                aria-label="Create 6-digit CareVR PIN"
-                            />
+<div className="pin-input-wrapper">
+    <input
+        id="carevr-pin"
+        type={showPin ? "text" : "password"}
+        inputMode="numeric"
+        pattern="[0-9]*"
+        autoComplete="new-password"
+        maxLength={6}
+        value={pin}
+        onChange={(event) =>
+            handlePinChange(
+                event.target.value,
+                setPin
+            )
+        }
+        disabled={saving}
+        aria-label="Create 6-digit CareVR PIN"
+    />
+
+    <button
+        type="button"
+        className="pin-visibility-button"
+        onClick={() =>
+            setShowPin(
+                current => !current
+            )
+        }
+        disabled={saving}
+        aria-label={
+            showPin
+                ? "Hide PIN"
+                : "Show PIN"
+        }
+        title={
+            showPin
+                ? "Hide PIN"
+                : "Show PIN"
+        }
+    >
+        {showPin ? (
+    <svg
+        width="19"
+        height="19"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+    >
+        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+        <circle cx="12" cy="12" r="2.5" />
+        <path d="M4 4l16 16" />
+    </svg>
+) : (
+    <svg
+        width="19"
+        height="19"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+    >
+        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+        <circle cx="12" cy="12" r="2.5" />
+    </svg>
+)}
+    </button>
+</div>
 
                         </div>
 
@@ -233,23 +291,83 @@ export default function CreatePin() {
                                 Confirm PIN
                             </label>
 
-                            <input
-                                id="carevr-confirm-pin"
-                                type="password"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                autoComplete="new-password"
-                                maxLength={6}
-                                value={confirmPin}
-                                onChange={(event) =>
-                                    handlePinChange(
-                                        event.target.value,
-                                        setConfirmPin
-                                    )
-                                }
-                                disabled={saving}
-                                aria-label="Confirm 6-digit CareVR PIN"
-                            />
+<div className="pin-input-wrapper">
+    <input
+        id="carevr-confirm-pin"
+        type={
+            showConfirmPin
+                ? "text"
+                : "password"
+        }
+        inputMode="numeric"
+        pattern="[0-9]*"
+        autoComplete="new-password"
+        maxLength={6}
+        value={confirmPin}
+        onChange={(event) =>
+            handlePinChange(
+                event.target.value,
+                setConfirmPin
+            )
+        }
+        disabled={saving}
+        aria-label="Confirm 6-digit CareVR PIN"
+    />
+
+    <button
+        type="button"
+        className="pin-visibility-button"
+        onClick={() =>
+            setShowConfirmPin(
+                current => !current
+            )
+        }
+        disabled={saving}
+        aria-label={
+            showConfirmPin
+                ? "Hide PIN"
+                : "Show PIN"
+        }
+        title={
+            showConfirmPin
+                ? "Hide PIN"
+                : "Show PIN"
+        }
+    >
+        {showConfirmPin ? (
+    <svg
+        width="19"
+        height="19"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+    >
+        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+        <circle cx="12" cy="12" r="2.5" />
+        <path d="M4 4l16 16" />
+    </svg>
+) : (
+    <svg
+        width="19"
+        height="19"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+    >
+        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+        <circle cx="12" cy="12" r="2.5" />
+    </svg>
+)}
+    </button>
+</div>
 
                         </div>
 
@@ -456,7 +574,46 @@ export default function CreatePin() {
                     font-weight: 700;
                 }
 
-                input {
+                .pin-input-wrapper {
+                    position: relative;
+                    width: 100%;
+                }
+
+                .pin-visibility-button {
+                    position: absolute;
+                    top: 50%;
+                    right: 12px;
+                    transform: translateY(-50%);
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0;
+                    border: 0;
+                    background: transparent;
+                    color: #68738a;
+                    font-size: 17px;
+                    line-height: 1;
+                    cursor: pointer;
+                }
+
+                .pin-visibility-button:hover {
+                    color: #7043d8;
+                }
+
+                .pin-visibility-button:focus-visible {
+                    outline: 2px solid #7043d8;
+                    outline-offset: 2px;
+                    border-radius: 6px;
+                }
+
+                .pin-visibility-button:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
+                .pin-input-wrapper input {
                     width: 100%;
                     height: 54px;
                     box-sizing: border-box;
@@ -464,7 +621,7 @@ export default function CreatePin() {
                     border-radius: 12px;
                     background: #fbfcff;
                     color: #18234a;
-                    padding: 0 18px;
+                    padding: 0 52px 0 18px;
                     font-size: 23px;
                     line-height: 1;
                     letter-spacing: 9px;
@@ -630,11 +787,11 @@ export default function CreatePin() {
                         margin-bottom: 24px;
                     }
 
-                    input {
-                        height: 52px;
-                        font-size: 22px;
-                        letter-spacing: 8px;
-                    }
+.pin-input-wrapper input {
+    height: 52px;
+    font-size: 22px;
+    letter-spacing: 8px;
+}
 
                     .create-button {
                         min-height: 52px;

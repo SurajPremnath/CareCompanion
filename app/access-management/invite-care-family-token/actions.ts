@@ -23,6 +23,7 @@ export interface CreateTokenInvitationInput {
 }
 
 export interface CreateTokenInvitationResult {
+    success: true;
     invitationId: string;
     invitationAttemptNumber: number;
     email: string;
@@ -31,9 +32,17 @@ export interface CreateTokenInvitationResult {
     invitationExpiresAt: string;
 }
 
+export interface CreateTokenInvitationFailure {
+    success: false;
+    message: string;
+}
+
 export async function createTokenInvitation(
     input: CreateTokenInvitationInput
-): Promise<CreateTokenInvitationResult> {
+): Promise<
+    CreateTokenInvitationResult |
+    CreateTokenInvitationFailure
+> {
 
     const serverSupabase =
         await createSupabaseServerClient();
@@ -134,6 +143,17 @@ export async function createTokenInvitation(
             error
         );
 
+if (
+    error.message ===
+    "An invitation for this email address is already active or has already been accepted."
+) {
+    return {
+        success: false,
+        message:
+            "This email address already has an active or accepted CareVR invitation. Please reach out to the Primary family member for further details."
+    };
+}
+
         throw new Error(
             error.message ||
             "Unable to create the invitation."
@@ -158,6 +178,8 @@ export async function createTokenInvitation(
         );
 
     return {
+        success: true,
+
         invitationId:
             createdInvitation.invitation_id,
 

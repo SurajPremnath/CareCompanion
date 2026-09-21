@@ -699,6 +699,13 @@ const result = await createTokenInvitation({
     ),
 });
 
+if (!result.success) {
+    setInvitationError(
+        result.message
+    );
+    return;
+}
+
 setInvitationToken(
     result.invitationToken
 );
