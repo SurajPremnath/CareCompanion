@@ -82,16 +82,33 @@ export default function ValidPasskey({
         await onValidated(
           passkeyAuthenticatedUser
         );
-      } catch (err) {
+    } catch (err) {
+      if (
+        err instanceof DOMException &&
+        err.name === "NotAllowedError"
+      ) {
         setError(
-          err instanceof Error
-            ? err.message
-            : "Unable to authenticate with your CareVR Passkey."
+          "Your CareVR Passkey could not be used/found on this device. You can create a new Passkey to continue."
         );
-      } finally {
-        setLoading(false);
+
+        window.setTimeout(() => {
+          router.replace(
+            "/secure-access?flow=LOGIN"
+          );
+        }, 1800);
+
+        return;
       }
-    };
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to authenticate with your CareVR Passkey."
+      );
+    } finally {
+      setLoading(false);
+    }
+};
 
 return (
   <main className="valid-passkey-page">
