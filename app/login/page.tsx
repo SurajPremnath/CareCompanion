@@ -380,9 +380,10 @@ void authSessionService
     // Analytics must never block navigation.
   });
 
-router.replace("/dashboard");
+router.replace("/carevr-journey");
 
 return;
+
       }
 
       if (

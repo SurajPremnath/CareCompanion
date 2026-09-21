@@ -87,14 +87,12 @@ const [saving, setSaving] = useState(false);
                 );
             }
 
-            /*
-             * PIN creation is complete.
-             * End this authenticated setup session
-             * and return to the normal login lifecycle.
-             */
-            await authService.logout();
+/*
+ * PIN creation is complete.
+ * Continue directly into the existing CareVR journey.
+ */
+router.replace("/carevr-journey");
 
-            router.replace("/login");
         } catch (err) {
             setError(
                 err instanceof Error
