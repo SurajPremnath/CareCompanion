@@ -75,6 +75,8 @@ const [showPin, setShowPin] =
     const [careMode, setCareMode] =
         useState<MobileCareMode>("SELF");
 
+const [userName, setUserName] =
+    useState("CareVR");
 
     /*
      * =========================================================
@@ -95,6 +97,34 @@ const [showPin, setShowPin] =
         setError("");
         setAttemptsRemaining(null);
     };
+
+
+useEffect(() => {
+    const loadUserName = async () => {
+        try {
+            const user =
+                await authService.getCurrentUser();
+
+            const fullName =
+                typeof user?.user_metadata?.full_name ===
+                "string"
+                    ? user.user_metadata.full_name.trim()
+                    : "";
+
+            if (fullName) {
+                setUserName(fullName);
+            }
+        } catch (error) {
+            console.error(
+                "Unable to load authenticated user name.",
+                error
+            );
+        }
+    };
+
+    void loadUserName();
+}, []);
+
 
 
     /*
@@ -376,7 +406,7 @@ const [showPin, setShowPin] =
 <MobileHeader
     careMode={careMode}
     onCareModeChange={setCareMode}
-    userName="CareVR"
+    userName={userName}
     showCareModeToggle={false}
     showSelfToggle={false}
     showFamilyToggle={false}
