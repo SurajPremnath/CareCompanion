@@ -18,14 +18,9 @@ export default function ValidatePin({
     onVerified,
 }: ValidatePinProps) {
 
-    const [pin, setPin] =
-        useState("");
-
-    const [error, setError] =
-        useState("");
-
-    const [saving, setSaving] =
-        useState(false);
+    const [pin, setPin] = useState("");
+    const [error, setError] = useState("");
+    const [saving, setSaving] = useState(false);
 
     const [attemptsRemaining, setAttemptsRemaining] =
         useState<number | null>(null);
@@ -38,7 +33,6 @@ export default function ValidatePin({
 
     const [remainingSeconds, setRemainingSeconds] =
         useState<number | null>(null);
-
 
     const handlePinChange = (
         value: string
@@ -53,16 +47,12 @@ export default function ValidatePin({
         setError("");
     };
 
-
     useEffect(() => {
 
         if (!lockState) {
-
             setRemainingSeconds(null);
-
             return;
         }
-
 
         const updateRemainingTime = () => {
 
@@ -86,22 +76,16 @@ export default function ValidatePin({
                 remaining
             );
 
-
             if (remaining === 0) {
 
                 setLockState(null);
-
                 setError("");
-
                 setAttemptsRemaining(null);
-
                 setPin("");
             }
         };
 
-
         updateRemainingTime();
-
 
         const timer =
             window.setInterval(
@@ -109,14 +93,10 @@ export default function ValidatePin({
                 1000
             );
 
-
         return () =>
-            window.clearInterval(
-                timer
-            );
+            window.clearInterval(timer);
 
     }, [lockState]);
-
 
     const formatRemainingTime = (
         seconds: number
@@ -130,20 +110,16 @@ export default function ValidatePin({
         const remaining =
             seconds % 60;
 
-        return `${String(minutes).padStart(
-            2,
-            "0"
-        )}:${String(remaining).padStart(
-            2,
-            "0"
-        )}`;
+        return `${String(
+            minutes
+        ).padStart(2, "0")}:${String(
+            remaining
+        ).padStart(2, "0")}`;
     };
-
 
     const handleVerify = async () => {
 
         setError("");
-
 
         if (pin.length !== 6) {
 
@@ -154,7 +130,6 @@ export default function ValidatePin({
             return;
         }
 
-
         if (
             saving ||
             lockState ||
@@ -163,9 +138,7 @@ export default function ValidatePin({
             return;
         }
 
-
         setSaving(true);
-
 
         try {
 
@@ -186,10 +159,8 @@ export default function ValidatePin({
                     }
                 );
 
-
             const result =
                 await response.json();
-
 
             if (!response.ok) {
 
@@ -210,7 +181,6 @@ export default function ValidatePin({
 
                     return;
                 }
-
 
                 if (
                     result?.locked === true &&
@@ -239,7 +209,6 @@ export default function ValidatePin({
                     return;
                 }
 
-
                 if (
                     typeof result?.attemptsRemaining ===
                     "number"
@@ -250,22 +219,18 @@ export default function ValidatePin({
                     );
                 }
 
-
                 throw new Error(
                     result?.error ||
                     "Incorrect CareVR PIN."
                 );
             }
 
-
             setAttemptsRemaining(null);
             setPin("");
-
 
             if (onVerified) {
                 onVerified();
             }
-
 
         } catch (err) {
 
@@ -281,7 +246,6 @@ export default function ValidatePin({
         }
     };
 
-
     /*
      * =========================================================
      * RECOVERY
@@ -291,51 +255,56 @@ export default function ValidatePin({
     if (escalationRequired) {
 
         return (
-            <main className="carevr-security-page">
+            <main className="carevr-pin-page">
 
-                <div className="background-orb orb-one" />
-                <div className="background-orb orb-two" />
+                <div className="background-shape background-shape-one" />
+                <div className="background-shape background-shape-two" />
 
-                <div className="security-shell">
+                <div className="page-shell">
 
-                    <SecurityHeader />
+                    <header className="brand-header">
 
-
-                    <section className="security-card">
-
-                        <SecurityIcon
-                            variant="recovery"
+                        <img
+                            src="/images/CareVR v1.0.png"
+                            alt="CareVR"
+                            className="carevr-logo"
                         />
 
+                        <div className="brand-message">
+                            <span>People</span>
+                            <span>Health</span>
+                            <span>Together</span>
+                        </div>
 
-                        <div className="security-eyebrow">
+                    </header>
+
+                    <section className="pin-card">
+
+                        <div className="eyebrow">
                             ACCOUNT PROTECTION
                         </div>
 
+                        <div className="state-icon state-icon-warning">
+                            !
+                        </div>
 
                         <h1>
                             PIN Access Requires Recovery
                         </h1>
 
-
-                        <p className="security-intro">
+                        <p className="intro">
                             Your CareVR PIN access has been
                             locked after multiple unsuccessful
                             attempts.
                         </p>
 
+                        <div className="recovery-note">
 
-                        <div
-                            className="recovery-box"
-                            role="alert"
-                        >
-
-                            <div className="recovery-symbol">
+                            <div className="recovery-icon">
                                 !
                             </div>
 
                             <div>
-
                                 <strong>
                                     Your account remains protected.
                                 </strong>
@@ -345,25 +314,20 @@ export default function ValidatePin({
                                     regain access to your
                                     CareVR account.
                                 </p>
-
                             </div>
 
                         </div>
 
                     </section>
 
-
-                    <SecurityFooter />
+                    <Footer />
 
                 </div>
 
-
-                <SecurityStyles />
-
+                <PageStyles />
             </main>
         );
     }
-
 
     /*
      * =========================================================
@@ -373,131 +337,49 @@ export default function ValidatePin({
 
     if (lockState) {
 
-        const lockNumber =
+        const level =
             Math.min(
-                3,
                 Math.max(
-                    1,
-                    lockState.lockoutLevel
-                )
+                    lockState.lockoutLevel,
+                    1
+                ),
+                3
             );
-
-
-        const locksRemaining =
-            Math.max(
-                0,
-                3 - lockNumber
-            );
-
-
-        const lockDescription =
-            lockNumber === 3
-                ? "This is your final temporary lock."
-                : `${locksRemaining} more temporary lock${
-                    locksRemaining === 1
-                        ? ""
-                        : "s"
-                } available before recovery is required.`;
-
 
         return (
-            <main className="carevr-security-page">
+            <main className="carevr-pin-page">
 
-                <div className="background-orb orb-one" />
-                <div className="background-orb orb-two" />
+                <div className="background-shape background-shape-one" />
+                <div className="background-shape background-shape-two" />
 
-                <div className="security-shell">
+                <div className="page-shell">
 
-                    <SecurityHeader />
+                    <header className="brand-header">
 
-
-                    <section className="security-card">
-
-                        <SecurityIcon
-                            variant="locked"
+                        <img
+                            src="/images/CareVR v1.0.png"
+                            alt="CareVR"
+                            className="carevr-logo"
                         />
 
-
-                        <div className="security-eyebrow">
-                            TEMPORARY SECURITY LOCK
+                        <div className="brand-message">
+                            <span>People</span>
+                            <span>Health</span>
+                            <span>Together</span>
                         </div>
 
+                    </header>
 
-                        <h1>
-                            PIN Temporarily Locked
-                        </h1>
+                    <section className="pin-card">
 
-
-                        <p className="security-intro">
-                            Too many incorrect PIN attempts.
-                            Your account is temporarily protected.
-                        </p>
-
-
-                        <div className="timer-box">
-
-                            <span>
-                                TRY AGAIN IN
-                            </span>
-
-                            <strong>
-                                {formatRemainingTime(
-                                    remainingSeconds ??
-                                    0
-                                )}
-                            </strong>
-
+                        <div className="eyebrow">
+                            ACCOUNT PROTECTION
                         </div>
 
-
-                        <div className="lock-status">
-
-                            <div className="lock-status-header">
-
-                                <span>
-                                    Security lock
-                                </span>
-
-                                <strong>
-                                    {lockNumber} of 3
-                                </strong>
-
-                            </div>
-
-
-                            <div className="lock-track">
-
-                                {[1, 2, 3].map(
-                                    (level) => (
-
-                                        <div
-                                            key={level}
-                                            className={
-                                                level <=
-                                                lockNumber
-                                                    ? "lock-step active"
-                                                    : "lock-step"
-                                            }
-                                        />
-
-                                    )
-                                )}
-
-                            </div>
-
-                        </div>
-
-
-                        <p className="lock-description">
-                            {lockDescription}
-                        </p>
-
-
-                        <div className="security-note">
-
+                        <div className="state-icon">
                             <svg
-                                width="22"
-                                height="22"
+                                width="30"
+                                height="30"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -506,84 +388,179 @@ export default function ValidatePin({
                                 strokeLinejoin="round"
                                 aria-hidden="true"
                             >
-                                <path d="M12 3 5 6v5c0 4.5 2.8 7.8 7 10 4.2-2.2 7-5.5 7-10V6l-7-3Z" />
-                                <path d="m9 12 2 2 4-4" />
+                                <rect
+                                    x="4"
+                                    y="10"
+                                    width="16"
+                                    height="11"
+                                    rx="2"
+                                />
+
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
                             </svg>
+                        </div>
+
+                        <h1>
+                            PIN Temporarily Locked
+                        </h1>
+
+                        <p className="intro">
+                            Too many incorrect attempts.
+                            Your account remains protected.
+                        </p>
+
+                        <div className="timer-box">
 
                             <span>
-                                Your CareVR account remains
-                                protected while the temporary
-                                lock is active.
+                                TRY AGAIN IN
                             </span>
+
+                            <strong>
+                                {remainingSeconds !== null
+                                    ? formatRemainingTime(
+                                        remainingSeconds
+                                    )
+                                    : "--:--"}
+                            </strong>
+
+                        </div>
+
+                        <div className="lock-progress">
+
+                            <div className="progress-label">
+                                <span>
+                                    Security lock
+                                </span>
+
+                                <strong>
+                                    {level} of 3
+                                </strong>
+                            </div>
+
+                            <div className="progress-track">
+
+                                {[1, 2, 3].map(
+                                    (step) => (
+                                        <span
+                                            key={step}
+                                            className={
+                                                step <= level
+                                                    ? "progress-step active"
+                                                    : "progress-step"
+                                            }
+                                        />
+                                    )
+                                )}
+
+                            </div>
+
+                        </div>
+
+                        <p className="lock-description">
+                            After the timer ends, you can
+                            return to PIN verification.
+                        </p>
+
+                        <div className="security-note">
+
+                            <div className="security-icon">
+                                <svg
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M12 3l8 4v5c0 4.8-3.1 7.7-8 9-4.9-1.3-8-4.2-8-9V7l8-4z" />
+                                    <path d="M9 12l2 2 4-4" />
+                                </svg>
+                            </div>
+
+                            <div>
+                                <strong>
+                                    Your CareVR account is protected.
+                                </strong>
+
+                                <p>
+                                    You do not need to take
+                                    any action while the
+                                    temporary lock is active.
+                                </p>
+                            </div>
 
                         </div>
 
                     </section>
 
-
-                    <SecurityFooter />
+                    <Footer />
 
                 </div>
 
-
-                <SecurityStyles />
-
+                <PageStyles />
             </main>
         );
     }
 
-
     /*
      * =========================================================
-     * NORMAL EXISTING-PIN VERIFICATION
+     * NORMAL VERIFY SCREEN
      * =========================================================
      */
 
     return (
-        <main className="carevr-security-page">
+        <main className="carevr-pin-page">
 
-            <div className="background-orb orb-one" />
-            <div className="background-orb orb-two" />
+            <div className="background-shape background-shape-one" />
+            <div className="background-shape background-shape-two" />
 
-            <div className="security-shell">
+            <div className="page-shell">
 
-                <SecurityHeader />
+                <header className="brand-header">
 
+                    <img
+                        src="/images/CareVR v1.0.png"
+                        alt="CareVR"
+                        className="carevr-logo"
+                    />
+
+                    <div className="brand-message">
+                        <span>People</span>
+                        <span>Health</span>
+                        <span>Together</span>
+                    </div>
+
+                </header>
 
                 <section
-                    className="security-card"
+                    className="pin-card"
                     aria-labelledby="verify-pin-title"
                 >
 
-                    <SecurityIcon
-                        variant="normal"
-                    />
-
-
-                    <div className="security-eyebrow">
+                    <div className="eyebrow">
                         SECURE ACCESS
                     </div>
-
 
                     <h1 id="verify-pin-title">
                         Enter Your CareVR PIN
                     </h1>
 
-
-                    <p className="security-intro">
+                    <p className="intro">
                         Enter your 6-digit PIN to continue
                         securely to CareVR.
                     </p>
 
+                    <div className="field-group">
 
-                    <div className="verify-field">
-
-                        <label htmlFor="carevr-pin">
+                        <label htmlFor="carevr-login-pin">
                             CareVR PIN
                         </label>
 
                         <input
-                            id="carevr-pin"
+                            id="carevr-login-pin"
                             type="password"
                             inputMode="numeric"
                             pattern="[0-9]*"
@@ -596,53 +573,43 @@ export default function ValidatePin({
                                 )
                             }
                             disabled={saving}
-                            aria-label="Enter your 6-digit CareVR PIN"
+                            aria-label="Enter 6-digit CareVR PIN"
+                            className="pin-input"
+                            onKeyDown={(event) => {
+                                if (
+                                    event.key ===
+                                    "Enter"
+                                ) {
+                                    void handleVerify();
+                                }
+                            }}
                             autoFocus
                         />
 
-                        <span className="field-hint">
-                            Enter all 6 digits
-                        </span>
-
                     </div>
 
+                    {attemptsRemaining !== null && (
+                        <div className="attempt-message">
+                            {attemptsRemaining === 1
+                                ? "1 attempt remaining before temporary lock."
+                                : `${attemptsRemaining} attempts remaining before temporary lock.`}
+                        </div>
+                    )}
 
                     {error && (
-
                         <div
                             className="message message-error"
                             role="alert"
-                            aria-live="polite"
                         >
-
-                            <span className="message-symbol">
+                            <span className="message-icon">
                                 !
                             </span>
 
                             <span>
                                 {error}
                             </span>
-
                         </div>
-
                     )}
-
-
-                    {attemptsRemaining !== null &&
-                        !error && (
-
-                            <div
-                                className="attempt-message"
-                                role="status"
-                                aria-live="polite"
-                            >
-                                {attemptsRemaining === 1
-                                    ? "1 attempt remaining."
-                                    : `${attemptsRemaining} attempts remaining.`}
-                            </div>
-
-                        )}
-
 
                     <button
                         type="button"
@@ -653,249 +620,140 @@ export default function ValidatePin({
                             pin.length !== 6
                         }
                     >
-
                         <span>
                             {saving
-                                ? "Verifying PIN..."
+                                ? "Verifying..."
                                 : "Verify PIN"}
                         </span>
 
                         {!saving && (
+                            <span className="button-arrow">
+                                →
+                            </span>
+                        )}
+                    </button>
 
+                    <div className="security-note">
+
+                        <div className="security-icon">
                             <svg
-                                width="21"
-                                height="21"
+                                width="24"
+                                height="24"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
-                                strokeWidth="2"
+                                strokeWidth="1.8"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 aria-hidden="true"
                             >
-                                <path d="M5 12h13" />
-                                <path d="m13 6 6 6-6 6" />
+                                <path d="M12 3l8 4v5c0 4.8-3.1 7.7-8 9-4.9-1.3-8-4.2-8-9V7l8-4z" />
+                                <path d="M9 12l2 2 4-4" />
                             </svg>
+                        </div>
 
-                        )}
+                        <div>
+                            <strong>
+                                Your information remains protected.
+                            </strong>
 
-                    </button>
-
-
-                    <div className="security-note">
-
-                        <svg
-                            width="22"
-                            height="22"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                        >
-                            <path d="M12 3 5 6v5c0 4.5 2.8 7.8 7 10 4.2-2.2 7-5.5 7-10V6l-7-3Z" />
-                            <path d="m9 12 2 2 4-4" />
-                        </svg>
-
-                        <span>
-                            Your CareVR PIN protects your
-                            account and health information
-                            across your devices.
-                        </span>
+                            <p>
+                                Your PIN works across your
+                                trusted CareVR devices.
+                            </p>
+                        </div>
 
                     </div>
 
                 </section>
 
-
-                <SecurityFooter />
+                <Footer />
 
             </div>
 
-
-            <SecurityStyles />
-
+            <PageStyles />
         </main>
     );
 }
 
-
-/*
- * =========================================================
- * SHARED CAREVR HEADER
- * =========================================================
- */
-
-function SecurityHeader() {
-
+function Footer() {
     return (
-        <header className="security-header">
+        <footer className="page-footer">
 
-            <img
-                src="/images/CareVR v1.0.png"
-                alt="CareVR"
-                className="carevr-logo"
-            />
-
-            <div className="security-tagline">
-                <span>SIMPLE</span>
-                <span>SECURE</span>
-                <span>TOGETHER</span>
+            <div className="footer-tagline">
+                Care Today.
+                <br />
+                A Healthier Tomorrow.
             </div>
 
-        </header>
+            <div className="footer-center">
+                SIMPLE
+                <span>|</span>
+                SECURE
+                <span>|</span>
+                TOGETHER
+
+                <div className="footer-line" />
+            </div>
+
+        </footer>
     );
 }
 
-
-/*
- * =========================================================
- * SHARED FOOTER
- * =========================================================
- */
-
-function SecurityFooter() {
-
-    return (
-        <p className="security-footer">
-            Care Today. A Healthier Tomorrow.
-        </p>
-    );
-}
-
-
-/*
- * =========================================================
- * SHARED SECURITY ICON
- * =========================================================
- */
-
-function SecurityIcon({
-    variant,
-}: {
-    variant:
-        | "normal"
-        | "locked"
-        | "recovery";
-}) {
-
-    return (
-        <div
-            className={
-                variant === "recovery"
-                    ? "security-icon recovery-icon"
-                    : "security-icon"
-            }
-            aria-hidden="true"
-        >
-
-            <svg
-                width="38"
-                height="38"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            >
-
-                <rect
-                    x="3"
-                    y="11"
-                    width="18"
-                    height="10"
-                    rx="2"
-                />
-
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-
-                <path d="M12 15v2" />
-
-            </svg>
-
-        </div>
-    );
-}
-
-
-/*
- * =========================================================
- * SHARED STYLES
- * =========================================================
- */
-
-function SecurityStyles() {
-
+function PageStyles() {
     return (
         <style jsx>{`
 
-            .carevr-security-page {
+            .carevr-pin-page {
+                position: relative;
                 min-height: 100vh;
                 min-height: 100dvh;
-
-                position: relative;
                 overflow: hidden;
 
                 background:
                     linear-gradient(
                         135deg,
-                        #f7f4ff 0%,
-                        #eeeaff 48%,
-                        #e8e5ff 100%
+                        #f8faff 0%,
+                        #f3f4ff 48%,
+                        #eeeaff 100%
                     );
 
-                color: #182344;
+                color: #10204a;
             }
 
-
-            .background-orb {
-                position: fixed;
-                border-radius: 50%;
+            .background-shape {
+                position: absolute;
                 pointer-events: none;
+                border-radius: 50%;
+            }
+
+            .background-shape-one {
+                width: 520px;
+                height: 520px;
+                top: -300px;
+                right: -180px;
 
                 background:
-                    rgba(
-                        99,
-                        55,
-                        210,
-                        0.08
-                    );
+                    rgba(102, 74, 220, 0.08);
             }
 
-
-            .orb-one {
-                width: 380px;
-                height: 380px;
-
-                top: -200px;
-                right: -100px;
-            }
-
-
-            .orb-two {
-                width: 440px;
-                height: 440px;
-
-                bottom: -270px;
-                left: -200px;
+            .background-shape-two {
+                width: 620px;
+                height: 360px;
+                bottom: -260px;
+                left: -220px;
 
                 background:
-                    rgba(
-                        81,
-                        107,
-                        218,
-                        0.07
-                    );
+                    rgba(77, 111, 235, 0.08);
+
+                transform: rotate(-18deg);
             }
 
-
-            .security-shell {
+            .page-shell {
                 position: relative;
                 z-index: 1;
 
+                width: 100%;
                 min-height: 100vh;
                 min-height: 100dvh;
 
@@ -903,256 +761,184 @@ function SecurityStyles() {
                 flex-direction: column;
 
                 padding:
-                    22px 34px 20px;
+                    22px
+                    34px
+                    18px;
+
+                box-sizing: border-box;
             }
 
-
-            .security-header {
+            .brand-header {
                 width: 100%;
 
                 display: flex;
                 align-items: flex-start;
                 justify-content: space-between;
 
-                min-height: 76px;
+                min-height: 110px;
             }
 
-
             .carevr-logo {
-                width: 190px;
-                height: 70px;
+                width: 210px;
+                height: 105px;
 
                 object-fit: contain;
                 object-position: left center;
+
+                display: block;
             }
 
-
-            .security-tagline {
+            .brand-message {
                 display: flex;
                 flex-direction: column;
 
-                padding-top: 6px;
+                padding-top: 10px;
 
-                color: #6c7390;
+                color: #50628f;
 
-                font-size: 11px;
-                line-height: 1.55;
-
-                font-weight: 750;
-
-                letter-spacing: 2px;
+                font-size: 14px;
+                line-height: 1.25;
+                font-weight: 600;
             }
 
+            .pin-card {
+                width: 100%;
+                max-width: 570px;
 
-            .security-tagline::after {
-                content: "";
-
-                width: 40px;
-                height: 3px;
-
-                margin-top: 8px;
-
-                border-radius: 4px;
-
-                background: #6337d2;
-            }
-
-
-            .security-card {
-                width: min(
-                    590px,
-                    calc(100% - 20px)
-                );
-
-                margin: auto;
+                margin:
+                    18px auto 0;
 
                 padding:
-                    44px 48px 38px;
+                    42px
+                    44px
+                    38px;
+
+                box-sizing: border-box;
 
                 background:
-                    rgba(
-                        255,
-                        255,
-                        255,
-                        0.97
-                    );
-
-                border:
-                    1px solid
-                    rgba(
-                        255,
-                        255,
-                        255,
-                        0.95
-                    );
+                    rgba(255, 255, 255, 0.94);
 
                 border-radius: 28px;
 
                 box-shadow:
-                    0 28px 80px
-                    rgba(
-                        42,
-                        28,
-                        102,
-                        0.17
-                    );
+                    0 24px 70px
+                    rgba(48, 44, 110, 0.14);
 
                 text-align: center;
+
+                backdrop-filter:
+                    blur(12px);
             }
 
-
-            .security-icon {
-                width: 82px;
-                height: 82px;
-
-                margin:
-                    0 auto 20px;
-
-                display: flex;
-                align-items: center;
-                justify-content: center;
-
-                border-radius: 50%;
+            .eyebrow {
+                margin-bottom: 14px;
 
                 color: #6337d2;
 
-                background:
-                    linear-gradient(
-                        145deg,
-                        #f3efff,
-                        #e9e3ff
-                    );
-            }
-
-
-            .recovery-icon {
-                color: #6337d2;
-            }
-
-
-            .security-eyebrow {
-                margin-bottom: 8px;
-
-                color: #7658ca;
-
-                font-size: 11px;
+                font-size: 14px;
+                line-height: 1.2;
                 font-weight: 800;
 
-                letter-spacing: 2px;
+                letter-spacing: 1.6px;
             }
-
 
             h1 {
                 margin: 0;
 
-                color: #1d2a52;
+                color: #10204a;
 
-                font-size: 31px;
-                line-height: 1.2;
-
+                font-size: 34px;
+                line-height: 1.16;
                 font-weight: 760;
+
+                letter-spacing: -0.7px;
             }
 
-
-            .security-intro {
-                max-width: 470px;
+            .intro {
+                max-width: 455px;
 
                 margin:
-                    13px auto 27px;
+                    18px auto 32px;
 
-                color: #69718b;
+                color: #52638d;
 
-                font-size: 16px;
+                font-size: 17px;
                 line-height: 1.55;
             }
 
-
-            .verify-field {
+            .field-group {
                 text-align: left;
             }
-
 
             label {
                 display: block;
 
                 margin-bottom: 8px;
 
-                color: #2b365b;
+                color: #17254d;
 
-                font-size: 14px;
-                font-weight: 720;
+                font-size: 16px;
+                font-weight: 700;
             }
 
-
-            input {
+            .pin-input {
                 width: 100%;
-                height: 61px;
+                height: 64px;
 
                 box-sizing: border-box;
 
                 padding:
-                    0 18px;
+                    0
+                    22px;
 
                 border:
-                    1.5px solid
-                    #d9d3ed;
+                    1px solid
+                    #d5dcef;
 
-                border-radius: 14px;
+                border-radius: 15px;
 
-                background: #faf9ff;
+                background:
+                    #f9faff;
 
-                color: #22175a;
+                color: #152657;
 
-                font-size: 27px;
+                font-size: 28px;
                 font-weight: 700;
 
-                letter-spacing: 11px;
+                letter-spacing: 10px;
 
                 text-align: center;
 
                 outline: none;
 
                 transition:
-                    border-color 0.18s ease,
-                    box-shadow 0.18s ease,
-                    background 0.18s ease;
+                    border-color 0.15s ease,
+                    box-shadow 0.15s ease;
             }
 
-
-            input:focus {
-                border-color:
-                    #6337d2;
-
-                background:
-                    #ffffff;
+            .pin-input:focus {
+                border-color: #6337d2;
 
                 box-shadow:
                     0 0 0 4px
-                    rgba(
-                        99,
-                        55,
-                        210,
-                        0.10
-                    );
+                    rgba(99, 55, 210, 0.11);
             }
 
-
-            input:disabled {
-                opacity: 0.6;
-                cursor: wait;
+            .pin-input:disabled {
+                opacity: 0.65;
+                cursor: not-allowed;
             }
 
+            .attempt-message {
+                margin-top: 12px;
 
-            .field-hint {
-                display: block;
+                color: #7254c7;
 
-                margin-top: 6px;
+                font-size: 13px;
+                font-weight: 650;
 
-                color: #8a91a8;
-
-                font-size: 11px;
+                text-align: left;
             }
-
 
             .message {
                 display: flex;
@@ -1160,24 +946,28 @@ function SecurityStyles() {
 
                 gap: 10px;
 
-                margin-top: 17px;
-
-                padding:
-                    12px 14px;
+                margin-top: 18px;
+                padding: 12px 14px;
 
                 border-radius: 12px;
 
-                font-size: 13px;
+                font-size: 14px;
+                line-height: 1.4;
 
                 text-align: left;
             }
 
+            .message-error {
+                background: #fff5f5;
+                border: 1px solid #f0d0d0;
+                color: #9c3030;
+            }
 
-            .message-symbol {
-                width: 24px;
-                height: 24px;
+            .message-icon {
+                width: 23px;
+                height: 23px;
 
-                flex: 0 0 24px;
+                flex: 0 0 23px;
 
                 display: flex;
                 align-items: center;
@@ -1185,43 +975,19 @@ function SecurityStyles() {
 
                 border-radius: 50%;
 
+                background: #b33b3b;
+
+                color: #ffffff;
+
+                font-size: 13px;
                 font-weight: 800;
             }
 
-
-            .message-error {
-                background: #fff4f4;
-
-                color: #9d3030;
-
-                border:
-                    1px solid
-                    #f0d4d4;
-            }
-
-
-            .message-error .message-symbol {
-                background: #c94b4b;
-                color: #ffffff;
-            }
-
-
-            .attempt-message {
-                margin-top: 11px;
-
-                color: #7658ca;
-
-                font-size: 13px;
-                font-weight: 650;
-            }
-
-
             .primary-button {
                 width: 100%;
+                min-height: 60px;
 
-                min-height: 58px;
-
-                margin-top: 21px;
+                margin-top: 24px;
 
                 display: flex;
                 align-items: center;
@@ -1230,13 +996,13 @@ function SecurityStyles() {
                 gap: 12px;
 
                 border: 0;
-                border-radius: 15px;
+                border-radius: 16px;
 
                 background:
                     linear-gradient(
                         135deg,
-                        #6337d2,
-                        #7549df
+                        #5834e6,
+                        #7b3fe4
                     );
 
                 color: #ffffff;
@@ -1247,123 +1013,159 @@ function SecurityStyles() {
                 cursor: pointer;
 
                 box-shadow:
-                    0 12px 27px
-                    rgba(
-                        99,
-                        55,
-                        210,
-                        0.24
-                    );
+                    0 13px 28px
+                    rgba(91, 58, 218, 0.22);
 
                 transition:
-                    transform 0.16s ease,
-                    box-shadow 0.16s ease,
-                    opacity 0.16s ease;
+                    transform 0.15s ease,
+                    box-shadow 0.15s ease,
+                    opacity 0.15s ease;
             }
-
 
             .primary-button:hover:not(:disabled) {
-                transform:
-                    translateY(-1px);
+                transform: translateY(-1px);
 
                 box-shadow:
-                    0 15px 31px
-                    rgba(
-                        99,
-                        55,
-                        210,
-                        0.29
-                    );
+                    0 16px 32px
+                    rgba(91, 58, 218, 0.28);
             }
 
+            .primary-button:active:not(:disabled) {
+                transform: translateY(0);
+            }
 
             .primary-button:disabled {
-                opacity: 0.52;
+                opacity: 0.48;
                 cursor: not-allowed;
                 box-shadow: none;
             }
 
+            .button-arrow {
+                font-size: 25px;
+                line-height: 1;
+            }
 
             .security-note {
                 display: flex;
                 align-items: center;
 
-                gap: 11px;
+                gap: 13px;
 
-                margin-top: 21px;
+                margin-top: 20px;
 
                 padding:
-                    14px 15px;
+                    15px
+                    16px;
 
-                border-radius: 14px;
+                border-radius: 15px;
 
                 background:
-                    #f6f3ff;
+                    #f4f7ff;
 
-                color: #69718b;
-
-                font-size: 12px;
-                line-height: 1.5;
+                color: #50618a;
 
                 text-align: left;
             }
 
+            .security-icon {
+                width: 42px;
+                height: 42px;
 
-            .security-note svg {
-                flex: 0 0 auto;
-                color: #6337d2;
+                flex: 0 0 42px;
+
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                border-radius: 12px;
+
+                background:
+                    #e6efff;
+
+                color: #4275d8;
             }
 
+            .security-note strong {
+                display: block;
 
-            .security-footer {
-                margin:
-                    0 auto;
+                margin-bottom: 2px;
 
-                color: #8a90aa;
+                color: #263a6b;
+
+                font-size: 13px;
+            }
+
+            .security-note p {
+                margin: 0;
 
                 font-size: 12px;
+                line-height: 1.45;
             }
 
+            .state-icon {
+                width: 62px;
+                height: 62px;
 
-            /*
-             * TEMPORARY LOCK
-             */
+                margin:
+                    6px
+                    auto
+                    18px;
+
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                border-radius: 50%;
+
+                background:
+                    #edf1ff;
+
+                color: #4b6fd4;
+            }
+
+            .state-icon-warning {
+                background: #fff1f1;
+                color: #b43b3b;
+
+                font-size: 25px;
+                font-weight: 800;
+            }
 
             .timer-box {
                 margin:
-                    20px auto 23px;
+                    22px 0 22px;
 
                 padding:
-                    20px;
+                    18px;
 
                 border-radius: 18px;
 
                 background:
                     linear-gradient(
                         145deg,
-                        #f5f1ff,
-                        #ede8ff
+                        #f5f2ff,
+                        #eeebff
                     );
 
                 border:
                     1px solid
-                    #e4dcfa;
-            }
+                    #e4def7;
 
+                text-align: center;
+            }
 
             .timer-box span {
                 display: block;
 
                 margin-bottom: 5px;
 
-                color: #777e9a;
+                color: #7c84a0;
 
                 font-size: 10px;
                 font-weight: 800;
 
                 letter-spacing: 2px;
             }
-
 
             .timer-box strong {
                 display: block;
@@ -1376,31 +1178,26 @@ function SecurityStyles() {
                 letter-spacing: 2px;
             }
 
-
-            .lock-status {
-                margin-bottom: 18px;
+            .lock-progress {
+                text-align: left;
             }
 
-
-            .lock-status-header {
+            .progress-label {
                 display: flex;
-                align-items: center;
                 justify-content: space-between;
 
                 margin-bottom: 8px;
 
-                color: #69718c;
+                color: #707991;
 
                 font-size: 12px;
             }
 
-
-            .lock-status-header strong {
-                color: #4e5673;
+            .progress-label strong {
+                color: #505a76;
             }
 
-
-            .lock-track {
+            .progress-track {
                 display: grid;
 
                 grid-template-columns:
@@ -1409,65 +1206,56 @@ function SecurityStyles() {
                 gap: 6px;
             }
 
-
-            .lock-step {
+            .progress-step {
                 height: 6px;
 
                 border-radius: 8px;
 
                 background:
-                    #e6e1f1;
+                    #e3e5ee;
             }
 
-
-            .lock-step.active {
+            .progress-step.active {
                 background:
                     linear-gradient(
                         90deg,
-                        #6337d2,
-                        #8060e2
+                        #5c38dd,
+                        #8243e2
                     );
             }
 
-
             .lock-description {
                 margin:
-                    0 0 20px;
+                    17px 0 0;
 
-                color: #68718d;
+                color: #69738e;
 
                 font-size: 14px;
                 line-height: 1.5;
             }
 
-
-            /*
-             * RECOVERY
-             */
-
-            .recovery-box {
+            .recovery-note {
                 display: flex;
                 align-items: flex-start;
 
-                gap: 14px;
+                gap: 13px;
 
                 padding:
-                    17px 18px;
+                    17px;
+
+                border:
+                    1px solid
+                    #e8defb;
 
                 border-radius: 16px;
 
                 background:
                     #f7f4ff;
 
-                border:
-                    1px solid
-                    #e6defc;
-
                 text-align: left;
             }
 
-
-            .recovery-symbol {
+            .recovery-icon {
                 width: 30px;
                 height: 30px;
 
@@ -1479,27 +1267,24 @@ function SecurityStyles() {
 
                 border-radius: 50%;
 
-                background:
-                    #6337d2;
+                background: #b33b3b;
 
                 color: #ffffff;
 
                 font-weight: 800;
             }
 
-
-            .recovery-box strong {
+            .recovery-note strong {
                 display: block;
 
                 margin-bottom: 4px;
 
-                color: #27325a;
+                color: #27345b;
 
                 font-size: 14px;
             }
 
-
-            .recovery-box p {
+            .recovery-note p {
                 margin: 0;
 
                 color: #68718d;
@@ -1508,74 +1293,126 @@ function SecurityStyles() {
                 line-height: 1.5;
             }
 
+            .page-footer {
+                width: 100%;
 
-            @media (max-width: 650px) {
+                margin-top: auto;
+                padding-top: 25px;
 
-                .security-shell {
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+            }
+
+            .footer-tagline {
+                color: #7180a5;
+
+                font-size: 14px;
+                line-height: 1.35;
+                font-style: italic;
+            }
+
+            .footer-center {
+                color: #7080a9;
+
+                font-size: 12px;
+                font-weight: 700;
+
+                letter-spacing: 1.7px;
+
+                text-align: center;
+            }
+
+            .footer-center span {
+                margin: 0 9px;
+                color: #a1a9c0;
+            }
+
+            .footer-line {
+                width: 38px;
+                height: 3px;
+
+                margin:
+                    10px auto 0;
+
+                border-radius: 5px;
+
+                background:
+                    linear-gradient(
+                        90deg,
+                        #5936df,
+                        #833fe3
+                    );
+            }
+
+            @media (max-width: 700px) {
+
+                .page-shell {
                     padding:
-                        12px 16px 18px;
+                        14px
+                        16px
+                        16px;
                 }
 
-
-                .security-header {
-                    min-height: 62px;
+                .brand-header {
+                    min-height: 82px;
                 }
-
 
                 .carevr-logo {
-                    width: 145px;
-                    height: 56px;
+                    width: 160px;
+                    height: 78px;
                 }
 
-
-                .security-tagline {
-                    font-size: 9px;
-                    letter-spacing: 1.5px;
+                .brand-message {
+                    padding-top: 6px;
+                    font-size: 10px;
                 }
 
-
-                .security-card {
-                    width: 100%;
+                .pin-card {
+                    margin-top: 8px;
 
                     padding:
-                        32px 20px 28px;
+                        32px
+                        20px
+                        28px;
 
-                    border-radius: 22px;
+                    border-radius: 23px;
                 }
-
-
-                .security-icon {
-                    width: 70px;
-                    height: 70px;
-                }
-
 
                 h1 {
-                    font-size: 27px;
+                    font-size: 28px;
                 }
 
-
-                .security-intro {
+                .intro {
                     font-size: 15px;
+                    margin-bottom: 26px;
                 }
 
-
-                input {
-                    height: 57px;
-
-                    font-size: 24px;
-
+                .pin-input {
+                    height: 60px;
+                    font-size: 25px;
                     letter-spacing: 8px;
                 }
-
 
                 .timer-box strong {
                     font-size: 36px;
                 }
 
+                .page-footer {
+                    padding-top: 18px;
+                }
 
-                .security-footer {
-                    margin-top: 17px;
+                .footer-tagline {
+                    font-size: 11px;
+                }
+
+                .footer-center {
+                    font-size: 9px;
+                    letter-spacing: 1px;
+                }
+
+                .footer-center span {
+                    margin: 0 4px;
                 }
             }
 
