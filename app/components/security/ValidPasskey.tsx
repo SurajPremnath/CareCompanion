@@ -95,6 +95,11 @@ export default function ValidPasskey({
 
 return (
   <main className="valid-passkey-page">
+
+    <PasskeyCaptcha
+      ref={passkeyCaptchaRef}
+    />
+
     <div className="valid-passkey-shell">
 
       {/* ============================
