@@ -821,33 +821,7 @@ export default function ValidatePin({
                     </div>
 
 
-                    <div
-                        className="pin-dots"
-                        aria-hidden="true"
-                    >
 
-                        {Array.from({
-                            length: 6,
-                        }).map(
-                            (_, index) => (
-
-                                <span
-                                    key={index}
-                                    className={
-                                        index < pin.length
-                                            ? "pin-dot filled"
-                                            : "pin-dot"
-                                    }
-                                >
-                                    {index < pin.length
-                                        ? "•"
-                                        : ""}
-                                </span>
-
-                            )
-                        )}
-
-                    </div>
 
 
                     {error && (
@@ -1177,38 +1151,6 @@ export default function ValidatePin({
                     opacity: .65;
                 }
 
-
-                .pin-dots {
-                    height: 20px;
-
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-
-                    gap: 9px;
-
-                    margin-top: -15px;
-
-                    pointer-events: none;
-                }
-
-
-                .pin-dot {
-                    width: 9px;
-                    height: 9px;
-
-                    color: #6337d2;
-
-                    font-size: 19px;
-                    line-height: 1;
-
-                    opacity: 0;
-                }
-
-
-                .pin-dot.filled {
-                    opacity: 1;
-                }
 
 
                 .error-message {
