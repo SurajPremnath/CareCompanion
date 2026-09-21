@@ -647,8 +647,34 @@ const authenticatedUser =
     verifiedCaptchaToken
   );
 
+const pinStatusResponse =
+    await fetch(
+        "/api/security/pin-status",
+        {
+            method: "GET",
+            cache: "no-store",
+        }
+    );
+
+const pinStatus =
+    await pinStatusResponse.json();
+
+if (!pinStatusResponse.ok) {
+    throw new Error(
+        pinStatus?.error ||
+        "Unable to determine CareVR PIN status."
+    );
+}
+
+if (pinStatus.hasPin !== true) {
+    router.replace(
+        "/secure-access/create-pin"
+    );
+    return;
+}
+
 setPinVerification({
-  user: authenticatedUser,
+    user: authenticatedUser,
 });
 
 return;

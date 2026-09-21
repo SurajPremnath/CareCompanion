@@ -1,38 +1,84 @@
 "use client";
 
-import React, {
+import {
     useEffect,
     useState,
 } from "react";
 
+import {
+    useRouter,
+} from "next/navigation";
+
+import {
+    authService,
+} from "@/lib/auth/authService";
+
+import MobileHeader, {
+    type MobileCareMode,
+} from "@/Components/common/MobileHeader";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
+
+
 type ValidatePinProps = {
     onVerified?: () => void;
 };
+
 
 type LockState = {
     lockedUntil: string;
     lockoutLevel: number;
 };
 
+
 export default function ValidatePin({
     onVerified,
 }: ValidatePinProps) {
 
-    const [pin, setPin] = useState("");
-    const [error, setError] = useState("");
-    const [saving, setSaving] = useState(false);
+    const router = useRouter();
+
+
+    const [pin, setPin] =
+        useState("");
+
+
+    const [error, setError] =
+        useState("");
+
+
+    const [saving, setSaving] =
+        useState(false);
+
 
     const [attemptsRemaining, setAttemptsRemaining] =
         useState<number | null>(null);
 
+
     const [lockState, setLockState] =
         useState<LockState | null>(null);
+
 
     const [escalationRequired, setEscalationRequired] =
         useState(false);
 
+
     const [remainingSeconds, setRemainingSeconds] =
         useState<number | null>(null);
+
+
+    const [accountMenuOpen, setAccountMenuOpen] =
+        useState(false);
+
+
+    const [careMode, setCareMode] =
+        useState<MobileCareMode>("SELF");
+
+
+    /*
+     * =========================================================
+     * PIN INPUT
+     * =========================================================
+     */
 
     const handlePinChange = (
         value: string
@@ -45,14 +91,25 @@ export default function ValidatePin({
 
         setPin(digitsOnly);
         setError("");
+        setAttemptsRemaining(null);
     };
+
+
+    /*
+     * =========================================================
+     * LOCK COUNTDOWN
+     * =========================================================
+     */
 
     useEffect(() => {
 
         if (!lockState) {
+
             setRemainingSeconds(null);
+
             return;
         }
+
 
         const updateRemainingTime = () => {
 
@@ -60,6 +117,7 @@ export default function ValidatePin({
                 new Date(
                     lockState.lockedUntil
                 ).getTime();
+
 
             const remaining =
                 Math.max(
@@ -72,20 +130,29 @@ export default function ValidatePin({
                     )
                 );
 
+
             setRemainingSeconds(
                 remaining
             );
 
+
             if (remaining === 0) {
 
                 setLockState(null);
+
                 setError("");
-                setAttemptsRemaining(null);
+
+                setAttemptsRemaining(
+                    null
+                );
+
                 setPin("");
             }
         };
 
+
         updateRemainingTime();
+
 
         const timer =
             window.setInterval(
@@ -93,10 +160,20 @@ export default function ValidatePin({
                 1000
             );
 
+
         return () =>
-            window.clearInterval(timer);
+            window.clearInterval(
+                timer
+            );
 
     }, [lockState]);
+
+
+    /*
+     * =========================================================
+     * TIMER FORMAT
+     * =========================================================
+     */
 
     const formatRemainingTime = (
         seconds: number
@@ -107,8 +184,10 @@ export default function ValidatePin({
                 seconds / 60
             );
 
+
         const remaining =
             seconds % 60;
+
 
         return `${String(
             minutes
@@ -117,9 +196,17 @@ export default function ValidatePin({
         ).padStart(2, "0")}`;
     };
 
+
+    /*
+     * =========================================================
+     * VERIFY PIN
+     * =========================================================
+     */
+
     const handleVerify = async () => {
 
         setError("");
+
 
         if (pin.length !== 6) {
 
@@ -130,6 +217,7 @@ export default function ValidatePin({
             return;
         }
 
+
         if (
             saving ||
             lockState ||
@@ -138,7 +226,9 @@ export default function ValidatePin({
             return;
         }
 
+
         setSaving(true);
+
 
         try {
 
@@ -159,10 +249,16 @@ export default function ValidatePin({
                     }
                 );
 
+
             const result =
                 await response.json();
 
+
             if (!response.ok) {
+
+                /*
+                 * FINAL ESCALATION
+                 */
 
                 if (
                     result?.escalationRequired ===
@@ -181,6 +277,11 @@ export default function ValidatePin({
 
                     return;
                 }
+
+
+                /*
+                 * TEMPORARY LOCK
+                 */
 
                 if (
                     result?.locked === true &&
@@ -209,6 +310,11 @@ export default function ValidatePin({
                     return;
                 }
 
+
+                /*
+                 * FAILED ATTEMPT
+                 */
+
                 if (
                     typeof result?.attemptsRemaining ===
                     "number"
@@ -219,14 +325,24 @@ export default function ValidatePin({
                     );
                 }
 
+
                 throw new Error(
                     result?.error ||
                     "Incorrect CareVR PIN."
                 );
             }
 
-            setAttemptsRemaining(null);
+
+            /*
+             * SUCCESS
+             */
+
+            setAttemptsRemaining(
+                null
+            );
+
             setPin("");
+
 
             if (onVerified) {
                 onVerified();
@@ -246,137 +362,104 @@ export default function ValidatePin({
         }
     };
 
+
     /*
      * =========================================================
-     * RECOVERY
+     * HEADER
+     * =========================================================
+     */
+
+    const renderHeader = () => (
+
+        <MobileHeader
+
+            careMode={
+                careMode
+            }
+
+            onCareModeChange={
+                setCareMode
+            }
+
+            userName="CareVR"
+
+            showCareModeToggle={
+                false
+            }
+
+            showSelfToggle={
+                false
+            }
+
+            showFamilyToggle={
+                false
+            }
+
+            showHomeButton={
+                false
+            }
+
+            accountMenuOpen={
+                accountMenuOpen
+            }
+
+            onAccountMenuToggle={() =>
+                setAccountMenuOpen(
+                    (current) =>
+                        !current
+                )
+            }
+
+            consentGranted={
+                false
+            }
+
+            canAddPatient={
+                false
+            }
+
+            onAddPatient={() => {}}
+
+            onCareVRJourney={() => {}}
+
+            onHelp={() => {}}
+
+            onLogout={async () => {
+
+                await authService.logout();
+
+                router.replace(
+                    "/login"
+                );
+            }}
+
+        />
+    );
+
+
+    /*
+     * =========================================================
+     * FINAL RECOVERY
      * =========================================================
      */
 
     if (escalationRequired) {
 
         return (
-            <main className="carevr-pin-page">
 
-                <div className="background-shape background-shape-one" />
-                <div className="background-shape background-shape-two" />
+            <main className="pin-page">
 
-                <div className="page-shell">
+                {renderHeader()}
 
-                    <header className="brand-header">
 
-                        <img
-                            src="/images/CareVR v1.0.png"
-                            alt="CareVR"
-                            className="carevr-logo"
-                        />
+                <section className="pin-content">
 
-                        <div className="brand-message">
-                            <span>People</span>
-                            <span>Health</span>
-                            <span>Together</span>
-                        </div>
+                    <div className="pin-card">
 
-                    </header>
-
-                    <section className="pin-card">
-
-                        <div className="eyebrow">
-                            ACCOUNT PROTECTION
-                        </div>
-
-                        <div className="state-icon state-icon-warning">
-                            !
-                        </div>
-
-                        <h1>
-                            PIN Access Requires Recovery
-                        </h1>
-
-                        <p className="intro">
-                            Your CareVR PIN access has been
-                            locked after multiple unsuccessful
-                            attempts.
-                        </p>
-
-                        <div className="recovery-note">
-
-                            <div className="recovery-icon">
-                                !
-                            </div>
-
-                            <div>
-                                <strong>
-                                    Your account remains protected.
-                                </strong>
-
-                                <p>
-                                    Please contact support to
-                                    regain access to your
-                                    CareVR account.
-                                </p>
-                            </div>
-
-                        </div>
-
-                    </section>
-
-                    <Footer />
-
-                </div>
-
-                <PageStyles />
-            </main>
-        );
-    }
-
-    /*
-     * =========================================================
-     * TEMPORARY LOCK
-     * =========================================================
-     */
-
-    if (lockState) {
-
-        const level =
-            Math.min(
-                Math.max(
-                    lockState.lockoutLevel,
-                    1
-                ),
-                3
-            );
-
-        return (
-            <main className="carevr-pin-page">
-
-                <div className="background-shape background-shape-one" />
-                <div className="background-shape background-shape-two" />
-
-                <div className="page-shell">
-
-                    <header className="brand-header">
-
-                        <img
-                            src="/images/CareVR v1.0.png"
-                            alt="CareVR"
-                            className="carevr-logo"
-                        />
-
-                        <div className="brand-message">
-                            <span>People</span>
-                            <span>Health</span>
-                            <span>Together</span>
-                        </div>
-
-                    </header>
-
-                    <section className="pin-card">
-
-                        <div className="eyebrow">
-                            ACCOUNT PROTECTION
-                        </div>
-
-                        <div className="state-icon">
+                        <div
+                            className="security-icon recovery-icon"
+                            aria-hidden="true"
+                        >
                             <svg
                                 width="30"
                                 height="30"
@@ -386,69 +469,212 @@ export default function ValidatePin({
                                 strokeWidth="1.8"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                aria-hidden="true"
                             >
                                 <rect
-                                    x="4"
-                                    y="10"
-                                    width="16"
-                                    height="11"
+                                    x="3"
+                                    y="11"
+                                    width="18"
+                                    height="10"
                                     rx="2"
                                 />
 
-                                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+
+                                <path d="M12 15v2" />
                             </svg>
                         </div>
+
+
+                        <div className="eyebrow">
+                            ACCOUNT PROTECTION
+                        </div>
+
+
+                        <h1>
+                            PIN Access Requires Recovery
+                        </h1>
+
+
+                        <p className="intro">
+                            Your CareVR PIN access has
+                            been locked after multiple
+                            unsuccessful attempts.
+                        </p>
+
+
+                        <div
+                            className="recovery-panel"
+                            role="alert"
+                        >
+
+                            <div className="recovery-symbol">
+                                !
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    Your account remains protected.
+                                </strong>
+
+                                <p>
+                                    Please contact support
+                                    to regain access to your
+                                    CareVR account.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <CareVRFooter />
+
+            </main>
+        );
+    }
+
+
+    /*
+     * =========================================================
+     * TEMPORARY LOCK
+     * =========================================================
+     */
+
+    if (lockState) {
+
+        const lockNumber =
+            Math.min(
+                3,
+                Math.max(
+                    1,
+                    lockState.lockoutLevel
+                )
+            );
+
+
+        const locksRemaining =
+            Math.max(
+                0,
+                3 - lockNumber
+            );
+
+
+        const lockDescription =
+            lockNumber === 3
+                ? "This is your final temporary lock."
+                : `${locksRemaining} more temporary lock${
+                    locksRemaining === 1
+                        ? ""
+                        : "s"
+                } available before recovery is required.`;
+
+
+        return (
+
+            <main className="pin-page">
+
+                {renderHeader()}
+
+
+                <section className="pin-content">
+
+                    <div className="pin-card">
+
+                        <div
+                            className="security-icon"
+                            aria-hidden="true"
+                        >
+                            <svg
+                                width="30"
+                                height="30"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <rect
+                                    x="3"
+                                    y="11"
+                                    width="18"
+                                    height="10"
+                                    rx="2"
+                                />
+
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+
+                                <path d="M12 15v2" />
+                            </svg>
+                        </div>
+
+
+                        <div className="eyebrow">
+                            TEMPORARY SECURITY LOCK
+                        </div>
+
 
                         <h1>
                             PIN Temporarily Locked
                         </h1>
 
+
                         <p className="intro">
-                            Too many incorrect attempts.
-                            Your account remains protected.
+                            Too many incorrect PIN
+                            attempts. Your account is
+                            temporarily protected.
                         </p>
 
-                        <div className="timer-box">
+
+                        <div className="timer-panel">
 
                             <span>
                                 TRY AGAIN IN
                             </span>
 
                             <strong>
-                                {remainingSeconds !== null
-                                    ? formatRemainingTime(
-                                        remainingSeconds
-                                    )
-                                    : "--:--"}
+                                {formatRemainingTime(
+                                    remainingSeconds ?? 0
+                                )}
                             </strong>
 
                         </div>
 
+
                         <div className="lock-progress">
 
-                            <div className="progress-label">
+                            <div className="lock-progress-heading">
+
                                 <span>
                                     Security lock
                                 </span>
 
                                 <strong>
-                                    {level} of 3
+                                    {lockNumber} of 3
                                 </strong>
+
                             </div>
 
-                            <div className="progress-track">
+
+                            <div className="lock-track">
 
                                 {[1, 2, 3].map(
-                                    (step) => (
-                                        <span
-                                            key={step}
+                                    (level) => (
+
+                                        <div
+                                            key={level}
                                             className={
-                                                step <= level
-                                                    ? "progress-step active"
-                                                    : "progress-step"
+                                                level <= lockNumber
+                                                    ? "lock-step active"
+                                                    : "lock-step"
                                             }
                                         />
+
                                     )
                                 )}
 
@@ -456,111 +682,126 @@ export default function ValidatePin({
 
                         </div>
 
+
                         <p className="lock-description">
-                            After the timer ends, you can
-                            return to PIN verification.
+                            {lockDescription}
                         </p>
+
 
                         <div className="security-note">
 
-                            <div className="security-icon">
-                                <svg
-                                    width="24"
-                                    height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="1.8"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    aria-hidden="true"
-                                >
-                                    <path d="M12 3l8 4v5c0 4.8-3.1 7.7-8 9-4.9-1.3-8-4.2-8-9V7l8-4z" />
-                                    <path d="M9 12l2 2 4-4" />
-                                </svg>
-                            </div>
+                            <svg
+                                width="21"
+                                height="21"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M12 3 5 6v5c0 4.5 2.8 7.8 7 10 4.2-2.2 7-5.5 7-10V6l-7-3Z" />
 
-                            <div>
-                                <strong>
-                                    Your CareVR account is protected.
-                                </strong>
+                                <path d="m9 12 2 2 4-4" />
+                            </svg>
 
-                                <p>
-                                    You do not need to take
-                                    any action while the
-                                    temporary lock is active.
-                                </p>
-                            </div>
+                            <span>
+                                Your CareVR account remains
+                                protected while the temporary
+                                lock is active.
+                            </span>
 
                         </div>
 
-                    </section>
+                    </div>
 
-                    <Footer />
+                </section>
 
-                </div>
 
-                <PageStyles />
+                <CareVRFooter />
+
             </main>
         );
     }
 
+
     /*
      * =========================================================
-     * NORMAL VERIFY SCREEN
+     * NORMAL VERIFY PIN SCREEN
      * =========================================================
      */
 
     return (
-        <main className="carevr-pin-page">
 
-            <div className="background-shape background-shape-one" />
-            <div className="background-shape background-shape-two" />
+        <main className="pin-page">
 
-            <div className="page-shell">
+            {renderHeader()}
 
-                <header className="brand-header">
 
-                    <img
-                        src="/images/CareVR v1.0.png"
-                        alt="CareVR"
-                        className="carevr-logo"
-                    />
+            <section className="pin-content">
 
-                    <div className="brand-message">
-                        <span>People</span>
-                        <span>Health</span>
-                        <span>Together</span>
+                <div
+                    className="pin-card"
+                    aria-labelledby="carevr-pin-title"
+                >
+
+                    <div
+                        className="security-icon"
+                        aria-hidden="true"
+                    >
+                        <svg
+                            width="30"
+                            height="30"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <rect
+                                x="3"
+                                y="11"
+                                width="18"
+                                height="10"
+                                rx="2"
+                            />
+
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+
+                            <path d="M12 15v2" />
+                        </svg>
                     </div>
 
-                </header>
-
-                <section
-                    className="pin-card"
-                    aria-labelledby="verify-pin-title"
-                >
 
                     <div className="eyebrow">
                         SECURE ACCESS
                     </div>
 
-                    <h1 id="verify-pin-title">
+
+                    <h1 id="carevr-pin-title">
                         Enter Your CareVR PIN
                     </h1>
 
+
                     <p className="intro">
-                        Enter your 6-digit PIN to continue
-                        securely to CareVR.
+                        Enter your 6-digit PIN to
+                        continue securely to CareVR.
                     </p>
 
-                    <div className="field-group">
 
-                        <label htmlFor="carevr-login-pin">
+                    <div className="pin-field">
+
+                        <label
+                            htmlFor="carevr-pin"
+                        >
                             CareVR PIN
                         </label>
 
+
                         <input
-                            id="carevr-login-pin"
+                            id="carevr-pin"
                             type="password"
                             inputMode="numeric"
                             pattern="[0-9]*"
@@ -573,53 +814,89 @@ export default function ValidatePin({
                                 )
                             }
                             disabled={saving}
-                            aria-label="Enter 6-digit CareVR PIN"
-                            className="pin-input"
-                            onKeyDown={(event) => {
-                                if (
-                                    event.key ===
-                                    "Enter"
-                                ) {
-                                    void handleVerify();
-                                }
-                            }}
                             autoFocus
+                            aria-label="Enter your 6-digit CareVR PIN"
                         />
 
                     </div>
 
-                    {attemptsRemaining !== null && (
-                        <div className="attempt-message">
-                            {attemptsRemaining === 1
-                                ? "1 attempt remaining before temporary lock."
-                                : `${attemptsRemaining} attempts remaining before temporary lock.`}
-                        </div>
-                    )}
+
+                    <div
+                        className="pin-dots"
+                        aria-hidden="true"
+                    >
+
+                        {Array.from({
+                            length: 6,
+                        }).map(
+                            (_, index) => (
+
+                                <span
+                                    key={index}
+                                    className={
+                                        index < pin.length
+                                            ? "pin-dot filled"
+                                            : "pin-dot"
+                                    }
+                                >
+                                    {index < pin.length
+                                        ? "•"
+                                        : ""}
+                                </span>
+
+                            )
+                        )}
+
+                    </div>
+
 
                     {error && (
+
                         <div
-                            className="message message-error"
+                            className="error-message"
                             role="alert"
+                            aria-live="polite"
                         >
-                            <span className="message-icon">
+
+                            <span className="error-icon">
                                 !
                             </span>
 
                             <span>
                                 {error}
                             </span>
+
                         </div>
                     )}
 
+
+                    {attemptsRemaining !== null &&
+                        !error && (
+
+                            <div
+                                className="attempt-message"
+                                role="status"
+                                aria-live="polite"
+                            >
+                                {attemptsRemaining === 1
+                                    ? "1 attempt remaining."
+                                    : `${attemptsRemaining} attempts remaining.`}
+                            </div>
+                        )}
+
+
                     <button
                         type="button"
-                        className="primary-button"
-                        onClick={handleVerify}
+                        className="verify-button"
+                        onClick={
+                            handleVerify
+                        }
                         disabled={
                             saving ||
                             pin.length !== 6
                         }
                     >
+
                         <span>
                             {saving
                                 ? "Verifying..."
@@ -627,795 +904,708 @@ export default function ValidatePin({
                         </span>
 
                         {!saving && (
-                            <span className="button-arrow">
+                            <span className="arrow">
                                 →
                             </span>
                         )}
+
                     </button>
+
 
                     <div className="security-note">
 
-                        <div className="security-icon">
-                            <svg
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <path d="M12 3l8 4v5c0 4.8-3.1 7.7-8 9-4.9-1.3-8-4.2-8-9V7l8-4z" />
-                                <path d="M9 12l2 2 4-4" />
-                            </svg>
-                        </div>
+                        <svg
+                            width="21"
+                            height="21"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M12 3 5 6v5c0 4.5 2.8 7.8 7 10 4.2-2.2 7-5.5 7-10V6l-7-3Z" />
 
-                        <div>
-                            <strong>
-                                Your information remains protected.
-                            </strong>
+                            <path d="m9 12 2 2 4-4" />
+                        </svg>
 
-                            <p>
-                                Your PIN works across your
-                                trusted CareVR devices.
-                            </p>
-                        </div>
+                        <span>
+                            Your CareVR PIN protects your
+                            account and health information
+                            across your devices.
+                        </span>
 
                     </div>
 
-                </section>
+                </div>
 
-                <Footer />
+            </section>
 
-            </div>
 
-            <PageStyles />
-        </main>
-    );
-}
+            <CareVRFooter />
 
-function Footer() {
-    return (
-        <footer className="page-footer">
 
-            <div className="footer-tagline">
-                Care Today.
-                <br />
-                A Healthier Tomorrow.
-            </div>
+            <style jsx>{`
 
-            <div className="footer-center">
-                SIMPLE
-                <span>|</span>
-                SECURE
-                <span>|</span>
-                TOGETHER
+                .pin-page {
+                    min-height: 100dvh;
+                    display: flex;
+                    flex-direction: column;
 
-                <div className="footer-line" />
-            </div>
+                    background:
+                        radial-gradient(
+                            circle at 8% 12%,
+                            rgba(
+                                99,
+                                55,
+                                210,
+                                0.07
+                            ),
+                            transparent 30%
+                        ),
+                        radial-gradient(
+                            circle at 92% 82%,
+                            rgba(
+                                81,
+                                107,
+                                218,
+                                0.07
+                            ),
+                            transparent 28%
+                        ),
+                        #f8f9fc;
 
-        </footer>
-    );
-}
+                    color: #15203d;
+                }
 
-function PageStyles() {
-    return (
-        <style jsx>{`
 
-            .carevr-pin-page {
-                position: relative;
-                min-height: 100vh;
-                min-height: 100dvh;
-                overflow: hidden;
+                .pin-content {
+                    flex: 1;
+                    width: 100%;
 
-                background:
-                    linear-gradient(
-                        135deg,
-                        #f8faff 0%,
-                        #f3f4ff 48%,
-                        #eeeaff 100%
-                    );
+                    box-sizing: border-box;
 
-                color: #10204a;
-            }
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
 
-            .background-shape {
-                position: absolute;
-                pointer-events: none;
-                border-radius: 50%;
-            }
-
-            .background-shape-one {
-                width: 520px;
-                height: 520px;
-                top: -300px;
-                right: -180px;
-
-                background:
-                    rgba(102, 74, 220, 0.08);
-            }
-
-            .background-shape-two {
-                width: 620px;
-                height: 360px;
-                bottom: -260px;
-                left: -220px;
-
-                background:
-                    rgba(77, 111, 235, 0.08);
-
-                transform: rotate(-18deg);
-            }
-
-            .page-shell {
-                position: relative;
-                z-index: 1;
-
-                width: 100%;
-                min-height: 100vh;
-                min-height: 100dvh;
-
-                display: flex;
-                flex-direction: column;
-
-                padding:
-                    22px
-                    34px
-                    18px;
-
-                box-sizing: border-box;
-            }
-
-            .brand-header {
-                width: 100%;
-
-                display: flex;
-                align-items: flex-start;
-                justify-content: space-between;
-
-                min-height: 110px;
-            }
-
-            .carevr-logo {
-                width: 210px;
-                height: 105px;
-
-                object-fit: contain;
-                object-position: left center;
-
-                display: block;
-            }
-
-            .brand-message {
-                display: flex;
-                flex-direction: column;
-
-                padding-top: 10px;
-
-                color: #50628f;
-
-                font-size: 14px;
-                line-height: 1.25;
-                font-weight: 600;
-            }
-
-            .pin-card {
-                width: 100%;
-                max-width: 570px;
-
-                margin:
-                    18px auto 0;
-
-                padding:
-                    42px
-                    44px
-                    38px;
-
-                box-sizing: border-box;
-
-                background:
-                    rgba(255, 255, 255, 0.94);
-
-                border-radius: 28px;
-
-                box-shadow:
-                    0 24px 70px
-                    rgba(48, 44, 110, 0.14);
-
-                text-align: center;
-
-                backdrop-filter:
-                    blur(12px);
-            }
-
-            .eyebrow {
-                margin-bottom: 14px;
-
-                color: #6337d2;
-
-                font-size: 14px;
-                line-height: 1.2;
-                font-weight: 800;
-
-                letter-spacing: 1.6px;
-            }
-
-            h1 {
-                margin: 0;
-
-                color: #10204a;
-
-                font-size: 34px;
-                line-height: 1.16;
-                font-weight: 760;
-
-                letter-spacing: -0.7px;
-            }
-
-            .intro {
-                max-width: 455px;
-
-                margin:
-                    18px auto 32px;
-
-                color: #52638d;
-
-                font-size: 17px;
-                line-height: 1.55;
-            }
-
-            .field-group {
-                text-align: left;
-            }
-
-            label {
-                display: block;
-
-                margin-bottom: 8px;
-
-                color: #17254d;
-
-                font-size: 16px;
-                font-weight: 700;
-            }
-
-            .pin-input {
-                width: 100%;
-                height: 64px;
-
-                box-sizing: border-box;
-
-                padding:
-                    0
-                    22px;
-
-                border:
-                    1px solid
-                    #d5dcef;
-
-                border-radius: 15px;
-
-                background:
-                    #f9faff;
-
-                color: #152657;
-
-                font-size: 28px;
-                font-weight: 700;
-
-                letter-spacing: 10px;
-
-                text-align: center;
-
-                outline: none;
-
-                transition:
-                    border-color 0.15s ease,
-                    box-shadow 0.15s ease;
-            }
-
-            .pin-input:focus {
-                border-color: #6337d2;
-
-                box-shadow:
-                    0 0 0 4px
-                    rgba(99, 55, 210, 0.11);
-            }
-
-            .pin-input:disabled {
-                opacity: 0.65;
-                cursor: not-allowed;
-            }
-
-            .attempt-message {
-                margin-top: 12px;
-
-                color: #7254c7;
-
-                font-size: 13px;
-                font-weight: 650;
-
-                text-align: left;
-            }
-
-            .message {
-                display: flex;
-                align-items: center;
-
-                gap: 10px;
-
-                margin-top: 18px;
-                padding: 12px 14px;
-
-                border-radius: 12px;
-
-                font-size: 14px;
-                line-height: 1.4;
-
-                text-align: left;
-            }
-
-            .message-error {
-                background: #fff5f5;
-                border: 1px solid #f0d0d0;
-                color: #9c3030;
-            }
-
-            .message-icon {
-                width: 23px;
-                height: 23px;
-
-                flex: 0 0 23px;
-
-                display: flex;
-                align-items: center;
-                justify-content: center;
-
-                border-radius: 50%;
-
-                background: #b33b3b;
-
-                color: #ffffff;
-
-                font-size: 13px;
-                font-weight: 800;
-            }
-
-            .primary-button {
-                width: 100%;
-                min-height: 60px;
-
-                margin-top: 24px;
-
-                display: flex;
-                align-items: center;
-                justify-content: center;
-
-                gap: 12px;
-
-                border: 0;
-                border-radius: 16px;
-
-                background:
-                    linear-gradient(
-                        135deg,
-                        #5834e6,
-                        #7b3fe4
-                    );
-
-                color: #ffffff;
-
-                font-size: 17px;
-                font-weight: 750;
-
-                cursor: pointer;
-
-                box-shadow:
-                    0 13px 28px
-                    rgba(91, 58, 218, 0.22);
-
-                transition:
-                    transform 0.15s ease,
-                    box-shadow 0.15s ease,
-                    opacity 0.15s ease;
-            }
-
-            .primary-button:hover:not(:disabled) {
-                transform: translateY(-1px);
-
-                box-shadow:
-                    0 16px 32px
-                    rgba(91, 58, 218, 0.28);
-            }
-
-            .primary-button:active:not(:disabled) {
-                transform: translateY(0);
-            }
-
-            .primary-button:disabled {
-                opacity: 0.48;
-                cursor: not-allowed;
-                box-shadow: none;
-            }
-
-            .button-arrow {
-                font-size: 25px;
-                line-height: 1;
-            }
-
-            .security-note {
-                display: flex;
-                align-items: center;
-
-                gap: 13px;
-
-                margin-top: 20px;
-
-                padding:
-                    15px
-                    16px;
-
-                border-radius: 15px;
-
-                background:
-                    #f4f7ff;
-
-                color: #50618a;
-
-                text-align: left;
-            }
-
-            .security-icon {
-                width: 42px;
-                height: 42px;
-
-                flex: 0 0 42px;
-
-                display: flex;
-                align-items: center;
-                justify-content: center;
-
-                border-radius: 12px;
-
-                background:
-                    #e6efff;
-
-                color: #4275d8;
-            }
-
-            .security-note strong {
-                display: block;
-
-                margin-bottom: 2px;
-
-                color: #263a6b;
-
-                font-size: 13px;
-            }
-
-            .security-note p {
-                margin: 0;
-
-                font-size: 12px;
-                line-height: 1.45;
-            }
-
-            .state-icon {
-                width: 62px;
-                height: 62px;
-
-                margin:
-                    6px
-                    auto
-                    18px;
-
-                display: flex;
-                align-items: center;
-                justify-content: center;
-
-                border-radius: 50%;
-
-                background:
-                    #edf1ff;
-
-                color: #4b6fd4;
-            }
-
-            .state-icon-warning {
-                background: #fff1f1;
-                color: #b43b3b;
-
-                font-size: 25px;
-                font-weight: 800;
-            }
-
-            .timer-box {
-                margin:
-                    22px 0 22px;
-
-                padding:
-                    18px;
-
-                border-radius: 18px;
-
-                background:
-                    linear-gradient(
-                        145deg,
-                        #f5f2ff,
-                        #eeebff
-                    );
-
-                border:
-                    1px solid
-                    #e4def7;
-
-                text-align: center;
-            }
-
-            .timer-box span {
-                display: block;
-
-                margin-bottom: 5px;
-
-                color: #7c84a0;
-
-                font-size: 10px;
-                font-weight: 800;
-
-                letter-spacing: 2px;
-            }
-
-            .timer-box strong {
-                display: block;
-
-                color: #6337d2;
-
-                font-size: 42px;
-                line-height: 1.1;
-
-                letter-spacing: 2px;
-            }
-
-            .lock-progress {
-                text-align: left;
-            }
-
-            .progress-label {
-                display: flex;
-                justify-content: space-between;
-
-                margin-bottom: 8px;
-
-                color: #707991;
-
-                font-size: 12px;
-            }
-
-            .progress-label strong {
-                color: #505a76;
-            }
-
-            .progress-track {
-                display: grid;
-
-                grid-template-columns:
-                    repeat(3, 1fr);
-
-                gap: 6px;
-            }
-
-            .progress-step {
-                height: 6px;
-
-                border-radius: 8px;
-
-                background:
-                    #e3e5ee;
-            }
-
-            .progress-step.active {
-                background:
-                    linear-gradient(
-                        90deg,
-                        #5c38dd,
-                        #8243e2
-                    );
-            }
-
-            .lock-description {
-                margin:
-                    17px 0 0;
-
-                color: #69738e;
-
-                font-size: 14px;
-                line-height: 1.5;
-            }
-
-            .recovery-note {
-                display: flex;
-                align-items: flex-start;
-
-                gap: 13px;
-
-                padding:
-                    17px;
-
-                border:
-                    1px solid
-                    #e8defb;
-
-                border-radius: 16px;
-
-                background:
-                    #f7f4ff;
-
-                text-align: left;
-            }
-
-            .recovery-icon {
-                width: 30px;
-                height: 30px;
-
-                flex: 0 0 30px;
-
-                display: flex;
-                align-items: center;
-                justify-content: center;
-
-                border-radius: 50%;
-
-                background: #b33b3b;
-
-                color: #ffffff;
-
-                font-weight: 800;
-            }
-
-            .recovery-note strong {
-                display: block;
-
-                margin-bottom: 4px;
-
-                color: #27345b;
-
-                font-size: 14px;
-            }
-
-            .recovery-note p {
-                margin: 0;
-
-                color: #68718d;
-
-                font-size: 14px;
-                line-height: 1.5;
-            }
-
-            .page-footer {
-                width: 100%;
-
-                margin-top: auto;
-                padding-top: 25px;
-
-                display: flex;
-                align-items: flex-end;
-                justify-content: space-between;
-            }
-
-            .footer-tagline {
-                color: #7180a5;
-
-                font-size: 14px;
-                line-height: 1.35;
-                font-style: italic;
-            }
-
-            .footer-center {
-                color: #7080a9;
-
-                font-size: 12px;
-                font-weight: 700;
-
-                letter-spacing: 1.7px;
-
-                text-align: center;
-            }
-
-            .footer-center span {
-                margin: 0 9px;
-                color: #a1a9c0;
-            }
-
-            .footer-line {
-                width: 38px;
-                height: 3px;
-
-                margin:
-                    10px auto 0;
-
-                border-radius: 5px;
-
-                background:
-                    linear-gradient(
-                        90deg,
-                        #5936df,
-                        #833fe3
-                    );
-            }
-
-            @media (max-width: 700px) {
-
-                .page-shell {
                     padding:
-                        14px
-                        16px
-                        16px;
+                        24px
+                        20px
+                        30px;
                 }
 
-                .brand-header {
-                    min-height: 82px;
-                }
-
-                .carevr-logo {
-                    width: 160px;
-                    height: 78px;
-                }
-
-                .brand-message {
-                    padding-top: 6px;
-                    font-size: 10px;
-                }
 
                 .pin-card {
-                    margin-top: 8px;
+                    width: min(
+                        100%,
+                        480px
+                    );
+
+                    box-sizing: border-box;
 
                     padding:
-                        32px
-                        20px
-                        28px;
+                        38px
+                        40px
+                        34px;
 
-                    border-radius: 23px;
+                    border:
+                        1px solid
+                        rgba(
+                            31,
+                            41,
+                            71,
+                            0.07
+                        );
+
+                    border-radius: 24px;
+
+                    background: #ffffff;
+
+                    box-shadow:
+                        0 20px 60px
+                        rgba(
+                            24,
+                            20,
+                            64,
+                            0.10
+                        );
+
+                    text-align: center;
                 }
+
+
+                .security-icon {
+                    width: 62px;
+                    height: 62px;
+
+                    margin:
+                        0 auto 17px;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    border-radius: 50%;
+
+                    color: #6337d2;
+
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #f1edff,
+                            #e7e1ff
+                        );
+                }
+
+
+                .recovery-icon {
+                    color: #6337d2;
+                }
+
+
+                .eyebrow {
+                    margin-bottom: 8px;
+
+                    color: #7043d8;
+
+                    font-size: 10px;
+                    line-height: 1.2;
+
+                    letter-spacing: 1.5px;
+                    font-weight: 800;
+                }
+
 
                 h1 {
-                    font-size: 28px;
+                    margin: 0;
+
+                    color: #15203d;
+
+                    font-size: 30px;
+                    line-height: 1.18;
+
+                    letter-spacing: -0.4px;
+
+                    font-weight: 760;
                 }
+
 
                 .intro {
-                    font-size: 15px;
-                    margin-bottom: 26px;
+                    max-width: 390px;
+
+                    margin:
+                        13px auto 26px;
+
+                    color: #68728a;
+
+                    font-size: 14px;
+                    line-height: 1.55;
                 }
 
-                .pin-input {
-                    height: 60px;
-                    font-size: 25px;
-                    letter-spacing: 8px;
+
+                .pin-field {
+                    text-align: left;
                 }
 
-                .timer-box strong {
-                    font-size: 36px;
+
+                .pin-field label {
+                    display: block;
+
+                    margin-bottom: 8px;
+
+                    color: #293552;
+
+                    font-size: 13px;
+                    font-weight: 700;
                 }
 
-                .page-footer {
-                    padding-top: 18px;
+
+                .pin-field input {
+                    width: 100%;
+                    height: 58px;
+
+                    box-sizing: border-box;
+
+                    border:
+                        1px solid
+                        #d8dcea;
+
+                    border-radius: 13px;
+
+                    background: #fbfcff;
+
+                    color: #17224a;
+
+                    padding:
+                        0 18px;
+
+                    font-size: 24px;
+                    font-weight: 700;
+
+                    letter-spacing: 9px;
+
+                    text-align: center;
+
+                    outline: none;
+
+                    transition:
+                        border-color .16s ease,
+                        box-shadow .16s ease;
                 }
 
-                .footer-tagline {
+
+                .pin-field input:focus {
+                    border-color:
+                        #7043d8;
+
+                    background: #ffffff;
+
+                    box-shadow:
+                        0 0 0 4px
+                        rgba(
+                            112,
+                            67,
+                            216,
+                            0.10
+                        );
+                }
+
+
+                .pin-field input:disabled {
+                    opacity: .65;
+                }
+
+
+                .pin-dots {
+                    height: 20px;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    gap: 9px;
+
+                    margin-top: -15px;
+
+                    pointer-events: none;
+                }
+
+
+                .pin-dot {
+                    width: 9px;
+                    height: 9px;
+
+                    color: #6337d2;
+
+                    font-size: 19px;
+                    line-height: 1;
+
+                    opacity: 0;
+                }
+
+
+                .pin-dot.filled {
+                    opacity: 1;
+                }
+
+
+                .error-message {
+                    margin-top: 14px;
+
+                    padding:
+                        10px
+                        12px;
+
+                    display: flex;
+                    align-items: center;
+
+                    gap: 9px;
+
+                    border:
+                        1px solid
+                        #f1cece;
+
+                    border-radius: 10px;
+
+                    background: #fff6f6;
+
+                    color: #9d3030;
+
+                    font-size: 13px;
+                    line-height: 1.4;
+
+                    text-align: left;
+                }
+
+
+                .error-icon {
+                    width: 20px;
+                    height: 20px;
+
+                    flex: 0 0 20px;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    border-radius: 50%;
+
+                    background: #c94444;
+
+                    color: #ffffff;
+
+                    font-size: 12px;
+                    font-weight: 800;
+                }
+
+
+                .attempt-message {
+                    margin-top: 12px;
+
+                    color: #7043d8;
+
+                    font-size: 12px;
+                    font-weight: 700;
+                }
+
+
+                .verify-button {
+                    width: 100%;
+
+                    min-height: 54px;
+
+                    margin-top: 21px;
+
+                    padding:
+                        0 20px;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    gap: 10px;
+
+                    border: 0;
+                    border-radius: 13px;
+
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #6337d2,
+                            #7545df
+                        );
+
+                    color: #ffffff;
+
+                    font-size: 16px;
+                    font-weight: 750;
+
+                    cursor: pointer;
+
+                    box-shadow:
+                        0 10px 24px
+                        rgba(
+                            99,
+                            55,
+                            210,
+                            0.20
+                        );
+
+                    transition:
+                        transform .15s ease,
+                        box-shadow .15s ease,
+                        opacity .15s ease;
+                }
+
+
+                .verify-button:hover:not(:disabled) {
+                    transform:
+                        translateY(-1px);
+
+                    box-shadow:
+                        0 13px 28px
+                        rgba(
+                            99,
+                            55,
+                            210,
+                            0.25
+                        );
+                }
+
+
+                .verify-button:disabled {
+                    opacity: .48;
+
+                    cursor: not-allowed;
+
+                    box-shadow: none;
+                }
+
+
+                .arrow {
+                    font-size: 20px;
+                    line-height: 1;
+                }
+
+
+                .security-note {
+                    margin-top: 19px;
+
+                    padding:
+                        13px
+                        14px;
+
+                    display: flex;
+                    align-items: flex-start;
+
+                    gap: 10px;
+
+                    border-radius: 12px;
+
+                    background: #f5f8fd;
+
+                    color: #68738b;
+
+                    font-size: 11.5px;
+                    line-height: 1.45;
+
+                    text-align: left;
+                }
+
+
+                .security-note svg {
+                    flex:
+                        0 0 auto;
+
+                    color: #416ed8;
+                }
+
+
+                .timer-panel {
+                    margin:
+                        20px 0 22px;
+
+                    padding:
+                        18px;
+
+                    border:
+                        1px solid
+                        #e2daf8;
+
+                    border-radius: 17px;
+
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #f5f1ff,
+                            #ede8ff
+                        );
+                }
+
+
+                .timer-panel span {
+                    display: block;
+
+                    margin-bottom: 4px;
+
+                    color: #777f98;
+
+                    font-size: 9px;
+                    font-weight: 800;
+
+                    letter-spacing: 1.7px;
+                }
+
+
+                .timer-panel strong {
+                    color: #6337d2;
+
+                    font-size: 38px;
+                    line-height: 1.1;
+
+                    letter-spacing: 2px;
+                }
+
+
+                .lock-progress {
+                    margin-bottom: 18px;
+                }
+
+
+                .lock-progress-heading {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+
+                    margin-bottom: 8px;
+
+                    color: #737b91;
+
                     font-size: 11px;
                 }
 
-                .footer-center {
-                    font-size: 9px;
-                    letter-spacing: 1px;
+
+                .lock-progress-heading strong {
+                    color: #4e5673;
                 }
 
-                .footer-center span {
-                    margin: 0 4px;
-                }
-            }
 
-        `}</style>
+                .lock-track {
+                    display: grid;
+
+                    grid-template-columns:
+                        repeat(3, 1fr);
+
+                    gap: 6px;
+                }
+
+
+                .lock-step {
+                    height: 6px;
+
+                    border-radius: 8px;
+
+                    background: #e6e2ef;
+                }
+
+
+                .lock-step.active {
+                    background:
+                        linear-gradient(
+                            90deg,
+                            #6337d2,
+                            #8060e2
+                        );
+                }
+
+
+                .lock-description {
+                    margin:
+                        0 0 18px;
+
+                    color: #69728a;
+
+                    font-size: 13px;
+                    line-height: 1.5;
+                }
+
+
+                .recovery-panel {
+                    display: flex;
+                    align-items: flex-start;
+
+                    gap: 12px;
+
+                    padding:
+                        15px;
+
+                    border:
+                        1px solid
+                        #e2daf8;
+
+                    border-radius: 14px;
+
+                    background: #f7f4ff;
+
+                    text-align: left;
+                }
+
+
+                .recovery-symbol {
+                    width: 28px;
+                    height: 28px;
+
+                    flex:
+                        0 0 28px;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    border-radius: 50%;
+
+                    background: #6337d2;
+
+                    color: #ffffff;
+
+                    font-size: 14px;
+                    font-weight: 800;
+                }
+
+
+                .recovery-panel strong {
+                    display: block;
+
+                    margin-bottom: 3px;
+
+                    color: #29345b;
+
+                    font-size: 13px;
+                }
+
+
+                .recovery-panel p {
+                    margin: 0;
+
+                    color: #68718d;
+
+                    font-size: 12px;
+                    line-height: 1.45;
+                }
+
+
+                @media (max-width: 600px) {
+
+                    .pin-content {
+                        align-items: flex-start;
+
+                        padding:
+                            20px
+                            14px
+                            24px;
+                    }
+
+
+                    .pin-card {
+                        width: 100%;
+
+                        padding:
+                            30px
+                            20px
+                            26px;
+
+                        border-radius: 20px;
+                    }
+
+
+                    h1 {
+                        font-size: 27px;
+                    }
+
+
+                    .intro {
+                        font-size: 13.5px;
+                    }
+
+
+                    .pin-field input {
+                        height: 54px;
+
+                        font-size: 22px;
+
+                        letter-spacing: 8px;
+                    }
+
+
+                    .verify-button {
+                        min-height: 52px;
+                    }
+                }
+
+            `}</style>
+
+        </main>
     );
 }

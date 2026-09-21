@@ -87,3 +87,25 @@ export async function recordSuccessfulPinVerification(
         );
     }
 }
+
+export async function hasCareVRPin(
+    userId: string
+): Promise<boolean> {
+    const {
+        data,
+        error,
+    } = await supabaseAdmin
+        .from("carevr_pin")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+    if (error) {
+        throw new Error(
+            error.message ||
+            "Unable to determine CareVR PIN status."
+        );
+    }
+
+    return Boolean(data);
+}

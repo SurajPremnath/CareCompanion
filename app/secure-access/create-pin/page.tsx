@@ -3,6 +3,12 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import MobileHeader, {
+    type MobileCareMode,
+} from "@/Components/common/MobileHeader";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
+
 import { authService } from "@/lib/auth/authService";
 
 export default function CreatePin() {
@@ -12,7 +18,6 @@ export default function CreatePin() {
     const [confirmPin, setConfirmPin] = useState("");
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(false);
-    const [saved, setSaved] = useState(false);
 
     const handlePinChange = (
         value: string,
@@ -23,24 +28,29 @@ export default function CreatePin() {
 
         setter(digitsOnly);
         setError("");
-        setSaved(false);
     };
 
     const handleSave = async () => {
         setError("");
 
         if (pin.length !== 6) {
-            setError("Please enter a 6-digit PIN.");
+            setError(
+                "Please enter a 6-digit PIN."
+            );
             return;
         }
 
         if (confirmPin.length !== 6) {
-            setError("Please confirm your 6-digit PIN.");
+            setError(
+                "Please confirm your 6-digit PIN."
+            );
             return;
         }
 
         if (pin !== confirmPin) {
-            setError("The PINs do not match.");
+            setError(
+                "The PINs do not match."
+            );
             return;
         }
 
@@ -56,7 +66,8 @@ export default function CreatePin() {
                 {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
+                        "Content-Type":
+                            "application/json",
                     },
                     body: JSON.stringify({
                         pin,
@@ -64,7 +75,8 @@ export default function CreatePin() {
                 }
             );
 
-            const result = await response.json();
+            const result =
+                await response.json();
 
             if (!response.ok) {
                 throw new Error(
@@ -73,8 +85,11 @@ export default function CreatePin() {
                 );
             }
 
-            setSaved(true);
-
+            /*
+             * PIN creation is complete.
+             * End this authenticated setup session
+             * and return to the normal login lifecycle.
+             */
             await authService.logout();
 
             router.replace("/login");
@@ -90,31 +105,84 @@ export default function CreatePin() {
     };
 
     return (
-        <main className="carevr-pin-page">
+        <main className="create-pin-page">
 
-            <div className="background-shape background-shape-one" />
-            <div className="background-shape background-shape-two" />
+            {/* ============================
+                EXISTING CAREVR HEADER
+            ============================ */}
 
-            <div className="page-shell">
+            <MobileHeader
+                careMode="SELF"
+                onCareModeChange={() => {}}
+                userName="CareVR"
 
-                <header className="brand-header">
-                    <img
-                        src="/images/CareVR v1.0.png"
-                        alt="CareVR"
-                        className="carevr-logo"
-                    />
+                showCareModeToggle={false}
+                showSelfToggle={false}
+                showFamilyToggle={false}
 
-                    <div className="brand-message">
-                        <span>People</span>
-                        <span>Health</span>
-                        <span>Together</span>
-                    </div>
-                </header>
+                showHomeButton={true}
+                onHomeClick={() =>
+                    router.replace("/login")
+                }
+
+                accountMenuOpen={false}
+                onAccountMenuToggle={() => {}}
+
+                consentGranted={false}
+                canAddPatient={false}
+
+                onAddPatient={() => {}}
+                onCareVRJourney={() => {}}
+                onHelp={() => {}}
+
+                onLogout={async () => {
+                    await authService.logout();
+                    router.replace("/login");
+                }}
+            />
+
+            {/* ============================
+                MAIN CONTENT
+            ============================ */}
+
+            <div className="create-pin-shell">
 
                 <section
-                    className="pin-card"
+                    className="create-pin-card"
                     aria-labelledby="create-pin-title"
                 >
+
+                    <div
+                        className="security-icon"
+                        aria-hidden="true"
+                    >
+                        <svg
+                            width="30"
+                            height="30"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <rect
+                                x="3"
+                                y="11"
+                                width="18"
+                                height="10"
+                                rx="2"
+                            />
+
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+
+                            <circle
+                                cx="12"
+                                cy="16"
+                                r="1"
+                            />
+                        </svg>
+                    </div>
 
                     <div className="eyebrow">
                         SECURE ACCESS SETUP
@@ -125,14 +193,15 @@ export default function CreatePin() {
                     </h1>
 
                     <p className="intro">
-                        Create a 6-digit PIN to protect your
-                        CareVR account and keep your health
-                        information secure across your devices.
+                        Create a 6-digit PIN to protect
+                        your CareVR account and keep your
+                        health information secure across
+                        your devices.
                     </p>
 
-                    <div className="fields">
+                    <div className="form">
 
-                        <div className="field-group">
+                        <div className="field">
 
                             <label htmlFor="carevr-pin">
                                 Create PIN
@@ -152,36 +221,13 @@ export default function CreatePin() {
                                         setPin
                                     )
                                 }
-                                disabled={
-                                    saving ||
-                                    saved
-                                }
+                                disabled={saving}
                                 aria-label="Create 6-digit CareVR PIN"
-                                className="pin-input"
                             />
-
-                            <div
-                                className="digit-hint"
-                                aria-hidden="true"
-                            >
-                                {Array.from({
-                                    length: 6,
-                                }).map((_, index) => (
-                                    <span
-                                        key={index}
-                                        className={
-                                            index <
-                                            pin.length
-                                                ? "digit-dot filled"
-                                                : "digit-dot"
-                                        }
-                                    />
-                                ))}
-                            </div>
 
                         </div>
 
-                        <div className="field-group">
+                        <div className="field">
 
                             <label htmlFor="carevr-confirm-pin">
                                 Confirm PIN
@@ -201,32 +247,9 @@ export default function CreatePin() {
                                         setConfirmPin
                                     )
                                 }
-                                disabled={
-                                    saving ||
-                                    saved
-                                }
+                                disabled={saving}
                                 aria-label="Confirm 6-digit CareVR PIN"
-                                className="pin-input"
                             />
-
-                            <div
-                                className="digit-hint"
-                                aria-hidden="true"
-                            >
-                                {Array.from({
-                                    length: 6,
-                                }).map((_, index) => (
-                                    <span
-                                        key={index}
-                                        className={
-                                            index <
-                                            confirmPin.length
-                                                ? "digit-dot filled"
-                                                : "digit-dot"
-                                        }
-                                    />
-                                ))}
-                            </div>
 
                         </div>
 
@@ -234,53 +257,34 @@ export default function CreatePin() {
 
                     {error && (
                         <div
-                            className="message message-error"
+                            className="error"
                             role="alert"
                         >
-                            <span className="message-icon">
-                                !
-                            </span>
-
-                            <span>{error}</span>
-                        </div>
-                    )}
-
-                    {saved && (
-                        <div
-                            className="message message-success"
-                            role="status"
-                        >
-                            <span className="message-icon">
-                                ✓
-                            </span>
-
-                            <span>
-                                Your CareVR PIN has been saved.
-                            </span>
+                            {error}
                         </div>
                     )}
 
                     <button
                         type="button"
-                        className="primary-button"
+                        className="create-button"
                         onClick={handleSave}
                         disabled={
                             saving ||
-                            saved ||
                             pin.length !== 6 ||
                             confirmPin.length !== 6
                         }
                     >
                         <span>
                             {saving
-                                ? "Saving..."
-                                : saved
-                                    ? "PIN Saved"
-                                    : "Create PIN"}
+                                ? "Creating PIN..."
+                                : "Create PIN"}
                         </span>
 
-                        {!saving && !saved && (
-                            <span className="button-arrow">
+                        {!saving && (
+                            <span
+                                aria-hidden="true"
+                                className="button-arrow"
+                            >
                                 →
                             </span>
                         )}
@@ -288,44 +292,34 @@ export default function CreatePin() {
 
                     <div className="security-note">
 
-                        <div className="security-icon">
+                        <div
+                            className="note-icon"
+                            aria-hidden="true"
+                        >
                             <svg
-                                width="24"
-                                height="24"
+                                width="20"
+                                height="20"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="1.8"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                aria-hidden="true"
                             >
-                                <rect
-                                    x="4"
-                                    y="10"
-                                    width="16"
-                                    height="11"
-                                    rx="2"
-                                />
-
-                                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-
-                                <circle
-                                    cx="12"
-                                    cy="15.5"
-                                    r="1"
-                                />
+                                <path d="M12 3l8 4v5c0 4.8-3.4 7.9-8 9-4.6-1.1-8-4.2-8-9V7l8-4z" />
+                                <path d="M9 12l2 2 4-4" />
                             </svg>
                         </div>
 
                         <div>
                             <strong>
-                                Your PIN works across your devices.
+                                Your information remains protected.
                             </strong>
 
                             <p>
-                                It is securely protected and
-                                never stored as readable text.
+                                Your PIN is securely protected
+                                and works across your trusted
+                                CareVR devices.
                             </p>
                         </div>
 
@@ -333,593 +327,326 @@ export default function CreatePin() {
 
                 </section>
 
-                <footer className="page-footer">
-
-                    <div className="footer-tagline">
-                        Care Today.
-                        <br />
-                        A Healthier Tomorrow.
-                    </div>
-
-                    <div className="footer-center">
-                        SIMPLE
-                        <span>|</span>
-                        SECURE
-                        <span>|</span>
-                        TOGETHER
-
-                        <div className="footer-line" />
-                    </div>
-
-                </footer>
-
             </div>
+
+            <footer className="page-footer">
+
+                <div className="footer-tagline">
+                    Care Today. A Healthier Tomorrow.
+                </div>
+
+                <div className="footer-values">
+                    <span>SIMPLE</span>
+                    <span>|</span>
+                    <span>SECURE</span>
+                    <span>|</span>
+                    <span>TOGETHER</span>
+                </div>
+
+            </footer>
 
             <style jsx>{`
 
-                .carevr-pin-page {
-                    position: relative;
-                    min-height: 100vh;
+                .create-pin-page {
                     min-height: 100dvh;
-                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                    background:
+                        radial-gradient(
+                            circle at 10% 20%,
+                            rgba(111, 67, 245, 0.08),
+                            transparent 30%
+                        ),
+                        radial-gradient(
+                            circle at 90% 70%,
+                            rgba(230, 25, 126, 0.06),
+                            transparent 28%
+                        ),
+                        #f8f9fc;
+                    color: #15203d;
+                }
 
+                .create-pin-shell {
+                    width: 100%;
+                    flex: 1 1 auto;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 34px 20px 30px;
+                    box-sizing: border-box;
+                }
+
+                .create-pin-card {
+                    width: min(
+                        100%,
+                        500px
+                    );
+                    box-sizing: border-box;
+                    padding: 38px 40px 34px;
+                    border: 1px solid
+                        rgba(31, 41, 71, 0.07);
+                    border-radius: 24px;
+                    background: #ffffff;
+                    box-shadow:
+                        0 18px 55px
+                        rgba(24, 20, 64, 0.10);
+                    text-align: center;
+                }
+
+                .security-icon {
+                    width: 62px;
+                    height: 62px;
+                    margin: 0 auto 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    color: #6638d6;
                     background:
                         linear-gradient(
                             135deg,
-                            #f8faff 0%,
-                            #f3f4ff 48%,
-                            #eeeaff 100%
+                            #f1edff,
+                            #e8e2ff
                         );
-
-                    color: #10204a;
-                }
-
-                .background-shape {
-                    position: absolute;
-                    pointer-events: none;
-                    border-radius: 50%;
-                    filter: blur(1px);
-                }
-
-                .background-shape-one {
-                    width: 520px;
-                    height: 520px;
-                    top: -300px;
-                    right: -180px;
-
-                    background:
-                        rgba(102, 74, 220, 0.08);
-                }
-
-                .background-shape-two {
-                    width: 620px;
-                    height: 360px;
-                    bottom: -260px;
-                    left: -220px;
-
-                    background:
-                        rgba(77, 111, 235, 0.08);
-
-                    transform: rotate(-18deg);
-                }
-
-                .page-shell {
-                    position: relative;
-                    z-index: 1;
-
-                    width: 100%;
-                    min-height: 100vh;
-                    min-height: 100dvh;
-
-                    display: flex;
-                    flex-direction: column;
-
-                    padding:
-                        22px
-                        34px
-                        18px;
-
-                    box-sizing: border-box;
-                }
-
-                .brand-header {
-                    width: 100%;
-
-                    display: flex;
-                    align-items: flex-start;
-                    justify-content: space-between;
-
-                    min-height: 110px;
-                }
-
-                .carevr-logo {
-                    width: 210px;
-                    height: 105px;
-
-                    object-fit: contain;
-                    object-position: left center;
-
-                    display: block;
-                }
-
-                .brand-message {
-                    display: flex;
-                    flex-direction: column;
-
-                    padding-top: 10px;
-
-                    color: #50628f;
-
-                    font-size: 14px;
-                    line-height: 1.25;
-                    font-weight: 600;
-                }
-
-                .pin-card {
-                    width: 100%;
-                    max-width: 570px;
-
-                    margin:
-                        18px auto 0;
-
-                    padding:
-                        42px
-                        44px
-                        38px;
-
-                    box-sizing: border-box;
-
-                    background:
-                        rgba(255, 255, 255, 0.94);
-
-                    border:
-                        1px solid
-                        rgba(255, 255, 255, 0.9);
-
-                    border-radius: 28px;
-
-                    box-shadow:
-                        0 24px 70px
-                        rgba(48, 44, 110, 0.14);
-
-                    text-align: center;
-
-                    backdrop-filter:
-                        blur(12px);
                 }
 
                 .eyebrow {
-                    margin-bottom: 14px;
-
-                    color: #6337d2;
-
-                    font-size: 14px;
+                    margin-bottom: 9px;
+                    color: #7043d8;
+                    font-size: 11px;
                     line-height: 1.2;
+                    letter-spacing: 1.2px;
                     font-weight: 800;
-
-                    letter-spacing: 1.6px;
                 }
 
                 h1 {
                     margin: 0;
-
-                    color: #10204a;
-
-                    font-size: 34px;
-                    line-height: 1.16;
+                    color: #15203d;
+                    font-size: 31px;
+                    line-height: 1.18;
+                    letter-spacing: -0.5px;
                     font-weight: 760;
-
-                    letter-spacing: -0.7px;
                 }
 
                 .intro {
-                    max-width: 455px;
-
-                    margin:
-                        18px auto 32px;
-
-                    color: #52638d;
-
-                    font-size: 17px;
+                    max-width: 400px;
+                    margin: 13px auto 28px;
+                    color: #667087;
+                    font-size: 14px;
                     line-height: 1.55;
                 }
 
-                .fields {
+                .form {
                     display: flex;
                     flex-direction: column;
-
-                    gap: 18px;
-
+                    gap: 17px;
                     text-align: left;
                 }
 
-                .field-group {
-                    position: relative;
+                .field {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 7px;
                 }
 
                 label {
-                    display: block;
-
-                    margin-bottom: 8px;
-
-                    color: #17254d;
-
-                    font-size: 16px;
+                    color: #293552;
+                    font-size: 13px;
+                    line-height: 1.3;
                     font-weight: 700;
                 }
 
-                .pin-input {
+                input {
                     width: 100%;
-                    height: 64px;
-
+                    height: 54px;
                     box-sizing: border-box;
-
-                    padding:
-                        0
-                        22px;
-
-                    border:
-                        1px solid
-                        #d5dcef;
-
-                    border-radius: 15px;
-
-                    background:
-                        #f9faff;
-
-                    color: #152657;
-
-                    font-size: 28px;
-                    font-weight: 700;
-
-                    letter-spacing: 10px;
-
+                    border: 1px solid #d9ddea;
+                    border-radius: 12px;
+                    background: #fbfcff;
+                    color: #18234a;
+                    padding: 0 18px;
+                    font-size: 23px;
+                    line-height: 1;
+                    letter-spacing: 9px;
                     text-align: center;
-
                     outline: none;
-
                     transition:
-                        border-color 0.15s ease,
-                        box-shadow 0.15s ease;
+                        border-color 0.16s ease,
+                        box-shadow 0.16s ease,
+                        background 0.16s ease;
                 }
 
-                .pin-input:focus {
-                    border-color: #6337d2;
-
+                input:focus {
+                    border-color: #7043d8;
+                    background: #ffffff;
                     box-shadow:
                         0 0 0 4px
-                        rgba(99, 55, 210, 0.11);
+                        rgba(112, 67, 216, 0.10);
                 }
 
-                .pin-input:disabled {
+                input:disabled {
                     opacity: 0.65;
-                    cursor: not-allowed;
                 }
 
-                .digit-hint {
-                    position: absolute;
-
-                    left: 0;
-                    right: 0;
-                    bottom: 8px;
-
-                    display: flex;
-                    justify-content: center;
-
-                    gap: 9px;
-
-                    pointer-events: none;
-                }
-
-                .digit-dot {
-                    width: 6px;
-                    height: 6px;
-
-                    border-radius: 50%;
-
-                    background: #c7cde0;
-                }
-
-                .digit-dot.filled {
-                    background: #5069bd;
-                }
-
-                .message {
-                    display: flex;
-                    align-items: center;
-
-                    gap: 10px;
-
-                    margin-top: 18px;
-                    padding: 12px 14px;
-
-                    border-radius: 12px;
-
-                    font-size: 14px;
-                    line-height: 1.4;
-
+                .error {
+                    margin-top: 16px;
+                    padding: 11px 13px;
+                    border: 1px solid #f2caca;
+                    border-radius: 10px;
+                    background: #fff5f5;
+                    color: #a62c2c;
+                    font-size: 13px;
+                    line-height: 1.45;
                     text-align: left;
                 }
 
-                .message-error {
-                    background: #fff5f5;
-                    border: 1px solid #f0d0d0;
-                    color: #9c3030;
-                }
-
-                .message-success {
-                    background: #f1faf4;
-                    border: 1px solid #d1ead8;
-                    color: #27663c;
-                }
-
-                .message-icon {
-                    width: 23px;
-                    height: 23px;
-
-                    flex: 0 0 23px;
-
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-
-                    border-radius: 50%;
-
-                    background: currentColor;
-
-                    color: #ffffff;
-
-                    font-size: 13px;
-                    font-weight: 800;
-                }
-
-                .message-error .message-icon {
-                    background: #b33b3b;
-                }
-
-                .message-success .message-icon {
-                    background: #3b8a58;
-                }
-
-                .primary-button {
+                .create-button {
                     width: 100%;
-                    min-height: 60px;
-
+                    min-height: 54px;
                     margin-top: 24px;
-
+                    padding: 0 20px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-
-                    gap: 12px;
-
+                    gap: 10px;
                     border: 0;
-                    border-radius: 16px;
-
+                    border-radius: 13px;
                     background:
                         linear-gradient(
                             135deg,
-                            #5834e6,
-                            #7b3fe4
+                            #6337d2,
+                            #7545df
                         );
-
                     color: #ffffff;
-
-                    font-size: 17px;
+                    font-size: 16px;
                     font-weight: 750;
-
                     cursor: pointer;
-
                     box-shadow:
-                        0 13px 28px
-                        rgba(91, 58, 218, 0.22);
-
+                        0 10px 24px
+                        rgba(99, 55, 210, 0.20);
                     transition:
                         transform 0.15s ease,
                         box-shadow 0.15s ease,
                         opacity 0.15s ease;
                 }
 
-                .primary-button:hover:not(:disabled) {
+                .create-button:not(:disabled):hover {
                     transform: translateY(-1px);
-
                     box-shadow:
-                        0 16px 32px
-                        rgba(91, 58, 218, 0.28);
+                        0 13px 28px
+                        rgba(99, 55, 210, 0.25);
                 }
 
-                .primary-button:active:not(:disabled) {
-                    transform: translateY(0);
-                }
-
-                .primary-button:disabled {
+                .create-button:disabled {
                     opacity: 0.48;
                     cursor: not-allowed;
                     box-shadow: none;
                 }
 
                 .button-arrow {
-                    font-size: 25px;
+                    font-size: 20px;
                     line-height: 1;
                 }
 
                 .security-note {
-                    display: flex;
-                    align-items: center;
-
-                    gap: 13px;
-
                     margin-top: 20px;
-
-                    padding:
-                        15px
-                        16px;
-
-                    border-radius: 15px;
-
-                    background:
-                        #f4f7ff;
-
-                    color: #50618a;
-
+                    padding: 13px 14px;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 11px;
+                    border-radius: 12px;
+                    background: #f5f8fd;
                     text-align: left;
                 }
 
-                .security-icon {
-                    width: 42px;
-                    height: 42px;
-
-                    flex: 0 0 42px;
-
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-
-                    border-radius: 12px;
-
-                    background:
-                        #e6efff;
-
-                    color: #4275d8;
+                .note-icon {
+                    flex: 0 0 auto;
+                    color: #416ed8;
+                    margin-top: 1px;
                 }
 
                 .security-note strong {
                     display: block;
-
-                    margin-bottom: 2px;
-
-                    color: #263a6b;
-
-                    font-size: 13px;
+                    color: #27334f;
+                    font-size: 12.5px;
+                    line-height: 1.4;
                 }
 
                 .security-note p {
-                    margin: 0;
-
-                    font-size: 12px;
+                    margin: 3px 0 0;
+                    color: #69748a;
+                    font-size: 11.5px;
                     line-height: 1.45;
                 }
 
                 .page-footer {
-                    width: 100%;
-
-                    margin-top: auto;
-                    padding-top: 25px;
-
-                    display: flex;
-                    align-items: flex-end;
-                    justify-content: space-between;
-                }
-
-                .footer-tagline {
-                    color: #7180a5;
-
-                    font-size: 14px;
-                    line-height: 1.35;
-                    font-style: italic;
-                }
-
-                .footer-center {
-                    color: #7080a9;
-
-                    font-size: 12px;
-                    font-weight: 700;
-
-                    letter-spacing: 1.7px;
-
+                    padding:
+                        0 20px 22px;
                     text-align: center;
                 }
 
-                .footer-center span {
-                    margin: 0 9px;
-                    color: #a1a9c0;
+                .footer-tagline {
+                    margin-bottom: 8px;
+                    color: #8a91a3;
+                    font-size: 12px;
+                    font-weight: 500;
                 }
 
-                .footer-line {
-                    width: 38px;
-                    height: 3px;
-
-                    margin:
-                        10px auto 0;
-
-                    border-radius: 5px;
-
-                    background:
-                        linear-gradient(
-                            90deg,
-                            #5936df,
-                            #833fe3
-                        );
+                .footer-values {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    color: #6d42d4;
+                    font-size: 9px;
+                    font-weight: 800;
+                    letter-spacing: 1.6px;
                 }
 
-                @media (max-width: 700px) {
+                @media (max-width: 600px) {
 
-                    .page-shell {
+                    .create-pin-shell {
+                        align-items: flex-start;
                         padding:
+                            22px
                             14px
-                            16px
-                            16px;
+                            24px;
                     }
 
-                    .brand-header {
-                        min-height: 82px;
-                    }
-
-                    .carevr-logo {
-                        width: 160px;
-                        height: 78px;
-                    }
-
-                    .brand-message {
-                        padding-top: 6px;
-                        font-size: 10px;
-                    }
-
-                    .pin-card {
-                        margin-top: 8px;
-
+                    .create-pin-card {
                         padding:
-                            32px
+                            30px
                             20px
-                            28px;
-
-                        border-radius: 23px;
+                            24px;
+                        border-radius: 20px;
                     }
 
                     h1 {
-                        font-size: 28px;
+                        font-size: 27px;
                     }
 
                     .intro {
-                        font-size: 15px;
-                        margin-bottom: 26px;
+                        font-size: 13.5px;
+                        margin-bottom: 24px;
                     }
 
-                    .pin-input {
-                        height: 60px;
-                        font-size: 25px;
+                    input {
+                        height: 52px;
+                        font-size: 22px;
                         letter-spacing: 8px;
                     }
 
+                    .create-button {
+                        min-height: 52px;
+                    }
+
                     .page-footer {
-                        padding-top: 18px;
-                    }
-
-                    .footer-tagline {
-                        font-size: 11px;
-                    }
-
-                    .footer-center {
-                        font-size: 9px;
-                        letter-spacing: 1px;
-                    }
-
-                    .footer-center span {
-                        margin: 0 4px;
+                        padding-bottom: 16px;
                     }
                 }
 
             `}</style>
+
         </main>
     );
 }
