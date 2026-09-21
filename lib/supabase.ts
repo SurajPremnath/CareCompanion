@@ -21,12 +21,5 @@ if (!supabaseAnonKey) {
 export const supabase =
   createBrowserClient(
     supabaseUrl,
-    supabaseAnonKey,
-    {
-      auth: {
-        experimental: {
-          passkey: true,
-        },
-      },
-    }
+    supabaseAnonKey
   );

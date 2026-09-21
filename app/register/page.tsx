@@ -264,8 +264,8 @@ if (registrationResumeRequired) {
  */
 const secureAccessUrl =
     productInvitationToken
-        ? `/secure-access?productInvitationToken=${encodeURIComponent(productInvitationToken)}`
-        : "/secure-access";
+        ? `/secure-access/create-pin?productInvitationToken=${encodeURIComponent(productInvitationToken)}`
+        : "/secure-access/create-pin";
 
 router.replace(secureAccessUrl);
 

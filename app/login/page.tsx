@@ -48,12 +48,12 @@ import {
 
 import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 
-import ValidPasskey from "@/app/components/security/ValidPasskey";
 
 import {
   carevrContextSelectionHandoff,
 } from "@/lib/auth/carevrContextSelectionHandoff";
 
+import ValidatePin from "@/app/components/security/ValidatePin";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -79,16 +79,13 @@ const [showPassword, setShowPassword] =
 const [loginMethod, setLoginMethod] =
   useState<"EMAIL" | "GOOGLE">("EMAIL");
 
-const [passkeyLogin, setPasskeyLogin] = useState<{
-  user: Awaited<ReturnType<typeof authService.login>>;
-} | null>(null);
-
-const [passkeyEnrollment, setPasskeyEnrollment] =
+const [pinVerification, setPinVerification] =
   useState<{
     user: Awaited<
       ReturnType<typeof authService.login>
     >;
   } | null>(null);
+
 
 /*
  * Care context is resolved from the authenticated user's
@@ -569,64 +566,6 @@ return;
 };
 
 
-useEffect(() => {
-  const isPasskeyContinuation =
-    new URLSearchParams(
-      window.location.search
-    ).get("passkey") === "created";
-
-  if (!isPasskeyContinuation) {
-    return;
-  }
-
-  const continueWithPasskey =
-    async () => {
-
-      try {
-
-        setLoading(true);
-        setError("");
-
-        window.history.replaceState(
-          {},
-          "",
-          "/login"
-        );
-
-        const authenticatedUser =
-          await authService.getCurrentUser();
-
-        if (!authenticatedUser) {
-          throw new Error(
-            "Your CareVR session could not be restored. Please sign in again."
-          );
-        }
-
-        setPasskeyLogin({
-          user: authenticatedUser,
-        });
-
-      } catch (err) {
-
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Unable to continue with your CareVR Passkey.";
-
-        setError(message);
-
-      } finally {
-
-        setLoading(false);
-
-      }
-    };
-
-  void continueWithPasskey();
-
-}, []);
-
-
 const handleLogin = async () => {
   setError("");
 
@@ -708,17 +647,10 @@ const authenticatedUser =
     verifiedCaptchaToken
   );
 
-const hasPasskey =
-  await authService.hasPasskey();
-
-if (!hasPasskey) {
-  router.replace("/secure-access?flow=LOGIN");
-  return;
-}
-
-setPasskeyLogin({
+setPinVerification({
   user: authenticatedUser,
 });
+
 return;
 
   } catch (err) {
@@ -736,56 +668,6 @@ return;
   setLoading(false);
 }
 };
-
-
-const handleCreatePasskey = async () => {
-  if (!passkeyEnrollment) {
-    setError("Passkey enrollment is not available.");
-    return;
-  }
-
-  try {
-    setLoading(true);
-    setError("");
-
-    const {
-      data,
-      error: passkeyError,
-    } = await supabase.auth.registerPasskey();
-
-    if (passkeyError) {
-      throw new Error(
-        passkeyError.message ||
-        "Unable to create your CareVR Passkey."
-      );
-    }
-
-    if (!data) {
-      throw new Error(
-        "Passkey registration did not return a credential."
-      );
-    }
-
-    const authenticatedUser =
-      passkeyEnrollment.user;
-
-    setPasskeyEnrollment(null);
-
-    await completeLogin(
-      authenticatedUser
-    );
-  } catch (err) {
-    const message =
-      err instanceof Error
-        ? err.message
-        : "Unable to create your CareVR passkey.";
-
-    setError(message);
-  } finally {
-    setLoading(false);
-  }
-};
-
 
 
   const handleGoogleLogin = async () => {
@@ -810,86 +692,19 @@ const handleCreatePasskey = async () => {
 
 return (
   <>
-    {passkeyEnrollment ? (
-      <main
-        className="login-page"
-        style={{
-          position: "fixed",
-          inset: 0,
-          width: "100%",
-          height: "100vh",
-          minHeight: "100vh",
-          margin: 0,
-          padding: 0,
-          background: "#f1eaff",
-          overflow: "auto",
+    {pinVerification ? (
+      <ValidatePin
+        onVerified={() => {
+          const authenticatedUser =
+            pinVerification.user;
+
+          setPinVerification(null);
+
+          void completeLogin(
+            authenticatedUser
+          );
         }}
-      >
-        <section className="login-shell">
-          <div className="login-left">
-            <div
-              className="login-content"
-              style={{
-                marginLeft: "60px",
-                marginTop: "60px",
-                gap: "18px",
-              }}
-            >
-              <div className="login-heading">
-                <h1>Set Up Your CareVR Passkey</h1>
-
-                <p>
-                  Create a Passkey to securely continue to CareVR.
-                  Your device may ask you to use Face ID, fingerprint,
-                  PIN, or another device security method.
-                </p>
-              </div>
-
-              {error && (
-                <div
-                  className="login-error"
-                  role="alert"
-                  aria-live="polite"
-                >
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="button"
-                className="primary-button"
-                onClick={() =>
-                  void handleCreatePasskey()
-                }
-                disabled={loading}
-              >
-                {loading
-                  ? "Creating..."
-                  : "Create Passkey"}
-              </button>
-            </div>
-          </div>
-
-          <div
-            className="login-right"
-            aria-hidden="true"
-          />
-        </section>
-      </main>
-) : passkeyLogin ? (
-  <ValidPasskey
-    user={passkeyLogin.user}
-    onValidated={async (authenticatedUser) => {
-      setPasskeyLogin(null);
-
-      await completeLogin(
-        authenticatedUser
-      );
-    }}
-  />
-
-
-
+      />
     ) : (
       <>
         <style jsx global>{`
