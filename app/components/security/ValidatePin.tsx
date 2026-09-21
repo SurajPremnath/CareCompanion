@@ -41,6 +41,8 @@ export default function ValidatePin({
     const [pin, setPin] =
         useState("");
 
+const [showPin, setShowPin] =
+    useState(false);
 
     const [error, setError] =
         useState("");
@@ -791,34 +793,120 @@ export default function ValidatePin({
                     </p>
 
 
-                    <div className="pin-field">
+<div className="pin-field">
 
-                        <label
-                            htmlFor="carevr-pin"
-                        >
-                            CareVR PIN
-                        </label>
+    <label
+        htmlFor="carevr-pin"
+    >
+        CareVR PIN
+    </label>
 
 
-                        <input
-                            id="carevr-pin"
-                            type="password"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            autoComplete="one-time-code"
-                            maxLength={6}
-                            value={pin}
-                            onChange={(event) =>
-                                handlePinChange(
-                                    event.target.value
-                                )
-                            }
-                            disabled={saving}
-                            autoFocus
-                            aria-label="Enter your 6-digit CareVR PIN"
-                        />
+    <div className="pin-input-wrapper">
 
-                    </div>
+        <input
+            id="carevr-pin"
+            type={
+                showPin
+                    ? "text"
+                    : "password"
+            }
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="one-time-code"
+            maxLength={6}
+            value={pin}
+            onChange={(event) =>
+                handlePinChange(
+                    event.target.value
+                )
+            }
+            disabled={saving}
+            autoFocus
+            aria-label="Enter your 6-digit CareVR PIN"
+        />
+
+
+        <button
+            type="button"
+            className="pin-visibility-button"
+            onClick={() =>
+                setShowPin(
+                    current => !current
+                )
+            }
+            disabled={saving}
+            aria-label={
+                showPin
+                    ? "Hide PIN"
+                    : "Show PIN"
+            }
+            title={
+                showPin
+                    ? "Hide PIN"
+                    : "Show PIN"
+            }
+        >
+            {showPin ? (
+                <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                    <circle
+                        cx="12"
+                        cy="12"
+                        r="3"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                    />
+                </svg>
+            ) : (
+                <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M3 3l18 18"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                    />
+                    <path
+                        d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18.5 18.5 0 0 1-3.1 4.1M6.2 6.2C3.4 8.1 2 12 2 12s3.5 7 10 7c1.4 0 2.7-.3 3.8-.8"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                    <path
+                        d="M9.9 9.9a3 3 0 1 0 4.2 4.2"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                </svg>
+            )}
+        </button>
+
+    </div>
+
+</div>
 
 
 
