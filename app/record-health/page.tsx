@@ -120,6 +120,7 @@ type DashboardUser = {
     fullName: string;
     email: string;
     role: string;
+    isFounder: boolean;
 };
 
 import CareJourneyUploadPanel
@@ -147,6 +148,9 @@ type RecordHealthOption =
     | "CLINICAL_TRENDS"
     | "START_ASSESSMENT"
     | "";
+
+
+const CareVR_Record_health_Options_Enable = false;
 
 
 function RecordHealthPageContent() {
@@ -191,6 +195,11 @@ const [
 );
 
 const [selectedOption, setSelectedOption] = useState<RecordHealthOption>("");
+
+const [
+    recordHealthPremiumMessage,
+    setRecordHealthPremiumMessage,
+] = useState<string>("");
 
 const [reportExecutionType, setReportExecutionType] =
     useState<
@@ -1392,19 +1401,22 @@ setReportHandoff(
                 }
 
 
-                setUser({
-                    id:
-                        profile.id,
+setUser({
+    id:
+        profile.id,
 
-                    fullName:
-                        profile.fullName,
+    fullName:
+        profile.fullName,
 
-                    email:
-                        profile.email,
+    email:
+        profile.email,
 
-                    role:
-                        profile.role,
-                });
+    role:
+        profile.role,
+
+    isFounder:
+        profile.isFounder,
+});
 
 
                 setConsentGranted(
@@ -2932,58 +2944,70 @@ if (
 
     <div className="record-method-grid">
 
-        <button
-            type="button"
-            className={
-                selectedOption === "VOICE"
-                    ? "record-method record-method-selected"
-                    : "record-method"
-            }
-            onClick={() =>
-                setSelectedOption(
-                    "VOICE"
-                )
-            }
-        >
+<button
+    type="button"
+    className={
+        selectedOption === "VOICE"
+            ? "record-method record-method-selected"
+            : "record-method"
+    }
+    onClick={() => {
+        if (
+            CareVR_Record_health_Options_Enable ||
+            user?.isFounder
+        ) {
+            setRecordHealthPremiumMessage("");
+            setSelectedOption("VOICE");
+            return;
+        }
 
-            <span className="record-method-icon voice-icon">
-                🎙️
-            </span>
+        setRecordHealthPremiumMessage(
+            "PREMIUM"
+        );
+    }}
+>
+    <span className="record-method-icon voice-icon">
+        🎙️
+    </span>
+    <strong>
+        Record with
+        <br />
+        Voice
+    </strong>
+</button>
 
-            <strong>
-                Record with
-                <br />
-                Voice
-            </strong>
 
-        </button>
+<button
+    type="button"
+    className={
+        selectedOption === "UPLOAD"
+            ? "record-method record-method-selected"
+            : "record-method"
+    }
+    onClick={() => {
+        if (
+            CareVR_Record_health_Options_Enable ||
+            user?.isFounder
+        ) {
+            setRecordHealthPremiumMessage("");
+            setSelectedOption("UPLOAD");
+            return;
+        }
 
-
-        <button
-            type="button"
-            className={
-                selectedOption === "UPLOAD"
-                    ? "record-method record-method-selected"
-                    : "record-method"
-            }
-            onClick={() =>
-                setSelectedOption(
-                    "UPLOAD"
-                )
-            }
-        >
-
-            <span className="record-method-icon upload-icon">
-                📷
-            </span>
-
-            <strong>
-                Upload
-                <br />
-                Reading
-            </strong>
-
-        </button>
+        setRecordHealthPremiumMessage(
+            "PREMIUM"
+        );
+    }}
+>
+    <span className="record-method-icon upload-icon">
+        📷
+    </span>
+    <strong>
+        Upload
+        <br />
+        Reading
+    </strong>
+</button>
 
 
         <button

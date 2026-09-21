@@ -119,6 +119,8 @@ type DashboardUser = {
 
     role: string;
 
+    isFounder: boolean;
+
 };
 
 
@@ -558,21 +560,24 @@ if (toggleConfiguration.initialMode) {
 }
 
 
-        setUser({
+setUser({
 
-            id:
-                profile.id,
+    id:
+        profile.id,
 
-            fullName:
-                profile.fullName,
+    fullName:
+        profile.fullName,
 
-            email:
-                profile.email,
+    email:
+        profile.email,
 
-            role:
-                profile.role,
+    role:
+        profile.role,
 
-        });
+    isFounder:
+        profile.isFounder,
+
+});
 
 
         void analyticsService
