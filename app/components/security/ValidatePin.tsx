@@ -373,69 +373,34 @@ const [showPin, setShowPin] =
 
     const renderHeader = () => (
 
-        <MobileHeader
-
-            careMode={
-                careMode
-            }
-
-            onCareModeChange={
-                setCareMode
-            }
-
-            userName="CareVR"
-
-            showCareModeToggle={
-                false
-            }
-
-            showSelfToggle={
-                false
-            }
-
-            showFamilyToggle={
-                false
-            }
-
-            showHomeButton={
-                false
-            }
-
-            accountMenuOpen={
-                accountMenuOpen
-            }
-
-            onAccountMenuToggle={() =>
-                setAccountMenuOpen(
-                    (current) =>
-                        !current
-                )
-            }
-
-            consentGranted={
-                false
-            }
-
-            canAddPatient={
-                false
-            }
-
-            onAddPatient={() => {}}
-
-            onCareVRJourney={() => {}}
-
-            onHelp={() => {}}
-
-            onLogout={async () => {
-
-                await authService.logout();
-
-                router.replace(
-                    "/login"
-                );
-            }}
-
-        />
+<MobileHeader
+    careMode={careMode}
+    onCareModeChange={setCareMode}
+    userName="CareVR"
+    showCareModeToggle={false}
+    showSelfToggle={false}
+    showFamilyToggle={false}
+    showHomeButton={false}
+    accountMenuOpen={accountMenuOpen}
+    onAccountMenuToggle={() =>
+        setAccountMenuOpen(
+            (current) => !current
+        )
+    }
+    consentGranted={false}
+    canAddPatient={false}
+    onAddPatient={() => {}}
+    onCareVRJourney={() => {
+        router.push("/carevr-journey");
+    }}
+    onHelp={() => {
+        router.push("/help");
+    }}
+    onLogout={async () => {
+        await authService.logout();
+        router.replace("/login");
+    }}
+/>
     );
 
 
