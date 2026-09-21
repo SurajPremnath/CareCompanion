@@ -1,5 +1,7 @@
 "use client";
 
+import { supabase } from "@/lib/supabase";
+
 import {
   Suspense,
   useEffect,
@@ -109,29 +111,26 @@ const captchaToken =
   await passkeyCaptchaRef.current?.getToken();
 
 if (!captchaToken) {
-
   throw new Error(
     "Unable to complete Passkey security verification."
   );
-
 }
 
 const passkeyAuthenticatedUser =
-  await authService.authenticatePasskey(
-    captchaToken
+  await authService.validatePasskeyForUser(
+    captchaToken,
+    authenticatedUser.id
   );
 
 if (
   passkeyAuthenticatedUser.id !==
   authenticatedUser.id
 ) {
-
-  await authService.logout();
+  await supabase.auth.signOut();
 
   throw new Error(
-    "The Passkey does not belong to the account you are trying to access."
+    "The Passkey does not belong to the account you authenticated with."
   );
-
 }
 
 const validationResult =

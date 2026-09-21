@@ -163,54 +163,57 @@ async hasPasskey(): Promise<boolean> {
   return data.length > 0;
 }
 
-/**
- * Authenticates the currently signed-in CareVR user
- * with a registered Supabase Passkey.
- *
- * Passkey authentication is a complete WebAuthn
- * authentication ceremony. The caller must compare
- * the returned user ID with the identity established
- * by the preceding authentication step.
- */
-async authenticatePasskey(
-  captchaToken: string
-) {
-  const { data, error } =
-    await supabase.auth.signInWithPasskey({
-      options: {
-        captchaToken,
-      },
-    });
 
-  if (error) {
-    throw error;
+
+/**
+ * Validates a CareVR Passkey for the user who has
+ * already completed the first authentication factor.
+ *
+ * The first-factor user is established before this method
+ * is called. Only Passkeys registered to that user are
+ * allowed in the WebAuthn ceremony.
+ */
+async validatePasskeyForUser(
+  captchaToken: string,
+  expectedUserId: string
+) {
+  const {
+    data: currentUserData,
+    error: currentUserError,
+  } = await supabase.auth.getUser();
+
+  if (currentUserError) {
+    throw currentUserError;
   }
 
-  if (!data?.user) {
+  if (
+    !currentUserData?.user ||
+    currentUserData.user.id !== expectedUserId
+  ) {
     throw new Error(
-      "Unable to authenticate with your CareVR Passkey."
+      "CareVR Passkey identity could not be verified."
     );
   }
 
-  return data.user;
-}
-
-/**
- * Temporary diagnostic for inspecting the WebAuthn
- * authentication options returned by Supabase.
- *
- * This does not start the browser Passkey ceremony
- * and does not authenticate the user.
- *
- * No challenge, credential, signature, or authenticator
- * data is logged.
- */
-async diagnosePasskeyAuthenticationOptions(
-  captchaToken: string
-): Promise<void> {
   const {
-    data,
-    error,
+    data: passkeys,
+    error: passkeyListError,
+  } =
+    await supabase.auth.passkey.list();
+
+  if (passkeyListError) {
+    throw passkeyListError;
+  }
+
+  if (!passkeys.length) {
+    throw new Error(
+      "No CareVR Passkey is registered for this user."
+    );
+  }
+
+  const {
+    data: authenticationOptions,
+    error: startError,
   } =
     await supabase.auth.passkey.startAuthentication({
       options: {
@@ -218,52 +221,131 @@ async diagnosePasskeyAuthenticationOptions(
       },
     });
 
-  if (error) {
-    throw error;
+  if (startError) {
+    throw startError;
   }
 
-  if (!data?.options) {
+  if (
+    !authenticationOptions?.options
+  ) {
     throw new Error(
       "Unable to obtain CareVR Passkey authentication options."
     );
   }
 
-  const options =
-    data.options;
+  const serverOptions =
+    authenticationOptions.options;
 
   const allowCredentials =
-    Array.isArray(
-      options.allowCredentials
+    passkeys.map((passkey) => ({
+      id: passkey.id,
+      type: "public-key" as const,
+    }));
+
+  let publicKeyOptions:
+    PublicKeyCredentialRequestOptions;
+
+  if (
+    typeof PublicKeyCredential !==
+      "undefined" &&
+    "parseRequestOptionsFromJSON" in
+      PublicKeyCredential &&
+    typeof (
+      PublicKeyCredential as typeof PublicKeyCredential & {
+        parseRequestOptionsFromJSON?: (
+          options: unknown
+        ) => PublicKeyCredentialRequestOptions;
+      }
+    ).parseRequestOptionsFromJSON ===
+      "function"
+  ) {
+    publicKeyOptions =
+      (
+        PublicKeyCredential as typeof PublicKeyCredential & {
+          parseRequestOptionsFromJSON: (
+            options: unknown
+          ) => PublicKeyCredentialRequestOptions;
+        }
+      ).parseRequestOptionsFromJSON({
+        ...serverOptions,
+        allowCredentials,
+        userVerification: "required",
+      });
+  } else {
+    throw new Error(
+      "This browser does not support the required WebAuthn Passkey API."
+    );
+  }
+
+  const credential =
+    await navigator.credentials.get({
+      publicKey: publicKeyOptions,
+    });
+
+  if (
+    !credential ||
+    !(
+      credential instanceof
+      PublicKeyCredential
     )
-      ? options.allowCredentials
-      : [];
+  ) {
+    throw new Error(
+      "CareVR Passkey authentication was not completed."
+    );
+  }
 
-  console.log(
-    "CareVR Passkey Diagnostic:",
-    {
-      hasOptions: true,
+  const credentialJson =
+    typeof credential.toJSON ===
+      "function"
+      ? credential.toJSON()
+      : null;
 
-      challengePresent:
-        Boolean(options.challenge),
+  if (!credentialJson) {
+    throw new Error(
+      "Unable to serialize the CareVR Passkey response."
+    );
+  }
 
-      hasAllowCredentials:
-        Array.isArray(
-          options.allowCredentials
-        ),
+  const {
+    data: verificationData,
+    error: verificationError,
+  } =
+    await supabase.auth.passkey.verifyAuthentication(
+      {
+        challengeId:
+          authenticationOptions.challenge_id,
+        credential:
+          credentialJson,
+      }
+    );
 
-      allowCredentialsCount:
-        allowCredentials.length,
+  if (verificationError) {
+    throw verificationError;
+  }
 
-      userVerification:
-        options.userVerification ??
-        null,
+  if (
+    !verificationData?.user
+  ) {
+    throw new Error(
+      "CareVR Passkey authentication did not return a user."
+    );
+  }
 
-      rpId:
-        options.rpId ??
-        null,
-    }
-  );
+  if (
+    verificationData.user.id !==
+    expectedUserId
+  ) {
+    await supabase.auth.signOut();
+
+    throw new Error(
+      "The CareVR Passkey does not belong to the authenticated user."
+    );
+  }
+
+  return verificationData.user;
 }
+
+
 
 /**
  * Login.

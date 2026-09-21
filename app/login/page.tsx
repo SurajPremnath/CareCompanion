@@ -48,10 +48,7 @@ import {
 
 import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 
-import PasskeyCaptcha, {
-  type PasskeyCaptchaHandle,
-} from "@/app/components/security/PasskeyCaptcha";
-
+import ValidPasskey from "@/app/components/security/ValidPasskey";
 
 import {
   carevrContextSelectionHandoff,
@@ -75,8 +72,6 @@ const [captchaToken, setCaptchaToken] =
 const turnstileRef =
   useRef<TurnstileInstance>(null);
 
-const passkeyCaptchaRef =
-  useRef<PasskeyCaptchaHandle>(null);
 
 const [showPassword, setShowPassword] =
     useState(false);
@@ -607,42 +602,16 @@ useEffect(() => {
           );
         }
 
-const captchaToken =
-  await passkeyCaptchaRef.current?.getToken();
-
-if (!captchaToken) {
-  throw new Error(
-    "Unable to complete Passkey security verification."
-  );
-}
-
-const passkeyAuthenticatedUser =
-  await authService.authenticatePasskey(
-    captchaToken
-  );
-
-if (
-  passkeyAuthenticatedUser.id !==
-  authenticatedUser.id
-) {
-
-  await supabase.auth.signOut();
-
-  throw new Error(
-    "The Passkey does not belong to the account you are trying to access."
-  );
-}
-
-        await completeLogin(
-          authenticatedUser
-        );
+        setPasskeyLogin({
+          user: authenticatedUser,
+        });
 
       } catch (err) {
 
         const message =
           err instanceof Error
             ? err.message
-            : "Unable to complete Passkey authentication.";
+            : "Unable to continue with your CareVR Passkey.";
 
         setError(message);
 
@@ -747,10 +716,6 @@ if (!hasPasskey) {
   return;
 }
 
-await authService.diagnosePasskeyAuthenticationOptions(
-  verifiedCaptchaToken
-);
-
 setPasskeyLogin({
   user: authenticatedUser,
 });
@@ -772,60 +737,6 @@ return;
 }
 };
 
-const handleVerifyPasskey = async () => {
-  if (!passkeyLogin) {
-    setError("Passkey verification is not available.");
-    return;
-  }
-
-  try {
-    setLoading(true);
-    setError("");
-
-const captchaToken =
-  await passkeyCaptchaRef.current?.getToken();
-
-if (!captchaToken) {
-  throw new Error(
-    "Unable to complete Passkey security verification."
-  );
-}
-
-const passkeyAuthenticatedUser =
-  await authService.authenticatePasskey(
-    captchaToken
-  );
-
-if (
-  passkeyAuthenticatedUser.id !==
-  passkeyLogin.user.id
-) {
-  await supabase.auth.signOut();
-
-  throw new Error(
-    "The Passkey does not belong to the account you are trying to access."
-  );
-}
-
-const authenticatedUser =
-  passkeyLogin.user;
-
-setPasskeyLogin(null);
-
-await completeLogin(
-  authenticatedUser
-);
-  } catch (err) {
-    const message =
-      err instanceof Error
-        ? err.message
-        : "Unable to authenticate with your CareVR passkey.";
-
-    setError(message);
-  } finally {
-    setLoading(false);
-  }
-};
 
 const handleCreatePasskey = async () => {
   if (!passkeyEnrollment) {
@@ -966,73 +877,16 @@ return (
         </section>
       </main>
 ) : passkeyLogin ? (
-  <main
-    className="login-page"
-    style={{
-      position: "fixed",
-      inset: 0,
-      width: "100%",
-      height: "100vh",
-      minHeight: "100vh",
-      margin: 0,
-      padding: 0,
-      background: "#f1eaff",
-      overflow: "auto",
+  <ValidPasskey
+    user={passkeyLogin.user}
+    onValidated={async (authenticatedUser) => {
+      setPasskeyLogin(null);
+
+      await completeLogin(
+        authenticatedUser
+      );
     }}
-  >
-    <PasskeyCaptcha
-      ref={passkeyCaptchaRef}
-    />
-
-    <section className="login-shell">
-          <div className="login-left">
-            <div
-              className="login-content"
-              style={{
-                marginLeft: "60px",
-                marginTop: "60px",
-                gap: "18px",
-              }}
-            >
-              <div className="login-heading">
-                <h1>Verify Your CareVR Account</h1>
-
-                <p>
-                  Use your registered Passkey to continue to CareVR.
-                </p>
-              </div>
-
-              {error && (
-                <div
-                  className="login-error"
-                  role="alert"
-                  aria-live="polite"
-                >
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="button"
-                className="primary-button"
-                onClick={() =>
-                  void handleVerifyPasskey()
-                }
-                disabled={loading}
-              >
-                {loading
-                  ? "Verifying..."
-                  : "Verify with Passkey"}
-              </button>
-            </div>
-          </div>
-
-          <div
-            className="login-right"
-            aria-hidden="true"
-          />
-        </section>
-      </main>
+  />
 
 
 
