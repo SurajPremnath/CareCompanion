@@ -27,6 +27,11 @@ import {
   performanceTracker,
 } from "@/lib/performance/performanceTracker";
 
+import {
+  getCareVRDashboardHandoff,
+  resolveCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
+
 export default function AddPatientPage() {
 
   const router = useRouter();
@@ -239,6 +244,20 @@ if (!familyResult.success) {
   return;
 
 }
+
+const existingDashboardHandoff =
+  getCareVRDashboardHandoff();
+
+if (!existingDashboardHandoff) {
+  throw new Error(
+    "CareVR Dashboard handoff is required."
+  );
+}
+
+await resolveCareVRDashboardHandoff(
+  existingDashboardHandoff.userId,
+  existingDashboardHandoff.role
+);
 
 AppAlert.success(
   t("addPatient.saveSuccess")
