@@ -23,28 +23,81 @@ export async function provisionPrimaryAccess(
     // establishing a PRIMARY context.
     //------------------------------------------------------
 
-    const {
-        data: profile,
-        error: profileError
-    } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .eq("id", userId)
-        .maybeSingle();
+const {
+    data: profile,
+    error: profileError
+} = await supabase
+    .from("profiles")
+    .select("id, full_name, email")
+    .eq("id", userId)
+    .maybeSingle();
 
-    if (profileError) {
+if (profileError) {
 
-        throw profileError;
+    throw profileError;
+
+}
+
+if (!profile) {
+
+    throw new Error(
+        "CareVR user profile could not be found."
+    );
+
+}
+
+/*
+ * Existing invitees already have an Auth/Profile identity.
+ * When an invitee accepts Primary responsibility, establish
+ * a temporary profile name from the authenticated email if
+ * the profile does not yet have a name.
+ *
+ * Example:
+ * test222@gmail.com -> Test222
+ *
+ * This is intentionally limited to an empty profile name.
+ * A later Profile feature will allow the user to maintain
+ * their proper full name.
+ */
+if (!profile.full_name?.trim() && profile.email?.trim()) {
+
+    const emailLocalPart =
+        profile.email
+            .trim()
+            .split("@")[0]
+            .trim();
+
+    const derivedFullName =
+        emailLocalPart
+            .replace(/[._-]+/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+            .replace(/\b\w/g, (character: string) =>
+                character.toUpperCase()
+            );
+
+    if (derivedFullName) {
+
+        const {
+            error: profileUpdateError
+        } = await supabase
+            .from("profiles")
+            .update({
+                full_name: derivedFullName,
+            })
+            .eq("id", userId);
+
+        if (profileUpdateError) {
+
+            throw profileUpdateError;
+
+        }
+
+        profile.full_name = derivedFullName;
 
     }
 
-    if (!profile) {
-
-        throw new Error(
-            "CareVR user profile could not be found."
-        );
-
-    }
+}
 
     //------------------------------------------------------
     // Resolve an existing active PRIMARY access context.
