@@ -823,19 +823,12 @@ Primary Family Member.
                                      * success message can be displayed even after
                                      * the handoff is consumed.
                                      */
-                                    setInviteePrimaryConfirmed(true);
+setInviteePrimaryConfirmed(true);
 
-                                    /*
-                                     * The handoff has now been consumed successfully.
-                                     */
-                                    inviteeToPrimaryHandoff.clear();
-
-                                    /*
-                                     * End the existing Invitee session.
-                                     * The user will use the existing credentials
-                                     * to establish the PRIMARY context from Login.
-                                     */
-                                    await authService.logout();
+/*
+ * The handoff has now been consumed successfully.
+ */
+inviteeToPrimaryHandoff.clear();
 
                                 } catch (err) {
                                     const message =
@@ -880,9 +873,10 @@ Primary Family Member.
                     <button
                         type="button"
                         className="login-link-button"
-                        onClick={() => {
-                            router.replace("/login");
-                        }}
+onClick={async () => {
+    await authService.logout();
+    router.replace("/login");
+}}
                     >
                         Click Back to Login
                     </button>
