@@ -27,6 +27,10 @@ import {
     resolveCareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
 
+import {
+    carevrContextResolver,
+} from "@/lib/auth/carevrContextResolver";
+
 type LockState = {
     lockedUntil: string;
     lockoutLevel: number;
@@ -423,39 +427,67 @@ if (
 ) {
     /*
      * ---------------------------------------------------------
-     * DASHBOARD HANDOFF
+     * EXISTING CAREVR CONTEXT RESOLUTION
      *
      * PIN verification is complete.
      * CareVR eligibility / consent / role validation
      * has already completed above.
      *
-     * Now resolve the existing Dashboard handoff.
-     * This prepares the authorized CareVR access,
-     * modules and protected patient scope before
-     * entering Dashboard.
+     * Resolve the user's existing active CareVR contexts.
+     *
+     * If the user has multiple active contexts
+     * (for example PRIMARY + CARETAKER), use the
+     * existing Profile Selection flow.
+     *
+     * If there is only one context, preserve the
+     * existing direct Dashboard handoff.
+     * ---------------------------------------------------------
+     */
+
+    const availableContexts =
+        await carevrContextResolver
+            .getAvailableContexts(
+                userId
+            );
+
+    if (
+        availableContexts.length === 0
+    ) {
+        throw new Error(
+            "No active CareVR profiles are available for this account."
+        );
+    }
+
+    if (
+        availableContexts.length > 1
+    ) {
+        router.replace(
+            "/profile-selection"
+        );
+        return;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * SINGLE CONTEXT
+     *
+     * Preserve the existing Dashboard handoff.
      * ---------------------------------------------------------
      */
 
     const dashboardRole =
-        validation.status === "PRIMARY"
-            ? "SELF"
-            : validation.invitationRole ===
-              "SECONDARY_FAMILY_MEMBER"
-                ? "FAMILY"
-                : validation.invitationRole;
-
-    if (!dashboardRole) {
-        throw new Error(
-            "CareVR role is missing."
-        );
-    }
+        availableContexts[0]
+            .loginRole;
 
     await resolveCareVRDashboardHandoff(
         userId,
         dashboardRole
     );
 
-    router.replace("/dashboard");
+    router.replace(
+        "/dashboard"
+    );
+
     return;
 }
 
