@@ -10,7 +10,9 @@ import {
   getCareVRDashboardHandoff,
   type CareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
+
 import { authService } from "@/lib/auth/authService";
+import { profileRepository } from "@/lib/repositories/profileRepository";
 
 interface DoctorsNoteDoctorOption {
   providerId: string;
@@ -25,6 +27,9 @@ export default function DoctorsNotesPage() {
 
   const [dashboardHandoff, setDashboardHandoff] =
     useState<CareVRDashboardHandoff | null>(null);
+
+const [userName, setUserName] =
+  useState("");
 
   const [careMode, setCareMode] =
     useState<MobileCareMode>("FAMILY");
@@ -78,6 +83,32 @@ useEffect(() => {
   if (handoff.patients.length > 0) {
     setSelectedPatient(handoff.patients[0].id);
   }
+
+  let cancelled = false;
+
+  async function loadUserProfile() {
+    try {
+      const profile =
+        await profileRepository.getCurrentProfile();
+
+      if (cancelled) {
+        return;
+      }
+
+      setUserName(profile?.fullName ?? "");
+    } catch (error) {
+      console.error(
+        "Unable to retrieve current profile for Doctors Notes.",
+        error,
+      );
+    }
+  }
+
+  void loadUserProfile();
+
+  return () => {
+    cancelled = true;
+  };
 }, [router]);
 
 // ADD THE NEW EFFECT HERE
@@ -312,11 +343,7 @@ return (
 <MobileHeader
     careMode={careMode}
     onCareModeChange={setCareMode}
-    userName={
-        dashboardHandoff?.role === "DOCTOR"
-            ? "Doctor"
-            : "CareVR User"
-    }
+    userName={userName}
     pageTitle="Doctors Notes"
     pageSubtitle="Record a clear note for the patient's health journey."
         showCareModeToggle={true}
