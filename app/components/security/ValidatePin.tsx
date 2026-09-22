@@ -19,11 +19,9 @@ import MobileHeader, {
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
-
-type ValidatePinProps = {
-    onVerified?: () => void;
-};
-
+import {
+    validateInvitedUserLogin,
+} from "@/lib/invitations/invitedUserLoginValidation";
 
 type LockState = {
     lockedUntil: string;
@@ -31,8 +29,14 @@ type LockState = {
 };
 
 
+type ValidatePinProps = {
+    userId: string;
+    email: string;
+};
+
 export default function ValidatePin({
-    onVerified,
+    userId,
+    email,
 }: ValidatePinProps) {
 
     const router = useRouter();
@@ -365,20 +369,66 @@ useEffect(() => {
             }
 
 
-            /*
-             * SUCCESS
-             */
+/*
+ * SUCCESS
+ *
+ * Login has already authenticated the user.
+ * PIN verification is now complete.
+ *
+ * The invitation check remains in Login.
+ * This validation determines whether the
+ * authenticated CareVR user can proceed based
+ * on consent, role and CareVR authorization.
+ */
+setAttemptsRemaining(null);
+setPin("");
 
-            setAttemptsRemaining(
-                null
-            );
+const validation =
+    await validateInvitedUserLogin({
+        email,
+        userId,
+        mode: "NORMAL",
+    });
 
-            setPin("");
+if (
+    validation.status ===
+    "CONSENT_REQUIRED"
+) {
+    router.replace("/consent");
+    return;
+}
 
+if (
+    validation.status ===
+    "ROLE_MISMATCH" ||
+    validation.status ===
+    "INVALID_INVITATION" ||
+    validation.status ===
+    "NOT_INVITED"
+) {
+    throw new Error(
+        validation.message
+    );
+}
 
-            if (onVerified) {
-                onVerified();
-            }
+if (
+    validation.status ===
+    "ACCEPTED" ||
+    validation.status ===
+    "PRIMARY"
+) {
+    /*
+     * Dashboard handoff will be wired in the
+     * next step. Do not bypass it with a naked
+     * router.replace("/dashboard").
+     */
+    router.replace("/dashboard");
+    return;
+}
+
+throw new Error(
+    validation.message
+);
 
         } catch (err) {
 

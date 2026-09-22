@@ -353,29 +353,8 @@ return;
 if (pinVerification) {
   return (
     <ValidatePin
-      onVerified={() => {
-        const authenticatedUser =
-          pinVerification.user;
-
-        const selectedRole =
-          pinVerification.role;
-
-        setPinVerification(null);
-
-        void continueGoogleLogin(
-          authenticatedUser,
-          selectedRole,
-          false
-        ).catch((err) => {
-          const message =
-            err instanceof Error
-              ? err.message
-              : "Unable to complete Google login.";
-
-          alert(message);
-          router.replace("/login");
-        });
-      }}
+      userId={pinVerification.user.id}
+      email={pinVerification.user.email ?? ""}
     />
   );
 }

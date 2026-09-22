@@ -137,16 +137,81 @@ const completeLogin = async (
 ) => {
 
   /*
-   * CareVR contexts are resolved first from the
-   * authenticated user's ACTIVE carevr_access records.
+   * POST-PIN ROUTE GATE
    *
-   * This is the authoritative source for established
-   * CareVR profiles.
+   * PIN verification has succeeded.
+   * Now hand the authenticated user to the
+   * existing CareVR invitation validation.
    *
-   * If multiple profiles exist, Layer 5 must be completed
-   * before any single invitation context can short-circuit
-   * the login flow.
+   * No authentication, authorization, consent,
+   * encryption, or dashboard logic is changed here.
+   * This only determines the next route.
    */
+  const postPinValidation =
+    await validateInvitedUserLogin({
+      email: (
+        authenticatedUser.email ??
+        ""
+      ).trim(),
+      userId: authenticatedUser.id,
+      mode: "NORMAL",
+    });
+
+  if (
+    postPinValidation.status ===
+    "CONSENT_REQUIRED"
+  ) {
+    carevrAuthorizationHandoff.set({
+      userId: authenticatedUser.id,
+      carevrRole:
+        postPinValidation.invitationRole ??
+        "CARETAKER",
+      familyId:
+        postPinValidation.familyId ??
+        null,
+      patientId: null,
+      consentStage: "POST_LOGIN",
+      governanceId: null,
+      governanceVersion: null,
+    });
+
+    router.replace("/consent");
+    return;
+  }
+
+  if (
+    postPinValidation.status ===
+      "ROLE_MISMATCH" ||
+    postPinValidation.status ===
+      "INVALID_INVITATION" ||
+    postPinValidation.status ===
+      "NOT_INVITED"
+  ) {
+    throw new Error(
+      postPinValidation.message
+    );
+  }
+
+  if (
+    postPinValidation.status ===
+    "VALID_INVITATION"
+  ) {
+    if (
+      !postPinValidation.invitationId
+    ) {
+      throw new Error(
+        "Invitation information is missing."
+      );
+    }
+
+    router.replace(
+      `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
+        postPinValidation.invitationId
+      )}`
+    );
+    return;
+  }
+
   const availableContexts =
     await carevrContextResolver
       .getAvailableContexts(
@@ -719,20 +784,12 @@ return;
 
 return (
   <>
-    {pinVerification ? (
-      <ValidatePin
-        onVerified={() => {
-          const authenticatedUser =
-            pinVerification.user;
-
-          setPinVerification(null);
-
-          void completeLogin(
-            authenticatedUser
-          );
-        }}
-      />
-    ) : (
+{pinVerification ? (
+  <ValidatePin
+    userId={pinVerification.user.id}
+    email={pinVerification.user.email ?? ""}
+  />
+) : (
       <>
         <style jsx global>{`
       * {
