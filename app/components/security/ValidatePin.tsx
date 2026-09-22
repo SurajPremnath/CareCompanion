@@ -35,6 +35,10 @@ import {
     carevrContextResolver,
 } from "@/lib/auth/carevrContextResolver";
 
+import {
+    profileRepository,
+} from "@/lib/repositories/profileRepository";
+
 type LockState = {
     lockedUntil: string;
     lockoutLevel: number;
@@ -118,14 +122,11 @@ const [userName, setUserName] =
 useEffect(() => {
     const loadUserName = async () => {
         try {
-            const user =
-                await authService.getCurrentUser();
+            const profile =
+                await profileRepository.getCurrentProfile();
 
             const fullName =
-                typeof user?.user_metadata?.full_name ===
-                "string"
-                    ? user.user_metadata.full_name.trim()
-                    : "";
+                profile?.fullName?.trim() ?? "";
 
             if (fullName) {
                 setUserName(fullName);
