@@ -1,6 +1,7 @@
 "use client";
 
 import React, {
+    Suspense,
     useEffect,
     useState,
 } from "react";
@@ -38,7 +39,7 @@ import {
 
 
 
-export default function CreatePin() {
+function CreatePinContent() {
     const router = useRouter();
 
 const searchParams =
@@ -1056,5 +1057,13 @@ throw new Error(
             `}</style>
 
         </main>
+    );
+}
+
+export default function CreatePin() {
+    return (
+        <Suspense fallback={null}>
+            <CreatePinContent />
+        </Suspense>
     );
 }

@@ -261,6 +261,7 @@ await consentStorage.acceptConsent({
 
 });
 
+// CareVR post-consent continuation returns to the Create PIN flow.
 router.replace(
     "/secure-access/create-pin?consentAccepted=true"
 );

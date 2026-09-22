@@ -529,7 +529,7 @@ if (
 }
 
 const dashboardHandoff =
-    getCareVRDashboardHandoff();
+    existingDashboardHandoff;
 
 const toggleConfiguration =
     getCareVRToggle(
