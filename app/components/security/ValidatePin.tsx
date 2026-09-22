@@ -28,6 +28,10 @@ import {
 } from "@/lib/auth/carevrDashboardHandoff";
 
 import {
+    carevrAuthorizationHandoff,
+} from "@/lib/authorization/carevrAuthorizationHandoff";
+
+import {
     carevrContextResolver,
 } from "@/lib/auth/carevrContextResolver";
 
@@ -402,6 +406,31 @@ if (
     validation.status ===
     "CONSENT_REQUIRED"
 ) {
+    if (
+        !validation.invitationRole ||
+        !validation.familyId
+    ) {
+        throw new Error(
+            "CareVR authorization context is incomplete."
+        );
+    }
+
+    carevrAuthorizationHandoff.set({
+        userId,
+        carevrRole:
+            validation.invitationRole,
+        familyId:
+            validation.familyId,
+        patientId:
+            null,
+        consentStage:
+            "POST_LOGIN",
+        governanceId:
+            null,
+        governanceVersion:
+            null,
+    });
+
     router.replace("/consent");
     return;
 }
