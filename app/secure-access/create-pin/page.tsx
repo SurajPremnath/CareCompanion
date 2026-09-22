@@ -358,6 +358,52 @@ throw new Error(
         }
     };
 
+    if (consentAccepted) {
+        return (
+            <main className="create-pin-page">
+                <div className="create-pin-shell">
+                    <section
+                        className="create-pin-card"
+                        aria-live="polite"
+                    >
+                        <div
+                            className="security-icon"
+                            aria-hidden="true"
+                        >
+                            <svg
+                                width="30"
+                                height="30"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <path d="M12 3l8 4v5c0 4.8-3.4 7.9-8 9-4.6-1.1-8-4.2-8-9V7l8-4z" />
+                                <path d="M9 12l2 2 4-4" />
+                            </svg>
+                        </div>
+
+                        <div className="eyebrow">
+                            SECURE ACCESS
+                        </div>
+
+                        <h1>
+                            Finalizing Your Secure Access
+                        </h1>
+
+                        <p className="intro">
+                            Your consent has been recorded.
+                            We are securely preparing your
+                            CareVR dashboard.
+                        </p>
+                    </section>
+                </div>
+            </main>
+        );
+    }
+
     return (
         <main className="create-pin-page">
 
