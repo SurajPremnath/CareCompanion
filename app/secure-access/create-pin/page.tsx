@@ -4,7 +4,11 @@ import React, {
     useEffect,
     useState,
 } from "react";
-import { useRouter } from "next/navigation";
+
+import {
+    useRouter,
+    useSearchParams,
+} from "next/navigation";
 
 import MobileHeader, {
     type MobileCareMode,
@@ -33,8 +37,17 @@ import {
 } from "@/lib/authorization/carevrAuthorizationHandoff";
 
 
+
 export default function CreatePin() {
     const router = useRouter();
+
+const searchParams =
+    useSearchParams();
+
+const consentAccepted =
+    searchParams.get(
+        "consentAccepted"
+    ) === "true";
 
 const [pin, setPin] = useState("");
 const [confirmPin, setConfirmPin] = useState("");
@@ -74,6 +87,100 @@ useEffect(() => {
         cancelled = true;
     };
 }, []);
+
+useEffect(() => {
+    if (!consentAccepted) {
+        return;
+    }
+
+    let cancelled = false;
+
+    const continueAfterConsent = async () => {
+        setError("");
+        setSaving(true);
+
+        try {
+            const user =
+                await authService.getCurrentUser();
+
+            if (!user?.id || !user.email) {
+                throw new Error(
+                    "Authenticated user context is unavailable."
+                );
+            }
+
+            const validation =
+                await validateInvitedUserLogin({
+                    email: user.email,
+                    userId: user.id,
+                    mode: "NORMAL",
+                });
+
+            if (cancelled) {
+                return;
+            }
+
+            if (
+                validation.status ===
+                    "ACCEPTED" ||
+                validation.status ===
+                    "PRIMARY"
+            ) {
+                await resolveCareVRDashboardHandoff(
+                    user.id,
+                    validation.status ===
+                        "PRIMARY"
+                        ? "SELF"
+                        : validation.invitationRole ===
+                            "SECONDARY_FAMILY_MEMBER"
+                            ? "FAMILY"
+                            : validation.invitationRole ===
+                                "CARETAKER"
+                                ? "CARETAKER"
+                                : validation.invitationRole ===
+                                    "DOCTOR"
+                                    ? "DOCTOR"
+                                    : "SELF"
+                );
+
+                if (cancelled) {
+                    return;
+                }
+
+                router.replace(
+                    "/dashboard"
+                );
+
+                return;
+            }
+
+            throw new Error(
+                validation.message ||
+                    "Unable to determine the next CareVR step."
+            );
+        } catch (error) {
+            if (cancelled) {
+                return;
+            }
+
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to continue to CareVR Dashboard."
+            );
+        } finally {
+            if (!cancelled) {
+                setSaving(false);
+            }
+        }
+    };
+
+    void continueAfterConsent();
+
+    return () => {
+        cancelled = true;
+    };
+}, [consentAccepted, router]);
 
 
     const handlePinChange = (

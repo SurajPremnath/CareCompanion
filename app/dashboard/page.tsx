@@ -88,7 +88,6 @@ import type {
     CareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
 
-
 import type {
     CareVRToggleConfiguration,
 } from "@/lib/auth/carevrToggle";
@@ -515,29 +514,22 @@ const existingDashboardHandoff =
     getCareVRDashboardHandoff();
 
 if (!existingDashboardHandoff) {
-
     throw new Error(
         "CareVR Dashboard handoff is required."
     );
-
 }
 
 if (
     existingDashboardHandoff.userId !==
     authUser.id
 ) {
-
     throw new Error(
         "CareVR Dashboard handoff does not match the authenticated user."
     );
-
 }
 
 const dashboardHandoff =
-    await resolveCareVRDashboardHandoff(
-        authUser.id,
-        existingDashboardHandoff.role
-    );
+    getCareVRDashboardHandoff();
 
 const toggleConfiguration =
     getCareVRToggle(

@@ -224,44 +224,46 @@ const handleAccept = async () => {
 
     try {
 
-        await consentStorage.acceptConsent({
+await consentStorage.acceptConsent({
 
-            privacyPanel:
-                reviewedTabs.has("privacy"),
+    privacyPanel:
+        reviewedTabs.has("privacy"),
 
-            familyPanel:
-                reviewedTabs.has("family"),
+    familyPanel:
+        reviewedTabs.has("family"),
 
-            trackingPanel:
-                reviewedTabs.has("tracking"),
+    trackingPanel:
+        reviewedTabs.has("tracking"),
 
-            securityPanel:
-                reviewedTabs.has("security"),
+    securityPanel:
+        reviewedTabs.has("security"),
 
-            medicalPanel:
-                reviewedTabs.has("medical"),
+    medicalPanel:
+        reviewedTabs.has("medical"),
 
-            legalDataProtectionPanel:
-                reviewedTabs.has("legal"),
+    legalDataProtectionPanel:
+        reviewedTabs.has("legal"),
 
-            storageProcessingPanel:
-                reviewedTabs.has("storage"),
+    storageProcessingPanel:
+        reviewedTabs.has("storage"),
 
-            retentionDeletionPanel:
-                reviewedTabs.has("retention"),
+    retentionDeletionPanel:
+        reviewedTabs.has("retention"),
 
-            voluntaryProcessingAgreement:
-                readConfirmed,
+    voluntaryProcessingAgreement:
+        readConfirmed,
 
-            termsMedicalAgreement:
-                agreementAccepted,
+    termsMedicalAgreement:
+        agreementAccepted,
 
-            privacyPolicyAcknowledgement:
-                privacyPolicyAcknowledged,
+    privacyPolicyAcknowledgement:
+        privacyPolicyAcknowledged,
 
-        });
+});
 
-        router.replace("/dashboard");
+router.replace(
+    "/secure-access/create-pin?consentAccepted=true"
+);
 
     } catch (error) {
 
