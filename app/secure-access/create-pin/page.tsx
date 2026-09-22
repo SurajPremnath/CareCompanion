@@ -89,9 +89,14 @@ const [saving, setSaving] = useState(false);
 
 /*
  * PIN creation is complete.
- * Continue directly into the existing CareVR journey.
+ * End the authenticated setup session.
+ * The user must explicitly log in again so the
+ * normal CareVR authentication, PIN verification,
+ * consent, role/context, authorization, and dashboard
+ * lifecycle is executed.
  */
-router.replace("/carevr-journey");
+await authService.logout();
+router.replace("/login");
 
         } catch (err) {
             setError(
