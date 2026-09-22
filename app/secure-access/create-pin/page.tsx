@@ -11,6 +11,23 @@ import CareVRFooter from "@/Components/common/CareVRFooter";
 
 import { authService } from "@/lib/auth/authService";
 
+import {
+    validateInvitedUserLogin,
+} from "@/lib/invitations/invitedUserLoginValidation";
+
+import {
+    resolveCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
+
+
+import {
+    carevrAuthorizationHandoff,
+} from "@/lib/authorization/carevrAuthorizationHandoff";
+
+import {
+    carevrContextResolver,
+} from "@/lib/auth/carevrContextResolver";
+
 export default function CreatePin() {
     const router = useRouter();
 
@@ -87,16 +104,136 @@ const [saving, setSaving] = useState(false);
                 );
             }
 
-/*
- * PIN creation is complete.
- * End the authenticated setup session.
- * The user must explicitly log in again so the
- * normal CareVR authentication, PIN verification,
- * consent, role/context, authorization, and dashboard
- * lifecycle is executed.
- */
-await authService.logout();
-router.replace("/login");
+const user =
+    await authService.getCurrentUser();
+
+if (!user?.id || !user.email) {
+    throw new Error(
+        "Authenticated user context is unavailable."
+    );
+}
+
+const validation =
+    await validateInvitedUserLogin({
+        email: user.email,
+        userId: user.id,
+        mode: "NORMAL",
+    });
+
+if (
+    validation.status ===
+    "CONSENT_REQUIRED"
+) {
+    if (
+        !validation.invitationRole ||
+        !validation.familyId
+    ) {
+        throw new Error(
+            "CareVR authorization context is incomplete."
+        );
+    }
+
+    carevrAuthorizationHandoff.set({
+        userId: user.id,
+        carevrRole:
+            validation.invitationRole,
+        familyId:
+            validation.familyId,
+        patientId:
+            null,
+        consentStage:
+            "POST_LOGIN",
+        governanceId:
+            null,
+        governanceVersion:
+            null,
+    });
+
+    router.replace("/consent");
+    return;
+}
+
+if (
+    validation.status ===
+        "ROLE_MISMATCH" ||
+    validation.status ===
+        "INVALID_INVITATION" ||
+    validation.status ===
+        "NOT_INVITED"
+) {
+    throw new Error(
+        validation.message
+    );
+}
+
+if (
+    validation.status === "ACCEPTED" ||
+    validation.status === "PRIMARY"
+) {
+    /*
+     * ---------------------------------------------------------
+     * EXISTING CAREVR CONTEXT RESOLUTION
+     *
+     * PIN creation is complete.
+     * CareVR eligibility / consent / role validation
+     * has already completed above.
+     *
+     * Resolve the user's active CareVR contexts using
+     * the same resolver used after PIN verification.
+     * ---------------------------------------------------------
+     */
+
+    const availableContexts =
+        await carevrContextResolver
+            .getAvailableContexts(
+                user.id
+            );
+
+    if (
+        availableContexts.length === 0
+    ) {
+        throw new Error(
+            "No active CareVR profiles are available for this account."
+        );
+    }
+
+    if (
+        availableContexts.length > 1
+    ) {
+        router.replace(
+            "/profile-selection"
+        );
+        return;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * SINGLE CONTEXT
+     *
+     * Preserve the existing Dashboard handoff.
+     * ---------------------------------------------------------
+     */
+
+    const dashboardRole =
+        availableContexts[0]
+            .loginRole;
+
+    await resolveCareVRDashboardHandoff(
+        user.id,
+        dashboardRole
+    );
+
+    router.replace(
+        "/dashboard"
+    );
+
+    return;
+}
+
+throw new Error(
+    validation.message ||
+        "Unable to determine the next CareVR step."
+);
 
         } catch (err) {
             setError(
