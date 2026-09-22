@@ -23,6 +23,10 @@ import {
     validateInvitedUserLogin,
 } from "@/lib/invitations/invitedUserLoginValidation";
 
+import {
+    resolveCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
+
 type LockState = {
     lockedUntil: string;
     lockoutLevel: number;
@@ -400,11 +404,11 @@ if (
 
 if (
     validation.status ===
-    "ROLE_MISMATCH" ||
+        "ROLE_MISMATCH" ||
     validation.status ===
-    "INVALID_INVITATION" ||
+        "INVALID_INVITATION" ||
     validation.status ===
-    "NOT_INVITED"
+        "NOT_INVITED"
 ) {
     throw new Error(
         validation.message
@@ -413,15 +417,44 @@ if (
 
 if (
     validation.status ===
-    "ACCEPTED" ||
+        "ACCEPTED" ||
     validation.status ===
-    "PRIMARY"
+        "PRIMARY"
 ) {
     /*
-     * Dashboard handoff will be wired in the
-     * next step. Do not bypass it with a naked
-     * router.replace("/dashboard").
+     * ---------------------------------------------------------
+     * DASHBOARD HANDOFF
+     *
+     * PIN verification is complete.
+     * CareVR eligibility / consent / role validation
+     * has already completed above.
+     *
+     * Now resolve the existing Dashboard handoff.
+     * This prepares the authorized CareVR access,
+     * modules and protected patient scope before
+     * entering Dashboard.
+     * ---------------------------------------------------------
      */
+
+    const dashboardRole =
+        validation.status === "PRIMARY"
+            ? "SELF"
+            : validation.invitationRole ===
+              "SECONDARY_FAMILY_MEMBER"
+                ? "FAMILY"
+                : validation.invitationRole;
+
+    if (!dashboardRole) {
+        throw new Error(
+            "CareVR role is missing."
+        );
+    }
+
+    await resolveCareVRDashboardHandoff(
+        userId,
+        dashboardRole
+    );
+
     router.replace("/dashboard");
     return;
 }
@@ -430,19 +463,19 @@ throw new Error(
     validation.message
 );
 
-        } catch (err) {
+} catch (err) {
 
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : "Unable to verify your CareVR PIN."
-            );
+    setError(
+        err instanceof Error
+            ? err.message
+            : "Unable to verify your CareVR PIN."
+    );
 
-        } finally {
+} finally {
 
-            setSaving(false);
-        }
-    };
+    setSaving(false);
+}
+};
 
 
     /*

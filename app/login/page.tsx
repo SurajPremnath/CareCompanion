@@ -6,7 +6,6 @@ import React, {
   useState,
 } from "react";
 
-import { supabase } from "@/lib/supabase";
 
 import { useRouter } from "next/navigation";
 
@@ -21,39 +20,17 @@ import { authService } from "@/lib/auth/authService";
 
 import { authSecurity } from "@/lib/auth/authSecurity";
 
-import {
-  authSessionService,
-} from "@/lib/analytics/authSessionService";
 
 import {
   performanceTracker,
 } from "@/lib/performance/performanceTracker";
 
 
-import {
-  resolveCareVRDashboardHandoff,
-} from "@/lib/auth/carevrDashboardHandoff";
-
-import {
-  carevrAuthorizationHandoff,
-} from "@/lib/authorization/carevrAuthorizationHandoff";
-
-import {
-  carevrContextResolver,
-} from "@/lib/auth/carevrContextResolver";
-
-import {
-  validateInvitedUserLogin,
-} from "@/lib/invitations/invitedUserLoginValidation";
-
-import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
-
-
-import {
-  carevrContextSelectionHandoff,
-} from "@/lib/auth/carevrContextSelectionHandoff";
-
 import ValidatePin from "@/app/components/security/ValidatePin";
+
+import {
+  inviteeToPrimaryHandoff,
+} from "@/lib/authorization/inviteeToPrimaryHandoff";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -63,6 +40,8 @@ export default function LoginPage() {
 const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 const [loading, setLoading] = useState(false);
+
+
 const [googleLoading, setGoogleLoading] = useState(false);
 const [error, setError] = useState("");
 
@@ -76,8 +55,12 @@ const turnstileRef =
 const [showPassword, setShowPassword] =
     useState(false);
 
+const [selectedContext, setSelectedContext] =
+  useState<"FAMILY" | "ORGANISATION">("FAMILY");
+
 const [loginMethod, setLoginMethod] =
   useState<"EMAIL" | "GOOGLE">("EMAIL");
+
 
 const [pinVerification, setPinVerification] =
   useState<{
@@ -88,34 +71,11 @@ const [pinVerification, setPinVerification] =
 
 
 /*
- * Care context is resolved from the authenticated user's
- * ACTIVE carevr_access records.
+ * CareVR role and context are established after PIN
+ * verification from authoritative CareVR access records.
  *
- * The selected context is an actual CareVR access record.
- * Display labels are handled by the context resolver.
+ * Login does not accept or select a CareVR role.
  */
-const [selectedContext, setSelectedContext] =
-    useState<"FAMILY" | "ORGANISATION">("FAMILY");
-
-const [selectedRole, setSelectedRole] =
-    useState<
-        "SELF" |
-        "DOCTOR" |
-        "CARETAKER" |
-        "FAMILY"
-    >("SELF");
-
-const [availableCareVRContexts, setAvailableCareVRContexts] =
-    useState<
-        import("@/lib/auth/carevrContextResolver")
-            .CareVRAvailableContext[]
-    >([]);
-
-const [selectedCareVRContextId, setSelectedCareVRContextId] =
-    useState<string | null>(null);
-
-const [showCareVRContextSelection, setShowCareVRContextSelection] =
-    useState(false);
 
   useEffect(() => {
     if (loginPageReadyRef.current) {
@@ -129,507 +89,6 @@ const [showCareVRContextSelection, setShowCareVRContextSelection] =
     });
   }, []);
 
-const completeLogin = async (
-  authenticatedUser: Awaited<
-    ReturnType<typeof authService.login>
-  >,
-  selectedAccessId?: string
-) => {
-
-  /*
-   * POST-PIN ROUTE GATE
-   *
-   * PIN verification has succeeded.
-   * Now hand the authenticated user to the
-   * existing CareVR invitation validation.
-   *
-   * No authentication, authorization, consent,
-   * encryption, or dashboard logic is changed here.
-   * This only determines the next route.
-   */
-  const postPinValidation =
-    await validateInvitedUserLogin({
-      email: (
-        authenticatedUser.email ??
-        ""
-      ).trim(),
-      userId: authenticatedUser.id,
-      mode: "NORMAL",
-    });
-
-  if (
-    postPinValidation.status ===
-    "CONSENT_REQUIRED"
-  ) {
-    carevrAuthorizationHandoff.set({
-      userId: authenticatedUser.id,
-      carevrRole:
-        postPinValidation.invitationRole ??
-        "CARETAKER",
-      familyId:
-        postPinValidation.familyId ??
-        null,
-      patientId: null,
-      consentStage: "POST_LOGIN",
-      governanceId: null,
-      governanceVersion: null,
-    });
-
-    router.replace("/consent");
-    return;
-  }
-
-  if (
-    postPinValidation.status ===
-      "ROLE_MISMATCH" ||
-    postPinValidation.status ===
-      "INVALID_INVITATION" ||
-    postPinValidation.status ===
-      "NOT_INVITED"
-  ) {
-    throw new Error(
-      postPinValidation.message
-    );
-  }
-
-  if (
-    postPinValidation.status ===
-    "VALID_INVITATION"
-  ) {
-    if (
-      !postPinValidation.invitationId
-    ) {
-      throw new Error(
-        "Invitation information is missing."
-      );
-    }
-
-    router.replace(
-      `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
-        postPinValidation.invitationId
-      )}`
-    );
-    return;
-  }
-
-  const availableContexts =
-    await carevrContextResolver
-      .getAvailableContexts(
-        authenticatedUser.id
-      );
-
-  if (
-    availableContexts.length > 1 &&
-    !selectedAccessId
-  ) {
-
-    setAvailableCareVRContexts(
-      availableContexts
-    );
-
-    router.replace(
-      "/profile-selection"
-    );
-
-    return;
-  }
-
-  /*
-   * If Login received a selected context from the
-   * dedicated Profile Selection page, re-resolve the
-   * active contexts and verify that the selected access
-   * record still belongs to the authenticated user.
-   */
-  const contextSelectionHandoff =
-    carevrContextSelectionHandoff.get();
-
-  const hasValidSelectionHandoff =
-    contextSelectionHandoff !== null &&
-    contextSelectionHandoff.userId ===
-      authenticatedUser.id;
-
-  const resolvedSelectedAccessId =
-    selectedAccessId ??
-    (
-      hasValidSelectionHandoff
-        ? contextSelectionHandoff.context
-            .accessId
-        : null
-    );
-
-  /*
-   * For an established single-context account,
-   * the resolver already provides the context.
-   *
-   * For a selected multi-context account, the selected
-   * accessId must match one of the freshly resolved
-   * ACTIVE contexts.
-   */
-  const context =
-    resolvedSelectedAccessId
-      ? availableContexts.find(
-          (availableContext) =>
-            availableContext.accessId ===
-            resolvedSelectedAccessId
-        )
-      : availableContexts.length === 1
-        ? availableContexts[0]
-        : null;
-
-  /*
-   * If there is no established active context,
-   * continue into the invitation lifecycle below.
-   */
-  if (
-    availableContexts.length === 0
-  ) {
-
-    const {
-      data: invitationData,
-      error: invitationError,
-    } = await supabase
-      .from("carevr_invitation")
-      .select(
-        "id, family_id, role, status, invitation_attempt_number"
-      )
-.eq(
-  "invited_email",
-  (
-    authenticatedUser.email ??
-    ""
-  ).trim().toLowerCase()
-)
-      .eq("status", "ACCEPTED")
-      .order("created_at", {
-        ascending: false,
-      })
-      .limit(1)
-      .maybeSingle();
-
-    if (invitationError) {
-
-      console.error(
-        "Unable to determine CareVR invitation context.",
-        invitationError
-      );
-
-      throw new Error(
-        "Unable to determine the CareVR account context."
-      );
-    }
-
-    if (invitationData) {
-
-      const invitationRole =
-        invitationData.role as
-          | "SECONDARY_FAMILY_MEMBER"
-          | "CARETAKER"
-          | "DOCTOR";
-
-      const invitationValidation =
-        await validateInvitedUserLogin({
-          email: email.trim(),
-          userId: authenticatedUser.id,
-          selectedRole: invitationRole,
-          mode: "NORMAL",
-        });
-
-      if (
-        invitationValidation.status ===
-        "VALID_INVITATION"
-      ) {
-
-        if (
-          !invitationValidation.invitationId
-        ) {
-          throw new Error(
-            "Invitation information is missing."
-          );
-        }
-
-        router.replace(
-          `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
-            invitationValidation.invitationId
-          )}`
-        );
-
-        return;
-      }
-
-      if (
-        invitationValidation.status ===
-        "CONSENT_REQUIRED"
-      ) {
-
-        carevrAuthorizationHandoff.set({
-          userId: authenticatedUser.id,
-          carevrRole: invitationRole,
-          familyId:
-            invitationValidation.familyId ??
-            invitationData.family_id ??
-            null,
-          patientId: null,
-          consentStage: "POST_LOGIN",
-          governanceId: null,
-          governanceVersion: null,
-        });
-
-        router.replace("/consent");
-
-        return;
-      }
-
-      if (
-        invitationValidation.status ===
-        "ACCEPTED"
-      ) {
-
-        const loginRole =
-          invitationRole ===
-          "SECONDARY_FAMILY_MEMBER"
-            ? "FAMILY"
-            : invitationRole;
-
-        carevrAuthorizationHandoff.set({
-          userId: authenticatedUser.id,
-          carevrRole: invitationRole,
-          familyId:
-            invitationValidation.familyId ??
-            invitationData.family_id ??
-            null,
-          patientId: null,
-          consentStage: "COMPLETED",
-          governanceId: null,
-          governanceVersion: null,
-        });
-
-const encryptionResponse =
-  await fetch(
-    "/api/security/legacy-patient-encryption",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        selectedRole:
-          invitationRole ===
-          "SECONDARY_FAMILY_MEMBER"
-            ? "FAMILY"
-            : invitationRole,
-      }),
-    }
-  );
-
-const encryptionResult =
-  await encryptionResponse.json();
-
-if (
-  !encryptionResponse.ok ||
-  !encryptionResult?.success
-) {
-  throw new Error(
-    encryptionResult?.error ||
-      "Unable to secure patient data."
-  );
-}
-
-await resolveCareVRDashboardHandoff(
-  authenticatedUser.id,
-  context!.loginRole
-);
-
-void authSessionService
-  .start()
-  .catch(() => {
-    // Analytics must never block navigation.
-  });
-
-router.replace("/carevr-journey");
-
-return;
-
-      }
-
-      if (
-        invitationValidation.status ===
-          "ROLE_MISMATCH" ||
-        invitationValidation.status ===
-          "INVALID_INVITATION" ||
-        invitationValidation.status ===
-          "NOT_INVITED"
-      ) {
-
-        throw new Error(
-          invitationValidation.message
-        );
-      }
-
-      throw new Error(
-        invitationValidation.message
-      );
-    }
-
-    throw new Error(
-      "No active CareVR access is assigned to this account."
-    );
-  }
-
-  /*
-   * An active context exists.
-   *
-   * A selected accessId must correspond to a freshly
-   * resolved ACTIVE access record.
-   */
-  if (!context) {
-
-    carevrContextSelectionHandoff.clear();
-
-    throw new Error(
-      "Selected CareVR context is no longer available."
-    );
-  }
-
-  setAvailableCareVRContexts(
-    availableContexts
-  );
-
-  setSelectedCareVRContextId(
-    context.accessId
-  );
-
-  /*
-   * The transient selection handoff has served its
-   * purpose. The context above is authoritative because
-   * it was freshly resolved from carevr_access.
-   */
-  if (
-    hasValidSelectionHandoff
-  ) {
-    carevrContextSelectionHandoff.clear();
-  }
-
-  const selectedRole =
-    context.loginRole === "DOCTOR"
-      ? "DOCTOR"
-      : context.loginRole ===
-          "CARETAKER"
-        ? "CARETAKER"
-        : context.loginRole ===
-            "FAMILY"
-          ? "SECONDARY_FAMILY_MEMBER"
-          : "SELF";
-
-const finalValidation =
-  await validateInvitedUserLogin({
-    email: (
-      authenticatedUser.email ??
-      ""
-    ).trim(),
-    userId: authenticatedUser.id,
-    selectedRole,
-    mode: "NORMAL",
-  });
-
-  if (
-    finalValidation.status ===
-    "PRIMARY"
-  ) {
-
-    carevrAuthorizationHandoff.set({
-      userId: authenticatedUser.id,
-      carevrRole: "PRIMARY",
-      familyId:
-        context.familyId,
-      patientId:
-        context.patientId,
-      consentStage: "COMPLETED",
-      governanceId: null,
-      governanceVersion: null,
-    });
-
-const encryptionResponse =
-  await fetch(
-    "/api/security/legacy-patient-encryption",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        accessId:
-          context.accessId,
-        selectedRole,
-      }),
-    }
-  );
-
-const encryptionResult =
-  await encryptionResponse.json();
-
-if (
-  !encryptionResponse.ok ||
-  !encryptionResult?.success
-) {
-  throw new Error(
-    encryptionResult?.error ||
-      "Unable to secure patient data."
-  );
-}
-
-await resolveCareVRDashboardHandoff(
-  authenticatedUser.id,
-  context!.loginRole
-);
-
-void authSessionService
-  .start()
-  .catch(() => {
-    // Analytics must never block navigation.
-  });
-
-router.replace("/dashboard");
-
-return;
-  }
-
-  if (
-    finalValidation.status ===
-      "ROLE_MISMATCH" ||
-    finalValidation.status ===
-      "INVALID_INVITATION"
-  ) {
-
-    throw new Error(
-      finalValidation.message
-    );
-  }
-
-  if (
-    finalValidation.status ===
-    "NOT_INVITED"
-  ) {
-
-await resolveCareVRDashboardHandoff(
-  authenticatedUser.id,
-  context.loginRole
-);
-
-void authSessionService
-  .start()
-  .catch(() => {
-    // Analytics must never block navigation.
-  });
-
-router.replace("/dashboard");
-
-return;
-  }
-
-  throw new Error(
-    finalValidation.message
-  );
-};
 
 
 const handleLogin = async () => {
@@ -762,25 +221,23 @@ return;
 };
 
 
-  const handleGoogleLogin = async () => {
-    setError("");
+const handleGoogleLogin = async () => {
+  setError("");
 
-    try {
-      setGoogleLoading(true);
+  try {
+    setGoogleLoading(true);
 
-      await authService.signInWithGoogle(
-  selectedRole
-);
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Unable to continue with Google.";
+    await authService.signInWithGoogle();
+  } catch (err) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Unable to continue with Google.";
 
-      setError(message);
-      setGoogleLoading(false);
-    }
-  };
+    setError(message);
+    setGoogleLoading(false);
+  }
+};
 
 return (
   <>
@@ -2446,101 +1903,6 @@ top: calc(28%);
   </div>
 </div>
 
-{showCareVRContextSelection && (
-  <div className="role-selection">
-    <div className="role-selection-title">
-      Continue as...
-    </div>
-
-    <div className="role-options">
-
-      {availableCareVRContexts.map(
-        (context) => (
-          <button
-            key={context.accessId}
-            type="button"
-            className={`role-option ${
-              selectedCareVRContextId ===
-              context.accessId
-                ? "role-option-selected"
-                : ""
-            }`}
-onClick={async () => {
-  try {
-    setLoading(true);
-    setError("");
-
-    setSelectedCareVRContextId(
-      context.accessId
-    );
-
-    setSelectedRole(
-      context.loginRole
-    );
-
-    setShowCareVRContextSelection(
-      false
-    );
-
-    const {
-      data: {
-        user,
-      },
-    } =
-      await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error(
-        "Unable to identify the authenticated user."
-      );
-    }
-
-    await completeLogin(
-      user,
-      context.accessId
-    );
-
-  } catch (err) {
-    const message =
-      err instanceof Error
-        ? err.message
-        : "Unable to continue with the selected CareVR context.";
-
-    setError(message);
-    setShowCareVRContextSelection(
-      true
-    );
-  } finally {
-    setLoading(false);
-  }
-}}
-            disabled={
-              loading ||
-              googleLoading
-            }
-          >
-            <span className="role-icon">
-              {context.loginRole === "SELF"
-                ? "👤"
-                : context.loginRole ===
-                    "DOCTOR"
-                  ? "🩺"
-                  : context.loginRole ===
-                      "CARETAKER"
-                    ? "♡"
-                    : "👥"}
-            </span>
-
-            <span className="role-label">
-              {context.label}
-            </span>
-          </button>
-        )
-      )}
-
-    </div>
-  </div>
-)}
 
     <div
       className="login-method-tabs"

@@ -196,14 +196,17 @@ async login(
   return result.user;
 }
 
-/**
- * Sign in using Google OAuth.
- */
-  async signInWithGoogle(
-    selectedRole: "SELF" | "DOCTOR" | "CARETAKER" | "FAMILY"
-  ): Promise<void> {
+  /**
+   * Sign in using Google OAuth.
+   *
+   * CareVR role and access context are determined
+   * after authentication from authoritative
+   * CareVR data. No client-selected role is
+   * passed through the OAuth flow.
+   */
+  async signInWithGoogle(): Promise<void> {
     const callbackUrl =
-      `${window.location.origin}/auth/callback?role=${encodeURIComponent(selectedRole)}`;
+      `${window.location.origin}/auth/callback`;
 
     const { error } =
       await supabase.auth.signInWithOAuth({
