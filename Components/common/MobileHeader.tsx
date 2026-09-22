@@ -143,32 +143,77 @@ useEffect(() => {
 }, []);
 
 const handleSwitchProfile = async () => {
-        if (switchingProfile || loggingOut) {
+    if (switchingProfile || loggingOut) {
+        return;
+    }
+
+    setSwitchingProfile(true);
+
+    try {
+        const user =
+            await authService.getCurrentUser();
+
+        if (!user) {
+            router.replace("/login");
             return;
         }
 
-        setSwitchingProfile(true);
+        const primaryAccessExists =
+            await hasPrimaryAccess(user.id);
 
-        try {
-            const user =
-                await authService.getCurrentUser();
+        if (!primaryAccessExists) {
+            const { data: activeAccess, error } =
+                await supabase
+                    .from("carevr_access")
+                    .select("access_type")
+                    .eq("user_id", user.id)
+                    .eq("access_status", "ACTIVE");
 
-            if (!user) {
-                router.replace("/login");
-                return;
+            if (error) {
+                throw error;
             }
 
-            router.replace("/profile-selection");
-        }
-        catch (error) {
-            console.error(
-                "Unable to switch profile.",
-                error
-            );
+            const inviteeAccess =
+                (activeAccess ?? []).find(
+                    (access) =>
+                        access.access_type ===
+                            "CARETAKER" ||
+                        access.access_type ===
+                            "DOCTOR" ||
+                        access.access_type ===
+                            "SECONDARY_FAMILY_MEMBER"
+                );
 
-            setSwitchingProfile(false);
+            if (!inviteeAccess) {
+                throw new Error(
+                    "No valid invitee access was found for profile switching."
+                );
+            }
+
+            inviteeToPrimaryHandoff.set({
+                userId: user.id,
+                sourceRole:
+                    inviteeAccess.access_type,
+                targetRole: "PRIMARY",
+                createdAt:
+                    new Date().toISOString(),
+            });
+
+            router.replace("/register");
+            return;
         }
-    };
+
+        router.replace("/profile-selection");
+    }
+    catch (error) {
+        console.error(
+            "Unable to switch profile.",
+            error
+        );
+
+        setSwitchingProfile(false);
+    }
+};
 
     const getUserInitials = (name: string): string => {
         const parts = name
