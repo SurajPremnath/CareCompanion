@@ -12,11 +12,12 @@ import MobileHeader, {
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
-import { authService } from "@/lib/auth/authService";
 
 import {
     profileRepository,
 } from "@/lib/repositories/profileRepository";
+
+import { authService } from "@/lib/auth/authService";
 
 import {
     validateInvitedUserLogin,
@@ -31,9 +32,6 @@ import {
     carevrAuthorizationHandoff,
 } from "@/lib/authorization/carevrAuthorizationHandoff";
 
-import {
-    carevrContextResolver,
-} from "@/lib/auth/carevrContextResolver";
 
 export default function CreatePin() {
     const router = useRouter();
@@ -207,60 +205,26 @@ if (
 }
 
 if (
-    validation.status === "ACCEPTED" ||
-    validation.status === "PRIMARY"
+    validation.status ===
+        "ACCEPTED" ||
+    validation.status ===
+        "PRIMARY"
 ) {
-    /*
-     * ---------------------------------------------------------
-     * EXISTING CAREVR CONTEXT RESOLUTION
-     *
-     * PIN creation is complete.
-     * CareVR eligibility / consent / role validation
-     * has already completed above.
-     *
-     * Resolve the user's active CareVR contexts using
-     * the same resolver used after PIN verification.
-     * ---------------------------------------------------------
-     */
-
-    const availableContexts =
-        await carevrContextResolver
-            .getAvailableContexts(
-                user.id
-            );
-
-    if (
-        availableContexts.length === 0
-    ) {
-        throw new Error(
-            "No active CareVR profiles are available for this account."
-        );
-    }
-
-    if (
-        availableContexts.length > 1
-    ) {
-        router.replace(
-            "/profile-selection"
-        );
-        return;
-    }
-
-    /*
-     * ---------------------------------------------------------
-     * SINGLE CONTEXT
-     *
-     * Preserve the existing Dashboard handoff.
-     * ---------------------------------------------------------
-     */
-
-    const dashboardRole =
-        availableContexts[0]
-            .loginRole;
-
     await resolveCareVRDashboardHandoff(
         user.id,
-        dashboardRole
+        validation.status ===
+            "PRIMARY"
+            ? "SELF"
+            : validation.invitationRole ===
+                "SECONDARY_FAMILY_MEMBER"
+                ? "FAMILY"
+                : validation.invitationRole ===
+                    "CARETAKER"
+                    ? "CARETAKER"
+                    : validation.invitationRole ===
+                        "DOCTOR"
+                        ? "DOCTOR"
+                        : "SELF"
     );
 
     router.replace(

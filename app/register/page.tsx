@@ -738,7 +738,8 @@ router.replace(secureAccessUrl);
 
 )}
 
-{isPrimaryFamilyMember === true && isInviteeToPrimary && (
+{isPrimaryFamilyMember === true &&
+    (isInviteeToPrimary || inviteePrimaryConfirmed) && (
     <div className="registration-panel">
         <div className="registration-panel-heading">
             <h2>
