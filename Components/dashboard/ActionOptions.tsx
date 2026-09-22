@@ -19,12 +19,6 @@ import ClinicalTrendPdfGenerator
 import ExecutiveSummaryPdfGenerator
     from "@/app/journey-review/mobile/ExecutiveSummaryPdfGenerator";
 
-//------------------------------------------------------------
-// Soft Launch Feature Flags
-//------------------------------------------------------------
-
-const CareVR_Record_health_Options_Enable = false;
-
 
 //------------------------------------------------------------
 // Types
@@ -155,12 +149,6 @@ const [
     useState<ActionOption>(
         ""
     );
-
-const [
-    recordHealthUpgradeMessage,
-    setRecordHealthUpgradeMessage,
-] =
-    useState(false);
 
 
 //------------------------------------------------------------
@@ -382,35 +370,17 @@ const [
 
 <button
     type="button"
-    onClick={() => {
+onClick={() => {
 
-        if (
-            !CareVR_Record_health_Options_Enable
-        ) {
+    setSelectedOption(
+        "VOICE"
+    );
 
-            setRecordHealthUpgradeMessage(
-                true
-            );
+    onOptionChange?.(
+        "VOICE"
+    );
 
-            return;
-
-        }
-
-
-        setRecordHealthUpgradeMessage(
-            false
-        );
-
-
-        setSelectedOption(
-            "VOICE"
-        );
-
-        onOptionChange?.(
-            "VOICE"
-        );
-
-    }}
+}}
 style={optionButton}
 >
 
@@ -430,24 +400,6 @@ style={optionButton}
             <button
                 type="button"
 onClick={() => {
-
-    if (
-        !CareVR_Record_health_Options_Enable
-    ) {
-
-        setRecordHealthUpgradeMessage(
-            true
-        );
-
-        return;
-
-    }
-
-
-    setRecordHealthUpgradeMessage(
-        false
-    );
-
 
     setSelectedOption(
         "UPLOAD"
@@ -519,37 +471,6 @@ onClick={() => {
 
         </div>
 
-        {recordHealthUpgradeMessage && (
-
-            <div
-                style={{
-                    marginTop: "16px",
-                    padding: "14px 16px",
-                    borderRadius: "10px",
-                    background: "#FFF7ED",
-                    border: "1px solid #FED7AA",
-                    color: "#9A3412",
-                    fontSize: "14px",
-                    lineHeight: 1.5,
-                    textAlign: "center",
-                }}
-            >
-                <strong>
-                    Please upgrade to CareVR Premium Package.
-                </strong>
-
-                <br />
-
-                Reach out to <strong>Linearise AI Labs</strong> for upgrade and price:
-
-                <br />
-
-                <strong>
-                    lineariseailabs@gmail.com
-                </strong>
-            </div>
-
-        )}
 
     </>
 
