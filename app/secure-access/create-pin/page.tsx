@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, {
+    useEffect,
+    useState,
+} from "react";
 import { useRouter } from "next/navigation";
 
 import MobileHeader, {
@@ -10,6 +13,10 @@ import MobileHeader, {
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
 import { authService } from "@/lib/auth/authService";
+
+import {
+    profileRepository,
+} from "@/lib/repositories/profileRepository";
 
 import {
     validateInvitedUserLogin,
@@ -37,6 +44,39 @@ const [showPin, setShowPin] = useState(false);
 const [showConfirmPin, setShowConfirmPin] = useState(false);
 const [error, setError] = useState("");
 const [saving, setSaving] = useState(false);
+const [userName, setUserName] = useState("");
+
+useEffect(() => {
+    let cancelled = false;
+
+    const loadProfileName = async () => {
+        try {
+            const profile =
+                await profileRepository
+                    .getCurrentProfile();
+
+            if (cancelled) {
+                return;
+            }
+
+            setUserName(
+                profile?.fullName?.trim() || ""
+            );
+        } catch (error) {
+            console.error(
+                "Unable to load profile name for Create PIN header.",
+                error
+            );
+        }
+    };
+
+    void loadProfileName();
+
+    return () => {
+        cancelled = true;
+    };
+}, []);
+
 
     const handlePinChange = (
         value: string,
@@ -253,35 +293,35 @@ throw new Error(
                 EXISTING CAREVR HEADER
             ============================ */}
 
-            <MobileHeader
-                careMode="SELF"
-                onCareModeChange={() => {}}
-                userName="CareVR"
+<MobileHeader
+    careMode="SELF"
+    onCareModeChange={() => {}}
+    userName={userName}
 
-                showCareModeToggle={false}
-                showSelfToggle={false}
-                showFamilyToggle={false}
+    showCareModeToggle={false}
+    showSelfToggle={false}
+    showFamilyToggle={false}
 
-                showHomeButton={true}
-                onHomeClick={() =>
-                    router.replace("/login")
-                }
+    showHomeButton={true}
+    onHomeClick={() =>
+        router.replace("/login")
+    }
 
-                accountMenuOpen={false}
-                onAccountMenuToggle={() => {}}
+    accountMenuOpen={false}
+    onAccountMenuToggle={() => {}}
 
-                consentGranted={false}
-                canAddPatient={false}
+    consentGranted={false}
+    canAddPatient={false}
 
-                onAddPatient={() => {}}
-                onCareVRJourney={() => {}}
-                onHelp={() => {}}
+    onAddPatient={() => {}}
+    onCareVRJourney={() => {}}
+    onHelp={() => {}}
 
-                onLogout={async () => {
-                    await authService.logout();
-                    router.replace("/login");
-                }}
-            />
+    onLogout={async () => {
+        await authService.logout();
+        router.replace("/login");
+    }}
+/>
 
             {/* ============================
                 MAIN CONTENT

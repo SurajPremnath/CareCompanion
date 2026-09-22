@@ -51,13 +51,23 @@ useEffect(() => {
 
         try {
 
-            await authService.requireAuthenticatedUser();
+            const authenticatedUser =
+                await authService.requireAuthenticatedUser();
 
             const profile =
                 await profileRepository.getCurrentProfile();
 
+            const profileName =
+                profile?.fullName?.trim() ?? "";
+
+            const metadataName =
+                typeof authenticatedUser?.user_metadata?.full_name ===
+                "string"
+                    ? authenticatedUser.user_metadata.full_name.trim()
+                    : "";
+
             setUserName(
-                profile?.fullName || ""
+                profileName || metadataName
             );
 
         } catch (error) {
@@ -71,7 +81,7 @@ useEffect(() => {
 
     };
 
-    loadUserName();
+    void loadUserName();
 
 }, []);
 

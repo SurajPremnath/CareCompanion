@@ -120,26 +120,34 @@ const [userName, setUserName] =
 
 
 useEffect(() => {
-    const loadUserName = async () => {
+    let cancelled = false;
+
+    const loadProfileName = async () => {
         try {
             const profile =
-                await profileRepository.getCurrentProfile();
+                await profileRepository
+                    .getCurrentProfile();
 
-            const fullName =
-                profile?.fullName?.trim() ?? "";
-
-            if (fullName) {
-                setUserName(fullName);
+            if (cancelled) {
+                return;
             }
+
+            setUserName(
+                profile?.fullName?.trim() || ""
+            );
         } catch (error) {
             console.error(
-                "Unable to load authenticated user name.",
+                "Unable to load profile name for Verify PIN header.",
                 error
             );
         }
     };
 
-    void loadUserName();
+    void loadProfileName();
+
+    return () => {
+        cancelled = true;
+    };
 }, []);
 
 
