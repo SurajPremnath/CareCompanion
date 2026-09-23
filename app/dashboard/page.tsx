@@ -1461,9 +1461,19 @@ setSelectedAction(
         });
 
 
+const logoutStartedAt = performance.now();
+
 try {
 
+    const analyticsLogoutStartedAt = performance.now();
+
     await authSessionService.end();
+
+    console.log(
+        `[LOGOUT-PERF] authSessionService.end: ${Math.round(
+            performance.now() - analyticsLogoutStartedAt
+        )} ms`
+    );
 
 }
 catch (error) {
@@ -1477,25 +1487,45 @@ catch (error) {
 
 try {
 
+    const authLogoutStartedAt = performance.now();
+
     await authService.logout();
+
+    console.log(
+        `[LOGOUT-PERF] authService.logout: ${Math.round(
+            performance.now() - authLogoutStartedAt
+        )} ms`
+    );
+
+    const routerStartedAt = performance.now();
 
     router.replace("/login");
 
+    console.log(
+        `[LOGOUT-PERF] router.replace: ${Math.round(
+            performance.now() - routerStartedAt
+        )} ms`
+    );
+
+    console.log(
+        `[LOGOUT-PERF] total logout: ${Math.round(
+            performance.now() - logoutStartedAt
+        )} ms`
+    );
+
 }
-        catch (error) {
+catch (error) {
 
-            console.error(
-                "Unable to complete logout.",
-                error
-            );
+    console.error(
+        "Unable to complete logout.",
+        error
+    );
 
+    performanceTracker.cancel();
 
-            performanceTracker.cancel();
+    setLoggingOut(false);
 
-
-            setLoggingOut(false);
-
-        }
+}
 
     };
 
