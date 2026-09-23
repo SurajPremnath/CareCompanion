@@ -6,7 +6,6 @@ import {
   useState,
 } from "react";
 
-
 import {
   useRouter,
   useSearchParams,
@@ -19,13 +18,16 @@ import {
 } from "@/lib/auth/carevrDashboardHandoff";
 
 import {
+  carevrContextResolver,
+} from "@/lib/auth/carevrContextResolver";
+
+import {
   carevrAuthorizationHandoff,
 } from "@/lib/authorization/carevrAuthorizationHandoff";
 
 import {
   validateInvitedUserLogin,
 } from "@/lib/invitations/invitedUserLoginValidation";
-
 
 import ValidatePin from "@/app/components/security/ValidatePin";
 
@@ -47,227 +49,275 @@ function GoogleAuthComplete() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-const [pinVerification, setPinVerification] =
-  useState<{
-    user: NonNullable<
-      Awaited<
-        ReturnType<
-          typeof authService.getCurrentUser
+  const [pinVerification, setPinVerification] =
+    useState<{
+      user: NonNullable<
+        Awaited<
+          ReturnType<
+            typeof authService.getCurrentUser
+          >
         >
-      >
-    >;
-    role: CareVRRole;
-  } | null>(null);
+      >;
+      role: CareVRRole;
+    } | null>(null);
 
-const continueGoogleLogin =
-  async (
-    authenticatedUser: NonNullable<
-      Awaited<
-        ReturnType<
-          typeof authService.getCurrentUser
+  const continueGoogleLogin =
+    async (
+      authenticatedUser: NonNullable<
+        Awaited<
+          ReturnType<
+            typeof authService.getCurrentUser
+          >
         >
-      >
-    >,
-    selectedRole: CareVRRole,
-    cancelled: boolean
-  ) => {
+      >,
+      selectedRole: CareVRRole,
+      cancelled: boolean
+    ) => {
 
-    const validationResult =
-      await validateInvitedUserLogin({
-        email:
-          authenticatedUser.email ?? "",
-        userId:
-          authenticatedUser.id,
-        selectedRole:
-          selectedRole === "FAMILY"
-            ? "SECONDARY_FAMILY_MEMBER"
-            : selectedRole,
-        mode:
-          "GOOGLE",
-      });
+      /*
+       * Resolve the already-authoritative active
+       * CareVR access records once for this login
+       * continuation.
+       *
+       * The selected access record is then reused
+       * when creating the Dashboard handoff.
+       *
+       * This avoids making resolveCareVRDashboardHandoff()
+       * query carevr_access again merely to reconstruct
+       * the same active context.
+       */
+      const resolveDashboardForSelectedRole =
+        async () => {
 
-    if (
-      validationResult.status ===
-      "PRIMARY"
-    ) {
-      carevrAuthorizationHandoff.set({
-        userId:
-          authenticatedUser.id,
-        carevrRole:
-          "PRIMARY",
-        familyId:
-          null,
-        patientId:
-          null,
-        consentStage:
-          "COMPLETED",
-        governanceId:
-          null,
-        governanceVersion:
-          null,
-      });
+          const {
+            activeAccessRecords,
+            contexts: availableContexts,
+          } =
+            await carevrContextResolver
+              .getAvailableContexts(
+                authenticatedUser.id
+              );
 
-      await resolveCareVRDashboardHandoff(
-        authenticatedUser.id,
-        selectedRole
-      );
+          const selectedContext =
+            availableContexts.find(
+              (context) =>
+                context.loginRole ===
+                selectedRole
+            );
 
-      if (!cancelled) {
-        router.replace(
-          "/dashboard"
-        );
+          if (!selectedContext) {
+            throw new Error(
+              "Selected CareVR role is not assigned. Please contact your Primary."
+            );
+          }
+
+          const access =
+            activeAccessRecords.find(
+              (record) =>
+                record.id ===
+                selectedContext.accessId
+            );
+
+          if (!access) {
+            throw new Error(
+              "Selected CareVR access is no longer active."
+            );
+          }
+
+          await resolveCareVRDashboardHandoff(
+            authenticatedUser.id,
+            selectedRole,
+            access
+          );
+        };
+
+      const validationResult =
+        await validateInvitedUserLogin({
+          email:
+            authenticatedUser.email ?? "",
+          userId:
+            authenticatedUser.id,
+          selectedRole:
+            selectedRole === "FAMILY"
+              ? "SECONDARY_FAMILY_MEMBER"
+              : selectedRole,
+          mode:
+            "GOOGLE",
+        });
+
+      if (
+        validationResult.status ===
+        "PRIMARY"
+      ) {
+        carevrAuthorizationHandoff.set({
+          userId:
+            authenticatedUser.id,
+          carevrRole:
+            "PRIMARY",
+          familyId:
+            null,
+          patientId:
+            null,
+          consentStage:
+            "COMPLETED",
+          governanceId:
+            null,
+          governanceVersion:
+            null,
+        });
+
+        await resolveDashboardForSelectedRole();
+
+        if (!cancelled) {
+          router.replace(
+            "/dashboard"
+          );
+        }
+
+        return;
       }
 
-      return;
-    }
-
-    if (
-      validationResult.status ===
-      "VALID_INVITATION"
-    ) {
       if (
-        !validationResult.invitationId
+        validationResult.status ===
+        "VALID_INVITATION"
+      ) {
+        if (
+          !validationResult.invitationId
+        ) {
+          throw new Error(
+            "Invitation information is missing."
+          );
+        }
+
+        router.replace(
+          `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
+            validationResult.invitationId
+          )}`
+        );
+
+        return;
+      }
+
+      if (
+        validationResult.status ===
+        "CONSENT_REQUIRED"
+      ) {
+        const carevrRole =
+          selectedRole === "DOCTOR"
+            ? "DOCTOR"
+            : selectedRole === "CARETAKER"
+              ? "CARETAKER"
+              : selectedRole === "FAMILY"
+                ? "SECONDARY_FAMILY_MEMBER"
+                : "PRIMARY";
+
+        carevrAuthorizationHandoff.set({
+          userId:
+            authenticatedUser.id,
+          carevrRole,
+          familyId:
+            validationResult.familyId ??
+            null,
+          patientId:
+            null,
+          consentStage:
+            "POST_LOGIN",
+          governanceId:
+            null,
+          governanceVersion:
+            null,
+        });
+
+        router.replace(
+          "/consent"
+        );
+
+        return;
+      }
+
+      if (
+        validationResult.status ===
+        "ACCEPTED"
+      ) {
+        const carevrRole =
+          selectedRole === "DOCTOR"
+            ? "DOCTOR"
+            : selectedRole === "CARETAKER"
+              ? "CARETAKER"
+              : selectedRole === "FAMILY"
+                ? "SECONDARY_FAMILY_MEMBER"
+                : "PRIMARY";
+
+        carevrAuthorizationHandoff.set({
+          userId:
+            authenticatedUser.id,
+          carevrRole,
+          familyId:
+            validationResult.familyId ??
+            null,
+          patientId:
+            null,
+          consentStage:
+            "COMPLETED",
+          governanceId:
+            null,
+          governanceVersion:
+            null,
+        });
+
+        await resolveDashboardForSelectedRole();
+
+        if (!cancelled) {
+          router.replace(
+            "/dashboard"
+          );
+        }
+
+        return;
+      }
+
+      if (
+        validationResult.status ===
+          "ROLE_MISMATCH" ||
+        validationResult.status ===
+          "INVALID_INVITATION"
       ) {
         throw new Error(
-          "Invitation information is missing."
+          validationResult.message
         );
       }
 
-      router.replace(
-        `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
-          validationResult.invitationId
-        )}`
-      );
-
-      return;
-    }
-
-    if (
-      validationResult.status ===
-      "CONSENT_REQUIRED"
-    ) {
-      const carevrRole =
-        selectedRole === "DOCTOR"
-          ? "DOCTOR"
-          : selectedRole === "CARETAKER"
-            ? "CARETAKER"
-            : selectedRole === "FAMILY"
-              ? "SECONDARY_FAMILY_MEMBER"
-              : "PRIMARY";
-
-      carevrAuthorizationHandoff.set({
-        userId:
-          authenticatedUser.id,
-        carevrRole,
-        familyId:
-          validationResult.familyId ??
-          null,
-        patientId:
-          null,
-        consentStage:
-          "POST_LOGIN",
-        governanceId:
-          null,
-        governanceVersion:
-          null,
-      });
-
-      router.replace(
-        "/consent"
-      );
-
-      return;
-    }
-
-    if (
-      validationResult.status ===
-      "ACCEPTED"
-    ) {
-      const carevrRole =
-        selectedRole === "DOCTOR"
-          ? "DOCTOR"
-          : selectedRole === "CARETAKER"
-            ? "CARETAKER"
-            : selectedRole === "FAMILY"
-              ? "SECONDARY_FAMILY_MEMBER"
-              : "PRIMARY";
-
-      carevrAuthorizationHandoff.set({
-        userId:
-          authenticatedUser.id,
-        carevrRole,
-        familyId:
-          validationResult.familyId ??
-          null,
-        patientId:
-          null,
-        consentStage:
-          "COMPLETED",
-        governanceId:
-          null,
-        governanceVersion:
-          null,
-      });
-
-      await resolveCareVRDashboardHandoff(
-        authenticatedUser.id,
-        selectedRole
-      );
-
-      if (!cancelled) {
-        router.replace(
-          "/dashboard"
+      if (
+        validationResult.status ===
+          "NOT_INVITED" &&
+        selectedRole === "FAMILY"
+      ) {
+        throw new Error(
+          "Family Member Access Not Available\n\n" +
+          "This account is registered as a Primary member of CareVR and does not have Family Member access. " +
+          "Please sign in using your Primary role."
         );
       }
 
-      return;
-    }
+      if (
+        validationResult.status ===
+        "NOT_INVITED"
+      ) {
+        await resolveDashboardForSelectedRole();
 
-    if (
-      validationResult.status ===
-        "ROLE_MISMATCH" ||
-      validationResult.status ===
-        "INVALID_INVITATION"
-    ) {
+        if (!cancelled) {
+          router.replace(
+            "/dashboard"
+          );
+        }
+
+        return;
+      }
+
       throw new Error(
         validationResult.message
       );
-    }
-
-    if (
-      validationResult.status ===
-        "NOT_INVITED" &&
-      selectedRole === "FAMILY"
-    ) {
-      throw new Error(
-        "Family Member Access Not Available\n\n" +
-        "This account is registered as a Primary member of CareVR and does not have Family Member access. " +
-        "Please sign in using your Primary role."
-      );
-    }
-
-    if (
-      validationResult.status ===
-      "NOT_INVITED"
-    ) {
-      await resolveCareVRDashboardHandoff(
-        authenticatedUser.id,
-        selectedRole
-      );
-
-      if (!cancelled) {
-        router.replace(
-          "/dashboard"
-        );
-      }
-
-      return;
-    }
-
-    throw new Error(
-      validationResult.message
-    );
-  };
+    };
 
   useEffect(() => {
 
@@ -297,23 +347,23 @@ const continueGoogleLogin =
 
           }
 
-const authenticatedUser =
-  await authService.getCurrentUser();
+          const authenticatedUser =
+            await authService.getCurrentUser();
 
-if (!authenticatedUser) {
+          if (!authenticatedUser) {
 
-  throw new Error(
-    "Unable to establish your CareVR session. Please return to Login."
-  );
+            throw new Error(
+              "Unable to establish your CareVR session. Please return to Login."
+            );
 
-}
+          }
 
-setPinVerification({
-  user: authenticatedUser,
-  role: selectedRole,
-});
+          setPinVerification({
+            user: authenticatedUser,
+            role: selectedRole,
+          });
 
-return;
+          return;
 
         }
         catch (err) {
@@ -350,22 +400,22 @@ return;
     searchParams,
   ]);
 
-if (pinVerification) {
-  return (
-    <ValidatePin
-      userId={pinVerification.user.id}
-      email={pinVerification.user.email ?? ""}
-    />
-  );
-}
+  if (pinVerification) {
+    return (
+      <ValidatePin
+        userId={pinVerification.user.id}
+        email={pinVerification.user.email ?? ""}
+      />
+    );
+  }
 
-return (
-  <main>
-    <p>
-      Completing your CareVR login...
-    </p>
-  </main>
-);
+  return (
+    <main>
+      <p>
+        Completing your CareVR login...
+      </p>
+    </main>
+  );
 
 }
 

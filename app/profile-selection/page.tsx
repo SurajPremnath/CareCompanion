@@ -86,11 +86,14 @@ export default function ProfileSelectionPage() {
                     return;
                 }
 
-                const contexts =
-                    await carevrContextResolver
-                        .getAvailableContexts(
-                            user.id
-                        );
+const {
+    activeAccessRecords,
+    contexts,
+} =
+    await carevrContextResolver
+        .getAvailableContexts(
+            user.id
+        );
 
                 if (cancelled) {
                     return;
@@ -204,11 +207,14 @@ const handleSelectedContext = async () => {
          *
          * The UI selection itself is never authoritative.
          */
-        const currentContexts =
-            await carevrContextResolver
-                .getAvailableContexts(
-                    user.id
-                );
+const {
+    activeAccessRecords,
+    contexts: currentContexts,
+} =
+    await carevrContextResolver
+        .getAvailableContexts(
+            user.id
+        );
 
         const selectedContext =
             currentContexts.find(
@@ -221,6 +227,20 @@ const handleSelectedContext = async () => {
 
             throw new Error(
                 "Selected CareVR context is no longer available."
+            );
+        }
+
+        const access =
+            activeAccessRecords.find(
+                (record) =>
+                    record.id ===
+                    selectedContext.accessId
+            );
+
+        if (!access) {
+
+            throw new Error(
+                "Selected CareVR access is no longer active."
             );
         }
 
@@ -351,7 +371,8 @@ if (
 
 await resolveCareVRDashboardHandoff(
     user.id,
-    dashboardRole
+    dashboardRole,
+    access
 );
 
             void authSessionService
@@ -409,22 +430,8 @@ await resolveCareVRDashboardHandoff(
 
                 <header className="profile-selection-header">
 
-                    <button
-                        type="button"
-                        className="home-button"
-                        onClick={() =>
-                            router.replace("/")
-                        }
-                        aria-label="Go to CareVR home"
-                    >
-                        <span aria-hidden="true">
-                            ←
-                        </span>
-
-                        <span>
-                            Home
-                        </span>
-                    </button>
+{/* Home navigation intentionally removed.
+    User must choose a CareVR profile/context. */}
 
                     <div className="profile-selection-brand">
 
@@ -647,24 +654,6 @@ await resolveCareVRDashboardHandoff(
                     object-fit: contain;
                 }
 
-                .home-button {
-                    justify-self: start;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 7px;
-                    border: 0;
-                    background: transparent;
-                    color: #596579;
-                    font-size: 13px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    padding: 8px 4px;
-                }
-
-                .home-button:hover {
-                    color: #172033;
-                }
-
                 .header-spacer {
                     width: 1px;
                 }
@@ -858,9 +847,6 @@ await resolveCareVRDashboardHandoff(
                         width: auto;
                     }
 
-                    .home-button {
-                        font-size: 12px;
-                    }
 
                     .profile-selection-content {
                         padding-top: 42px;

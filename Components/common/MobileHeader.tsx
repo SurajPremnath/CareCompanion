@@ -541,6 +541,32 @@ return (
     padding-right: 8px;
 }
 
+@media (max-width: 700px) {
+    .carevr-mobile-header-with-title {
+        flex-wrap: wrap;
+    }
+
+    .carevr-mobile-page-title {
+        flex: 1 1 100%;
+        order: 2;
+        margin-left: 0;
+        padding-right: 0;
+        padding-top: 4px;
+    }
+
+    .carevr-mobile-header-actions {
+        order: 3;
+        width: 100%;
+        justify-content: flex-end;
+        margin-top: 4px;
+    }
+
+    .carevr-mobile-mode-toggle {
+        position: static;
+        transform: none;
+    }
+}
+
 
 
 .carevr-mobile-page-title h1 {

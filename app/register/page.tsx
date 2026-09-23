@@ -345,31 +345,6 @@ router.replace(secureAccessUrl);
 
                         <button
                             type="button"
-                            className="home-button"
-                            onClick={() => router.replace("/login")}
-                            aria-label="Go to Home"
-                        >
-                            <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <path d="M3 10.5L12 3l9 7.5" />
-                                <path d="M5.5 9.5V20h13V9.5" />
-                                <path d="M9.5 20v-6h5v6" />
-                            </svg>
-
-                            <span>Home</span>
-                        </button>
-
-                        <button
-                            type="button"
                             className="initials-button"
                             aria-label="Account"
                             title="Account"
@@ -983,29 +958,6 @@ onClick={async () => {
                     gap: 12px;
                 }
 
-                .home-button {
-                    height: 42px;
-                    padding: 0 15px;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 7px;
-                    border: 1px solid #d8d0ef;
-                    border-radius: 12px;
-                    background: rgba(255, 255, 255, 0.72);
-                    color: #4b3b79;
-                    font-size: 14px;
-                    font-weight: 700;
-                    cursor: pointer;
-                    transition:
-                        background 160ms ease,
-                        border-color 160ms ease;
-                }
-
-                .home-button:hover {
-                    background: #ffffff;
-                    border-color: #b9a7e8;
-                }
 
                 /*
                  * Public registration has no authenticated account yet.
@@ -1413,16 +1365,6 @@ onClick={async () => {
 
                     .header-actions {
                         gap: 7px;
-                    }
-
-                    .home-button {
-                        width: 42px;
-                        height: 42px;
-                        padding: 0;
-                    }
-
-                    .home-button span {
-                        display: none;
                     }
 
                     .initials-button {

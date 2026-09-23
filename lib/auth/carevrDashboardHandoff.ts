@@ -9,8 +9,8 @@
 // It only prepares the resolved information for Dashboard.
 //------------------------------------------------------------
 
-import {
-    carevrAccessRepository,
+import type {
+    ActiveCareVRAccess,
     CareVRAccessType,
     CareVRLoginRole,
 } from "@/lib/repositories/carevrAccessRepository";
@@ -93,178 +93,213 @@ export interface CareVRDashboardHandoff {
 //------------------------------------------------------------
 // Resolve Dashboard Handoff
 //
-// This method only collates information that already exists
-// in the CareVR access and permission repositories.
+// The selected active CareVR access record is supplied by the
+// existing CareVR context resolution stage.
+//
+// This avoids querying carevr_access a second time merely to
+// reconstruct the same access record.
+//
+// Module permissions and protected Patient scope remain
+// independently resolved and validated.
 //------------------------------------------------------------
 
 export async function resolveCareVRDashboardHandoff(
     userId: string,
-    selectedRole: CareVRLoginRole
+    selectedRole: CareVRLoginRole,
+    access: ActiveCareVRAccess
 ): Promise<CareVRDashboardHandoff> {
 
     //--------------------------------------------------------
-    // Resolve active CareVR access for the selected role.
+    // The access record has already been resolved from the
+    // authenticated user's active CareVR contexts.
+    //
+    // Do not perform another carevr_access lookup here.
     //--------------------------------------------------------
 
-    const access =
-        await carevrAccessRepository
-            .getActiveAccessForLoginRole(
-                userId,
-                selectedRole
-            );
-
-if (!access) {
-
-    if (selectedRole === "DOCTOR") {
+    if (
+        access.userId !== userId ||
+        access.accessStatus !== "ACTIVE"
+    ) {
 
         throw new Error(
-            "Doctor access is not assigned. Please contact your Primary."
+            "Selected CareVR access is not valid for this account."
         );
 
     }
-
-    if (selectedRole === "CARETAKER") {
-
-        throw new Error(
-            "Caretaker access is not assigned. Please contact your Primary."
-        );
-
-    }
-
-    throw new Error(
-        "Selected CareVR role is not assigned. Please contact your Primary."
-    );
-
-}
 
 
     //--------------------------------------------------------
     // Resolve active modules assigned to that access.
     //--------------------------------------------------------
 
-const permissions =
-    await carevrModulePermissions
-        .getActivePermissions(
-            access.id
+    const permissions =
+        await carevrModulePermissions
+            .getActivePermissions(
+                access.id
+            );
+
+
+    //--------------------------------------------------------
+    // Gate 3: At least one active module must be assigned.
+    // Without module access, the user cannot enter Dashboard.
+    //--------------------------------------------------------
+
+    if (
+        access.accessType !== "PRIMARY" &&
+        permissions.length === 0
+    ) {
+
+        throw new Error(
+            "No CareVR modules are assigned. Please reach out to Primary for module access."
         );
 
-
-//--------------------------------------------------------
-// Gate 3: At least one active module must be assigned.
-// Without module access, the user cannot enter Dashboard.
-//--------------------------------------------------------
-
-if (
-    access.accessType !== "PRIMARY" &&
-    permissions.length === 0
-) {
-    throw new Error(
-        "No CareVR modules are assigned. Please reach out to Primary for module access."
-    );
-}
+    }
 
 
-const modules:
-    CareVRDashboardModule[] =
-    permissions.map(
-        (permission) => ({
+    const modules:
+        CareVRDashboardModule[] =
+        permissions.map(
+            (permission) => ({
 
-            module:
-                permission.module,
+                module:
+                    permission.module,
 
-            permission:
-                permission.permission as
-                    | "VIEW"
-                    | "CONTRIBUTE"
-                    | "ADMIN",
+                permission:
+                    permission.permission as
+                        | "VIEW"
+                        | "CONTRIBUTE"
+                        | "ADMIN",
 
-        })
-    );
+            })
+        );
 
 
     //--------------------------------------------------------
     // Resolve Patient scope assigned to that access.
     //--------------------------------------------------------
 
-const patientScopeResponse =
-    await fetch(
-        "/api/patients/scope",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type":
-                    "application/json",
-            },
-            body: JSON.stringify({
-                accessId: access.id,
-                selectedRole,
-            }),
-        }
-    );
+    const patientScopeResponse =
+        await fetch(
+            "/api/patients/scope",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json",
+                },
+                body: JSON.stringify({
+                    accessId: access.id,
+                    selectedRole,
+                }),
+            }
+        );
 
-const patientScopeResult =
-    await patientScopeResponse.json();
+    const patientScopeResult =
+        await patientScopeResponse.json();
 
-if (
-    !patientScopeResponse.ok ||
-    !patientScopeResult?.success
-) {
-    throw new Error(
-        patientScopeResult?.error ??
-            "Unable to retrieve protected patient scope."
-    );
-}
+    if (
+        !patientScopeResponse.ok ||
+        !patientScopeResult?.success
+    ) {
 
-const patientScope =
-    patientScopeResult.data;
+        throw new Error(
+            patientScopeResult?.error ??
+                "Unable to retrieve protected patient scope."
+        );
 
-const handoff: CareVRDashboardHandoff = {
-    userId,
-    role: selectedRole,
-    access: {
-        id: access.id,
-        accessType: access.accessType,
-        familyId: access.familyId,
-        patientId: access.patientId,
-    },
-    modules,
-    moduleCount: modules.length,
-    patients:
-        patientScope.patients.map(
-            (patient: {
-                id: string;
-                userId: string | null;
-                fullName: string;
-                relationship:
-                    | string
-                    | null;
-            }) => ({
-                id: patient.id,
-                userId: patient.userId,
-                name: patient.fullName,
-                relationship:
-                    patient.relationship,
-            })
-        ),
-    patientCount:
-        patientScope.patients.length,
-    scope:
-        patientScope.scope,
-};
+    }
+
+    const patientScope =
+        patientScopeResult.data;
 
 
+    //--------------------------------------------------------
+    // Build Dashboard handoff.
+    //--------------------------------------------------------
+
+    const handoff:
+        CareVRDashboardHandoff = {
+
+        userId,
+
+        role:
+            selectedRole,
+
+        access: {
+
+            id:
+                access.id,
+
+            accessType:
+                access.accessType,
+
+            familyId:
+                access.familyId,
+
+            patientId:
+                access.patientId,
+
+        },
+
+        modules,
+
+        moduleCount:
+            modules.length,
+
+        patients:
+            patientScope.patients.map(
+                (patient: {
+                    id: string;
+                    userId: string | null;
+                    fullName: string;
+                    relationship:
+                        | string
+                        | null;
+                }) => ({
+
+                    id:
+                        patient.id,
+
+                    userId:
+                        patient.userId,
+
+                    name:
+                        patient.fullName,
+
+                    relationship:
+                        patient.relationship,
+
+                })
+            ),
+
+        patientCount:
+            patientScope.patients.length,
+
+        scope:
+            patientScope.scope,
+
+    };
+
+
+    //--------------------------------------------------------
+    // Store Dashboard handoff for the Dashboard page.
+    //--------------------------------------------------------
 
     if (
         typeof window !== "undefined"
     ) {
+
         sessionStorage.setItem(
             "carevr_dashboard_handoff",
             JSON.stringify(handoff)
         );
+
     }
+
 
     return handoff;
 }
+
 
 export function getCareVRDashboardHandoff():
     CareVRDashboardHandoff | null {
@@ -272,28 +307,40 @@ export function getCareVRDashboardHandoff():
     if (
         typeof window === "undefined"
     ) {
+
         return null;
+
     }
+
 
     const storedHandoff =
         sessionStorage.getItem(
             "carevr_dashboard_handoff"
         );
 
+
     if (!storedHandoff) {
+
         return null;
+
     }
 
+
     try {
+
         return JSON.parse(
             storedHandoff
         ) as CareVRDashboardHandoff;
+
     }
     catch {
+
         sessionStorage.removeItem(
             "carevr_dashboard_handoff"
         );
 
         return null;
+
     }
+
 }

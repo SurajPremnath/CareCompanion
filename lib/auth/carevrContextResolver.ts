@@ -23,12 +23,28 @@ export interface CareVRAvailableContext {
 
 }
 
+export interface CareVRAvailableContextsResult {
+
+    activeAccessRecords: ActiveCareVRAccess[];
+
+    contexts: CareVRAvailableContext[];
+
+}
+
 class CareVRContextResolver {
 
     async getAvailableContexts(
         userId: string
-    ): Promise<CareVRAvailableContext[]> {
+    ): Promise<CareVRAvailableContextsResult> {
 
+        /*
+         * ONE carevr_access query.
+         *
+         * Retain the complete authoritative result so
+         * subsequent stages can reuse the access records
+         * instead of querying carevr_access again merely
+         * to reconstruct the same context.
+         */
         const activeAccess =
             await carevrAccessRepository
                 .getActiveAccessForUser(
@@ -171,7 +187,12 @@ class CareVRContextResolver {
             }
         }
 
-        return contexts;
+        return {
+            activeAccessRecords:
+                activeAccess,
+
+            contexts,
+        };
     }
 
 }

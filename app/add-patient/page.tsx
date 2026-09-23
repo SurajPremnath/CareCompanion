@@ -246,25 +246,46 @@ if (!familyResult.success) {
 }
 
 const existingDashboardHandoff =
-  getCareVRDashboardHandoff();
+    getCareVRDashboardHandoff();
 
 if (!existingDashboardHandoff) {
-  throw new Error(
-    "CareVR Dashboard handoff is required."
-  );
+
+    throw new Error(
+        "CareVR Dashboard handoff is required."
+    );
+
 }
 
 await resolveCareVRDashboardHandoff(
-  existingDashboardHandoff.userId,
-  existingDashboardHandoff.role
+    existingDashboardHandoff.userId,
+    existingDashboardHandoff.role,
+    {
+        id:
+            existingDashboardHandoff.access.id,
+
+        userId:
+            existingDashboardHandoff.userId,
+
+        familyId:
+            existingDashboardHandoff.access.familyId,
+
+        patientId:
+            existingDashboardHandoff.access.patientId,
+
+        accessType:
+            existingDashboardHandoff.access.accessType,
+
+        accessStatus:
+            "ACTIVE",
+    }
 );
 
 AppAlert.success(
-  t("addPatient.saveSuccess")
+    t("addPatient.saveSuccess")
 );
 
 router.replace(
-  "/dashboard"
+    "/dashboard"
 );
 
       }

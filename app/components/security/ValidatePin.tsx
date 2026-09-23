@@ -406,11 +406,14 @@ const handleVerify = async () => {
             const contextStartedAt =
                 performance.now();
 
-            const availableContexts =
-                await carevrContextResolver
-                    .getAvailableContexts(
-                        userId
-                    );
+const {
+    activeAccessRecords,
+    contexts: availableContexts,
+} =
+    await carevrContextResolver
+        .getAvailableContexts(
+            userId
+        );
 
             const contextCompletedAt =
                 performance.now();
@@ -445,10 +448,24 @@ const handleVerify = async () => {
 
 
 
-            const dashboardRole =
-                availableContexts[0]
-                    .loginRole;
+            const selectedContext =
+                availableContexts[0];
 
+            const dashboardRole =
+                selectedContext.loginRole;
+
+            const access =
+                activeAccessRecords.find(
+                    (record) =>
+                        record.id ===
+                        selectedContext.accessId
+                );
+
+            if (!access) {
+                throw new Error(
+                    "Selected CareVR access is no longer active."
+                );
+            }
 
 
             const handoffStartedAt =
@@ -456,7 +473,8 @@ const handleVerify = async () => {
 
             await resolveCareVRDashboardHandoff(
                 userId,
-                dashboardRole
+                dashboardRole,
+                access
             );
 
             const handoffCompletedAt =
@@ -546,12 +564,8 @@ const handleVerify = async () => {
     consentGranted={false}
     canAddPatient={false}
     onAddPatient={() => {}}
-    onCareVRJourney={() => {
-        router.push("/carevr-journey");
-    }}
-    onHelp={() => {
-        router.push("/help");
-    }}
+    onCareVRJourney={() => {}}
+    onHelp={() => {}}
     onLogout={async () => {
         await authService.logout();
         router.replace("/login");
