@@ -1753,7 +1753,7 @@ top: calc(28%);
     min-height: 720px;
     display: grid;
     grid-template-columns: 47% 53%;
-    grid-template-rows: 1fr;
+    grid-template-rows: minmax(720px, 1fr);
     position: relative;
     overflow: hidden;
     border-radius: 28px;
@@ -1765,15 +1765,17 @@ top: calc(28%);
   }
 
   .login-left {
-    grid-column: 1;
-    grid-row: 1;
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
 
-    position: static;
+    position: relative;
     inset: auto;
+    z-index: 1;
 
     display: flex;
     flex-direction: column;
 
+    min-width: 0;
     min-height: 720px;
     padding: 34px 54px 30px;
 
@@ -1801,13 +1803,15 @@ top: calc(28%);
   }
 
   .login-right {
-    grid-column: 2;
-    grid-row: 1;
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
 
     position: relative;
+    z-index: 2;
 
     min-width: 0;
     min-height: 720px;
+    height: 100%;
 
     overflow: hidden;
 
