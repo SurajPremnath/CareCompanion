@@ -955,36 +955,59 @@ return (
   .login-shell {
     width: min(1180px, 100%);
     min-height: 720px;
-    display: grid;
-    grid-template-columns: 47% 53%;
-    grid-template-rows: 1fr;
+
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+
+    position: relative;
+
+    overflow: hidden;
   }
 
   .login-left {
-    grid-column: 1;
-    grid-row: 1;
-
-    position: static;
+    position: relative;
     inset: auto;
-    z-index: auto;
+    z-index: 1;
 
+    flex: 0 0 47%;
+    width: 47%;
+    min-width: 0;
     min-height: 720px;
+
+    display: flex;
+    flex-direction: column;
+
     padding: 34px 46px 30px;
+
+    box-sizing: border-box;
 
     background: #ffffff;
   }
 
   .login-right {
-    grid-column: 2;
-    grid-row: 1;
-
     position: relative;
-    z-index: auto;
+    inset: auto;
+    z-index: 2;
 
+    flex: 0 0 53%;
+    width: 53%;
     min-width: 0;
     min-height: 720px;
     height: auto;
     max-height: none;
+
+    display: block;
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+
+    background:
+      #f2edff
+      url("/images/Desktop%20Login%20Background.png")
+      center center / 100% 100%
+      no-repeat;
   }
 
   .login-content {
@@ -2294,15 +2317,19 @@ top: calc(28%);
   </button>
 </div>
 
-    </div>
 
 </div>
+
+</div>
+
 <div className="login-footer">
   <CareVRFooter />
 </div>
 
+
+</div>
 {/* ============================
-    RIGHT — BRAND EXPERIENCE
+    RIGHT â€” BRAND EXPERIENCE
 ============================ */}
 
     <div
@@ -2310,7 +2337,8 @@ top: calc(28%);
       aria-hidden="true"
     />
 
-</div>
+
+
       </section>
 </main>
       </>
