@@ -1709,7 +1709,7 @@ top: calc(28%);
    context resolution and navigation are untouched.
 ========================================================= */
 
-@media (min-width: 601px) {
+@media (min-width: 901px) {
 
   .login-method-tabs {
     display: grid !important;
