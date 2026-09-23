@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-
 import {
     verifyPin,
 } from "@/lib/pin/pinSecurityService";
@@ -156,7 +154,7 @@ const {
     data: failureState,
     error: failureError,
 } =
-    await supabaseAdmin.rpc(
+    await supabase.rpc(
         "carevr_pin_record_failure",
         {
             p_user_id:
