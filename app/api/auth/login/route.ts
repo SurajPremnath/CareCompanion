@@ -42,7 +42,22 @@ if (!captchaToken) {
   );
 }
 
-const supabase = await createSupabaseServerClient();
+const supabaseStartedAt = performance.now();
+
+const supabase =
+  await createSupabaseServerClient();
+
+const supabaseClientReadyAt =
+  performance.now();
+
+console.log(
+  `[LOGIN-SERVER-PERF] createSupabaseServerClient: ${Math.round(
+    supabaseClientReadyAt - supabaseStartedAt
+  )} ms`
+);
+
+const authStartedAt =
+  performance.now();
 
 const { data, error } =
   await supabase.auth.signInWithPassword({
@@ -52,6 +67,15 @@ const { data, error } =
       captchaToken,
     },
   });
+
+const authCompletedAt =
+  performance.now();
+
+console.log(
+  `[LOGIN-SERVER-PERF] signInWithPassword: ${Math.round(
+    authCompletedAt - authStartedAt
+  )} ms`
+);
 
     if (error) {
       return NextResponse.json(
