@@ -964,13 +964,22 @@ return (
     grid-column: 1;
     grid-row: 1;
 
+    position: static;
+    inset: auto;
+    z-index: auto;
+
     min-height: 720px;
     padding: 34px 46px 30px;
+
+    background: #ffffff;
   }
 
   .login-right {
     grid-column: 2;
     grid-row: 1;
+
+    position: relative;
+    z-index: auto;
 
     min-width: 0;
     min-height: 720px;
