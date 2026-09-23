@@ -1724,57 +1724,73 @@ top: calc(28%);
     display: block !important;
   }
 
-        .login-page {
-          min-height: 100vh;
-          min-height: 100dvh;
-          padding: 28px;
-          background: #f1eaff;
-        }
+  .login-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 28px;
+    background: #f1eaff;
+  }
 
-        .login-shell {
-          width: min(1180px, 100%);
-          min-height: 720px;
-          display: grid;
-          grid-template-columns: 47% 53%;
-          position: relative;
-          overflow: hidden;
-          border-radius: 28px;
-          border: 1px solid #e9e5f3;
-          background: #ffffff;
-          box-shadow:
-            0 30px 80px rgba(36, 28, 75, 0.10),
-            0 6px 20px rgba(36, 28, 75, 0.04);
-        }
+  .login-shell {
+    width: min(1180px, 100%);
+    min-height: 720px;
+    display: grid;
+    grid-template-columns: 47% 53%;
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    border: 1px solid #e9e5f3;
+    background: #ffffff;
+    box-shadow:
+      0 30px 80px rgba(36, 28, 75, 0.10),
+      0 6px 20px rgba(36, 28, 75, 0.04);
+  }
 
-        .login-left {
-          display: flex;
-          flex-direction: column;
-          padding: 34px 54px 30px;
-          background: #ffffff;
-        }
+  .login-left {
+    position: static;
+    inset: auto;
+    z-index: auto;
 
-        .carevr-logo {
-          display: block;
-          width: 250px;
-          height: 150px;
-          margin-bottom: 28px;
-          background-image: url("/images/CareVR%20v1.0.png");
-          background-repeat: no-repeat;
-          background-position: left top;
-          background-size: contain;
-        }
+    display: flex;
+    flex-direction: column;
 
-.login-right {
-  position: relative;
-  min-height: 720px;
-  overflow: hidden;
-  background:
-    #f2edff
-    url("/images/Desktop%20Login%20Background.png")
-    center center / 100% 100%
-    no-repeat;
+    min-height: 0;
+    padding: 34px 54px 30px;
+
+    background: #ffffff;
+  }
+
+  .login-content {
+    position: static;
+
+    width: 100%;
+    max-width: 430px;
+
+    margin: auto;
+  }
+
+  .carevr-logo {
+    display: block;
+    width: 250px;
+    height: 150px;
+    margin-bottom: 28px;
+    background-image: url("/images/CareVR%20v1.0.png");
+    background-repeat: no-repeat;
+    background-position: left top;
+    background-size: contain;
+  }
+
+  .login-right {
+    position: relative;
+    min-height: 720px;
+    overflow: hidden;
+    background:
+      #f2edff
+      url("/images/Desktop%20Login%20Background.png")
+      center center / 100% 100%
+      no-repeat;
+  }
 }
-      }
 
       @media (max-width: 600px) {
 
