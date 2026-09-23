@@ -149,49 +149,50 @@ async login(
   captchaToken: string
 ): Promise<User> {
 
-const loginFetchStartedAt =
-  performance.now();
+  /*
+  const loginFetchStartedAt =
+    performance.now();
 
-const response = await fetch("/api/auth/login", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    email,
-    password,
-    captchaToken,
-  }),
-});
-
-console.log(
-  `[LOGIN-PERF] /api/auth/login fetch: ${Math.round(
-    performance.now() -
-      loginFetchStartedAt
-  )} ms`
-);
-
-let result: {
-  message?: string;
-  user?: User;
-  session?: Session;
-};
-
-const loginJsonStartedAt =
-  performance.now();
-
-try {
-  result = await response.json();
+  const response = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      password,
+      captchaToken,
+    }),
+  });
 
   console.log(
-    `[LOGIN-PERF] /api/auth/login JSON: ${Math.round(
+    `[LOGIN-PERF] /api/auth/login fetch: ${Math.round(
       performance.now() -
-        loginJsonStartedAt
+        loginFetchStartedAt
     )} ms`
   );
-} catch {
-  throw new Error("Unable to login.");
-}
+
+  let result: {
+    message?: string;
+    user?: User;
+    session?: Session;
+  };
+
+  const loginJsonStartedAt =
+    performance.now();
+
+  try {
+    result = await response.json();
+
+    console.log(
+      `[LOGIN-PERF] /api/auth/login JSON: ${Math.round(
+        performance.now() -
+          loginJsonStartedAt
+      )} ms`
+    );
+  } catch {
+    throw new Error("Unable to login.");
+  }
 
   if (!response.ok) {
     throw new Error(
@@ -214,6 +215,36 @@ try {
   }
 
   return result.user;
+  */
+
+  const loginStartedAt =
+    performance.now();
+
+  const { data, error } =
+    await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: {
+        captchaToken,
+      },
+    });
+
+  console.log(
+    `[LOGIN-PERF] supabase.auth.signInWithPassword: ${Math.round(
+      performance.now() -
+        loginStartedAt
+    )} ms`
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data.user || !data.session) {
+    throw new Error("Invalid login.");
+  }
+
+  return data.user;
 }
 
   /**
