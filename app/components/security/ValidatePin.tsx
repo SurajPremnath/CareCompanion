@@ -39,6 +39,8 @@ import {
     profileRepository,
 } from "@/lib/repositories/profileRepository";
 
+import PinLockoutScreen from "./PinLockoutScreen";
+
 type LockState = {
     lockedUntil: string;
     lockoutLevel: number;
@@ -84,8 +86,8 @@ const [showPin, setShowPin] =
         useState(false);
 
 
-    const [remainingSeconds, setRemainingSeconds] =
-        useState<number | null>(null);
+// No lockout countdown state.
+// Countdown is owned by PinLockoutScreen.
 
 
     const [accountMenuOpen, setAccountMenuOpen] =
@@ -151,107 +153,6 @@ useEffect(() => {
 }, []);
 
 
-
-    /*
-     * =========================================================
-     * LOCK COUNTDOWN
-     * =========================================================
-     */
-
-    useEffect(() => {
-
-        if (!lockState) {
-
-            setRemainingSeconds(null);
-
-            return;
-        }
-
-
-        const updateRemainingTime = () => {
-
-            const lockedUntil =
-                new Date(
-                    lockState.lockedUntil
-                ).getTime();
-
-
-            const remaining =
-                Math.max(
-                    0,
-                    Math.ceil(
-                        (
-                            lockedUntil -
-                            Date.now()
-                        ) / 1000
-                    )
-                );
-
-
-            setRemainingSeconds(
-                remaining
-            );
-
-
-            if (remaining === 0) {
-
-                setLockState(null);
-
-                setError("");
-
-                setAttemptsRemaining(
-                    null
-                );
-
-                setPin("");
-            }
-        };
-
-
-        updateRemainingTime();
-
-
-        const timer =
-            window.setInterval(
-                updateRemainingTime,
-                1000
-            );
-
-
-        return () =>
-            window.clearInterval(
-                timer
-            );
-
-    }, [lockState]);
-
-
-    /*
-     * =========================================================
-     * TIMER FORMAT
-     * =========================================================
-     */
-
-    const formatRemainingTime = (
-        seconds: number
-    ) => {
-
-        const minutes =
-            Math.floor(
-                seconds / 60
-            );
-
-
-        const remaining =
-            seconds % 60;
-
-
-        return `${String(
-            minutes
-        ).padStart(2, "0")}:${String(
-            remaining
-        ).padStart(2, "0")}`;
-    };
 
 
     /*
@@ -336,36 +237,36 @@ useEffect(() => {
                 }
 
 
-                /*
-                 * TEMPORARY LOCK
-                 */
+/*
+ * TEMPORARY LOCK
+ */
 
-                if (
-                    result?.locked === true &&
-                    result?.lockedUntil
-                ) {
+if (
+    result?.locked === true &&
+    result?.lockedUntil
+) {
 
-                    setLockState({
-                        lockedUntil:
-                            result.lockedUntil,
+    setLockState({
+        lockedUntil:
+            result.lockedUntil,
 
-                        lockoutLevel:
-                            Number(
-                                result.lockoutLevel ??
-                                0
-                            ),
-                    });
+        lockoutLevel:
+            Number(
+                result.lockoutLevel ??
+                0
+            ),
+    });
 
-                    setPin("");
+    setPin("");
 
-                    setAttemptsRemaining(
-                        null
-                    );
+    setAttemptsRemaining(
+        null
+    );
 
-                    setError("");
+    setError("");
 
-                    return;
-                }
+    return;
+}
 
 
                 /*
@@ -667,11 +568,11 @@ throw new Error(
                                     Your account remains protected.
                                 </strong>
 
-                                <p>
-                                    Please contact support
-                                    to regain access to your
-                                    CareVR account.
-                                </p>
+<p>
+    Please contact Linearise AI Labs - lineariseailabs@gmail.com
+    to regain access to your
+    CareVR account.
+</p>
 
                             </div>
 
@@ -691,38 +592,11 @@ throw new Error(
 
     /*
      * =========================================================
-     * TEMPORARY LOCK
+     * TEMPORARY PIN LOCKOUT
      * =========================================================
      */
 
     if (lockState) {
-
-        const lockNumber =
-            Math.min(
-                3,
-                Math.max(
-                    1,
-                    lockState.lockoutLevel
-                )
-            );
-
-
-        const locksRemaining =
-            Math.max(
-                0,
-                3 - lockNumber
-            );
-
-
-        const lockDescription =
-            lockNumber === 3
-                ? "This is your final temporary lock."
-                : `${locksRemaining} more temporary lock${
-                    locksRemaining === 1
-                        ? ""
-                        : "s"
-                } available before recovery is required.`;
-
 
         return (
 
@@ -730,150 +604,24 @@ throw new Error(
 
                 {renderHeader()}
 
-
-                <section className="pin-content">
-
-                    <div className="pin-card">
-
-                        <div
-                            className="security-icon"
-                            aria-hidden="true"
-                        >
-                            <svg
-                                width="30"
-                                height="30"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <rect
-                                    x="3"
-                                    y="11"
-                                    width="18"
-                                    height="10"
-                                    rx="2"
-                                />
-
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-
-                                <path d="M12 15v2" />
-                            </svg>
-                        </div>
-
-
-                        <div className="eyebrow">
-                            TEMPORARY SECURITY LOCK
-                        </div>
-
-
-                        <h1>
-                            PIN Temporarily Locked
-                        </h1>
-
-
-                        <p className="intro">
-                            Too many incorrect PIN
-                            attempts. Your account is
-                            temporarily protected.
-                        </p>
-
-
-                        <div className="timer-panel">
-
-                            <span>
-                                TRY AGAIN IN
-                            </span>
-
-                            <strong>
-                                {formatRemainingTime(
-                                    remainingSeconds ?? 0
-                                )}
-                            </strong>
-
-                        </div>
-
-
-                        <div className="lock-progress">
-
-                            <div className="lock-progress-heading">
-
-                                <span>
-                                    Security lock
-                                </span>
-
-                                <strong>
-                                    {lockNumber} of 3
-                                </strong>
-
-                            </div>
-
-
-                            <div className="lock-track">
-
-                                {[1, 2, 3].map(
-                                    (level) => (
-
-                                        <div
-                                            key={level}
-                                            className={
-                                                level <= lockNumber
-                                                    ? "lock-step active"
-                                                    : "lock-step"
-                                            }
-                                        />
-
-                                    )
-                                )}
-
-                            </div>
-
-                        </div>
-
-
-                        <p className="lock-description">
-                            {lockDescription}
-                        </p>
-
-
-                        <div className="security-note">
-
-                            <svg
-                                width="21"
-                                height="21"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <path d="M12 3 5 6v5c0 4.5 2.8 7.8 7 10 4.2-2.2 7-5.5 7-10V6l-7-3Z" />
-
-                                <path d="m9 12 2 2 4-4" />
-                            </svg>
-
-                            <span>
-                                Your CareVR account remains
-                                protected while the temporary
-                                lock is active.
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </section>
-
+                <PinLockoutScreen
+                    lockedUntil={lockState.lockedUntil}
+                    lockoutLevel={lockState.lockoutLevel}
+                    onLockExpired={() => {
+                        setLockState(null);
+                        setPin("");
+                        setError("");
+                        setAttemptsRemaining(null);
+                    }}
+                />
 
                 <CareVRFooter />
 
             </main>
         );
     }
+
+
 
 
     /*

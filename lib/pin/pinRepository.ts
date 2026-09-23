@@ -69,6 +69,7 @@ export async function recordSuccessfulPinVerification(
             .from("carevr_pin")
             .update({
                 failed_attempts: 0,
+                lockout_level: 0,
                 locked_until: null,
                 last_verified_at:
                     new Date().toISOString(),
