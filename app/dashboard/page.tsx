@@ -1464,27 +1464,20 @@ setSelectedAction(
 // TEMPORARY LOGOUT PERFORMANCE DIAGNOSTICS — COMMENTED OUT FOR DEMO
 // const logoutStartedAt = performance.now();
 
-try {
-
-    // const analyticsLogoutStartedAt = performance.now();
-
-    await authSessionService.end();
-
-    // console.log(
-    //     `[LOGOUT-PERF] authSessionService.end: ${Math.round(
-    //         performance.now() - analyticsLogoutStartedAt
-    //     )} ms`
-    // );
-
-}
-catch (error) {
-
-    console.error(
-        "Unable to close analytics auth session.",
-        error
-    );
-
-}
+// ANALYTICS AUTH-SESSION CLOSURE — COMMENTED OUT FOR DEMO
+// try {
+//
+//     await authSessionService.end();
+//
+// }
+// catch (error) {
+//
+//     console.error(
+//         "Unable to close analytics auth session.",
+//         error
+//     );
+//
+// }
 
 try {
 

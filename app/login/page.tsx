@@ -84,9 +84,10 @@ const [pinVerification, setPinVerification] =
 
     loginPageReadyRef.current = true;
 
-    void performanceTracker.complete({
-      toPath: "/login",
-    });
+// PERFORMANCE TRACKING — COMMENTED OUT FOR DEMO
+// void performanceTracker.complete({
+//   toPath: "/login",
+// });
   }, []);
 
 
@@ -115,11 +116,12 @@ const handleLogin = async () => {
 
   setCaptchaToken(null);
 
-  performanceTracker.start({
-    fromPath: "/login",
-    toPath: "/dashboard",
-    feature: "LOGIN_TO_DASHBOARD",
-  });
+// PERFORMANCE TRACKING — COMMENTED OUT FOR DEMO
+// performanceTracker.start({
+//   fromPath: "/login",
+//   toPath: "/dashboard",
+//   feature: "LOGIN_TO_DASHBOARD",
+// });
 
 // Temporary login performance diagnostics retained for future troubleshooting.
 //
