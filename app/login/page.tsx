@@ -1736,6 +1736,7 @@ top: calc(28%);
     min-height: 720px;
     display: grid;
     grid-template-columns: 47% 53%;
+    grid-template-rows: 1fr;
     position: relative;
     overflow: hidden;
     border-radius: 28px;
@@ -1747,26 +1748,19 @@ top: calc(28%);
   }
 
   .login-left {
+    grid-column: 1;
+    grid-row: 1;
+
     position: static;
     inset: auto;
-    z-index: auto;
 
     display: flex;
     flex-direction: column;
 
-    min-height: 0;
+    min-height: 720px;
     padding: 34px 54px 30px;
 
     background: #ffffff;
-  }
-
-  .login-content {
-    position: static;
-
-    width: 100%;
-    max-width: 430px;
-
-    margin: auto;
   }
 
   .carevr-logo {
@@ -1780,10 +1774,26 @@ top: calc(28%);
     background-size: contain;
   }
 
+  .login-content {
+    position: static;
+
+    width: 100%;
+    max-width: 430px;
+
+    margin: auto;
+  }
+
   .login-right {
+    grid-column: 2;
+    grid-row: 1;
+
     position: relative;
+
+    min-width: 0;
     min-height: 720px;
+
     overflow: hidden;
+
     background:
       #f2edff
       url("/images/Desktop%20Login%20Background.png")
