@@ -1080,8 +1080,7 @@ throw new Error(
                     )}
 
 
-                    {attemptsRemaining !== null &&
-                        !error && (
+                    {attemptsRemaining !== null && (
 
                             <div
                                 className="attempt-message"
