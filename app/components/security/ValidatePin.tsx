@@ -161,291 +161,363 @@ useEffect(() => {
      * =========================================================
      */
 
-    const handleVerify = async () => {
-
-        setError("");
-
-
-        if (pin.length !== 6) {
-
-            setError(
-                "Please enter your 6-digit CareVR PIN."
-            );
-
-            return;
-        }
-
-
-        if (
-            saving ||
-            lockState ||
-            escalationRequired
-        ) {
-            return;
-        }
-
-
-        setSaving(true);
-
-
-        try {
-
-            const response =
-                await fetch(
-                    "/api/security/validate-pin",
-                    {
-                        method: "POST",
-
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                        },
-
-                        body: JSON.stringify({
-                            pin,
-                        }),
-                    }
-                );
-
-
-            const result =
-                await response.json();
-
-
-            if (!response.ok) {
-
-                /*
-                 * FINAL ESCALATION
-                 */
-
-                if (
-                    result?.escalationRequired ===
-                    true
-                ) {
-
-                    setEscalationRequired(
-                        true
-                    );
-
-                    setPin("");
-
-                    setAttemptsRemaining(
-                        null
-                    );
-
-                    return;
-                }
-
-
-/*
- * TEMPORARY LOCK
- */
-
-if (
-    result?.locked === true &&
-    result?.lockedUntil
-) {
-
-    setLockState({
-        lockedUntil:
-            result.lockedUntil,
-
-        lockoutLevel:
-            Number(
-                result.lockoutLevel ??
-                0
-            ),
-    });
-
-    setPin("");
-
-    setAttemptsRemaining(
-        null
-    );
+const handleVerify = async () => {
 
     setError("");
 
-    return;
-}
 
 
-                /*
-                 * FAILED ATTEMPT
-                 */
+    if (pin.length !== 6) {
 
-                if (
-                    typeof result?.attemptsRemaining ===
-                    "number"
-                ) {
+        setError(
+            "Please enter your 6-digit CareVR PIN."
+        );
 
-                    setAttemptsRemaining(
-                        result.attemptsRemaining
-                    );
+        return;
+    }
+
+
+
+    if (
+        saving ||
+        lockState ||
+        escalationRequired
+    ) {
+        return;
+    }
+
+
+
+    const verifyStartedAt =
+        performance.now();
+
+    setSaving(true);
+
+
+
+    try {
+
+        const validatePinStartedAt =
+            performance.now();
+
+        const response =
+            await fetch(
+                "/api/security/validate-pin",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+
+                    body: JSON.stringify({
+                        pin,
+                    }),
                 }
+            );
+
+        const validatePinCompletedAt =
+            performance.now();
+
+        console.log(
+            `[PIN-PERF] /api/security/validate-pin: ${Math.round(
+                validatePinCompletedAt -
+                validatePinStartedAt
+            )} ms`
+        );
 
 
-                throw new Error(
-                    result?.error ||
-                    "Incorrect CareVR PIN."
+
+        const jsonStartedAt =
+            performance.now();
+
+        const result =
+            await response.json();
+
+        const jsonCompletedAt =
+            performance.now();
+
+        console.log(
+            `[PIN-PERF] validate-pin JSON: ${Math.round(
+                jsonCompletedAt -
+                jsonStartedAt
+            )} ms`
+        );
+
+
+
+        if (!response.ok) {
+
+            if (
+                result?.escalationRequired ===
+                true
+            ) {
+
+                setEscalationRequired(
+                    true
+                );
+
+                setPin("");
+
+                setAttemptsRemaining(
+                    null
+                );
+
+                return;
+            }
+
+
+
+            if (
+                result?.locked === true &&
+                result?.lockedUntil
+            ) {
+
+                setLockState({
+                    lockedUntil:
+                        result.lockedUntil,
+
+                    lockoutLevel:
+                        Number(
+                            result.lockoutLevel ??
+                            0
+                        ),
+                });
+
+                setPin("");
+
+                setAttemptsRemaining(
+                    null
+                );
+
+                setError("");
+
+                return;
+            }
+
+
+
+            if (
+                typeof result?.attemptsRemaining ===
+                "number"
+            ) {
+
+                setAttemptsRemaining(
+                    result.attemptsRemaining
                 );
             }
 
 
-/*
- * SUCCESS
- *
- * Login has already authenticated the user.
- * PIN verification is now complete.
- *
- * The invitation check remains in Login.
- * This validation determines whether the
- * authenticated CareVR user can proceed based
- * on consent, role and CareVR authorization.
- */
-setAttemptsRemaining(null);
-setPin("");
 
-const validation =
-    await validateInvitedUserLogin({
-        email,
-        userId,
-        mode: "NORMAL",
-    });
+            throw new Error(
+                result?.error ||
+                "Incorrect CareVR PIN."
+            );
+        }
 
-if (
-    validation.status ===
-    "CONSENT_REQUIRED"
-) {
-    if (
-        !validation.invitationRole ||
-        !validation.familyId
-    ) {
-        throw new Error(
-            "CareVR authorization context is incomplete."
+
+
+        setAttemptsRemaining(null);
+        setPin("");
+
+
+
+        const validationStartedAt =
+            performance.now();
+
+        const validation =
+            await validateInvitedUserLogin({
+                email,
+                userId,
+                mode: "NORMAL",
+            });
+
+        const validationCompletedAt =
+            performance.now();
+
+        console.log(
+            `[PIN-PERF] validateInvitedUserLogin: ${Math.round(
+                validationCompletedAt -
+                validationStartedAt
+            )} ms`
         );
-    }
 
-    carevrAuthorizationHandoff.set({
-        userId,
-        carevrRole:
-            validation.invitationRole,
-        familyId:
-            validation.familyId,
-        patientId:
-            null,
-        consentStage:
-            "POST_LOGIN",
-        governanceId:
-            null,
-        governanceVersion:
-            null,
-    });
 
-    router.replace("/consent");
-    return;
-}
 
-if (
-    validation.status ===
-        "ROLE_MISMATCH" ||
-    validation.status ===
-        "INVALID_INVITATION" ||
-    validation.status ===
-        "NOT_INVITED"
-) {
-    throw new Error(
-        validation.message
-    );
-}
+        if (
+            validation.status ===
+            "CONSENT_REQUIRED"
+        ) {
 
-if (
-    validation.status ===
-        "ACCEPTED" ||
-    validation.status ===
-        "PRIMARY"
-) {
-    /*
-     * ---------------------------------------------------------
-     * EXISTING CAREVR CONTEXT RESOLUTION
-     *
-     * PIN verification is complete.
-     * CareVR eligibility / consent / role validation
-     * has already completed above.
-     *
-     * Resolve the user's existing active CareVR contexts.
-     *
-     * If the user has multiple active contexts
-     * (for example PRIMARY + CARETAKER), use the
-     * existing Profile Selection flow.
-     *
-     * If there is only one context, preserve the
-     * existing direct Dashboard handoff.
-     * ---------------------------------------------------------
-     */
+            if (
+                !validation.invitationRole ||
+                !validation.familyId
+            ) {
+                throw new Error(
+                    "CareVR authorization context is incomplete."
+                );
+            }
 
-    const availableContexts =
-        await carevrContextResolver
-            .getAvailableContexts(
-                userId
+            carevrAuthorizationHandoff.set({
+                userId,
+                carevrRole:
+                    validation.invitationRole,
+                familyId:
+                    validation.familyId,
+                patientId:
+                    null,
+                consentStage:
+                    "POST_LOGIN",
+                governanceId:
+                    null,
+                governanceVersion:
+                    null,
+            });
+
+            router.replace("/consent");
+            return;
+        }
+
+
+
+        if (
+            validation.status ===
+                "ROLE_MISMATCH" ||
+            validation.status ===
+                "INVALID_INVITATION" ||
+            validation.status ===
+                "NOT_INVITED"
+        ) {
+            throw new Error(
+                validation.message
+            );
+        }
+
+
+
+        if (
+            validation.status ===
+                "ACCEPTED" ||
+            validation.status ===
+                "PRIMARY"
+        ) {
+
+            const contextStartedAt =
+                performance.now();
+
+            const availableContexts =
+                await carevrContextResolver
+                    .getAvailableContexts(
+                        userId
+                    );
+
+            const contextCompletedAt =
+                performance.now();
+
+            console.log(
+                `[PIN-PERF] getAvailableContexts: ${Math.round(
+                    contextCompletedAt -
+                    contextStartedAt
+                )} ms`
             );
 
-    if (
-        availableContexts.length === 0
-    ) {
+
+
+            if (
+                availableContexts.length === 0
+            ) {
+                throw new Error(
+                    "No active CareVR profiles are available for this account."
+                );
+            }
+
+
+
+            if (
+                availableContexts.length > 1
+            ) {
+                router.replace(
+                    "/profile-selection"
+                );
+                return;
+            }
+
+
+
+            const dashboardRole =
+                availableContexts[0]
+                    .loginRole;
+
+
+
+            const handoffStartedAt =
+                performance.now();
+
+            await resolveCareVRDashboardHandoff(
+                userId,
+                dashboardRole
+            );
+
+            const handoffCompletedAt =
+                performance.now();
+
+            console.log(
+                `[PIN-PERF] resolveCareVRDashboardHandoff: ${Math.round(
+                    handoffCompletedAt -
+                    handoffStartedAt
+                )} ms`
+            );
+
+
+
+            const routerStartedAt =
+                performance.now();
+
+            router.replace(
+                "/dashboard"
+            );
+
+            const routerCompletedAt =
+                performance.now();
+
+            console.log(
+                `[PIN-PERF] router.replace(/dashboard): ${Math.round(
+                    routerCompletedAt -
+                    routerStartedAt
+                )} ms`
+            );
+
+
+
+            console.log(
+                `[PIN-PERF] VERIFY-PIN → DASHBOARD NAVIGATION: ${Math.round(
+                    routerCompletedAt -
+                    verifyStartedAt
+                )} ms`
+            );
+
+            return;
+        }
+
+
+
         throw new Error(
-            "No active CareVR profiles are available for this account."
+            validation.message
         );
-    }
 
-    if (
-        availableContexts.length > 1
-    ) {
-        router.replace(
-            "/profile-selection"
+    } catch (err) {
+
+        setError(
+            err instanceof Error
+                ? err.message
+                : "Unable to verify your CareVR PIN."
         );
-        return;
+
+    } finally {
+
+        setSaving(false);
     }
-
-    /*
-     * ---------------------------------------------------------
-     * SINGLE CONTEXT
-     *
-     * Preserve the existing Dashboard handoff.
-     * ---------------------------------------------------------
-     */
-
-    const dashboardRole =
-        availableContexts[0]
-            .loginRole;
-
-    await resolveCareVRDashboardHandoff(
-        userId,
-        dashboardRole
-    );
-
-    router.replace(
-        "/dashboard"
-    );
-
-    return;
-}
-
-throw new Error(
-    validation.message
-);
-
-} catch (err) {
-
-    setError(
-        err instanceof Error
-            ? err.message
-            : "Unable to verify your CareVR PIN."
-    );
-
-} finally {
-
-    setSaving(false);
-}
 };
 
 
