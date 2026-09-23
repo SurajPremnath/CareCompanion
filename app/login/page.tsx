@@ -947,33 +947,41 @@ return (
          TABLET
       ============================== */
 
-      @media (max-width: 900px) {
-        .login-page {
-          padding: 18px;
-        }
+@media (max-width: 900px) {
+  .login-page {
+    padding: 18px;
+  }
 
-        .login-shell {
-          max-width: 600px;
-          min-height: auto;
-          display: block;
-        }
+  .login-shell {
+    width: min(1180px, 100%);
+    min-height: 720px;
+    display: grid;
+    grid-template-columns: 47% 53%;
+    grid-template-rows: 1fr;
+  }
 
-        .login-right {
-          min-height: 300px;
-          height: 38vh;
-          max-height: 360px;
-        }
+  .login-left {
+    grid-column: 1;
+    grid-row: 1;
 
-        .login-left {
-          min-height: 0;
-          padding: 34px 46px 30px;
-        }
+    min-height: 720px;
+    padding: 34px 46px 30px;
+  }
 
-        .login-content {
-          margin: 0 auto;
-        }
-      }
+  .login-right {
+    grid-column: 2;
+    grid-row: 1;
 
+    min-width: 0;
+    min-height: 720px;
+    height: auto;
+    max-height: none;
+  }
+
+  .login-content {
+    margin: auto;
+  }
+}
 
       /* =========================================================
          MOBILE LOGIN
