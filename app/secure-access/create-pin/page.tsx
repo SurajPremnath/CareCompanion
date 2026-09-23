@@ -57,15 +57,18 @@ function CreatePinContent() {
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(false);
     const [userName, setUserName] = useState("");
+const [secureAccessStarted, setSecureAccessStarted] =
+    useState(false);
 
 const [secureAccessStage, setSecureAccessStage] =
     useState<
+        | "PREPARING_EXPERIENCE"
         | "VERIFYING_ACCESS"
         | "ACCESS_VERIFIED"
         | "PREPARING_CONTEXT"
         | "OPENING_DASHBOARD"
         | "WELCOME"
-    >("VERIFYING_ACCESS");
+    >("PREPARING_EXPERIENCE");
 
 
     useEffect(() => {
@@ -110,7 +113,68 @@ const [secureAccessStage, setSecureAccessStage] =
             setError("");
             setSaving(true);
 
+            const viewportWidth =
+                typeof window !== "undefined"
+                    ? window.innerWidth
+                    : 1280;
+
+            const secureAccessTiming =
+                viewportWidth < 768
+                    ? {
+                          preparing: 1200,
+                          verifying: 1400,
+                          verified: 1000,
+                          context: 1300,
+                          opening: 1000,
+                          welcome: 1600,
+                      }
+                    : viewportWidth < 1024
+                        ? {
+                              preparing: 1400,
+                              verifying: 1600,
+                              verified: 1200,
+                              context: 1500,
+                              opening: 1200,
+                              welcome: 1800,
+                          }
+                        : {
+                              preparing: 1700,
+                              verifying: 1800,
+                              verified: 1400,
+                              context: 1700,
+                              opening: 1400,
+                              welcome: 2000,
+                          };
+
+            const waitForStage = (
+                duration: number
+            ) =>
+                new Promise<void>(
+                    (resolve) => {
+                        window.setTimeout(
+                            resolve,
+                            duration
+                        );
+                    }
+                );
+
             try {
+                setSecureAccessStage(
+                    "PREPARING_EXPERIENCE"
+                );
+
+                await waitForStage(
+                    secureAccessTiming.preparing
+                );
+
+                if (cancelled) {
+                    return;
+                }
+
+                setSecureAccessStage(
+                    "VERIFYING_ACCESS"
+                );
+
                 const user =
                     await authService.getCurrentUser();
 
@@ -120,44 +184,51 @@ const [secureAccessStage, setSecureAccessStage] =
                     );
                 }
 
-const validation =
-    await validateInvitedUserLogin({
-        email: user.email,
-        userId: user.id,
-        mode: "NORMAL",
-    });
+                const validation =
+                    await validateInvitedUserLogin({
+                        email: user.email,
+                        userId: user.id,
+                        mode: "NORMAL",
+                    });
 
-if (cancelled) {
-    return;
-}
+                if (cancelled) {
+                    return;
+                }
 
-setSecureAccessStage(
-    "ACCESS_VERIFIED"
-);
+                setSecureAccessStage(
+                    "ACCESS_VERIFIED"
+                );
 
-if (
-    validation.status ===
-        "ACCEPTED" ||
-    validation.status ===
-        "PRIMARY"
-) {
+                await waitForStage(
+                    secureAccessTiming.verified
+                );
 
-const {
-    activeAccessRecords,
-    contexts,
-} =
-    await carevrContextResolver
-        .getAvailableContexts(
-            user.id
-        );
+                if (cancelled) {
+                    return;
+                }
 
-if (cancelled) {
-    return;
-}
+                if (
+                    validation.status ===
+                        "ACCEPTED" ||
+                    validation.status ===
+                        "PRIMARY"
+                ) {
+                    setSecureAccessStage(
+                        "PREPARING_CONTEXT"
+                    );
 
-setSecureAccessStage(
-    "PREPARING_CONTEXT"
-);
+                    const {
+                        activeAccessRecords,
+                        contexts,
+                    } =
+                        await carevrContextResolver
+                            .getAvailableContexts(
+                                user.id
+                            );
+
+                    if (cancelled) {
+                        return;
+                    }
 
                     const dashboardRole =
                         validation.status ===
@@ -200,23 +271,51 @@ setSecureAccessStage(
                         );
                     }
 
-await resolveCareVRDashboardHandoff(
-    user.id,
-    dashboardRole,
-    access
-);
+                    await resolveCareVRDashboardHandoff(
+                        user.id,
+                        dashboardRole,
+                        access
+                    );
 
-if (cancelled) {
-    return;
-}
+                    if (cancelled) {
+                        return;
+                    }
 
-setSecureAccessStage(
-    "OPENING_DASHBOARD"
-);
+                    await waitForStage(
+                        secureAccessTiming.context
+                    );
 
-router.replace(
-    "/dashboard"
-);
+                    if (cancelled) {
+                        return;
+                    }
+
+                    setSecureAccessStage(
+                        "OPENING_DASHBOARD"
+                    );
+
+                    await waitForStage(
+                        secureAccessTiming.opening
+                    );
+
+                    if (cancelled) {
+                        return;
+                    }
+
+                    setSecureAccessStage(
+                        "WELCOME"
+                    );
+
+                    await waitForStage(
+                        secureAccessTiming.welcome
+                    );
+
+                    if (cancelled) {
+                        return;
+                    }
+
+                    router.replace(
+                        "/dashboard"
+                    );
 
                     return;
                 }
@@ -467,6 +566,12 @@ if (consentAccepted) {
 
 const secureStages = [
     {
+        key: "PREPARING_EXPERIENCE",
+        title: "Preparing Your CareVR Experience",
+        description:
+            "Just a moment while we securely set things up for you.",
+    },
+    {
         key: "VERIFYING_ACCESS",
         title: "Verifying Your Access",
         description:
@@ -554,6 +659,72 @@ const secureStages = [
                         <div className="secure-access-hero-art">
 
 {currentStage.key ===
+    "PREPARING_EXPERIENCE" && (
+    <div className="secure-access-preparing-art">
+
+        <div className="preparing-sky" />
+
+        <div className="preparing-mountain preparing-mountain-back" />
+        <div className="preparing-mountain preparing-mountain-front" />
+
+        <div className="preparing-path" />
+
+        <div className="preparing-tree preparing-tree-left">
+            <span className="preparing-tree-crown" />
+            <span className="preparing-tree-trunk" />
+        </div>
+
+        <div className="preparing-tree preparing-tree-right">
+            <span className="preparing-tree-crown" />
+            <span className="preparing-tree-trunk" />
+        </div>
+
+        <div className="preparing-heart">
+            <svg
+                viewBox="0 0 64 64"
+                fill="none"
+                aria-hidden="true"
+            >
+                <path
+                    d="M32 50.5C30.4 48.9 15 38.1 15 26.1C15 18.9 19.9 14 26.1 14C29.5 14 32 15.7 34 18.3C36 15.7 38.5 14 41.9 14C48.1 14 53 18.9 53 26.1C53 38.1 37.6 48.9 32 50.5Z"
+                    fill="url(#carevrPreparingHeartGradient)"
+                />
+
+                <path
+                    d="M32 50.5C30.4 48.9 15 38.1 15 26.1C15 18.9 19.9 14 26.1 14C29.5 14 32 15.7 34 18.3C36 15.7 38.5 14 41.9 14C48.1 14 53 18.9 53 26.1C53 38.1 37.6 48.9 32 50.5Z"
+                    stroke="rgba(255,255,255,0.82)"
+                    strokeWidth="1.5"
+                />
+
+                <defs>
+                    <linearGradient
+                        id="carevrPreparingHeartGradient"
+                        x1="18"
+                        y1="15"
+                        x2="49"
+                        y2="50"
+                        gradientUnits="userSpaceOnUse"
+                    >
+                        <stop
+                            stopColor="#D77ACF"
+                        />
+                        <stop
+                            offset="0.55"
+                            stopColor="#A66BDE"
+                        />
+                        <stop
+                            offset="1"
+                            stopColor="#6D8FE8"
+                        />
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+
+    </div>
+)}
+
+{currentStage.key ===
     "VERIFYING_ACCESS" && (
     <div className="secure-access-shield-art">
 
@@ -583,47 +754,42 @@ const secureStages = [
                     width="20"
                     height="16"
                     rx="3.5"
-                    fill="rgba(255,255,255,0.96)"
+                    fill="rgba(255,255,255,0.18)"
                 />
 
                 <path
-                    d="M27 29V24.5C27 21.5 29.2 19 32 19C34.8 19 37 21.5 37 24.5V29"
-                    stroke="white"
-                    strokeWidth="3"
+                    d="M27 29V24C27 21.24 29.24 19 32 19C34.76 19 37 21.24 37 24V29"
+                    stroke="rgba(255,255,255,0.9)"
+                    strokeWidth="2"
                     strokeLinecap="round"
                 />
 
                 <circle
                     cx="32"
-                    cy="36"
+                    cy="36.5"
                     r="2"
-                    fill="#7659DD"
-                />
-
-                <path
-                    d="M32 38V41"
-                    stroke="#7659DD"
-                    strokeWidth="2"
-                    strokeLinecap="round"
+                    fill="rgba(255,255,255,0.95)"
                 />
 
                 <defs>
                     <linearGradient
                         id="carevrSecureShieldGradient"
-                        x1="15"
-                        y1="51"
-                        x2="49"
-                        y2="10"
+                        x1="17"
+                        y1="9"
+                        x2="47"
+                        y2="53"
                         gradientUnits="userSpaceOnUse"
                     >
-                        <stop stopColor="#5D92EA" />
                         <stop
-                            offset="0.52"
-                            stopColor="#7659DD"
+                            stopColor="#6A55D8"
+                        />
+                        <stop
+                            offset="0.55"
+                            stopColor="#8066E4"
                         />
                         <stop
                             offset="1"
-                            stopColor="#C467E7"
+                            stopColor="#C56BE2"
                         />
                     </linearGradient>
                 </defs>
@@ -2204,6 +2370,240 @@ const secureStages = [
 
 
 /* =========================================================
+ * PREPARING EXPERIENCE ART
+ * ========================================================= */
+
+.secure-access-preparing-art {
+    position: relative;
+
+    width:
+        clamp(140px, 18vw, 170px);
+
+    height:
+        clamp(140px, 18vw, 170px);
+
+    overflow: hidden;
+
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            180deg,
+            #eaf2ff 0%,
+            #f4f0ff 42%,
+            #ffffff 100%
+        );
+
+    box-shadow:
+        0 18px 40px
+        rgba(99, 82, 180, 0.12),
+        inset 0 1px 0
+        rgba(255, 255, 255, 0.95);
+}
+
+.preparing-sky {
+    position: absolute;
+    inset: 0;
+
+    background:
+        radial-gradient(
+            circle at 28% 26%,
+            rgba(255, 255, 255, 0.95),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 76% 24%,
+            rgba(211, 198, 255, 0.42),
+            transparent 34%
+        );
+}
+
+.preparing-mountain {
+    position: absolute;
+
+    left: -8%;
+    width: 116%;
+
+    border-radius:
+        50% 50% 0 0;
+}
+
+.preparing-mountain-back {
+    bottom: 31%;
+
+    height: 38%;
+
+    background:
+        linear-gradient(
+            145deg,
+            #c9d7f4 0%,
+            #d9d3f4 52%,
+            #eadcf2 100%
+        );
+
+    clip-path:
+        polygon(
+            0 100%,
+            20% 52%,
+            34% 70%,
+            52% 27%,
+            68% 66%,
+            82% 43%,
+            100% 76%,
+            100% 100%
+        );
+}
+
+.preparing-mountain-front {
+    bottom: 23%;
+
+    height: 38%;
+
+    background:
+        linear-gradient(
+            150deg,
+            #aebfe6 0%,
+            #c5bce8 48%,
+            #d9c9e7 100%
+        );
+
+    clip-path:
+        polygon(
+            0 100%,
+            16% 65%,
+            31% 77%,
+            48% 38%,
+            62% 70%,
+            78% 51%,
+            100% 80%,
+            100% 100%
+        );
+}
+
+.preparing-path {
+    position: absolute;
+
+    left: 35%;
+    bottom: -8%;
+
+    width: 30%;
+    height: 55%;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.78),
+            rgba(255, 255, 255, 0.96)
+        );
+
+    clip-path:
+        polygon(
+            42% 0,
+            58% 0,
+            100% 100%,
+            0 100%
+        );
+
+    filter:
+        blur(0.2px);
+}
+
+.preparing-tree {
+    position: absolute;
+
+    bottom: 21%;
+
+    width: 24px;
+    height: 48px;
+}
+
+.preparing-tree-left {
+    left: 16%;
+}
+
+.preparing-tree-right {
+    right: 14%;
+
+    transform: scale(0.72);
+    transform-origin: bottom center;
+}
+
+.preparing-tree-trunk {
+    position: absolute;
+
+    left: 10px;
+    bottom: 0;
+
+    width: 5px;
+    height: 24px;
+
+    border-radius: 5px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #8e7b9e,
+            #75657f
+        );
+}
+
+.preparing-tree-crown {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 25px;
+    height: 29px;
+
+    border-radius:
+        50% 50% 45% 45%;
+
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #b6d7bd 0%,
+            #8dbba0 58%,
+            #759f91 100%
+        );
+
+    box-shadow:
+        7px 8px 0
+        rgba(117, 159, 145, 0.42),
+        -5px 10px 0
+        rgba(148, 190, 157, 0.35);
+}
+
+.preparing-heart {
+    position: absolute;
+
+    left: 50%;
+    top: 27%;
+
+    width: 47px;
+    height: 47px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transform:
+        translateX(-50%);
+
+    filter:
+        drop-shadow(
+            0 8px 14px
+            rgba(151, 101, 206, 0.2)
+        );
+}
+
+.preparing-heart svg {
+    width: 100%;
+    height: 100%;
+}
+
+
+/* =========================================================
  * SHIELD ART
  * ========================================================= */
 
@@ -3497,6 +3897,185 @@ const secureStages = [
     color: #353052;
 }
 
+/* =========================================================
+ * RESPONSIVE PROGRESS JOURNEY
+ * ========================================================= */
+
+@media (min-width: 601px) and (max-width: 900px) {
+
+    .secure-access-progress {
+        width: min(100%, 390px);
+    }
+
+    .secure-access-stage {
+        min-height: 52px;
+    }
+
+    .secure-access-stage-copy {
+        padding-left: 10px;
+    }
+
+    .secure-access-stage-title {
+        line-height: 1.2;
+    }
+
+    .secure-access-stage-description {
+        line-height: 1.25;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .secure-access-progress {
+        width: min(100%, 360px);
+    }
+
+    .secure-access-stage {
+        min-height: 48px;
+    }
+
+    .secure-access-stage-copy {
+        padding-left: 9px;
+    }
+
+    .secure-access-stage-title {
+        line-height: 1.2;
+    }
+
+    .secure-access-stage-description {
+        line-height: 1.25;
+    }
+}
+
+@media (max-width: 380px) {
+
+    .secure-access-progress {
+        width: min(100%, 310px);
+    }
+
+    .secure-access-stage {
+        min-height: 42px;
+    }
+
+    .secure-access-stage-copy {
+        padding-left: 9px;
+    }
+
+    .secure-access-stage-title {
+        line-height: 1.15;
+    }
+
+    .secure-access-stage-description {
+        line-height: 1.2;
+    }
+}
+
+
+/* =========================================================
+ * RESPONSIVE VERTICAL FIT
+ * ========================================================= */
+
+@media (min-width: 601px) and (max-width: 900px) {
+
+    .secure-access-page {
+        padding-top: 18px;
+        padding-bottom: 18px;
+    }
+
+    .secure-access-content {
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+
+    .secure-access-progress {
+        margin-top: 18px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .secure-access-page {
+        padding-top: 10px;
+        padding-bottom: 8px;
+    }
+
+    .secure-access-content {
+        padding-top: 3px;
+        padding-bottom: 3px;
+    }
+
+    .secure-access-progress {
+        margin-top: 16px;
+    }
+}
+
+@media (max-width: 600px) and (max-height: 750px) {
+
+    .secure-access-page {
+        padding-top: 7px;
+        padding-bottom: 6px;
+    }
+
+    .secure-access-content {
+        padding-top: 1px;
+        padding-bottom: 1px;
+    }
+
+    .secure-access-progress {
+        margin-top: 12px;
+    }
+}
+
+
+/* =========================================================
+ * RESPONSIVE ARTWORK / CONTENT BALANCE
+ * ========================================================= */
+
+@media (min-width: 901px) {
+
+    .secure-access-preparing-art,
+    .secure-access-shield-art,
+    .secure-access-context-art,
+    .secure-access-launch-art,
+    .secure-access-welcome-art {
+        flex-shrink: 0;
+    }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+
+    .secure-access-preparing-art,
+    .secure-access-shield-art,
+    .secure-access-context-art,
+    .secure-access-launch-art,
+    .secure-access-welcome-art {
+        flex-shrink: 1;
+        max-height: 158px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .secure-access-preparing-art,
+    .secure-access-shield-art,
+    .secure-access-context-art,
+    .secure-access-launch-art,
+    .secure-access-welcome-art {
+        flex-shrink: 1;
+        max-height: 142px;
+    }
+}
+
+@media (max-width: 380px) {
+
+    .secure-access-preparing-art,
+    .secure-access-shield-art,
+    .secure-access-context-art,
+    .secure-access-launch-art,
+    .secure-access-welcome-art {
+        max-height: 120px;
+    }
+}
 
 /* =========================================================
  * FOOTER
@@ -3528,6 +4107,7 @@ const secureStages = [
         height: 190px;
     }
 
+    .secure-access-preparing-art,
     .secure-access-shield-art,
     .secure-access-context-art,
     .secure-access-launch-art,
@@ -3541,15 +4121,49 @@ const secureStages = [
     }
 }
 
-
 /* =========================================================
  * TABLET
  * ========================================================= */
 
-@media (max-width: 900px) {
+@media (min-width: 601px) and (max-width: 900px) {
 
     .secure-access-content {
         padding-top: 6px;
+    }
+
+    .secure-access-logo {
+        width: 94px;
+    }
+
+    .secure-access-hero-art {
+        width: 170px;
+        height: 170px;
+    }
+
+    .secure-access-preparing-art,
+    .secure-access-shield-art,
+    .secure-access-context-art,
+    .secure-access-launch-art,
+    .secure-access-welcome-art {
+        width: 158px;
+        height: 158px;
+    }
+
+    .secure-access-progress {
+        width: min(100%, 390px);
+        margin-top: 22px;
+    }
+
+    .secure-access-stage {
+        min-height: 52px;
+    }
+
+    .secure-access-stage-title {
+        font-size: 12px;
+    }
+
+    .secure-access-stage-description {
+        font-size: 9.5px;
     }
 }
 
@@ -3593,6 +4207,7 @@ const secureStages = [
         margin-bottom: 5px;
     }
 
+    .secure-access-preparing-art,
     .secure-access-shield-art,
     .secure-access-context-art,
     .secure-access-launch-art,
@@ -3645,7 +4260,6 @@ const secureStages = [
     }
 }
 
-
 /* =========================================================
  * VERY NARROW MOBILE
  * ========================================================= */
@@ -3674,6 +4288,7 @@ const secureStages = [
         margin-bottom: 3px;
     }
 
+    .secure-access-preparing-art,
     .secure-access-shield-art,
     .secure-access-context-art,
     .secure-access-launch-art,
@@ -3739,7 +4354,6 @@ const secureStages = [
     }
 }
 
-
 /* =========================================================
  * SHORT VIEWPORTS
  * ========================================================= */
@@ -3771,9 +4385,11 @@ const secureStages = [
         margin-bottom: 2px;
     }
 
+    .secure-access-preparing-art,
     .secure-access-shield-art,
     .secure-access-context-art,
-    .secure-access-launch-art {
+    .secure-access-launch-art,
+    .secure-access-welcome-art {
         width: 120px;
         height: 120px;
     }
@@ -3831,9 +4447,11 @@ const secureStages = [
         height: 112px;
     }
 
+    .secure-access-preparing-art,
     .secure-access-shield-art,
     .secure-access-context-art,
-    .secure-access-launch-art {
+    .secure-access-launch-art,
+    .secure-access-welcome-art {
         width: 106px;
         height: 106px;
     }
