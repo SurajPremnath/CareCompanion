@@ -121,7 +121,9 @@ const handleLogin = async () => {
     feature: "LOGIN_TO_DASHBOARD",
   });
 
-const loginStartedAt = performance.now();
+// Temporary login performance diagnostics retained for future troubleshooting.
+//
+// const loginStartedAt = performance.now();
 
 const authenticatedUser =
   await authService.login(
@@ -130,15 +132,15 @@ const authenticatedUser =
     verifiedCaptchaToken
   );
 
-const loginCompletedAt = performance.now();
+// const loginCompletedAt = performance.now();
 
-console.log(
-  `[LOGIN-PERF] authService.login: ${Math.round(
-    loginCompletedAt - loginStartedAt
-  )} ms`
-);
+// console.log(
+//   `[LOGIN-PERF] authService.login: ${Math.round(
+//     loginCompletedAt - loginStartedAt
+//   )} ms`
+// );
 
-const pinStatusStartedAt = performance.now();
+// const pinStatusStartedAt = performance.now();
 
 const pinStatusResponse =
   await fetch(
@@ -149,26 +151,26 @@ const pinStatusResponse =
     }
   );
 
-const pinStatusResponseReceivedAt =
-  performance.now();
+// const pinStatusResponseReceivedAt =
+//   performance.now();
 
 const pinStatus =
   await pinStatusResponse.json();
 
-const pinStatusCompletedAt =
-  performance.now();
+// const pinStatusCompletedAt =
+//   performance.now();
 
-console.log(
-  `[LOGIN-PERF] /api/security/pin-status fetch: ${Math.round(
-    pinStatusResponseReceivedAt - pinStatusStartedAt
-  )} ms`
-);
+// console.log(
+//   `[LOGIN-PERF] /api/security/pin-status fetch: ${Math.round(
+//     pinStatusResponseReceivedAt - pinStatusStartedAt
+//   )} ms`
+// );
 
-console.log(
-  `[LOGIN-PERF] /api/security/pin-status JSON: ${Math.round(
-    pinStatusCompletedAt - pinStatusResponseReceivedAt
-  )} ms`
-);
+// console.log(
+//   `[LOGIN-PERF] /api/security/pin-status JSON: ${Math.round(
+//     pinStatusCompletedAt - pinStatusResponseReceivedAt
+//   )} ms`
+// );
 
 if (!pinStatusResponse.ok) {
   throw new Error(
@@ -197,11 +199,11 @@ console.log(
   )} ms`
 );
 
-console.log(
-  `[LOGIN-PERF] total login-to-pin state transition: ${Math.round(
-    performance.now() - loginStartedAt
-  )} ms`
-);
+// console.log(
+//   `[LOGIN-PERF] total login-to-pin state transition: ${Math.round(
+//     performance.now() - loginStartedAt
+//   )} ms`
+// );
 
 return;
 

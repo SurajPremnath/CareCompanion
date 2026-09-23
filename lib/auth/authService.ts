@@ -149,29 +149,49 @@ async login(
   captchaToken: string
 ): Promise<User> {
 
-  const response = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email,
-      password,
-      captchaToken,
-    }),
-  });
+const loginFetchStartedAt =
+  performance.now();
 
-  let result: {
-    message?: string;
-    user?: User;
-    session?: Session;
-  };
+const response = await fetch("/api/auth/login", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    email,
+    password,
+    captchaToken,
+  }),
+});
 
-  try {
-    result = await response.json();
-  } catch {
-    throw new Error("Unable to login.");
-  }
+console.log(
+  `[LOGIN-PERF] /api/auth/login fetch: ${Math.round(
+    performance.now() -
+      loginFetchStartedAt
+  )} ms`
+);
+
+let result: {
+  message?: string;
+  user?: User;
+  session?: Session;
+};
+
+const loginJsonStartedAt =
+  performance.now();
+
+try {
+  result = await response.json();
+
+  console.log(
+    `[LOGIN-PERF] /api/auth/login JSON: ${Math.round(
+      performance.now() -
+        loginJsonStartedAt
+    )} ms`
+  );
+} catch {
+  throw new Error("Unable to login.");
+}
 
   if (!response.ok) {
     throw new Error(
