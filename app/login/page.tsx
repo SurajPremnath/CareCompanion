@@ -121,6 +121,8 @@ const handleLogin = async () => {
     feature: "LOGIN_TO_DASHBOARD",
   });
 
+const loginStartedAt = performance.now();
+
 const authenticatedUser =
   await authService.login(
     email.trim(),
@@ -128,35 +130,78 @@ const authenticatedUser =
     verifiedCaptchaToken
   );
 
+const loginCompletedAt = performance.now();
+
+console.log(
+  `[LOGIN-PERF] authService.login: ${Math.round(
+    loginCompletedAt - loginStartedAt
+  )} ms`
+);
+
+const pinStatusStartedAt = performance.now();
+
 const pinStatusResponse =
-    await fetch(
-        "/api/security/pin-status",
-        {
-            method: "GET",
-            cache: "no-store",
-        }
-    );
+  await fetch(
+    "/api/security/pin-status",
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+const pinStatusResponseReceivedAt =
+  performance.now();
 
 const pinStatus =
-    await pinStatusResponse.json();
+  await pinStatusResponse.json();
+
+const pinStatusCompletedAt =
+  performance.now();
+
+console.log(
+  `[LOGIN-PERF] /api/security/pin-status fetch: ${Math.round(
+    pinStatusResponseReceivedAt - pinStatusStartedAt
+  )} ms`
+);
+
+console.log(
+  `[LOGIN-PERF] /api/security/pin-status JSON: ${Math.round(
+    pinStatusCompletedAt - pinStatusResponseReceivedAt
+  )} ms`
+);
 
 if (!pinStatusResponse.ok) {
-    throw new Error(
-        pinStatus?.error ||
-        "Unable to determine CareVR PIN status."
-    );
+  throw new Error(
+    pinStatus?.error ||
+    "Unable to determine CareVR PIN status."
+  );
 }
 
 if (pinStatus.hasPin !== true) {
-    router.replace(
-        "/secure-access/create-pin"
-    );
-    return;
+  router.replace(
+    "/secure-access/create-pin"
+  );
+  return;
 }
 
+const pinRenderStartedAt =
+  performance.now();
+
 setPinVerification({
-    user: authenticatedUser,
+  user: authenticatedUser,
 });
+
+console.log(
+  `[LOGIN-PERF] setPinVerification: ${Math.round(
+    performance.now() - pinRenderStartedAt
+  )} ms`
+);
+
+console.log(
+  `[LOGIN-PERF] total login-to-pin state transition: ${Math.round(
+    performance.now() - loginStartedAt
+  )} ms`
+);
 
 return;
 
