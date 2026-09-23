@@ -596,30 +596,28 @@ throw new Error(
      * =========================================================
      */
 
-    if (lockState) {
+if (lockState) {
+    return (
+        <main className="pin-page pin-lockout-page">
 
-        return (
+            {renderHeader()}
 
-            <main className="pin-page">
+            <PinLockoutScreen
+                lockedUntil={lockState.lockedUntil}
+                lockoutLevel={lockState.lockoutLevel}
+                onLockExpired={() => {
+                    setLockState(null);
+                    setPin("");
+                    setError("");
+                    setAttemptsRemaining(null);
+                }}
+            />
 
-                {renderHeader()}
+            <CareVRFooter />
 
-                <PinLockoutScreen
-                    lockedUntil={lockState.lockedUntil}
-                    lockoutLevel={lockState.lockoutLevel}
-                    onLockExpired={() => {
-                        setLockState(null);
-                        setPin("");
-                        setError("");
-                        setAttemptsRemaining(null);
-                    }}
-                />
-
-                <CareVRFooter />
-
-            </main>
-        );
-    }
+        </main>
+    );
+}
 
 
 
@@ -905,36 +903,67 @@ throw new Error(
 
             <style jsx>{`
 
-                .pin-page {
-                    min-height: 100dvh;
-                    display: flex;
-                    flex-direction: column;
+.pin-page {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
 
-                    background:
-                        radial-gradient(
-                            circle at 8% 12%,
-                            rgba(
-                                99,
-                                55,
-                                210,
-                                0.07
-                            ),
-                            transparent 30%
-                        ),
-                        radial-gradient(
-                            circle at 92% 82%,
-                            rgba(
-                                81,
-                                107,
-                                218,
-                                0.07
-                            ),
-                            transparent 28%
-                        ),
-                        #f8f9fc;
+    background:
+        radial-gradient(
+            circle at 8% 12%,
+            rgba(
+                99,
+                55,
+                210,
+                0.07
+            ),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 92% 82%,
+            rgba(
+                81,
+                107,
+                218,
+                0.07
+            ),
+            transparent 28%
+        ),
+        #f8f9fc;
 
-                    color: #15203d;
-                }
+    color: #15203d;
+}
+
+
+.pin-lockout-page {
+    background:
+        radial-gradient(
+            circle at 10% 18%,
+            rgba(
+                124,
+                72,
+                220,
+                0.12
+            ),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 90% 72%,
+            rgba(
+                155,
+                113,
+                235,
+                0.14
+            ),
+            transparent 34%
+        ),
+        linear-gradient(
+            180deg,
+            #f3ebff 0%,
+            #faf7ff 48%,
+            #eee5ff 100%
+        );
+}
 
 
                 .pin-content {
