@@ -1461,19 +1461,20 @@ setSelectedAction(
         });
 
 
-const logoutStartedAt = performance.now();
+// TEMPORARY LOGOUT PERFORMANCE DIAGNOSTICS — COMMENTED OUT FOR DEMO
+// const logoutStartedAt = performance.now();
 
 try {
 
-    const analyticsLogoutStartedAt = performance.now();
+    // const analyticsLogoutStartedAt = performance.now();
 
     await authSessionService.end();
 
-    console.log(
-        `[LOGOUT-PERF] authSessionService.end: ${Math.round(
-            performance.now() - analyticsLogoutStartedAt
-        )} ms`
-    );
+    // console.log(
+    //     `[LOGOUT-PERF] authSessionService.end: ${Math.round(
+    //         performance.now() - analyticsLogoutStartedAt
+    //     )} ms`
+    // );
 
 }
 catch (error) {
@@ -1487,31 +1488,31 @@ catch (error) {
 
 try {
 
-    const authLogoutStartedAt = performance.now();
+    // const authLogoutStartedAt = performance.now();
 
     await authService.logout();
 
-    console.log(
-        `[LOGOUT-PERF] authService.logout: ${Math.round(
-            performance.now() - authLogoutStartedAt
-        )} ms`
-    );
+    // console.log(
+    //     `[LOGOUT-PERF] authService.logout: ${Math.round(
+    //         performance.now() - authLogoutStartedAt
+    //     )} ms`
+    // );
 
-    const routerStartedAt = performance.now();
+    // const routerStartedAt = performance.now();
 
     router.replace("/login");
 
-    console.log(
-        `[LOGOUT-PERF] router.replace: ${Math.round(
-            performance.now() - routerStartedAt
-        )} ms`
-    );
+    // console.log(
+    //     `[LOGOUT-PERF] router.replace: ${Math.round(
+    //         performance.now() - routerStartedAt
+    //     )} ms`
+    // );
 
-    console.log(
-        `[LOGOUT-PERF] total logout: ${Math.round(
-            performance.now() - logoutStartedAt
-        )} ms`
-    );
+    // console.log(
+    //     `[LOGOUT-PERF] total logout: ${Math.round(
+    //         performance.now() - logoutStartedAt
+    //     )} ms`
+    // );
 
 }
 catch (error) {
