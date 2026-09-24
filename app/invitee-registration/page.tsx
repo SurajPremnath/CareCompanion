@@ -97,6 +97,9 @@ function InviteeRegistrationContent() {
     const [showPassword, setShowPassword] =
         useState(false);
 
+const [fullName, setFullName] =
+    useState("");
+
     const [showConfirmPassword, setShowConfirmPassword] =
         useState(false);
 
@@ -109,10 +112,16 @@ function InviteeRegistrationContent() {
     const [registrationComplete, setRegistrationComplete] =
         useState(false);
 
-    const inviteeName =
-        invitation
-            ? formatInviteeName(invitation.email)
-            : "";
+const inviteeName =
+    invitation
+        ? formatInviteeName(invitation.email)
+        : "";
+
+useEffect(() => {
+    if (invitation) {
+        setFullName(inviteeName);
+    }
+}, [invitation, inviteeName]);
 
     useEffect(() => {
         let cancelled = false;
@@ -248,7 +257,7 @@ function InviteeRegistrationContent() {
                         token,
                         password,
                         confirmPassword,
-                        fullName: inviteeName,
+                        fullName,
                     }),
                 }
             );
@@ -586,15 +595,34 @@ function InviteeRegistrationContent() {
                                         {invitation.email}
                                     </strong>
                                 </div>
-    <div>
-        <span className="detail-label">
-            Name
-        </span>
 
-        <strong>
-            {inviteeName}
-        </strong>
-    </div>
+<div>
+    <label
+        htmlFor="fullName"
+        className="detail-label"
+    >
+        Name*
+    </label>
+
+    <small className="name-correction-note">
+        Please correct name if incorrect.
+    </small>
+
+    <input
+        id="fullName"
+        type="text"
+        value={fullName}
+        onChange={(event) =>
+            setFullName(
+                event.target.value
+            )
+        }
+        disabled={submitting}
+        className="form-input"
+        placeholder="Enter your full name"
+        autoComplete="name"
+    />
+</div>
 
 
                             </div>
