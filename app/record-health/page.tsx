@@ -2956,6 +2956,7 @@ if (
                     CareVR_Record_health_Options_Enable ||
                     user?.isFounder
                 ) {
+                    setSelectedOption("");
                     setRecordHealthPremiumMessage("");
                     setSelectedOption("VOICE");
                     return;
@@ -2991,6 +2992,7 @@ if (
                     user?.isFounder
                 ) {
                     setRecordHealthPremiumMessage("");
+                    setSelectedOption("");
                     setSelectedOption("UPLOAD");
                     return;
                 }

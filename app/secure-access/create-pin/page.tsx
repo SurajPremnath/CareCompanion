@@ -4089,254 +4089,114 @@ const secureStages = [
 
 
 /* =========================================================
+ * RESPONSIVE SECURE ACCESS
+ *
+ * Entire experience must fit inside the viewport.
+ * No user scrolling required.
+ * ========================================================= */
+
+/* =========================================================
  * DESKTOP
  * ========================================================= */
 
 @media (min-width: 901px) {
 
-    .secure-access-content {
-        padding-top: 10px;
-    }
-
-    .secure-access-logo {
-        width: 104px;
-    }
-
-    .secure-access-hero-art {
-        width: 190px;
-        height: 190px;
-    }
-
-    .secure-access-preparing-art,
-    .secure-access-shield-art,
-    .secure-access-context-art,
-    .secure-access-launch-art,
-    .secure-access-welcome-art {
-        width: 176px;
-        height: 176px;
-    }
-
-    .secure-access-progress {
-        margin-top: 28px;
-    }
-}
-
-/* =========================================================
- * TABLET
- * ========================================================= */
-
-@media (min-width: 601px) and (max-width: 900px) {
-
-    .secure-access-content {
-        padding-top: 6px;
-    }
-
-    .secure-access-logo {
-        width: 94px;
-    }
-
-    .secure-access-hero-art {
-        width: 170px;
-        height: 170px;
-    }
-
-    .secure-access-preparing-art,
-    .secure-access-shield-art,
-    .secure-access-context-art,
-    .secure-access-launch-art,
-    .secure-access-welcome-art {
-        width: 158px;
-        height: 158px;
-    }
-
-    .secure-access-progress {
-        width: min(100%, 390px);
-        margin-top: 22px;
-    }
-
-    .secure-access-stage {
-        min-height: 52px;
-    }
-
-    .secure-access-stage-title {
-        font-size: 12px;
-    }
-
-    .secure-access-stage-description {
-        font-size: 9.5px;
-    }
-}
-
-
-/* =========================================================
- * MOBILE
- * ========================================================= */
-
-@media (max-width: 600px) {
-
     .secure-access-page {
         padding:
-            10px
-            12px
-            8px;
+            clamp(10px, 2vh, 20px)
+            clamp(16px, 3vw, 36px);
     }
 
     .secure-access-shell {
-        width: min(100%, 460px);
+        width: min(100%, 520px);
+        height: 100%;
+        min-height: 0;
     }
 
     .secure-access-content {
+        min-height: 0;
         padding:
-            3px
-            0
-            3px;
-    }
-
-    .secure-access-logo {
-        width: 82px;
+            clamp(4px, 1vh, 10px)
+            0;
     }
 
     .secure-access-brand {
-        margin-bottom: 6px;
-    }
-
-    .secure-access-hero-art {
-        width: 150px;
-        height: 150px;
-
-        margin-bottom: 5px;
-    }
-
-    .secure-access-preparing-art,
-    .secure-access-shield-art,
-    .secure-access-context-art,
-    .secure-access-launch-art,
-    .secure-access-welcome-art {
-        width: 142px;
-        height: 142px;
-    }
-
-    .secure-access-shield-halo {
-        width: 116px;
-        height: 116px;
-    }
-
-    .secure-access-shield {
-        width: 80px;
-        height: 80px;
-    }
-
-    .secure-access-shield svg {
-        width: 60px;
-        height: 60px;
-    }
-
-    .secure-access-hero h1 {
-        font-size: 27px;
-    }
-
-    .secure-access-intro {
-        width: min(100%, 330px);
-
-        font-size: 11px;
-    }
-
-    .secure-access-progress {
-        width: min(100%, 360px);
-
-        margin-top: 18px;
-    }
-
-    .secure-access-stage {
-        min-height: 48px;
-    }
-
-    .secure-access-stage-title {
-        font-size: 11px;
-    }
-
-    .secure-access-stage-description {
-        font-size: 8.8px;
-    }
-}
-
-/* =========================================================
- * VERY NARROW MOBILE
- * ========================================================= */
-
-@media (max-width: 380px) {
-
-    .secure-access-page {
-        padding:
-            7px
-            9px
-            6px;
+        margin-bottom:
+            clamp(4px, 0.8vh, 8px);
     }
 
     .secure-access-logo {
-        width: 70px;
+        display: block;
+        width: 78px !important;
+        max-width: 78px !important;
+        height: auto !important;
+        object-fit: contain;
+        flex: 0 0 auto;
     }
 
-    .secure-access-brand {
-        margin-bottom: 3px;
+    .secure-access-tagline {
+        margin-top: 2px;
+        font-size: 8px;
     }
 
     .secure-access-hero-art {
-        width: 126px;
-        height: 126px;
-
-        margin-bottom: 3px;
+        width: 128px;
+        height: 128px;
+        margin:
+            2px auto 4px;
     }
 
-    .secure-access-preparing-art,
     .secure-access-shield-art,
     .secure-access-context-art,
     .secure-access-launch-art,
-    .secure-access-welcome-art {
+    .secure-access-welcome-art,
+    .secure-access-verified-art {
         width: 120px;
         height: 120px;
     }
 
     .secure-access-shield-halo {
-        width: 98px;
-        height: 98px;
+        width: 88px;
+        height: 88px;
     }
 
     .secure-access-shield {
-        width: 69px;
-        height: 69px;
+        width: 62px;
+        height: 62px;
     }
 
     .secure-access-shield svg {
-        width: 51px;
-        height: 51px;
+        width: 46px;
+        height: 46px;
     }
 
     .secure-access-hero h1 {
-        font-size: 23px;
+        font-size: 28px;
+        line-height: 1.06;
     }
 
     .secure-access-intro {
-        width: min(100%, 285px);
-
-        margin-top: 6px;
-
-        font-size: 9.5px;
+        width: min(100%, 340px);
+        margin-top: 5px;
+        font-size: 10px;
+        line-height: 1.35;
     }
 
     .secure-access-progress {
-        width: min(100%, 310px);
-
-        margin-top: 14px;
+        width: min(100%, 360px);
+        margin-top: 12px;
     }
 
     .secure-access-stage {
         min-height: 42px;
     }
 
+    .secure-access-stage:last-child {
+        min-height: 34px;
+    }
+
     .secure-access-stage-marker {
         flex-basis: 27px;
-
         width: 27px;
         height: 27px;
     }
@@ -4351,140 +4211,118 @@ const secureStages = [
 
     .secure-access-stage-description {
         font-size: 8px;
+        line-height: 1.25;
+    }
+
+    .secure-access-shell > :global(.carevr-footer) {
+        margin-top: 2px;
     }
 }
 
+
 /* =========================================================
- * SHORT VIEWPORTS
+ * TABLET
  * ========================================================= */
 
-@media (max-height: 700px) {
+@media (min-width: 601px) and (max-width: 900px) {
 
     .secure-access-page {
-        padding-top: 5px;
-        padding-bottom: 4px;
+        padding:
+            8px
+            12px;
+    }
+
+    .secure-access-shell {
+        width: min(100%, 480px);
+        height: 100%;
+        min-height: 0;
     }
 
     .secure-access-content {
-        padding-top: 1px;
-        padding-bottom: 1px;
-    }
-
-    .secure-access-logo {
-        width: 68px;
+        min-height: 0;
+        padding:
+            3px
+            0;
     }
 
     .secure-access-brand {
-        margin-bottom: 2px;
+        margin-bottom: 4px;
     }
-
-    .secure-access-hero-art {
-        width: 128px;
-        height: 128px;
-
-        margin-bottom: 2px;
-    }
-
-    .secure-access-preparing-art,
-    .secure-access-shield-art,
-    .secure-access-context-art,
-    .secure-access-launch-art,
-    .secure-access-welcome-art {
-        width: 120px;
-        height: 120px;
-    }
-
-    .secure-access-shield-halo {
-        width: 94px;
-        height: 94px;
-    }
-
-    .secure-access-shield {
-        width: 67px;
-        height: 67px;
-    }
-
-    .secure-access-shield svg {
-        width: 50px;
-        height: 50px;
-    }
-
-    .secure-access-hero h1 {
-        font-size: 22px;
-    }
-
-    .secure-access-intro {
-        margin-top: 5px;
-        font-size: 9.5px;
-    }
-
-    .secure-access-progress {
-        margin-top: 11px;
-    }
-
-    .secure-access-stage {
-        min-height: 38px;
-    }
-
-    .secure-access-stage:last-child {
-        min-height: 32px;
-    }
-}
-
-
-/* =========================================================
- * VERY SHORT / VERY NARROW DEVICES
- * ========================================================= */
-
-@media (max-width: 380px) and (max-height: 700px) {
 
     .secure-access-logo {
-        width: 62px;
+        width: 72px !important;
+        max-width: 72px !important;
+        height: auto !important;
+    }
+
+    .secure-access-tagline {
+        margin-top: 2px;
+        font-size: 7.5px;
     }
 
     .secure-access-hero-art {
         width: 112px;
         height: 112px;
+        margin:
+            2px auto 3px;
     }
 
-    .secure-access-preparing-art,
     .secure-access-shield-art,
     .secure-access-context-art,
     .secure-access-launch-art,
-    .secure-access-welcome-art {
-        width: 106px;
-        height: 106px;
+    .secure-access-welcome-art,
+    .secure-access-verified-art {
+        width: 108px;
+        height: 108px;
     }
 
     .secure-access-shield-halo {
-        width: 84px;
-        height: 84px;
+        width: 82px;
+        height: 82px;
     }
 
     .secure-access-shield {
-        width: 60px;
-        height: 60px;
+        width: 58px;
+        height: 58px;
     }
 
     .secure-access-shield svg {
-        width: 45px;
-        height: 45px;
+        width: 43px;
+        height: 43px;
     }
 
     .secure-access-hero h1 {
-        font-size: 20px;
+        font-size: 25px;
     }
 
     .secure-access-intro {
-        font-size: 8.8px;
+        width: min(100%, 310px);
+        margin-top: 4px;
+        font-size: 9px;
+        line-height: 1.3;
     }
 
     .secure-access-progress {
+        width: min(100%, 330px);
         margin-top: 9px;
     }
 
     .secure-access-stage {
-        min-height: 35px;
+        min-height: 39px;
+    }
+
+    .secure-access-stage:last-child {
+        min-height: 31px;
+    }
+
+    .secure-access-stage-marker {
+        flex-basis: 25px;
+        width: 25px;
+        height: 25px;
+    }
+
+    .secure-access-stage-copy {
+        padding-left: 8px;
     }
 
     .secure-access-stage-title {
@@ -4493,9 +4331,220 @@ const secureStages = [
 
     .secure-access-stage-description {
         font-size: 7.5px;
+        line-height: 1.2;
     }
 }
 
+
+/* =========================================================
+ * MOBILE
+ * ========================================================= */
+
+@media (max-width: 600px) {
+
+    .secure-access-page {
+        padding:
+            6px
+            8px;
+    }
+
+    .secure-access-shell {
+        width: min(100%, 430px);
+        height: 100%;
+        min-height: 0;
+    }
+
+    .secure-access-content {
+        min-height: 0;
+        padding:
+            2px
+            0;
+    }
+
+    .secure-access-brand {
+        margin-bottom: 3px;
+    }
+
+    .secure-access-logo {
+        width: 64px !important;
+        max-width: 64px !important;
+        height: auto !important;
+    }
+
+    .secure-access-tagline {
+        margin-top: 1px;
+        font-size: 7px;
+    }
+
+    .secure-access-hero-art {
+        width: 104px;
+        height: 104px;
+        margin:
+            1px auto 2px;
+    }
+
+    .secure-access-shield-art,
+    .secure-access-context-art,
+    .secure-access-launch-art,
+    .secure-access-welcome-art,
+    .secure-access-verified-art {
+        width: 100px;
+        height: 100px;
+    }
+
+    .secure-access-shield-halo {
+        width: 76px;
+        height: 76px;
+    }
+
+    .secure-access-shield {
+        width: 54px;
+        height: 54px;
+    }
+
+    .secure-access-shield svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .secure-access-hero h1 {
+        font-size: 22px;
+        line-height: 1.05;
+    }
+
+    .secure-access-intro {
+        width: min(100%, 285px);
+        margin-top: 3px;
+        font-size: 8.5px;
+        line-height: 1.25;
+    }
+
+    .secure-access-progress {
+        width: min(100%, 300px);
+        margin-top: 7px;
+    }
+
+    .secure-access-stage {
+        min-height: 35px;
+    }
+
+    .secure-access-stage:last-child {
+        min-height: 28px;
+    }
+
+    .secure-access-stage-marker {
+        flex-basis: 23px;
+        width: 23px;
+        height: 23px;
+    }
+
+    .secure-access-stage-copy {
+        padding-left: 7px;
+    }
+
+    .secure-access-stage-title {
+        font-size: 9px;
+        line-height: 1.2;
+    }
+
+    .secure-access-stage-description {
+        font-size: 7px;
+        line-height: 1.15;
+    }
+
+    .secure-access-shell > :global(.carevr-footer) {
+        margin-top: 1px;
+    }
+}
+
+
+/* =========================================================
+ * SHORT VIEWPORT
+ *
+ * Prioritize fitting the entire journey over whitespace.
+ * ========================================================= */
+
+@media (max-height: 700px) {
+
+    .secure-access-page {
+        padding-top: 4px;
+        padding-bottom: 3px;
+    }
+
+    .secure-access-content {
+        padding-top: 1px;
+        padding-bottom: 1px;
+    }
+
+    .secure-access-brand {
+        margin-bottom: 2px;
+    }
+
+    .secure-access-logo {
+        width: 58px !important;
+        max-width: 58px !important;
+    }
+
+    .secure-access-hero-art {
+        width: 94px;
+        height: 94px;
+        margin:
+            1px auto 2px;
+    }
+
+    .secure-access-shield-art,
+    .secure-access-context-art,
+    .secure-access-launch-art,
+    .secure-access-welcome-art,
+    .secure-access-verified-art {
+        width: 90px;
+        height: 90px;
+    }
+
+    .secure-access-shield-halo {
+        width: 68px;
+        height: 68px;
+    }
+
+    .secure-access-shield {
+        width: 50px;
+        height: 50px;
+    }
+
+    .secure-access-shield svg {
+        width: 37px;
+        height: 37px;
+    }
+
+    .secure-access-hero h1 {
+        font-size: 20px;
+    }
+
+    .secure-access-intro {
+        font-size: 8px;
+        line-height: 1.2;
+    }
+
+    .secure-access-progress {
+        margin-top: 6px;
+    }
+
+    .secure-access-stage {
+        min-height: 32px;
+    }
+
+    .secure-access-stage:last-child {
+        min-height: 26px;
+    }
+
+    .secure-access-stage-title {
+        font-size: 8.5px;
+    }
+
+    .secure-access-stage-description {
+        font-size: 6.7px;
+    }
+}
 
 /* =========================================================
  * MOTION
