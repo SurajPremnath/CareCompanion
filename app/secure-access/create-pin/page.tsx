@@ -746,10 +746,12 @@ await resolveCareVRDashboardHandoff(
                     return;
                 }
 
-                router.replace(
-                    "/dashboard"
-                );
+// TEMPORARY ANIMATION DEBUG — do not redirect to dashboard
+// router.replace(
+//     "/dashboard"
+// );
 
+// Keep the page mounted so we can inspect the animation.
                 return;
             }
 
