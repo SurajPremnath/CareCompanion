@@ -2064,8 +2064,15 @@ if (consentAccepted) {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     align-items: start;
-    justify-items: center;
+    justify-items: stretch;
     column-gap: 28px;
+    row-gap: 0;
+}
+
+.stage-strip > .stage-card {
+    width: 100%;
+    min-width: 0;
+    display: block;
 }
 
                 .stage-card {
