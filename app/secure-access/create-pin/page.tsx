@@ -4474,22 +4474,35 @@ const secureStages = [
 
 /* =========================================================
  * MOTION
+ *
+ * UX ONLY
+ *
+ * These animations are purely visual.
+ * They do not create or modify application states.
+ * They do not affect authentication, consent,
+ * authorization, routing, API calls, or database logic.
  * ========================================================= */
+
+/* ---------------------------------------------------------
+ * STAGE TRANSITION
+ *
+ * Each presentation stage gently enters the screen.
+ * --------------------------------------------------------- */
 
 @keyframes secure-access-stage-enter {
 
     0% {
         opacity: 0;
         transform:
-            translateY(8px)
-            scale(0.985);
+            translateY(14px)
+            scale(0.96);
     }
 
-    60% {
+    55% {
         opacity: 1;
         transform:
-            translateY(-1px)
-            scale(1.002);
+            translateY(-2px)
+            scale(1.01);
     }
 
     100% {
@@ -4500,12 +4513,17 @@ const secureStages = [
     }
 }
 
+
+/* ---------------------------------------------------------
+ * PROGRESS ROW
+ * --------------------------------------------------------- */
+
 @keyframes secure-access-stage-row-enter {
 
     0% {
-        opacity: 0.45;
+        opacity: 0;
         transform:
-            translateY(4px);
+            translateY(7px);
     }
 
     100% {
@@ -4515,12 +4533,17 @@ const secureStages = [
     }
 }
 
+
+/* ---------------------------------------------------------
+ * ACTIVE PROGRESS MARKER
+ * --------------------------------------------------------- */
+
 @keyframes secure-access-active-pulse {
 
     0%,
     100% {
-        transform: scale(0.78);
-        opacity: 0.72;
+        transform: scale(0.82);
+        opacity: 0.65;
     }
 
     50% {
@@ -4529,37 +4552,223 @@ const secureStages = [
     }
 }
 
-/*
- * The hero receives a fresh animation whenever
- * the existing presentation stage changes.
+
+/* ---------------------------------------------------------
+ * PREPARING EXPERIENCE
  *
- * These are presentation classes only.
- * They do not represent backend states.
- */
+ * Gentle floating movement so the first visual
+ * feels alive immediately when the page appears.
+ * --------------------------------------------------------- */
+
+@keyframes secure-access-preparing-float {
+
+    0%,
+    100% {
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+    50% {
+        transform:
+            translateY(-5px)
+            scale(1.015);
+    }
+}
+
+
+/* ---------------------------------------------------------
+ * SECURITY SHIELD
+ * --------------------------------------------------------- */
+
+@keyframes secure-access-shield-breathe {
+
+    0%,
+    100% {
+        transform: scale(0.96);
+        opacity: 0.82;
+    }
+
+    50% {
+        transform: scale(1.04);
+        opacity: 1;
+    }
+}
+
+
+/* ---------------------------------------------------------
+ * ACCESS VERIFIED
+ * --------------------------------------------------------- */
+
+@keyframes secure-access-verified-glow {
+
+    0%,
+    100% {
+        transform: scale(0.92);
+        opacity: 0.55;
+    }
+
+    50% {
+        transform: scale(1.08);
+        opacity: 0.95;
+    }
+}
+
+
+/* ---------------------------------------------------------
+ * SECURE CONTEXT
+ * --------------------------------------------------------- */
+
+@keyframes secure-access-context-float {
+
+    0%,
+    100% {
+        transform:
+            translateY(0)
+            rotate(0deg);
+    }
+
+    50% {
+        transform:
+            translateY(-6px)
+            rotate(1deg);
+    }
+}
+
+
+/* ---------------------------------------------------------
+ * DASHBOARD LAUNCH
+ * --------------------------------------------------------- */
+
+@keyframes secure-access-launch-float {
+
+    0%,
+    100% {
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+    50% {
+        transform:
+            translateY(-7px)
+            scale(1.025);
+    }
+}
+
+
+/* ---------------------------------------------------------
+ * WELCOME
+ * --------------------------------------------------------- */
+
+@keyframes secure-access-welcome-breathe {
+
+    0%,
+    100% {
+        transform: scale(0.97);
+        opacity: 0.88;
+    }
+
+    50% {
+        transform: scale(1.04);
+        opacity: 1;
+    }
+}
+
+
+/* =========================================================
+ * STAGE ENTRY
+ *
+ * Existing presentation-stage classes only.
+ * ========================================================= */
+
 .secure-access-hero-preparing_experience,
 .secure-access-hero-verifying_access,
 .secure-access-hero-access_verified,
 .secure-access-hero-preparing_context,
 .secure-access-hero-opening_dashboard,
 .secure-access-hero-welcome {
+
     animation:
         secure-access-stage-enter
-        420ms
+        700ms
         cubic-bezier(0.22, 0.8, 0.3, 1)
         both;
 }
 
-/*
- * The currently active progress item enters
- * slightly after the hero begins moving.
- */
+
+/* =========================================================
+ * ARTWORK MOTION
+ *
+ * These animations run on the visual artwork only.
+ * ========================================================= */
+
+.secure-access-preparing-art {
+    animation:
+        secure-access-preparing-float
+        3.8s
+        ease-in-out
+        infinite;
+}
+
+
+.secure-access-shield-art {
+    animation:
+        secure-access-shield-breathe
+        2.8s
+        ease-in-out
+        infinite;
+}
+
+
+.secure-access-verified-art {
+    animation:
+        secure-access-verified-glow
+        2.6s
+        ease-in-out
+        infinite;
+}
+
+
+.secure-access-context-art {
+    animation:
+        secure-access-context-float
+        3.2s
+        ease-in-out
+        infinite;
+}
+
+
+.secure-access-launch-art {
+    animation:
+        secure-access-launch-float
+        2.8s
+        ease-in-out
+        infinite;
+}
+
+
+.secure-access-welcome-art {
+    animation:
+        secure-access-welcome-breathe
+        3s
+        ease-in-out
+        infinite;
+}
+
+
+/* =========================================================
+ * ACTIVE PROGRESS ITEM
+ * ========================================================= */
+
 .secure-access-stage.is-active {
     animation:
         secure-access-stage-row-enter
-        360ms
+        500ms
         ease-out
         both;
 }
+
 
 .secure-access-active-marker {
     animation:
@@ -4569,6 +4778,13 @@ const secureStages = [
         infinite;
 }
 
+
+/* =========================================================
+ * ACCESSIBILITY
+ *
+ * Respect users who request reduced motion.
+ * ========================================================= */
+
 @media (prefers-reduced-motion: reduce) {
 
     .secure-access-hero-preparing_experience,
@@ -4577,6 +4793,12 @@ const secureStages = [
     .secure-access-hero-preparing_context,
     .secure-access-hero-opening_dashboard,
     .secure-access-hero-welcome,
+    .secure-access-preparing-art,
+    .secure-access-shield-art,
+    .secure-access-verified-art,
+    .secure-access-context-art,
+    .secure-access-launch-art,
+    .secure-access-welcome-art,
     .secure-access-stage.is-active,
     .secure-access-active-marker {
         animation: none;
