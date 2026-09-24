@@ -434,32 +434,16 @@ throw new Error(
         }
     };
 
-    if (consentAccepted) {
-        return (
-            <main className="create-pin-page">
-                <div className="create-pin-shell">
-                    <section
-                        className="create-pin-card"
-                        aria-live="polite"
-                    >
-                        <div
-                            className="security-icon"
-                            aria-hidden="true"
-                        >
-                            <svg
-                                width="30"
-                                height="30"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <path d="M12 3l8 4v5c0 4.8-3.4 7.9-8 9-4.6-1.1-8-4.2-8-9V7l8-4z" />
-                                <path d="M9 12l2 2 4-4" />
-                            </svg>
-                        </div>
+if (consentAccepted) {
+    return (
+        <main className="create-pin-page">
+            <div className="secure-access-animation-shell">
+                <section
+                    className="secure-access-animation-card"
+                    aria-live="polite"
+                >
+
+                    <div className="secure-access-animation-header">
 
                         <div className="eyebrow">
                             SECURE ACCESS
@@ -474,11 +458,121 @@ throw new Error(
                             We are securely preparing your
                             CareVR dashboard.
                         </p>
-                    </section>
-                </div>
-            </main>
-        );
-    }
+
+                    </div>
+
+                    <div
+                        className="secure-access-animation-stage"
+                        aria-hidden="true"
+                    >
+
+                        <div className="secure-access-animation-line" />
+
+                        <div className="secure-access-animation-icons">
+
+                            <div className="secure-access-animation-icon preparing">
+                                <div className="animation-mountain back" />
+                                <div className="animation-mountain front" />
+                                <div className="animation-heart">
+                                    ♥
+                                </div>
+                            </div>
+
+                            <div className="secure-access-animation-icon verifying">
+                                <div className="animation-shield">
+                                    <div className="animation-lock">
+                                        <span />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="secure-access-animation-icon verified">
+                                <div className="animation-check">
+                                    ✓
+                                </div>
+                            </div>
+
+                            <div className="secure-access-animation-icon opening">
+                                <div className="animation-layers">
+                                    <span />
+                                    <span />
+                                    <span />
+                                </div>
+                            </div>
+
+                            <div className="secure-access-animation-icon welcome">
+                                <div className="animation-welcome-heart">
+                                    ♥
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div className="secure-access-animation-copy">
+
+                        <div className="secure-access-animation-title">
+                            <span className="animation-title-primary">
+                                Preparing your
+                            </span>
+                            <span className="animation-title-accent">
+                                CareVR experience
+                            </span>
+                        </div>
+
+                        <p>
+                            Your secure CareVR access is being
+                            prepared...
+                        </p>
+
+                    </div>
+
+                    <div
+                        className="secure-access-animation-progress"
+                        aria-hidden="true"
+                    >
+
+                        <div className="animation-progress-item">
+                            <span />
+                            <label>
+                                Verify
+                            </label>
+                        </div>
+
+                        <div className="animation-progress-item">
+                            <span />
+                            <label>
+                                Secure
+                            </label>
+                        </div>
+
+                        <div className="animation-progress-item">
+                            <span />
+                            <label>
+                                Opening
+                            </label>
+                        </div>
+
+                        <div className="animation-progress-item">
+                            <span />
+                            <label>
+                                Welcome
+                            </label>
+                        </div>
+
+                    </div>
+
+                    <div className="secure-access-animation-privacy">
+                        <span>◉</span>
+                        Your health information is private and secure.
+                    </div>
+
+                </section>
+            </div>
+        </main>
+    );
+}
 
     return (
         <main className="create-pin-page">
