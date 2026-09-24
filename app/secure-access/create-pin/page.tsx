@@ -2135,13 +2135,11 @@ const secureStages = [
 
 .secure-access-logo {
     display: block;
-
-    width:
-        clamp(76px, 9vw, 108px);
-
-    height: auto;
-
+    width: 82px !important;
+    max-width: 82px !important;
+    height: auto !important;
     object-fit: contain;
+    flex: 0 0 auto;
 }
 
 .secure-access-tagline {
@@ -2274,10 +2272,10 @@ const secureStages = [
     position: relative;
 
     width:
-        clamp(140px, 18vw, 170px);
+        clamp(160px, 22vw, 205px);
 
     height:
-        clamp(140px, 18vw, 170px);
+        clamp(160px, 22vw, 205px);
 
     overflow: hidden;
 
@@ -2655,10 +2653,10 @@ const secureStages = [
     position: relative;
 
     width:
-        clamp(140px, 18vw, 170px);
+        clamp(160px, 22vw, 205px);
 
     height:
-        clamp(140px, 18vw, 170px);
+        clamp(160px, 22vw, 205px);
 
     display: flex;
     align-items: center;
@@ -2820,10 +2818,10 @@ const secureStages = [
     position: relative;
 
     width:
-        clamp(140px, 18vw, 170px);
+        clamp(160px, 22vw, 205px);
 
     height:
-        clamp(140px, 18vw, 170px);
+        clamp(160px, 22vw, 205px);
 
     display: flex;
     align-items: center;
@@ -3013,10 +3011,10 @@ const secureStages = [
     position: relative;
 
     width:
-        clamp(140px, 18vw, 170px);
+        clamp(160px, 22vw, 205px);
 
     height:
-        clamp(140px, 18vw, 170px);
+        clamp(160px, 22vw, 205px);
 
     display: flex;
     align-items: center;
@@ -3180,6 +3178,27 @@ const secureStages = [
 
     height:
         clamp(160px, 22vw, 205px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =========================================================
+ * SHARED ARTWORK FOOTPRINT
+ *
+ * Every transition stage occupies the same visual zone.
+ * The artwork changes, but the page layout does not jump.
+ * ========================================================= */
+
+.secure-access-preparing-art,
+.secure-access-verified-art,
+.secure-access-context-art,
+.secure-access-launch-art,
+.secure-access-welcome-art {
+    width: 140px;
+    height: 140px;
+    flex: 0 0 140px;
 
     display: flex;
     align-items: center;
@@ -4022,14 +4041,14 @@ const secureStages = [
             clamp(4px, 0.8vh, 8px);
     }
 
-    .secure-access-logo {
-        display: block;
-        width: 78px !important;
-        max-width: 78px !important;
-        height: auto !important;
-        object-fit: contain;
-        flex: 0 0 auto;
-    }
+.secure-access-logo {
+    display: block;
+    width: 82px !important;
+    max-width: 82px !important;
+    height: auto !important;
+    object-fit: contain;
+    flex: 0 0 auto;
+}
 
     .secure-access-tagline {
         margin-top: 2px;
@@ -4146,11 +4165,14 @@ const secureStages = [
         margin-bottom: 4px;
     }
 
-    .secure-access-logo {
-        width: 72px !important;
-        max-width: 72px !important;
-        height: auto !important;
-    }
+.secure-access-logo {
+    display: block;
+    width: 82px !important;
+    max-width: 82px !important;
+    height: auto !important;
+    object-fit: contain;
+    flex: 0 0 auto;
+}
 
     .secure-access-tagline {
         margin-top: 2px;
@@ -4262,11 +4284,14 @@ const secureStages = [
         margin-bottom: 3px;
     }
 
-    .secure-access-logo {
-        width: 64px !important;
-        max-width: 64px !important;
-        height: auto !important;
-    }
+.secure-access-logo {
+    display: block;
+    width: 82px !important;
+    max-width: 82px !important;
+    height: auto !important;
+    object-fit: contain;
+    flex: 0 0 auto;
+}
 
     .secure-access-tagline {
         margin-top: 1px;
@@ -4377,10 +4402,14 @@ const secureStages = [
         margin-bottom: 2px;
     }
 
-    .secure-access-logo {
-        width: 58px !important;
-        max-width: 58px !important;
-    }
+.secure-access-logo {
+    display: block;
+    width: 82px !important;
+    max-width: 82px !important;
+    height: auto !important;
+    object-fit: contain;
+    flex: 0 0 auto;
+}
 
     .secure-access-hero-art {
         width: 94px;
