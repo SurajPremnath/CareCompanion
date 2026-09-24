@@ -2060,7 +2060,7 @@ if (consentAccepted) {
                     color: #7181a7;
                 }
 
-.stage-strip {
+.carevr-animation-page .stage-strip {
     width: min(1180px, calc(100% - 80px));
     margin: 0 auto;
     display: grid;
@@ -2071,7 +2071,7 @@ if (consentAccepted) {
     row-gap: 0;
 }
 
-.stage-strip > .stage-card {
+.carevr-animation-page .stage-strip > .stage-card {
     width: 100%;
     min-width: 0;
 }
