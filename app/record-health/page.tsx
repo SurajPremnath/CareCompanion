@@ -2962,8 +2962,9 @@ if (
                     return;
                 }
 
+                setSelectedOption("");
                 setRecordHealthPremiumMessage(
-                    "PREMIUM"
+                    "VOICE"
                 );
             }}
         >
@@ -2997,8 +2998,9 @@ if (
                     return;
                 }
 
+                setSelectedOption("");
                 setRecordHealthPremiumMessage(
-                    "PREMIUM"
+                    "UPLOAD"
                 );
             }}
         >
@@ -3021,11 +3023,10 @@ if (
                     ? "record-method record-method-selected"
                     : "record-method"
             }
-            onClick={() =>
-                setSelectedOption(
-                    "MANUAL"
-                )
-            }
+    onClick={() => {
+        setRecordHealthPremiumMessage("");
+        setSelectedOption("MANUAL");
+    }}
         >
             <span className="record-method-icon manual-icon">
                 ✎
@@ -3039,36 +3040,43 @@ if (
         </button>
 
 
-        {recordHealthPremiumMessage === "PREMIUM" && (
-            <div
-                style={{
-                    gridColumn: "1 / -1",
-                    marginTop: "16px",
-                    padding: "14px 16px",
-                    borderRadius: "10px",
-                    background: "#FFF7ED",
-                    border: "1px solid #FED7AA",
-                    color: "#9A3412",
-                    fontSize: "14px",
-                    lineHeight: 1.5,
-                    textAlign: "center",
-                }}
-            >
-                <strong>
-                    Please upgrade to CareVR Premium Package.
-                </strong>
+{recordHealthPremiumMessage && (
+    <div
+        style={{
+            gridColumn: "1 / -1",
+            marginTop: "16px",
+            padding: "14px 16px",
+            borderRadius: "10px",
+            background: "#FFF7ED",
+            border: "1px solid #FED7AA",
+            color: "#9A3412",
+            fontSize: "14px",
+            lineHeight: 1.5,
+            textAlign: "center",
+        }}
+    >
+        <strong>
+            {recordHealthPremiumMessage === "VOICE"
+                ? "Record with Voice"
+                : "Upload Reading"}{" "}
+            is available with the CareVR Premium Package.
+        </strong>
 
-                <br />
+        <br />
 
-                Reach out to <strong>Linearise AI Labs</strong> for upgrade and price:
+        Please upgrade to CareVR Premium Package.
 
-                <br />
+        <br />
 
-                <strong>
-                    lineariseailabs@gmail.com
-                </strong>
-            </div>
-        )}
+        Reach out to <strong>Linearise AI Labs</strong> for upgrade and price:
+
+        <br />
+
+        <strong>
+            lineariseailabs@gmail.com
+        </strong>
+    </div>
+)}
 
     </div>
 
