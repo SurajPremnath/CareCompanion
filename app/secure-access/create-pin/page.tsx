@@ -1505,6 +1505,351 @@ if (consentAccepted) {
 
             </footer>
 
+
+            <style jsx>{`
+
+                .create-pin-page {
+                    min-height: 100dvh;
+                    display: flex;
+                    flex-direction: column;
+                    background:
+                        radial-gradient(
+                            circle at 10% 20%,
+                            rgba(111, 67, 245, 0.08),
+                            transparent 30%
+                        ),
+                        radial-gradient(
+                            circle at 90% 70%,
+                            rgba(230, 25, 126, 0.06),
+                            transparent 28%
+                        ),
+                        #f8f9fc;
+                    color: #15203d;
+                }
+
+                .create-pin-shell {
+                    width: 100%;
+                    flex: 1 1 auto;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 34px 20px 30px;
+                    box-sizing: border-box;
+                }
+
+                .create-pin-card {
+                    width: min(
+                        100%,
+                        500px
+                    );
+                    box-sizing: border-box;
+                    padding: 38px 40px 34px;
+                    border: 1px solid
+                        rgba(31, 41, 71, 0.07);
+                    border-radius: 24px;
+                    background: #ffffff;
+                    box-shadow:
+                        0 18px 55px
+                        rgba(24, 20, 64, 0.10);
+                    text-align: center;
+                }
+
+                .security-icon {
+                    width: 62px;
+                    height: 62px;
+                    margin: 0 auto 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    color: #6638d6;
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #f1edff,
+                            #e8e2ff
+                        );
+                }
+
+                .eyebrow {
+                    margin-bottom: 9px;
+                    color: #7043d8;
+                    font-size: 11px;
+                    line-height: 1.2;
+                    letter-spacing: 1.2px;
+                    font-weight: 800;
+                }
+
+                h1 {
+                    margin: 0;
+                    color: #15203d;
+                    font-size: 31px;
+                    line-height: 1.18;
+                    letter-spacing: -0.5px;
+                    font-weight: 760;
+                }
+
+                .intro {
+                    max-width: 400px;
+                    margin: 13px auto 28px;
+                    color: #667087;
+                    font-size: 14px;
+                    line-height: 1.55;
+                }
+
+                .form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 17px;
+                    text-align: left;
+                }
+
+                .field {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 7px;
+                }
+
+                label {
+                    color: #293552;
+                    font-size: 13px;
+                    line-height: 1.3;
+                    font-weight: 700;
+                }
+
+                .pin-input-wrapper {
+                    position: relative;
+                    width: 100%;
+                }
+
+                .pin-visibility-button {
+                    position: absolute;
+                    top: 50%;
+                    right: 12px;
+                    transform: translateY(-50%);
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0;
+                    border: 0;
+                    background: transparent;
+                    color: #68738a;
+                    font-size: 17px;
+                    line-height: 1;
+                    cursor: pointer;
+                }
+
+                .pin-visibility-button:hover {
+                    color: #7043d8;
+                }
+
+                .pin-visibility-button:focus-visible {
+                    outline: 2px solid #7043d8;
+                    outline-offset: 2px;
+                    border-radius: 6px;
+                }
+
+                .pin-visibility-button:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
+                .pin-input-wrapper input {
+                    width: 100%;
+                    height: 54px;
+                    box-sizing: border-box;
+                    border: 1px solid #d9ddea;
+                    border-radius: 12px;
+                    background: #fbfcff;
+                    color: #18234a;
+                    padding: 0 52px 0 18px;
+                    font-size: 23px;
+                    line-height: 1;
+                    letter-spacing: 9px;
+                    text-align: center;
+                    outline: none;
+                    transition:
+                        border-color 0.16s ease,
+                        box-shadow 0.16s ease,
+                        background 0.16s ease;
+                }
+
+                input:focus {
+                    border-color: #7043d8;
+                    background: #ffffff;
+                    box-shadow:
+                        0 0 0 4px
+                        rgba(112, 67, 216, 0.10);
+                }
+
+                input:disabled {
+                    opacity: 0.65;
+                }
+
+                .error {
+                    margin-top: 16px;
+                    padding: 11px 13px;
+                    border: 1px solid #f2caca;
+                    border-radius: 10px;
+                    background: #fff5f5;
+                    color: #a62c2c;
+                    font-size: 13px;
+                    line-height: 1.45;
+                    text-align: left;
+                }
+
+                .create-button {
+                    width: 100%;
+                    min-height: 54px;
+                    margin-top: 24px;
+                    padding: 0 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                    border: 0;
+                    border-radius: 13px;
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #6337d2,
+                            #7545df
+                        );
+                    color: #ffffff;
+                    font-size: 16px;
+                    font-weight: 750;
+                    cursor: pointer;
+                    box-shadow:
+                        0 10px 24px
+                        rgba(99, 55, 210, 0.20);
+                    transition:
+                        transform 0.15s ease,
+                        box-shadow 0.15s ease,
+                        opacity 0.15s ease;
+                }
+
+                .create-button:not(:disabled):hover {
+                    transform: translateY(-1px);
+                    box-shadow:
+                        0 13px 28px
+                        rgba(99, 55, 210, 0.25);
+                }
+
+                .create-button:disabled {
+                    opacity: 0.48;
+                    cursor: not-allowed;
+                    box-shadow: none;
+                }
+
+                .button-arrow {
+                    font-size: 20px;
+                    line-height: 1;
+                }
+
+                .security-note {
+                    margin-top: 20px;
+                    padding: 13px 14px;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 11px;
+                    border-radius: 12px;
+                    background: #f5f8fd;
+                    text-align: left;
+                }
+
+                .note-icon {
+                    flex: 0 0 auto;
+                    color: #416ed8;
+                    margin-top: 1px;
+                }
+
+                .security-note strong {
+                    display: block;
+                    color: #27334f;
+                    font-size: 12.5px;
+                    line-height: 1.4;
+                }
+
+                .security-note p {
+                    margin: 3px 0 0;
+                    color: #69748a;
+                    font-size: 11.5px;
+                    line-height: 1.45;
+                }
+
+                .page-footer {
+                    padding:
+                        0 20px 22px;
+                    text-align: center;
+                }
+
+                .footer-tagline {
+                    margin-bottom: 8px;
+                    color: #8a91a3;
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+
+                .footer-values {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    color: #6d42d4;
+                    font-size: 9px;
+                    font-weight: 800;
+                    letter-spacing: 1.6px;
+                }
+
+                @media (max-width: 600px) {
+
+                    .create-pin-shell {
+                        align-items: flex-start;
+                        padding:
+                            22px
+                            14px
+                            24px;
+                    }
+
+                    .create-pin-card {
+                        padding:
+                            30px
+                            20px
+                            24px;
+                        border-radius: 20px;
+                    }
+
+                    h1 {
+                        font-size: 27px;
+                    }
+
+                    .intro {
+                        font-size: 13.5px;
+                        margin-bottom: 24px;
+                    }
+
+.pin-input-wrapper input {
+    height: 52px;
+    font-size: 22px;
+    letter-spacing: 8px;
+}
+
+                    .create-button {
+                        min-height: 52px;
+                    }
+
+                    .page-footer {
+                        padding-bottom: 16px;
+                    }
+                }
+
+            `}</style>
+
+
+
+
             <style jsx global>{`
                 * {
                     box-sizing: border-box;
