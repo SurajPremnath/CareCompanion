@@ -1852,7 +1852,7 @@ if (consentAccepted) {
 
 
 
-            <style jsx global>{`
+            <style jsx>{`
                 * {
                     box-sizing: border-box;
                 }
