@@ -601,12 +601,11 @@ useEffect(() => {
         htmlFor="fullName"
         className="detail-label"
     >
-        Name*
+    Name*{" "}
+    <span className="name-correction-note">
+        (Please correct if incorrect)
+    </span>
     </label>
-
-    <small className="name-correction-note">
-        Please correct name if incorrect.
-    </small>
 
     <input
         id="fullName"
@@ -985,6 +984,11 @@ const styles = `
         width: 160px;
         height: auto;
     }
+
+.name-correction-note {
+    color: #dc2626;
+    font-weight: 700;
+}
 
     .carevr-logo {
         margin-bottom: 28px;
