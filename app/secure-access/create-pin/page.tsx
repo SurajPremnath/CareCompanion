@@ -2060,18 +2060,18 @@ if (consentAccepted) {
                     color: #7181a7;
                 }
 
-.carevr-animation-page .stage-strip {
+.stage-strip {
     width: min(1180px, calc(100% - 80px));
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     align-items: start;
     justify-items: stretch;
     column-gap: 28px;
     row-gap: 0;
 }
 
-.carevr-animation-page .stage-strip > .stage-card {
+.stage-strip > .stage-card {
     width: 100%;
     min-width: 0;
 }
