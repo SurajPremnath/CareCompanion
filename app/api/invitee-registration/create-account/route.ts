@@ -35,6 +35,11 @@ export async function POST(
                 ? body.confirmPassword
                 : "";
 
+const fullName =
+    typeof body.fullName === "string"
+        ? body.fullName.trim()
+        : "";
+
         if (!token) {
 
             return NextResponse.json(
@@ -252,6 +257,10 @@ export async function POST(
                         "SECONDARY_FAMILY_MEMBER"
                             ? "SECONDARY"
                             : "OTHER",
+
+            full_name:
+                fullName,
+
                 },
             });
 
@@ -268,6 +277,7 @@ export async function POST(
 
         createdUserId =
             createdUser.user.id;
+
 
         const now =
             new Date().toISOString();

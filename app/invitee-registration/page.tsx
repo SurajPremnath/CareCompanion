@@ -109,6 +109,11 @@ function InviteeRegistrationContent() {
     const [registrationComplete, setRegistrationComplete] =
         useState(false);
 
+    const inviteeName =
+        invitation
+            ? formatInviteeName(invitation.email)
+            : "";
+
     useEffect(() => {
         let cancelled = false;
 
@@ -243,6 +248,7 @@ function InviteeRegistrationContent() {
                         token,
                         password,
                         confirmPassword,
+                        fullName: inviteeName,
                     }),
                 }
             );
@@ -507,31 +513,23 @@ function InviteeRegistrationContent() {
         <main className="invitee-page">
             <div className="page-shell">
 
-                <header className="mobile-header">
+<header className="mobile-header">
 
-                    <button
-                        type="button"
-                        className="logo-button"
-                        onClick={handleLogin}
-                        aria-label="CareVR"
-                    >
-                        <span className="care">
-                            Care
-                        </span>
-                        <span className="vr">
-                            VR
-                        </span>
-                    </button>
+    <div
+        className="logo-button"
+        aria-label="CareVR"
+    >
+        <Image
+            src="/images/CareVR v1.0.png"
+            alt="CareVR"
+            width={160}
+            height={48}
+            className="carevr-header-logo"
+            priority
+        />
+    </div>
 
-                    <button
-                        type="button"
-                        className="login-link"
-                        onClick={handleLogin}
-                    >
-                        Back to Login
-                    </button>
-
-                </header>
+</header>
 
                 <section className="content">
 
@@ -594,7 +592,7 @@ function InviteeRegistrationContent() {
         </span>
 
         <strong>
-            {formatInviteeName(invitation.email)}
+            {inviteeName}
         </strong>
     </div>
 
