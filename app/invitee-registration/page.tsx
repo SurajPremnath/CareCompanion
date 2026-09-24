@@ -26,6 +26,29 @@ type Invitation = {
     expiresAt: string;
 };
 
+function formatInviteeName(email: string) {
+    const localPart =
+        email
+            .split("@")[0]
+            .replace(/[._-]+/g, " ")
+            .trim();
+
+    if (!localPart) {
+        return "";
+    }
+
+    return localPart
+        .split(/\s+/)
+        .filter(Boolean)
+        .map(
+            (part) =>
+                part.charAt(0).toUpperCase() +
+                part.slice(1).toLowerCase()
+        )
+        .join(" ");
+}
+
+
 function formatRole(role: string) {
     switch (role) {
         case "DOCTOR":
@@ -565,6 +588,17 @@ function InviteeRegistrationContent() {
                                         {invitation.email}
                                     </strong>
                                 </div>
+    <div>
+        <span className="detail-label">
+            Name
+        </span>
+
+        <strong>
+            {formatInviteeName(invitation.email)}
+        </strong>
+    </div>
+
+
                             </div>
 
                             <div className="detail-divider" />
