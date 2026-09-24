@@ -228,12 +228,19 @@ useEffect(() => {
             return;
         }
 
-        if (password !== confirmPassword) {
-            setError(
-                "Passwords do not match."
-            );
-            return;
-        }
+if (password !== confirmPassword) {
+    setError(
+        "Passwords do not match."
+    );
+    return;
+}
+
+if (!fullName.trim()) {
+    setError(
+        "Please enter your full name."
+    );
+    return;
+}
 
         if (!captchaToken) {
             setError(
