@@ -2072,7 +2072,6 @@ if (consentAccepted) {
 .stage-strip > .stage-card {
     width: 100%;
     min-width: 0;
-    display: block;
 }
 
                 .stage-card {
@@ -2101,6 +2100,7 @@ if (consentAccepted) {
                 .stage-icon-wrap {
                     position: relative;
                     width: 100%;
+                    max-width: 180px;
                     aspect-ratio: 1;
                     display: flex;
                     align-items: center;
@@ -2123,11 +2123,11 @@ if (consentAccepted) {
                     filter: blur(5px);
                 }
 
-                .care-icon {
-                    position: relative;
-                    z-index: 1;
-                    width: min(145px, 100%);
-                    height: min(145px, 100%);
+.care-icon {
+    position: relative;
+    z-index: 1;
+    width: 145px;
+    height: 145px;
                     overflow: visible;
                     animation: iconFloat 4.4s ease-in-out infinite;
                 }
