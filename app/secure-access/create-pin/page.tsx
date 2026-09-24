@@ -102,251 +102,148 @@ const [secureAccessStage, setSecureAccessStage] =
         };
     }, []);
 
-    useEffect(() => {
-        if (!consentAccepted) {
-            return;
-        }
+useEffect(() => {
+    if (!consentAccepted) {
+        return;
+    }
 
-        let cancelled = false;
+    let cancelled = false;
 
-        const continueAfterConsent = async () => {
-            setError("");
-            setSaving(true);
+    const continueAfterConsent = async () => {
+        setError("");
+        setSaving(true);
+        setSecureAccessStage("VERIFYING_ACCESS");
 
-            const viewportWidth =
-                typeof window !== "undefined"
-                    ? window.innerWidth
-                    : 1280;
+        try {
+            const user =
+                await authService.getCurrentUser();
 
-            const secureAccessTiming =
-                viewportWidth < 768
-                    ? {
-                          preparing: 1200,
-                          verifying: 1400,
-                          verified: 1000,
-                          context: 1300,
-                          opening: 1000,
-                          welcome: 1600,
-                      }
-                    : viewportWidth < 1024
-                        ? {
-                              preparing: 1400,
-                              verifying: 1600,
-                              verified: 1200,
-                              context: 1500,
-                              opening: 1200,
-                              welcome: 1800,
-                          }
-                        : {
-                              preparing: 1700,
-                              verifying: 1800,
-                              verified: 1400,
-                              context: 1700,
-                              opening: 1400,
-                              welcome: 2000,
-                          };
+            if (!user?.id || !user.email) {
+                throw new Error(
+                    "Authenticated user context is unavailable."
+                );
+            }
 
-            const waitForStage = (
-                duration: number
-            ) =>
-                new Promise<void>(
-                    (resolve) => {
-                        window.setTimeout(
-                            resolve,
-                            duration
+            const validation =
+                await validateInvitedUserLogin({
+                    email: user.email,
+                    userId: user.id,
+                    mode: "NORMAL",
+                });
+
+            if (cancelled) {
+                return;
+            }
+
+            if (
+                validation.status ===
+                    "ACCEPTED" ||
+                validation.status ===
+                    "PRIMARY"
+            ) {
+
+                setSecureAccessStage(
+                    "PREPARING_CONTEXT"
+                );
+
+                const {
+                    activeAccessRecords,
+                    contexts,
+                } =
+                    await carevrContextResolver
+                        .getAvailableContexts(
+                            user.id
                         );
-                    }
-                );
 
-            try {
-                setSecureAccessStage(
-                    "PREPARING_EXPERIENCE"
-                );
-
-                await waitForStage(
-                    secureAccessTiming.preparing
-                );
-
-                if (cancelled) {
-                    return;
-                }
-
-                setSecureAccessStage(
-                    "VERIFYING_ACCESS"
-                );
-
-                const user =
-                    await authService.getCurrentUser();
-
-                if (!user?.id || !user.email) {
-                    throw new Error(
-                        "Authenticated user context is unavailable."
-                    );
-                }
-
-                const validation =
-                    await validateInvitedUserLogin({
-                        email: user.email,
-                        userId: user.id,
-                        mode: "NORMAL",
-                    });
-
-                if (cancelled) {
-                    return;
-                }
-
-                setSecureAccessStage(
-                    "ACCESS_VERIFIED"
-                );
-
-                await waitForStage(
-                    secureAccessTiming.verified
-                );
-
-                if (cancelled) {
-                    return;
-                }
-
-                if (
-                    validation.status ===
-                        "ACCEPTED" ||
+                const dashboardRole =
                     validation.status ===
                         "PRIMARY"
-                ) {
-                    setSecureAccessStage(
-                        "PREPARING_CONTEXT"
-                    );
-
-                    const {
-                        activeAccessRecords,
-                        contexts,
-                    } =
-                        await carevrContextResolver
-                            .getAvailableContexts(
-                                user.id
-                            );
-
-                    if (cancelled) {
-                        return;
-                    }
-
-                    const dashboardRole =
-                        validation.status ===
-                            "PRIMARY"
-                            ? "SELF"
+                        ? "SELF"
+                        : validation.invitationRole ===
+                            "SECONDARY_FAMILY_MEMBER"
+                            ? "FAMILY"
                             : validation.invitationRole ===
-                                "SECONDARY_FAMILY_MEMBER"
-                                ? "FAMILY"
+                                "CARETAKER"
+                                ? "CARETAKER"
                                 : validation.invitationRole ===
-                                    "CARETAKER"
-                                    ? "CARETAKER"
-                                    : validation.invitationRole ===
-                                        "DOCTOR"
-                                        ? "DOCTOR"
-                                        : "SELF";
+                                    "DOCTOR"
+                                    ? "DOCTOR"
+                                    : "SELF";
 
-                    const selectedContext =
-                        contexts.find(
-                            (context) =>
-                                context.loginRole ===
-                                dashboardRole
-                        );
-
-                    if (!selectedContext) {
-                        throw new Error(
-                            "Selected CareVR context is no longer available."
-                        );
-                    }
-
-                    const access =
-                        activeAccessRecords.find(
-                            (record) =>
-                                record.id ===
-                                selectedContext.accessId
-                        );
-
-                    if (!access) {
-                        throw new Error(
-                            "Selected CareVR access is no longer active."
-                        );
-                    }
-
-                    await resolveCareVRDashboardHandoff(
-                        user.id,
-                        dashboardRole,
-                        access
+                const selectedContext =
+                    contexts.find(
+                        (context) =>
+                            context.loginRole ===
+                            dashboardRole
                     );
 
-                    if (cancelled) {
-                        return;
-                    }
-
-                    await waitForStage(
-                        secureAccessTiming.context
+                if (!selectedContext) {
+                    throw new Error(
+                        "Selected CareVR context is no longer available."
                     );
-
-                    if (cancelled) {
-                        return;
-                    }
-
-                    setSecureAccessStage(
-                        "OPENING_DASHBOARD"
-                    );
-
-                    await waitForStage(
-                        secureAccessTiming.opening
-                    );
-
-                    if (cancelled) {
-                        return;
-                    }
-
-                    setSecureAccessStage(
-                        "WELCOME"
-                    );
-
-                    await waitForStage(
-                        secureAccessTiming.welcome
-                    );
-
-                    if (cancelled) {
-                        return;
-                    }
-
-                    router.replace(
-                        "/dashboard"
-                    );
-
-                    return;
                 }
 
-                throw new Error(
-                    validation.message ||
-                        "Unable to determine the next CareVR step."
+                const access =
+                    activeAccessRecords.find(
+                        (record) =>
+                            record.id ===
+                            selectedContext.accessId
+                    );
+
+                if (!access) {
+                    throw new Error(
+                        "Selected CareVR access is no longer active."
+                    );
+                }
+
+                setSecureAccessStage(
+                    "OPENING_DASHBOARD"
                 );
-            } catch (error) {
+
+                await resolveCareVRDashboardHandoff(
+                    user.id,
+                    dashboardRole,
+                    access
+                );
+
                 if (cancelled) {
                     return;
                 }
 
-                setError(
-                    error instanceof Error
-                        ? error.message
-                        : "Unable to continue to CareVR Dashboard."
+                router.replace(
+                    "/dashboard"
                 );
-            } finally {
-                if (!cancelled) {
-                    setSaving(false);
-                }
+
+                return;
             }
-        };
 
-        void continueAfterConsent();
+            throw new Error(
+                validation.message ||
+                    "Unable to determine the next CareVR step."
+            );
+        } catch (error) {
+            if (cancelled) {
+                return;
+            }
 
-        return () => {
-            cancelled = true;
-        };
-    }, [consentAccepted, router]);
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to continue to CareVR Dashboard."
+            );
+        } finally {
+            if (!cancelled) {
+                setSaving(false);
+            }
+        }
+    };
+
+    void continueAfterConsent();
+
+    return () => {
+        cancelled = true;
+    };
+}, [consentAccepted, router]);
 
     const handlePinChange = (
         value: string,
@@ -4550,6 +4447,45 @@ const secureStages = [
  * MOTION
  * ========================================================= */
 
+@keyframes secure-access-stage-enter {
+
+    0% {
+        opacity: 0;
+        transform:
+            translateY(8px)
+            scale(0.985);
+    }
+
+    60% {
+        opacity: 1;
+        transform:
+            translateY(-1px)
+            scale(1.002);
+    }
+
+    100% {
+        opacity: 1;
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+@keyframes secure-access-stage-row-enter {
+
+    0% {
+        opacity: 0.45;
+        transform:
+            translateY(4px);
+    }
+
+    100% {
+        opacity: 1;
+        transform:
+            translateY(0);
+    }
+}
+
 @keyframes secure-access-active-pulse {
 
     0%,
@@ -4564,8 +4500,55 @@ const secureStages = [
     }
 }
 
+/*
+ * The hero receives a fresh animation whenever
+ * the existing presentation stage changes.
+ *
+ * These are presentation classes only.
+ * They do not represent backend states.
+ */
+.secure-access-hero-preparing_experience,
+.secure-access-hero-verifying_access,
+.secure-access-hero-access_verified,
+.secure-access-hero-preparing_context,
+.secure-access-hero-opening_dashboard,
+.secure-access-hero-welcome {
+    animation:
+        secure-access-stage-enter
+        420ms
+        cubic-bezier(0.22, 0.8, 0.3, 1)
+        both;
+}
+
+/*
+ * The currently active progress item enters
+ * slightly after the hero begins moving.
+ */
+.secure-access-stage.is-active {
+    animation:
+        secure-access-stage-row-enter
+        360ms
+        ease-out
+        both;
+}
+
+.secure-access-active-marker {
+    animation:
+        secure-access-active-pulse
+        1.6s
+        ease-in-out
+        infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
 
+    .secure-access-hero-preparing_experience,
+    .secure-access-hero-verifying_access,
+    .secure-access-hero-access_verified,
+    .secure-access-hero-preparing_context,
+    .secure-access-hero-opening_dashboard,
+    .secure-access-hero-welcome,
+    .secure-access-stage.is-active,
     .secure-access-active-marker {
         animation: none;
     }
