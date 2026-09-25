@@ -34,6 +34,8 @@ import {
     authSessionService,
 } from "@/lib/analytics/authSessionService";
 
+import CareVRDashboardHandoffAnimation from "@/Components/common/CareVRDashboardHandoffAnimation";
+
 export default function ProfileSelectionPage() {
 
     const router = useRouter();
@@ -59,6 +61,11 @@ export default function ProfileSelectionPage() {
         continuing,
         setContinuing,
     ] = useState(false);
+
+const [
+    showDashboardHandoff,
+    setShowDashboardHandoff,
+] = useState(false);
 
     const [
         error,
@@ -375,17 +382,26 @@ await resolveCareVRDashboardHandoff(
     access
 );
 
-            void authSessionService
-                .start()
-                .catch(() => {
-                    // Analytics must never block navigation.
-                });
+void authSessionService
+    .start()
+    .catch(() => {
+        // Analytics must never block navigation.
+    });
 
-            router.replace(
-                "/dashboard"
-            );
+setShowDashboardHandoff(true);
 
-            return;
+await new Promise<void>((resolve) => {
+    window.setTimeout(
+        resolve,
+        4250
+    );
+});
+
+router.replace(
+    "/dashboard"
+);
+
+return;
         }
 
         if (
@@ -423,10 +439,20 @@ await resolveCareVRDashboardHandoff(
     }
 };
 
+if (showDashboardHandoff) {
     return (
-        <main className="profile-selection-page">
+        <CareVRDashboardHandoffAnimation
+    onComplete={() => {
+        router.replace("/dashboard");
+    }}
+/>
+    );
+}
 
-            <div className="profile-selection-shell">
+return (
+    <main className="profile-selection-page">
+
+        <div className="profile-selection-shell">
 
                 <header className="profile-selection-header">
 
