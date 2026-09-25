@@ -1044,23 +1044,23 @@ if (consentAccepted) {
 
             <section className="carevr-stage-area">
 
-                <div className="stage-heading">
+<div
+    className="stage-heading"
+    style={{
+        width: "100%",
+        textAlign: "center",
+    }}
+>
 
-                    <div className="heading-kicker">
-                        SECURE ACCESS
-                    </div>
+    <h1>
+        Finalizing Your Secure Access
+    </h1>
 
-                    <h1>
-                        Finalizing Your Secure Access
-                    </h1>
+    <p>
+        Your consent has been recorded. We are securely preparing your CareVR dashboard.
+    </p>
 
-                    <p>
-                        Your consent has been recorded.
-                        We are securely preparing your
-                        CareVR dashboard.
-                    </p>
-
-                </div>
+</div>
 
 
                 <div
