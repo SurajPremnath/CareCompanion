@@ -1054,7 +1054,20 @@ if (consentAccepted) {
                 </div>
 
 
-                <div className="stage-strip">
+                <div
+                    className="stage-strip"
+                    style={{
+                        width: "min(1180px, calc(100% - 80px))",
+                        margin: "0 auto",
+                        display: "grid",
+                        gridTemplateColumns:
+                            "repeat(5, minmax(0, 1fr))",
+                        alignItems: "start",
+                        justifyItems: "stretch",
+                        columnGap: "28px",
+                        rowGap: "0",
+                    }}
+                >
     {stages.map((stage, index) => (
         <section
             key={stage.key}
@@ -1063,8 +1076,26 @@ if (consentAccepted) {
                     ? "stage-card is-visible"
                     : "stage-card"
             }
+            style={{
+                width: "100%",
+                minWidth: 0,
+            }}
         >
-            <div className="stage-icon-wrap">
+            <div
+                className="stage-icon-wrap"
+                style={{
+                    position: "relative",
+                    width: "100%",
+                    maxWidth: "180px",
+                    aspectRatio: "1",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "7px",
+                    marginLeft: "auto",
+                    marginRight: "auto",
+                }}
+            >
                 <StageIcon
                     type={
                         stage.key === "preparing"
@@ -1102,7 +1133,6 @@ if (consentAccepted) {
         </section>
     ))}
                 </div>
-
 
                 <div className="privacy">
 
