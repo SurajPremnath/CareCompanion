@@ -1849,10 +1849,12 @@ if (consentAccepted) {
 
             `}</style>
 
-
-
-
-            <style jsx>{`
+            {/* Animation page styles.
+                Kept global intentionally because the animation
+                markup is rendered through the consentAccepted
+                conditional return.
+            */}
+            <style jsx global>{`
                 * {
                     box-sizing: border-box;
                 }
