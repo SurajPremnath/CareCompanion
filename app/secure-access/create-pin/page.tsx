@@ -2208,7 +2208,7 @@ if (consentAccepted) {
                                 aria-hidden="true"
                                 className="button-arrow"
                             >
-                                â†’
+                                →
                             </span>
                         )}
                     </button>

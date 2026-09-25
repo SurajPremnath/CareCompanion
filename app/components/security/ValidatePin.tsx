@@ -19,6 +19,8 @@ import MobileHeader, {
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
+import CareVRDashboardHandoffAnimation from "@/Components/common/CareVRDashboardHandoffAnimation";
+
 import {
     validateInvitedUserLogin,
 } from "@/lib/invitations/invitedUserLoginValidation";
@@ -72,6 +74,9 @@ const [showPin, setShowPin] =
 
     const [saving, setSaving] =
         useState(false);
+
+const [showDashboardHandoff, setShowDashboardHandoff] =
+    useState(false);
 
 
     const [attemptsRemaining, setAttemptsRemaining] =
@@ -489,33 +494,9 @@ const {
 
 
 
-            const routerStartedAt =
-                performance.now();
+setShowDashboardHandoff(true);
 
-            router.replace(
-                "/dashboard"
-            );
-
-            const routerCompletedAt =
-                performance.now();
-
-            console.log(
-                `[PIN-PERF] router.replace(/dashboard): ${Math.round(
-                    routerCompletedAt -
-                    routerStartedAt
-                )} ms`
-            );
-
-
-
-            console.log(
-                `[PIN-PERF] VERIFY-PIN → DASHBOARD NAVIGATION: ${Math.round(
-                    routerCompletedAt -
-                    verifyStartedAt
-                )} ms`
-            );
-
-            return;
+return;
         }
 
 
@@ -708,15 +689,34 @@ if (lockState) {
 
 
 
-    /*
-     * =========================================================
-     * NORMAL VERIFY PIN SCREEN
-     * =========================================================
-     */
+/*
+ * =========================================================
+ * DASHBOARD HANDOFF ANIMATION
+ * =========================================================
+ */
 
+if (showDashboardHandoff) {
     return (
-
         <main className="pin-page">
+            <CareVRDashboardHandoffAnimation
+                onComplete={() => {
+                    router.replace("/dashboard");
+                }}
+            />
+        </main>
+    );
+}
+
+
+/*
+ * =========================================================
+ * NORMAL VERIFY PIN SCREEN
+ * =========================================================
+ */
+
+return (
+
+    <main className="pin-page">
 
             {renderHeader()}
 
