@@ -659,25 +659,37 @@ useEffect(() => {
     let cancelled = false;
 
     const continueAfterConsent = async () => {
+        const animationStartTime =
+            performance.now();
+
         setError("");
-        setSaving(true);
 
         try {
             const user =
                 await authService.getCurrentUser();
 
-            if (!user?.id || !user.email) {
+            if (!user) {
                 throw new Error(
-                    "Authenticated user context is unavailable."
+                    "Unable to determine the current user."
                 );
             }
 
-            const validation =
-                await validateInvitedUserLogin({
-                    email: user.email,
-                    userId: user.id,
-                    mode: "NORMAL",
-                });
+            if (cancelled) {
+                return;
+            }
+
+if (!user.email) {
+    throw new Error(
+        "Authenticated user email is unavailable."
+    );
+}
+
+const validation =
+    await validateInvitedUserLogin({
+        email: user.email,
+        userId: user.id,
+        mode: "NORMAL",
+    });
 
             if (cancelled) {
                 return;
@@ -685,80 +697,185 @@ useEffect(() => {
 
             if (
                 validation.status ===
-                    "ACCEPTED" ||
-                validation.status ===
-                    "PRIMARY"
+                "PRIMARY"
             ) {
-const selectedRole =
-    validation.status ===
-        "PRIMARY"
-        ? "SELF"
-        : validation.invitationRole ===
-            "SECONDARY_FAMILY_MEMBER"
-            ? "FAMILY"
-            : validation.invitationRole ===
-                "CARETAKER"
-                ? "CARETAKER"
-                : validation.invitationRole ===
-                    "DOCTOR"
-                    ? "DOCTOR"
-                    : "SELF";
+                const selectedRole =
+                    "SELF";
 
-const availableContexts =
-    await carevrContextResolver
-        .getAvailableContexts(
-            user.id
-        );
-
-const selectedContext =
-    availableContexts.contexts.find(
-        (context) =>
-            context.loginRole ===
-            selectedRole
-    );
-
-if (!selectedContext) {
-    throw new Error(
-        "Unable to resolve the active CareVR context."
-    );
-}
-
-const activeAccess =
-    availableContexts.activeAccessRecords.find(
-        (access) =>
-            access.id ===
-            selectedContext.accessId
-    );
-
-if (!activeAccess) {
-    throw new Error(
-        "Unable to resolve the active CareVR access."
-    );
-}
-
-await resolveCareVRDashboardHandoff(
-    user.id,
-    selectedRole,
-    activeAccess
-);
+                const availableContexts =
+                    await carevrContextResolver
+                        .getAvailableContexts(
+                            user.id
+                        );
 
                 if (cancelled) {
                     return;
                 }
 
-// TEMPORARY ANIMATION DEBUG â€” do not redirect to dashboard
-// router.replace(
-//     "/dashboard"
-// );
+                const selectedContext =
+                    availableContexts.contexts.find(
+                        (context) =>
+                            context.loginRole ===
+                            selectedRole
+                    );
 
-// Keep the page mounted so we can inspect the animation.
+                if (!selectedContext) {
+                    throw new Error(
+                        "Unable to resolve the active CareVR context."
+                    );
+                }
+
+                const activeAccess =
+                    availableContexts.activeAccessRecords.find(
+                        (access) =>
+                            access.id ===
+                            selectedContext.accessId
+                    );
+
+                if (!activeAccess) {
+                    throw new Error(
+                        "Unable to resolve the active CareVR access."
+                    );
+                }
+
+                await resolveCareVRDashboardHandoff(
+                    user.id,
+                    selectedRole,
+                    activeAccess
+                );
+
+                if (cancelled) {
+                    return;
+                }
+
+                const minimumAnimationDuration =
+                    4000;
+
+                const elapsedTime =
+                    performance.now() -
+                    animationStartTime;
+
+                const remainingAnimationTime =
+                    Math.max(
+                        0,
+                        minimumAnimationDuration -
+                            elapsedTime
+                    );
+
+                if (remainingAnimationTime > 0) {
+                    await new Promise<void>(
+                        (resolve) => {
+                            window.setTimeout(
+                                resolve,
+                                remainingAnimationTime
+                            );
+                        }
+                    );
+                }
+
+                if (cancelled) {
+                    return;
+                }
+
+                router.replace(
+                    "/dashboard"
+                );
+
                 return;
             }
 
-            throw new Error(
-                validation.message ||
-                    "Unable to determine the next CareVR step."
+            const selectedRole =
+                validation.invitationRole ===
+                "SECONDARY_FAMILY_MEMBER"
+                    ? "FAMILY"
+                    : validation.invitationRole ===
+                        "CARETAKER"
+                        ? "CARETAKER"
+                        : validation.invitationRole ===
+                            "DOCTOR"
+                            ? "DOCTOR"
+                            : "SELF";
+
+            const availableContexts =
+                await carevrContextResolver
+                    .getAvailableContexts(
+                        user.id
+                    );
+
+            if (cancelled) {
+                return;
+            }
+
+            const selectedContext =
+                availableContexts.contexts.find(
+                    (context) =>
+                        context.loginRole ===
+                        selectedRole
+                );
+
+            if (!selectedContext) {
+                throw new Error(
+                    "Unable to resolve the active CareVR context."
+                );
+            }
+
+            const activeAccess =
+                availableContexts.activeAccessRecords.find(
+                    (access) =>
+                        access.id ===
+                        selectedContext.accessId
+                );
+
+            if (!activeAccess) {
+                throw new Error(
+                    "Unable to resolve the active CareVR access."
+                );
+            }
+
+            await resolveCareVRDashboardHandoff(
+                user.id,
+                selectedRole,
+                activeAccess
             );
+
+            if (cancelled) {
+                return;
+            }
+
+            const minimumAnimationDuration =
+                4000;
+
+            const elapsedTime =
+                performance.now() -
+                animationStartTime;
+
+            const remainingAnimationTime =
+                Math.max(
+                    0,
+                    minimumAnimationDuration -
+                        elapsedTime
+                );
+
+            if (remainingAnimationTime > 0) {
+                await new Promise<void>(
+                    (resolve) => {
+                        window.setTimeout(
+                            resolve,
+                            remainingAnimationTime
+                        );
+                    }
+                );
+            }
+
+            if (cancelled) {
+                return;
+            }
+
+            router.replace(
+                "/dashboard"
+            );
+
+            return;
         } catch (error) {
             if (cancelled) {
                 return;
