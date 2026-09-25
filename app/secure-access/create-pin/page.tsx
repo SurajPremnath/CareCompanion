@@ -1009,10 +1009,15 @@ if (consentAccepted) {
 
                 <div className="brand">
 
-                    <img
-                        src="/images/CareVR v1.0.png"
-                        alt="CareVR"
-                    />
+<img
+    src="/images/CareVR v1.0.png"
+    alt="CareVR"
+    style={{
+        width: "52px",
+        height: "52px",
+        objectFit: "contain",
+    }}
+/>
 
                     <div>
                         <strong>
