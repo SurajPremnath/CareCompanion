@@ -1005,37 +1005,41 @@ if (consentAccepted) {
             <div className="landscape landscape-back" />
             <div className="landscape landscape-front" />
 
-            <header className="carevr-test-header">
+{/*
+    TEMPORARILY HIDDEN FOR ANIMATION LAYOUT TEST
 
-                <div className="brand">
+    <header className="carevr-test-header">
 
-<img
-    src="/images/CareVR v1.0.png"
-    alt="CareVR"
-    style={{
-        width: "52px",
-        height: "52px",
-        objectFit: "contain",
-    }}
-/>
+        <div className="brand">
 
-                    <div>
-                        <strong>
-                            CareVR
-                        </strong>
+            <img
+                src="/images/CareVR v1.0.png"
+                alt="CareVR"
+                style={{
+                    width: "52px",
+                    height: "52px",
+                    objectFit: "contain",
+                }}
+            />
 
-                        <span>
-                            Record · Understand · Manage · Share
-                        </span>
-                    </div>
+            <div>
+                <strong>
+                    CareVR
+                </strong>
 
-                </div>
+                <span>
+                    Record Â· Understand · Manage · Share
+                </span>
+            </div>
 
-                <div className="secure-label">
-                    SECURE ACCESS
-                </div>
+        </div>
 
-            </header>
+        <div className="secure-label">
+            SECURE ACCESS
+        </div>
+
+    </header>
+*/}
 
 
             <section className="carevr-stage-area">
@@ -1139,47 +1143,55 @@ if (consentAccepted) {
     ))}
                 </div>
 
-                <div className="privacy">
+{/*
+    TEMPORARILY HIDDEN FOR ANIMATION LAYOUT TEST
 
-                    <span>
-                        ●
-                    </span>
+    <div className="privacy">
 
-                    Your health information is private and secure.
+        <span>
+            â—
+        </span>
 
-                </div>
+        Your health information is private and secure.
+
+    </div>
+*/}
 
             </section>
 
 
-<div className="bottom-progress">
-    {stages.map((stage, index) => (
-        <div
-            key={stage.key}
-            className={
-                index < animationVisibleCount
-                    ? "progress-step is-visible"
-                    : "progress-step"
-            }
-        >
-            <div className="progress-dot">
-                {index < animationVisibleCount ? "✓" : ""}
-            </div>
+{/*
+    TEMPORARILY HIDDEN FOR ANIMATION LAYOUT TEST
 
-            <span>
-                {stage.key === "preparing"
-                    ? "Prepare"
-                    : stage.key === "verifying"
-                        ? "Verify"
-                        : stage.key === "verified"
-                            ? "Verified"
-                            : stage.key === "dashboard"
-                                ? "Opening"
-                                : "Welcome"}
-            </span>
-        </div>
-    ))}
-</div>
+    <div className="bottom-progress">
+        {stages.map((stage, index) => (
+            <div
+                key={stage.key}
+                className={
+                    index < animationVisibleCount
+                        ? "progress-step is-visible"
+                        : "progress-step"
+                }
+            >
+                <div className="progress-dot">
+                    {index < animationVisibleCount ? "âœ“" : ""}
+                </div>
+
+                <span>
+                    {stage.key === "preparing"
+                        ? "Prepare"
+                        : stage.key === "verifying"
+                            ? "Verify"
+                            : stage.key === "verified"
+                                ? "Verified"
+                                : stage.key === "dashboard"
+                                    ? "Opening"
+                                    : "Welcome"}
+                </span>
+            </div>
+        ))}
+    </div>
+*/}
 
         </main>
     );
