@@ -1240,6 +1240,12 @@ return (
                 }
 
 
+                .pin-input-wrapper {
+                    position: relative;
+                    width: 100%;
+                }
+
+
                 .pin-field input {
                     width: 100%;
                     height: 58px;
@@ -1257,7 +1263,7 @@ return (
                     color: #17224a;
 
                     padding:
-                        0 18px;
+                        0 56px 0 18px;
 
                     font-size: 24px;
                     font-weight: 700;
@@ -1293,6 +1299,58 @@ return (
 
                 .pin-field input:disabled {
                     opacity: .65;
+                }
+
+
+                .pin-visibility-button {
+                    position: absolute;
+
+                    top: 50%;
+                    right: 14px;
+
+                    transform:
+                        translateY(-50%);
+
+                    width: 34px;
+                    height: 34px;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    padding: 0;
+                    margin: 0;
+
+                    border: 0;
+                    border-radius: 8px;
+
+                    background: transparent;
+
+                    color: #68738b;
+
+                    cursor: pointer;
+                }
+
+
+                .pin-visibility-button:hover:not(:disabled) {
+                    background: #f1eff8;
+
+                    color: #6337d2;
+                }
+
+
+                .pin-visibility-button:disabled {
+                    opacity: .5;
+
+                    cursor: not-allowed;
+                }
+
+
+                .pin-visibility-button svg {
+                    width: 18px;
+                    height: 18px;
+
+                    display: block;
                 }
 
 
