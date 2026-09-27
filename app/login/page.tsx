@@ -1140,7 +1140,7 @@ return (
         .login-content {
           position: absolute;
 
-          top: 28%;
+          top: calc(28% + 5px);
 
           left: 4%;
           right: 4%;
@@ -1857,7 +1857,7 @@ return (
         @media (max-height: 700px) {
 
           .login-content {
-            top: 20%;
+            top: calc(20% + 5px);
           }
 
           .login-heading {
