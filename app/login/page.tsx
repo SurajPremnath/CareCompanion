@@ -1914,9 +1914,84 @@ return (
 
 @media (min-width: 901px) {
 
+  /* ---------------------------------------------------------
+     DESKTOP LOGIN METHOD TABS
+     --------------------------------------------------------- */
+
   .login-method-tabs {
     display: grid !important;
+
+    grid-template-columns: 1fr 1fr;
+
+    width: 100%;
+    height: 40px;
+
+    margin-bottom: 14px;
+    padding: 2px;
+
+    border: 1px solid #ddd7f2;
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, 0.72);
+
+    box-sizing: border-box;
   }
+
+  .login-method-tab {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 34px;
+
+    min-width: 0;
+    min-height: 34px;
+
+    margin: 0;
+    padding: 0;
+
+    box-sizing: border-box;
+
+    border: 1px solid transparent;
+    border-radius: 7px;
+
+    background: transparent;
+
+    color: #737b91;
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+      background 140ms ease,
+      color 140ms ease,
+      border-color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  .login-method-tab-active {
+    height: 34px;
+    min-height: 34px;
+
+    background: #ffffff;
+
+    color: #7043f5;
+
+    border: 1px solid #7043f5;
+
+    box-shadow:
+      0 2px 6px
+      rgba(112, 67, 245, 0.12);
+  }
+
+  /* ---------------------------------------------------------
+     LOGIN METHOD CONTENT
+     --------------------------------------------------------- */
 
   .login-method-content[data-login-method="EMAIL"]
     .login-google-panel,
@@ -1933,30 +2008,53 @@ return (
   .login-method-content[data-login-method="GOOGLE"]
     .login-google-panel {
     display: block !important;
+    transform: translateY(5px);
   }
+
+  /* ---------------------------------------------------------
+     DESKTOP PAGE
+     --------------------------------------------------------- */
 
   .login-page {
     min-height: 100vh;
     min-height: 100dvh;
+
     padding: 28px;
+
     background: #f1eaff;
   }
 
+  /* ---------------------------------------------------------
+     DESKTOP SHELL
+     --------------------------------------------------------- */
+
   .login-shell {
     width: min(1180px, 100%);
+
     min-height: 720px;
+
     display: grid;
+
     grid-template-columns: 47% 53%;
     grid-template-rows: minmax(720px, 1fr);
+
     position: relative;
+
     overflow: hidden;
+
     border-radius: 28px;
     border: 1px solid #e9e5f3;
+
     background: #ffffff;
+
     box-shadow:
       0 30px 80px rgba(36, 28, 75, 0.10),
       0 6px 20px rgba(36, 28, 75, 0.04);
   }
+
+  /* ---------------------------------------------------------
+     DESKTOP LEFT — LOGIN
+     --------------------------------------------------------- */
 
   .login-left {
     grid-column: 1 / 2;
@@ -1964,6 +2062,7 @@ return (
 
     position: relative;
     inset: auto;
+
     z-index: 1;
 
     display: flex;
@@ -1971,21 +2070,35 @@ return (
 
     min-width: 0;
     min-height: 720px;
+
     padding: 34px 54px 30px;
 
     background: #ffffff;
   }
 
+  /* ---------------------------------------------------------
+     DESKTOP CAREVR LOGO
+     --------------------------------------------------------- */
+
   .carevr-logo {
     display: block;
+
     width: 250px;
     height: 150px;
+
     margin-bottom: 28px;
-    background-image: url("/images/CareVR%20v1.0.png");
+
+    background-image:
+      url("/images/CareVR%20v1.0.png");
+
     background-repeat: no-repeat;
     background-position: left top;
     background-size: contain;
   }
+
+  /* ---------------------------------------------------------
+     DESKTOP LOGIN CONTENT
+     --------------------------------------------------------- */
 
   .login-content {
     position: static;
@@ -1996,15 +2109,21 @@ return (
     margin: auto;
   }
 
+  /* ---------------------------------------------------------
+     DESKTOP RIGHT — BRAND EXPERIENCE
+     --------------------------------------------------------- */
+
   .login-right {
     grid-column: 2 / 3;
     grid-row: 1 / 2;
 
     position: relative;
+
     z-index: 2;
 
     min-width: 0;
     min-height: 720px;
+
     height: 100%;
 
     overflow: hidden;
