@@ -1305,72 +1305,72 @@ return (
            FULL WIDTH.
         ===================================================== */
 
-        .login-method-tabs {
-          display: grid !important;
+.login-method-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 
-          grid-template-columns:
-            minmax(0, 1fr)
-            minmax(0, 1fr);
+  width: 100%;
+  height: 26px;
 
-          width: 100%;
-          max-width: none;
+  margin-bottom: 8px;
+  padding: 1px;
 
-          height: 38px;
+  border: 1px solid #ddd7f2;
+  border-radius: 7px;
 
-          margin: 0 0 10px;
+  background: rgba(255, 255, 255, 0.72);
 
-          padding: 2px;
+  box-sizing: border-box;
+}
 
-          box-sizing: border-box;
+.login-method-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-          border: 1px solid #ddd7f2;
-          border-radius: 9px;
+  width: 100%;
+  height: 24px;
+  min-width: 0;
+  min-height: 24px;
 
-          background: rgba(255, 255, 255, 0.72);
+  margin: 0;
+  padding: 0;
 
-          transform: none;
-        }
+  box-sizing: border-box;
 
-        .login-method-tab {
-          display: flex;
+  border: 1px solid transparent;
+  border-radius: 5px;
 
-          align-items: center;
-          justify-content: center;
+  background: transparent;
 
-          width: 100%;
-          min-width: 0;
-          height: 100%;
+  color: #737b91;
 
-          margin: 0;
-          padding: 0;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
 
-          box-sizing: border-box;
+  cursor: pointer;
 
-          border: 0;
-          border-radius: 7px;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
 
-          background: transparent;
+.login-method-tab-active {
+  height: 24px;
+  min-height: 24px;
 
-          color: #737b91;
+  background: #ffffff;
 
-          font-size: 11px;
-          font-weight: 700;
-          line-height: 1;
+  color: #7043f5;
 
-          cursor: pointer;
-        }
+  border: 1px solid #7043f5;
 
-        .login-method-tab-active {
-          background: #ffffff;
-
-          color: #7043f5;
-
-          border: 1px solid #7043f5;
-
-          box-shadow:
-            0 2px 6px
-            rgba(112, 67, 245, 0.12);
-        }
+  box-shadow:
+    0 1px 3px rgba(112, 67, 245, 0.10);
+}
 
 
         /* =====================================================
