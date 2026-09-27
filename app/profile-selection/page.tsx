@@ -67,6 +67,12 @@ const [
     setShowDashboardHandoff,
 ] = useState(false);
 
+const [dashboardHandoffReady, setDashboardHandoffReady] =
+    useState(false);
+
+const [dashboardAnimationComplete, setDashboardAnimationComplete] =
+    useState(false);
+
     const [
         error,
         setError,
@@ -152,6 +158,27 @@ const {
         };
 
     }, [router]);
+
+
+useEffect(() => {
+
+    if (
+        !dashboardHandoffReady ||
+        !dashboardAnimationComplete
+    ) {
+        return;
+    }
+
+    router.replace(
+        "/dashboard"
+    );
+
+}, [
+    dashboardHandoffReady,
+    dashboardAnimationComplete,
+    router,
+]);
+
 
     const getRoleIcon = (
         loginRole:
@@ -251,17 +278,30 @@ const {
             );
         }
 
-        const selectedRole =
-            selectedContext.loginRole ===
-                "DOCTOR"
-                ? "DOCTOR"
-                : selectedContext.loginRole ===
-                    "CARETAKER"
-                    ? "CARETAKER"
-                    : selectedContext.loginRole ===
-                        "FAMILY"
-                        ? "SECONDARY_FAMILY_MEMBER"
-                        : "SELF";
+const selectedRole =
+    selectedContext.loginRole ===
+        "DOCTOR"
+        ? "DOCTOR"
+        : selectedContext.loginRole ===
+            "CARETAKER"
+            ? "CARETAKER"
+            : selectedContext.loginRole ===
+                "FAMILY"
+                ? "SECONDARY_FAMILY_MEMBER"
+                : "SELF";
+
+
+        /*
+         * Start the visual handoff immediately after
+         * the user selects the CareVR role/profile.
+         *
+         * All existing validation, encryption,
+         * authorization and dashboard handoff checks
+         * continue underneath the animation.
+         */
+        setDashboardHandoffReady(false);
+        setDashboardAnimationComplete(false);
+        setShowDashboardHandoff(true);
 
         /*
          * Use the same normal CareVR login validation
@@ -281,6 +321,14 @@ const {
             validation.status ===
             "CONSENT_REQUIRED"
         ) {
+
+            /*
+             * Fallback only:
+             * if consent was not actually completed,
+             * stop the animation and return to Consent.
+             */
+            setShowDashboardHandoff(false);
+            setDashboardHandoffReady(false);
 
             carevrAuthorizationHandoff.set({
                 userId:
@@ -388,18 +436,7 @@ void authSessionService
         // Analytics must never block navigation.
     });
 
-setShowDashboardHandoff(true);
-
-await new Promise<void>((resolve) => {
-    window.setTimeout(
-        resolve,
-        4250
-    );
-});
-
-router.replace(
-    "/dashboard"
-);
+setDashboardHandoffReady(true);
 
 return;
         }
@@ -442,10 +479,13 @@ return;
 if (showDashboardHandoff) {
     return (
         <CareVRDashboardHandoffAnimation
-    onComplete={() => {
-        router.replace("/dashboard");
-    }}
-/>
+            readyToContinue={
+                dashboardHandoffReady
+            }
+            onComplete={() => {
+                setDashboardAnimationComplete(true);
+            }}
+        />
     );
 }
 

@@ -487,13 +487,17 @@ function StageIcon({ type }: { type: AnimationStage }) {
 
 type CareVRDashboardHandoffAnimationProps = {
     onComplete: () => void;
+    readyToContinue: boolean;
 };
 
 export default function CareVRDashboardHandoffAnimation({
     onComplete,
+    readyToContinue,
 }: CareVRDashboardHandoffAnimationProps) {
     const [activeStage, setActiveStage] =
-        useState<AnimationStage>("preparing");    useEffect(() => {
+        useState<AnimationStage>("preparing");
+
+    useEffect(() => {
         let cancelled = false;
 
         const runAnimation = async () => {
@@ -509,6 +513,23 @@ export default function CareVRDashboardHandoffAnimation({
                 });
             }
 
+            /*
+             * The visual animation has completed.
+             *
+             * Navigation remains blocked until the parent
+             * confirms that the existing CareVR security /
+             * authorization / dashboard handoff work has
+             * completed successfully.
+             */
+            while (
+                !readyToContinue &&
+                !cancelled
+            ) {
+                await new Promise<void>((resolve) => {
+                    window.setTimeout(resolve, 50);
+                });
+            }
+
             if (!cancelled) {
                 onComplete();
             }
@@ -519,10 +540,16 @@ export default function CareVRDashboardHandoffAnimation({
         return () => {
             cancelled = true;
         };
-   }, [onComplete]);
+    }, [
+        onComplete,
+        readyToContinue,
+    ]);
 
     const stage =
-        stages.find((item) => item.key === activeStage) ?? stages[0];
+        stages.find(
+            (item) =>
+                item.key === activeStage
+        ) ?? stages[0];
 
     return (
         <section className="carevr-handoff">

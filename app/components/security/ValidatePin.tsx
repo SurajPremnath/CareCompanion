@@ -79,6 +79,13 @@ const [showDashboardHandoff, setShowDashboardHandoff] =
     useState(false);
 
 
+const [dashboardHandoffReady, setDashboardHandoffReady] =
+    useState(false);
+
+const [dashboardAnimationComplete, setDashboardAnimationComplete] =
+    useState(false);
+
+
     const [attemptsRemaining, setAttemptsRemaining] =
         useState<number | null>(null);
 
@@ -158,6 +165,24 @@ useEffect(() => {
 }, []);
 
 
+useEffect(() => {
+
+    if (
+        !dashboardHandoffReady ||
+        !dashboardAnimationComplete
+    ) {
+        return;
+    }
+
+    router.replace(
+        "/dashboard"
+    );
+
+}, [
+    dashboardHandoffReady,
+    dashboardAnimationComplete,
+    router,
+]);
 
 
     /*
@@ -183,24 +208,24 @@ const handleVerify = async () => {
 
 
 
-    if (
-        saving ||
-        lockState ||
-        escalationRequired
-    ) {
-        return;
-    }
+if (
+    saving ||
+    lockState ||
+    escalationRequired
+) {
+    return;
+}
 
 
 
-    const verifyStartedAt =
-        performance.now();
+const verifyStartedAt =
+    performance.now();
 
-    setSaving(true);
+setSaving(true);
 
 
 
-    try {
+try {
 
         const validatePinStartedAt =
             performance.now();
@@ -385,7 +410,6 @@ const handleVerify = async () => {
         }
 
 
-
         if (
             validation.status ===
                 "ROLE_MISMATCH" ||
@@ -473,28 +497,38 @@ const {
             }
 
 
-            const handoffStartedAt =
-                performance.now();
+    /*
+     * Consent has already been completed.
+     *
+     * This is the single-profile handoff point.
+     * Start the visual handoff before the dashboard
+     * authorization work begins.
+     */
+    setDashboardHandoffReady(false);
+    setDashboardAnimationComplete(false);
+    setShowDashboardHandoff(true);
 
-            await resolveCareVRDashboardHandoff(
-                userId,
-                dashboardRole,
-                access
-            );
-
-            const handoffCompletedAt =
-                performance.now();
-
-            console.log(
-                `[PIN-PERF] resolveCareVRDashboardHandoff: ${Math.round(
-                    handoffCompletedAt -
-                    handoffStartedAt
-                )} ms`
-            );
+    const handoffStartedAt =
+        performance.now();
 
 
+await resolveCareVRDashboardHandoff(
+    userId,
+    dashboardRole,
+    access
+);
 
-setShowDashboardHandoff(true);
+const handoffCompletedAt =
+    performance.now();
+
+console.log(
+    `[PIN-PERF] resolveCareVRDashboardHandoff: ${Math.round(
+        handoffCompletedAt -
+        handoffStartedAt
+    )} ms`
+);
+
+setDashboardHandoffReady(true);
 
 return;
         }
@@ -505,18 +539,27 @@ return;
             validation.message
         );
 
-    } catch (err) {
+} catch (err) {
 
-        setError(
-            err instanceof Error
-                ? err.message
-                : "Unable to verify your CareVR PIN."
-        );
+    /*
+     * The existing verification flow failed.
+     *
+     * Stop the visual handoff and return to the
+     * normal PIN error state.
+     */
+    setShowDashboardHandoff(false);
+    setDashboardHandoffReady(false);
 
-    } finally {
+    setError(
+        err instanceof Error
+            ? err.message
+            : "Unable to verify your CareVR PIN."
+    );
 
-        setSaving(false);
-    }
+} finally {
+
+    setSaving(false);
+}
 };
 
 
@@ -699,8 +742,11 @@ if (showDashboardHandoff) {
     return (
         <main className="pin-page">
             <CareVRDashboardHandoffAnimation
+                readyToContinue={
+                    dashboardHandoffReady
+                }
                 onComplete={() => {
-                    router.replace("/dashboard");
+                    setDashboardAnimationComplete(true);
                 }}
             />
         </main>
