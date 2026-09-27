@@ -48,6 +48,7 @@ import {
 
 import {
     createTokenInvitation,
+    sendInvitationEmail
 } from "./actions";
 
 import {
@@ -345,6 +346,21 @@ const [
 
 const [invitationTemplateCopied, setInvitationTemplateCopied] =
     useState(false);
+
+const [
+    sendingInvitationEmail,
+    setSendingInvitationEmail
+] = useState(false);
+
+const [
+    invitationEmailSent,
+    setInvitationEmailSent
+] = useState(false);
+
+const [
+    invitationEmailError,
+    setInvitationEmailError
+] = useState<string | null>(null);
 
     //--------------------------------------------------------
     // Load authenticated user using the same pattern as the
@@ -898,6 +914,65 @@ const handleCopyInvitationTemplate = async () => {
         );
     }
 };
+
+const handleSendInvitationEmail =
+    async () => {
+
+if (
+    !inviteeEmail.trim() ||
+    !invitationTemplateSubject?.trim() ||
+    !invitationTemplateBody?.trim()
+) {
+    return;
+}
+
+        setSendingInvitationEmail(true);
+        setInvitationEmailError(null);
+        setInvitationEmailSent(false);
+
+        try {
+
+            const result =
+                await sendInvitationEmail({
+                    email:
+                        inviteeEmail,
+
+                    subject:
+                        invitationTemplateSubject,
+
+                    body:
+                        invitationTemplateBody
+                });
+
+            if (!result.success) {
+                throw new Error(
+                    "Unable to send the invitation email."
+                );
+            }
+
+            setInvitationEmailSent(true);
+
+        }
+        catch (error) {
+
+            console.error(
+                "Unable to send invitation email.",
+                error
+            );
+
+            setInvitationEmailError(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to send the invitation email. Please try again."
+            );
+
+        }
+        finally {
+
+            setSendingInvitationEmail(false);
+
+        }
+    };
 
 
 const handleFinalizeInvitation =
@@ -1591,13 +1666,11 @@ setInvitationTokenCopied(false);
                 Personal Email Invitation Template
             </h2>
 
-            <p>
-                This is just a template which can be used to send the
-                invite via your personal email. CareVR does not send
-                this email for you. Copy the template below, paste it
-                into your personal email, and send it to the invited
-                person.
-            </p>
+<p>
+    You can send the invitation directly through CareVR,
+    or copy the template below and send it from your
+    personal email.
+</p>
 
         </div>
 
@@ -1651,57 +1724,184 @@ setInvitationTokenCopied(false);
             </div>
 
 
-            {/* PRIMARY COPY ACTION */}
+{/* ==================================================
+    EMAIL ACTIONS
+================================================== */}
 
-            <button
-                type="button"
-                className={
-                    invitationTemplateCopied
-                        ? "copy-email-template-button copy-email-template-button-copied"
-                        : "copy-email-template-button"
-                }
-                onClick={handleCopyInvitationTemplate}
-            >
+<div className="invitation-email-actions">
 
-                {invitationTemplateCopied ? (
-                    <>
-                        <Check
-                            size={18}
-                            strokeWidth={2.5}
-                            aria-hidden="true"
-                        />
+    {/* COPY TEMPLATE */}
 
-                        <span>
-                            <strong>
-                                Email Template Copied
-                            </strong>
+<button
+    type="button"
+    className={
+        invitationTemplateCopied
+            ? "copy-email-template-button copy-email-template-button-copied"
+            : "copy-email-template-button"
+    }
+    onClick={handleCopyInvitationTemplate}
+    disabled={
+        sendingInvitationEmail ||
+        invitationEmailSent
+    }
+>
 
-                            <small>
-                                Subject and email body copied
-                            </small>
-                        </span>
-                    </>
-                ) : (
-                    <>
-                        <Copy
-                            size={18}
-                            strokeWidth={2}
-                            aria-hidden="true"
-                        />
+        {invitationTemplateCopied ? (
+            <>
+                <Check
+                    size={18}
+                    strokeWidth={2.5}
+                    aria-hidden="true"
+                />
 
-                        <span>
-                            <strong>
-                                Copy Email Template
-                            </strong>
+                <span>
+                    <strong>
+                        Email Template Copied
+                    </strong>
 
-                            <small>
-                                Copies both subject and email body
-                            </small>
-                        </span>
-                    </>
-                )}
+                    <small>
+                        Subject and email body copied
+                    </small>
+                </span>
+            </>
+        ) : (
+            <>
+                <Copy
+                    size={18}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                />
 
-            </button>
+                <span>
+                    <strong>
+                        Copy Email Template
+                    </strong>
+
+                    <small>
+                        Copies both subject and email body
+                    </small>
+                </span>
+            </>
+        )}
+
+    </button>
+
+
+    {/* SEND INVITATION EMAIL */}
+
+    <button
+        type="button"
+        className={
+            invitationEmailSent
+                ? "send-invitation-email-button send-invitation-email-button-sent"
+                : "send-invitation-email-button"
+        }
+        onClick={handleSendInvitationEmail}
+        disabled={
+            sendingInvitationEmail ||
+            invitationEmailSent
+        }
+    >
+
+        {sendingInvitationEmail ? (
+            <>
+                <span
+                    className="send-invitation-email-spinner"
+                    aria-hidden="true"
+                />
+
+                <span>
+                    <strong>
+                        Sending Invitation Email...
+                    </strong>
+
+                    <small>
+                        CareVR is sending the invitation securely
+                    </small>
+                </span>
+            </>
+        ) : invitationEmailSent ? (
+            <>
+                <Check
+                    size={18}
+                    strokeWidth={2.5}
+                    aria-hidden="true"
+                />
+
+                <span>
+                    <strong>
+                        Invitation Email Sent
+                    </strong>
+
+                    <small>
+                        The invitation has been sent to the invitee
+                    </small>
+                </span>
+            </>
+        ) : (
+            <>
+                <Mail
+                    size={18}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                />
+
+                <span>
+                    <strong>
+                        Send Invitation Email
+                    </strong>
+
+                    <small>
+                        CareVR will send this invitation directly
+                    </small>
+                </span>
+            </>
+        )}
+
+    </button>
+
+</div>
+
+
+{/* ==================================================
+    EMAIL SUCCESS MESSAGE
+================================================== */}
+
+{invitationEmailSent && (
+    <div
+        className="invitation-email-success"
+        role="status"
+    >
+
+        <Check
+            size={16}
+            strokeWidth={2.5}
+            aria-hidden="true"
+        />
+
+        <span>
+            Invitation email sent successfully to{" "}
+            <strong>
+                {inviteeEmail}
+            </strong>.
+        </span>
+
+    </div>
+)}
+
+
+{/* ==================================================
+    EMAIL ERROR MESSAGE
+================================================== */}
+
+{invitationEmailError && (
+    <div
+        className="invitation-email-error"
+        role="alert"
+    >
+        {invitationEmailError}
+    </div>
+)}
 
         </div>
 
@@ -1729,11 +1929,10 @@ setInvitationTokenCopied(false);
                     Invitation created
                 </strong>
 
-                <span>
-                    Copy the email template above and send it through
-                    your personal email. CareVR does not send the email
-                    automatically.
-                </span>
+<span>
+    You can send the invitation directly through CareVR,
+    or copy the template and send it from your personal email.
+</span>
 
             </div>
 
@@ -2555,6 +2754,107 @@ setInvitationTokenCopied(false);
                     font-size: 11px;
                     line-height: 1.45;
                 }
+
+.send-invitation-email-button {
+    width: 100%;
+    min-height: 58px;
+    margin-top: 12px;
+    padding: 10px 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    border: 1px solid #2f78d4;
+    border-radius: 12px;
+
+    background: #2f78d4;
+    color: #ffffff;
+
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+}
+
+.send-invitation-email-button:hover:not(:disabled) {
+    background: #286abf;
+}
+
+.send-invitation-email-button:disabled {
+    cursor: default;
+    opacity: 0.8;
+}
+
+.send-invitation-email-button > span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.send-invitation-email-button strong {
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.send-invitation-email-button small {
+    font-size: 10px;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+
+.send-invitation-email-button-sent {
+    border-color: #2f9e5b;
+    background: #2f9e5b;
+}
+
+.send-invitation-email-spinner {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: invitation-email-spin 0.7s linear infinite;
+}
+
+@keyframes invitation-email-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.invitation-email-success {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    margin-top: 10px;
+    padding: 10px 12px;
+
+    border: 1px solid #bfe3ca;
+    border-radius: 10px;
+
+    background: #f2fbf5;
+    color: #246b3d;
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.invitation-email-error {
+    margin-top: 10px;
+    padding: 10px 12px;
+
+    border: 1px solid #efcaca;
+    border-radius: 10px;
+
+    background: #fff6f6;
+    color: #b42318;
+
+    font-size: 12px;
+    line-height: 1.5;
+}
 
                 .invitee-email-field {
                     margin-bottom: 15px;

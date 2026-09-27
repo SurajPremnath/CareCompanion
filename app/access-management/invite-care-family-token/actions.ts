@@ -16,6 +16,82 @@ import {
     productInvitationProvisioning
 } from "@/lib/invitations/productInvitationProvisioning";
 
+import {
+    invitationEmailService
+} from "@/lib/email/invitationEmailService";
+
+
+// ==================================================
+// SEND INVITATION EMAIL
+// ==================================================
+
+export interface SendInvitationEmailInput {
+    email: string;
+    subject: string;
+    body: string;
+}
+
+export interface SendInvitationEmailResult {
+    success: true;
+    emailId: string;
+}
+
+export async function sendInvitationEmail(
+    input: SendInvitationEmailInput
+): Promise<SendInvitationEmailResult> {
+
+    const serverSupabase =
+        await createSupabaseServerClient();
+
+    const {
+        data: { user },
+        error: userError
+    } = await serverSupabase.auth.getUser();
+
+    if (
+        userError ||
+        !user
+    ) {
+        throw new Error(
+            "Authentication is required to send an invitation email."
+        );
+    }
+
+    const email =
+        input.email
+            .trim()
+            .toLowerCase();
+
+    if (!email) {
+        throw new Error(
+            "Invitee email address is required."
+        );
+    }
+
+    if (!input.subject.trim()) {
+        throw new Error(
+            "Invitation email subject is required."
+        );
+    }
+
+    if (!input.body.trim()) {
+        throw new Error(
+            "Invitation email body is required."
+        );
+    }
+
+    return await invitationEmailService.send({
+        to: email,
+        subject: input.subject,
+        body: input.body
+    });
+}
+
+
+// ==================================================
+// CREATE TOKEN INVITATION
+// ==================================================
+
 export interface CreateTokenInvitationInput {
     email: string;
     role: InvitationRole;
