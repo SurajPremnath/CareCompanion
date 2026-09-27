@@ -1024,726 +1024,883 @@ return (
 
       /* =========================================================
          MOBILE LOGIN
+         
+         COSMETIC / ALIGNMENT ONLY
+         
+         Mobile uses one full-width login surface.
+         Desktop left/right composition is not used.
+         
+         Authentication, CAPTCHA, login state, routing,
+         authorization and all application functionality
+         remain completely unchanged.
       ========================================================= */
 
       @media (max-width: 600px) {
 
-        /* ---------------------------------------------------------
-           MOBILE CARE CONTEXT
-        --------------------------------------------------------- */
+        /* =====================================================
+           MOBILE PAGE
+        ===================================================== */
 
-.mobile-login-form-block {
-  width: 100%;
-  max-width: none;
-  transform: translateY(70px);
-}
+        .login-page {
+          display: block;
+
+          width: 100%;
+          height: 100dvh;
+          min-height: 100dvh;
+
+          padding: 0;
+
+          overflow: hidden;
+
+          background: #f1eaff;
+        }
+
+
+        /* =====================================================
+           MOBILE SHELL
+        ===================================================== */
+
+        .login-shell {
+          position: relative;
+
+          width: 100%;
+          height: 100dvh;
+          min-height: 100dvh;
+
+          display: block;
+
+          overflow: hidden;
+
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
+
+          background-color: #f1eaff;
+
+          background-image:
+            url("/images/Mobile%20Login%20Background.png");
+
+          background-repeat: no-repeat;
+
+          background-position: center top;
+
+          background-size: 100% 100%;
+        }
+
+
+        /* =====================================================
+           DESKTOP ARTWORK — HIDDEN ON MOBILE
+        ===================================================== */
+
+        .login-right {
+          display: none !important;
+        }
+
+
+        /* =====================================================
+           MOBILE LOGIN LAYER
+        ===================================================== */
+
+        .login-left {
+          position: absolute;
+
+          inset: 0;
+
+          z-index: 2;
+
+          display: block;
+
+          width: 100%;
+          min-width: 0;
+          min-height: 0;
+
+          padding: 0;
+
+          background: transparent;
+        }
+
+
+        /* =====================================================
+           CAREVR LOGO
+           
+           Mobile artwork already contains the visual branding.
+        ===================================================== */
+
+        .carevr-logo {
+          display: none !important;
+        }
+
+
+        /* =====================================================
+           MOBILE LOGIN CONTENT
+           
+           Full available horizontal space.
+        ===================================================== */
+
+        .login-content {
+          position: absolute;
+
+          top: 28%;
+
+          left: 4%;
+          right: 4%;
+
+          width: auto;
+          max-width: none;
+
+          margin: 0;
+
+          padding: 0;
+        }
+
+
+        /* =====================================================
+           MOBILE FORM BLOCK
+           
+           IMPORTANT:
+           No translateY.
+           No desktop max-width.
+           Entire form occupies available width.
+        ===================================================== */
+
+        .mobile-login-form-block {
+          display: block;
+
+          width: 100%;
+          max-width: none;
+
+          margin: 0;
+          padding: 0;
+
+          transform: none;
+        }
+
+
+        /* =====================================================
+           CARE CONTEXT
+        ===================================================== */
 
         .context-selection {
-          margin-bottom: 9px;
+          width: 100%;
+
+          margin: 0 0 10px;
         }
 
         .context-selection-title {
           margin-bottom: 5px;
+
           font-size: 10.5px;
+          line-height: 1.25;
+
+          font-weight: 700;
+
+          color: #15203d;
         }
 
-.context-options {
-  width: 100%;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 8px;
-}
+        .context-options {
+          display: grid;
 
-.context-option {
-  width: 100%;
-  min-height: 57px;
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: 10px;
-}
+          width: 100%;
+
+          grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 1fr);
+
+          gap: 8px;
+        }
+
+        .context-option {
+          width: 100%;
+          min-width: 0;
+          min-height: 57px;
+
+          display: flex;
+          align-items: center;
+
+          gap: 8px;
+
+          padding: 7px 10px;
+
+          box-sizing: border-box;
+
+          border: 1px solid #d9dce6;
+          border-radius: 10px;
+
+          background: rgba(255, 255, 255, 0.96);
+
+          color: #15203d;
+
+          text-align: left;
+
+          cursor: pointer;
+        }
+
+        .context-option-selected {
+          border: 2px solid #7043f5;
+
+          background: #f7f3ff;
+
+          box-shadow:
+            0 0 0 2px
+            rgba(112, 67, 245, 0.10);
+        }
+
+        .context-option:disabled {
+          opacity: 0.55;
+
+          cursor: not-allowed;
+        }
 
         .context-icon {
           width: 28px;
           height: 28px;
-          flex-basis: 28px;
+
+          flex: 0 0 28px;
+
+          display: grid;
+          place-items: center;
+
+          border-radius: 8px;
+
+          background: #f1eaff;
+
+          color: #7043f5;
+        }
+
+        .context-icon svg {
+          width: 18px;
+          height: 18px;
+        }
+
+        .context-option-copy {
+          min-width: 0;
+
+          flex: 1;
         }
 
         .context-option-title {
+          display: block;
+
           font-size: 10.5px;
+          line-height: 1.2;
+
+          font-weight: 750;
         }
 
         .context-option-description {
+          display: block;
+
           margin-top: 2px;
+
           font-size: 8.5px;
+          line-height: 1.25;
+
+          color: #737b91;
         }
 
-        /* ---------------------------------------------------------
-           MOBILE ROLE SELECTION
 
-           UI-only at this stage.
-           Authentication and authorization remain unchanged.
-        --------------------------------------------------------- */
+        /* =====================================================
+           LOGIN METHOD TABS
+           
+           FULL WIDTH.
+        ===================================================== */
 
-        .role-selection {
-          margin-bottom: 12px;
+        .login-method-tabs {
+          display: grid !important;
+
+          grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 1fr);
+
+          width: 100%;
+          max-width: none;
+
+          height: 38px;
+
+          margin: 0 0 10px;
+
+          padding: 2px;
+
+          box-sizing: border-box;
+
+          border: 1px solid #ddd7f2;
+          border-radius: 9px;
+
+          background: rgba(255, 255, 255, 0.72);
+
+          transform: none;
         }
 
-        .role-selection-title {
-          margin-bottom: 5px;
-          font-size: 10.5px;
-        }
+        .login-method-tab {
+          display: flex;
 
-        .role-options {
-          gap: 7px;
-        }
+          align-items: center;
+          justify-content: center;
 
-.role-option {
-  height: 58px;
-  min-height: 58px;
-  padding: 4px;
-  border-radius: 10px;
+          width: 100%;
+          min-width: 0;
+          height: 100%;
 
-  box-sizing: border-box;
+          margin: 0;
+          padding: 0;
 
-  align-items: center;
-  justify-content: center;
-}
+          box-sizing: border-box;
 
-        .role-icon {
-          width: 27px;
-          height: 27px;
-          font-size: 16px;
-        }
+          border: 0;
+          border-radius: 7px;
 
-        .role-label {
-          font-size: 10.5px;
-        }
+          background: transparent;
 
-        .login-page {
-    display: block;
-    width: 100%;
-    height: 100dvh;
-    min-height: 100dvh;
-    padding: 0;
-    overflow: hidden;
-    background: #f1eaff;
-  }
+          color: #737b91;
 
-.login-shell {
-  position: relative;
-  width: 100%;
-  height: 100dvh;
-  min-height: 100dvh;
-
-  display: block;
-
-  overflow: hidden;
-
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-
-  background-color: #f1eaff;
-  background-image: url("/images/Mobile%20Login%20Background.png");
-  background-repeat: no-repeat;
-  background-position: center top;
-  background-size: 100% 100%;
-}
-
-@media (max-width: 600px) {
-  /* Desktop artwork panel is not used on mobile */
-  .login-right {
-    display: none;
-  }
-}
-
-.login-footer {
-  display: None;
-}
-
-.login-register-desktop {
-  display: none;
-}
-
-  /* ---------------------------------------------------------
-     LOGIN LAYER
-     --------------------------------------------------------- */
-
-  .login-left {
-    position: absolute;
-    z-index: 2;
-    inset: 0;
-
-    display: block;
-
-    min-height: 0;
-    padding: 0;
-
-    background: transparent;
-  }
-
-/* ---------------------------------------------------------
-   MOBILE CAREVR LOGO
-
-   The logo is rendered by the login page so the new purple
-   background can be used without the old baked-in artwork.
---------------------------------------------------------- */
-
-.carevr-logo {
-  display: none;
-}
-  /* ---------------------------------------------------------
-     LOGIN CONTENT
-
-     This deliberately sits in the empty middle section
-     of the mobile artwork.
-     --------------------------------------------------------- */
-
-.login-content {
-  position: absolute;
-
-  top: calc(28%);
-  left: 4%;
-  right: 4%;
-
-  width: auto;
-  max-width: none;
-
-  margin: 0;
-}
-
-  /* ---------------------------------------------------------
-     WELCOME
-     --------------------------------------------------------- */
-
-  .login-heading {
-    margin-bottom: 9px;
-  }
-
-  .login-heading h1 {
-    margin: 0;
-
-    font-size: 27px;
-    line-height: 1.1;
-
-    letter-spacing: -0.5px;
-
-    font-weight: 700;
-
-    color: #15203d;
-  }
-
-.login-heading p {
-  display: block;
-  margin: 4px 0 0;
-  font-size: 14px;
-  line-height: 1.3;
-  color: #5f6780;
-}
-
-  /* ---------------------------------------------------------
-     ERROR
-     --------------------------------------------------------- */
-
-  .login-error {
-    margin-bottom: 8px;
-
-    padding: 7px 9px;
-
-    border: 1px solid #ffd0d0;
-    border-radius: 10px;
-
-    background: rgba(255, 245, 245, 0.96);
-
-    color: #b42318;
-
-    font-size: 10.5px;
-    line-height: 1.4;
-  }
-
-  /* ---------------------------------------------------------
-     INPUT FIELDS
-     --------------------------------------------------------- */
-
-  .field {
-    margin-bottom: 7px;
-  }
-
-  .field label {
-    display: block;
-
-    margin-bottom: 3px;
-
-    font-size: 10.5px;
-    line-height: 1.25;
-
-    font-weight: 700;
-
-    color: #4b556d;
-  }
-
-  .input-wrap {
-    position: relative;
-  }
-
-  .input-icon {
-    position: absolute;
-
-    left: 13px;
-    top: 50%;
-
-    width: 17px;
-    height: 17px;
-
-    transform: translateY(-50%);
-
-    color: #8991a5;
-
-    pointer-events: none;
-  }
-
-.login-input {
-  width: 100%;
-  height: 41px;
-  padding: 0 42px;
-  border: 1px solid #d9dce6;
-  border-radius: 11px;
-  outline: none;
-  background: rgba(255, 255, 255, 0.96);
-  color: #15203d;
-  font-size: 16px;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-  .login-input::placeholder {
-    color: #9ba1b2;
-  }
-
-  .login-input:focus {
-    border-color: #7043f5;
-
-    box-shadow:
-      0 0 0 3px rgba(112, 67, 245, 0.09);
-  }
-
-  /* ---------------------------------------------------------
-     PASSWORD EYE
-     --------------------------------------------------------- */
-
-  .password-toggle {
-    position: absolute;
-
-    right: 3px;
-    top: 50%;
-
-    width: 35px;
-    height: 35px;
-
-    display: grid;
-    place-items: center;
-
-    transform: translateY(-50%);
-
-    border: 0;
-    border-radius: 9px;
-
-    background: transparent;
-
-    color: #7f879d;
-
-    cursor: pointer;
-  }
-
-  /* ---------------------------------------------------------
-     FORGOT PASSWORD + SIGN IN
-     --------------------------------------------------------- */
-
-.login-actions {
-  display: none;
-}
-
-.login-action-grid {
-  display: grid;
-
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
-
-  width: 100%;
-
-  column-gap: 24px;
-  row-gap: 5px;
-
-  align-items: center;
-
-  margin: -8px 0 0;
-}
-
-.login-action-grid .primary-button {
-  grid-column: 1;
-  grid-row: 1 / span 2;
-
-  justify-self: center;
-
-  width: 104px;
-  height: 40px;
-
-  margin: 0;
-  padding: 0;
-
-  border-radius: 10px;
-
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.login-action-grid .forgot-password {
-  grid-column: 2;
-  grid-row: 1;
-
-  justify-self: start;
-
-  width: auto;
-  margin: 0;
-  padding: 0;
-
-  border: 0;
-  background: transparent;
-  color: #7043f5;
-
-  font-size: 12px;
-  font-weight: 650;
-  line-height: 1.2;
-
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.login-create-account {
-  grid-column: 2;
-  grid-row: 2;
-
-  justify-self: start;
-
-  width: auto;
-  height: auto;
-
-  margin: 0;
-  padding: 0;
-
-  border: 0;
-  border-radius: 0;
-
-  background: transparent;
-  color: #7043f5;
-
-  font-size: 12px;
-  font-weight: 650;
-  line-height: 1.2;
-
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-  /* ---------------------------------------------------------
-     MOBILE LOGIN METHOD TABS
-     --------------------------------------------------------- */
-
-.login-method-tabs {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-
-  width: 100%;
-  height: 38px;
-
-  margin-bottom: 10px;
-  padding: 2px;
-
-  border: 1px solid #ddd7f2;
-  border-radius: 9px;
-
-  background: rgba(255, 255, 255, 0.72);
-
-  transform: none;
-}
-
-/* ---------------------------------------------------------
-   MOBILE LOGIN METHOD TABS
-   --------------------------------------------------------- */
-
-.login-method-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-
-  width: 100%;
-  height: 32px;
-
-  margin-bottom: 8px;
-  padding: 2px;
-
-  border: 1px solid #ddd7f2;
-  border-radius: 9px;
-
-  background: rgba(255, 255, 255, 0.72);
-}
-
-.login-method-content[data-login-method="EMAIL"]
-  .login-google-panel,
-.login-method-content[data-login-method="EMAIL"]
-  .divider {
-  display: none;
-}
-
-.login-method-content[data-login-method="GOOGLE"]
-  .login-email-panel {
-  display: none;
-}
-
-.login-method-content[data-login-method="GOOGLE"]
-  .divider {
-  display: none;
-}
-
-.login-method-content[data-login-method="GOOGLE"]
-  .login-google-panel {
-  display: block;
-}
-
-.login-method-tab {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-
-  margin: 0;
-  padding: 0;
-
-  box-sizing: border-box;
-
-  border: 0;
-  border-radius: 7px;
-
-  background: transparent;
-
-  color: #737b91;
-
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-
-  cursor: pointer;
-}
-
-.login-method-tab-active {
-  background: #ffffff;
-
-  color: #7043f5;
-
-  border: 1px solid #7043f5;
-
-  box-shadow:
-    0 2px 6px
-    rgba(112, 67, 245, 0.12);
-}
-
-/* ---------------------------------------------------------
-   GOOGLE
-   --------------------------------------------------------- */
-
-.login-google-panel {
-  display: none;
-}
-
-.login-method-content[data-login-method="EMAIL"]
-  .divider {
-  display: none;
-}
-
-.login-method-content[data-login-method="GOOGLE"]
-  .login-email-panel {
-  display: none;
-}
-
-.login-method-content[data-login-method="GOOGLE"]
-  .divider {
-  display: none;
-}
-
-.login-method-content[data-login-method="GOOGLE"]
-  .login-google-panel {
-  display: block;
-}
-
-  .login-method-tab {
-    border: 0;
-    border-radius: 8px;
-
-    background: transparent;
-
-    color: #737b91;
-
-    font-size: 12px;
-    font-weight: 700;
-
-    cursor: pointer;
-  }
-
-  .login-method-tab-active {
-    background: #ffffff;
-
-    color: #7043f5;
-
-    box-shadow:
-      0 2px 6px
-      rgba(36, 28, 75, 0.08);
-  }
-
-  /* ---------------------------------------------------------
-     GOOGLE
-     --------------------------------------------------------- */
-
-  .divider {
-    display: flex;
-    align-items: center;
-
-    gap: 7px;
-
-    margin: 6px 0;
-  }
-
-  .divider-text {
-    color: #a1a6b3;
-
-    font-size: 9.5px;
-  }
-
-  .google-button {
-    width: 100%;
-    height: 43px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    gap: 9px;
-
-    border: 1px solid #d9dce6;
-    border-radius: 11px;
-
-    background: rgba(255, 255, 255, 0.96);
-
-    color: #202943;
-
-    font-size: 12px;
-    font-weight: 600;
-
-    cursor: pointer;
-  }
-
-  .google-icon {
-    width: 17px;
-    height: 17px;
-  }
-
-  /* ---------------------------------------------------------
-     REGISTER
-     --------------------------------------------------------- */
-
-  .register {
-    margin: 8px 0 0;
-
-    text-align: center;
-
-    color: #7b8296;
-
-    font-size: 10.5px;
-  }
-
-      @media (max-width: 380px) {
-        .login-content {
-          top: 20%;
-          left: 5%;
-          right: 5%;
-        }
-
-        .login-heading h1 {
-          font-size: 22px;
-        }
-
-        .login-heading p {
-          font-size: 11.5px;
-        }
-
-        .login-actions {
-          grid-template-columns: 1fr 1.55fr;
-          gap: 8px;
-        }
-
-        .forgot-password {
-          font-size: 16px;
-        }
-
-.field {
-  width: 100%;
-  margin-bottom: 8px;
-}
-
-        .login-input,
-        .primary-button,
-        .google-button {
-          height: 39px;
-        }
-
-        .divider {
-          margin: 7px 0;
-        }
-
-        .register {
-          margin-top: 6px;
-        }
-      }
-
-      @media (max-height: 700px) and (max-width: 600px) {
-        .login-content {
-          top: 20%;
-        }
-
-        .login-heading {
-          margin-bottom: 15px;
-        }
-
-        .login-heading h1 {
-          font-size: 21px;
-        }
-
-        .login-heading p {
           font-size: 11px;
+          font-weight: 700;
+          line-height: 1;
+
+          cursor: pointer;
         }
+
+        .login-method-tab-active {
+          background: #ffffff;
+
+          color: #7043f5;
+
+          border: 1px solid #7043f5;
+
+          box-shadow:
+            0 2px 6px
+            rgba(112, 67, 245, 0.12);
+        }
+
+
+        /* =====================================================
+           LOGIN METHOD CONTENT
+           
+           Full width.
+        ===================================================== */
+
+        .login-method-content {
+          width: 100%;
+          max-width: none;
+
+          margin: 0;
+          padding: 0;
+        }
+
+        .login-email-panel {
+          width: 100%;
+          max-width: none;
+        }
+
+
+        /* =====================================================
+           ERROR
+        ===================================================== */
+
+        .login-error {
+          width: 100%;
+
+          margin: 0 0 8px;
+
+          padding: 7px 9px;
+
+          box-sizing: border-box;
+
+          border: 1px solid #ffd0d0;
+          border-radius: 10px;
+
+          background: rgba(255, 245, 245, 0.96);
+
+          color: #b42318;
+
+          font-size: 10.5px;
+          line-height: 1.4;
+        }
+
+
+        /* =====================================================
+           INPUT FIELDS
+           
+           FULL WIDTH.
+        ===================================================== */
 
         .field {
-          margin-bottom: 6px;
+          width: 100%;
+
+          margin: 0 0 7px;
         }
 
-        .login-input,
-        .primary-button,
+        .field label {
+          display: block;
+
+          width: 100%;
+
+          margin: 0 0 3px;
+
+          font-size: 10.5px;
+          line-height: 1.25;
+
+          font-weight: 700;
+
+          color: #4b556d;
+        }
+
+        .input-wrap {
+          position: relative;
+
+          width: 100%;
+        }
+
+        .input-icon {
+          position: absolute;
+
+          left: 13px;
+          top: 50%;
+
+          width: 17px;
+          height: 17px;
+
+          transform: translateY(-50%);
+
+          color: #8991a5;
+
+          pointer-events: none;
+        }
+
+        .login-input {
+          display: block;
+
+          width: 100%;
+          max-width: none;
+
+          height: 41px;
+
+          padding: 0 42px;
+
+          box-sizing: border-box;
+
+          border: 1px solid #d9dce6;
+          border-radius: 11px;
+
+          outline: none;
+
+          background: rgba(255, 255, 255, 0.96);
+
+          color: #15203d;
+
+          font-size: 16px;
+
+          -webkit-appearance: none;
+          appearance: none;
+        }
+
+        .login-input::placeholder {
+          color: #9ba1b2;
+        }
+
+        .login-input:focus {
+          border-color: #7043f5;
+
+          box-shadow:
+            0 0 0 3px
+            rgba(112, 67, 245, 0.09);
+        }
+
+
+        /* =====================================================
+           PASSWORD TOGGLE
+        ===================================================== */
+
+        .password-toggle {
+          position: absolute;
+
+          right: 3px;
+          top: 50%;
+
+          width: 35px;
+          height: 35px;
+
+          display: grid;
+          place-items: center;
+
+          transform: translateY(-50%);
+
+          border: 0;
+          border-radius: 9px;
+
+          background: transparent;
+
+          color: #7f879d;
+
+          cursor: pointer;
+        }
+
+
+        /* =====================================================
+           SECURITY / CAPTCHA
+        ===================================================== */
+
+        .login-security-actions {
+          display: flex;
+
+          flex-direction: column;
+
+          align-items: stretch;
+
+          width: 100%;
+
+          margin: 0;
+          padding: 0;
+
+          gap: 4px;
+        }
+
+        .login-captcha {
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          width: 100%;
+          min-width: 0;
+
+          overflow: visible;
+        }
+
+
+        /* =====================================================
+           LOGIN ACTION GRID
+           
+           Entire action area remains full width.
+        ===================================================== */
+
+        .login-action-grid {
+          display: grid;
+
+          grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 1fr);
+
+          grid-template-rows:
+            auto
+            auto;
+
+          width: 100%;
+          max-width: none;
+
+          column-gap: 24px;
+          row-gap: 5px;
+
+          align-items: center;
+
+          margin: -8px 0 0;
+
+          padding: 0;
+        }
+
+        .login-action-grid .primary-button {
+          grid-column: 1;
+          grid-row: 1 / span 2;
+
+          justify-self: center;
+
+          width: 104px;
+          height: 40px;
+
+          margin: 0;
+          padding: 0;
+
+          border-radius: 10px;
+
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .login-action-grid .forgot-password {
+          grid-column: 2;
+          grid-row: 1;
+
+          justify-self: start;
+
+          width: auto;
+
+          margin: 0;
+          padding: 0;
+
+          border: 0;
+
+          background: transparent;
+
+          color: #7043f5;
+
+          font-size: 12px;
+          font-weight: 650;
+          line-height: 1.2;
+
+          white-space: nowrap;
+
+          cursor: pointer;
+        }
+
+        .login-create-account {
+          grid-column: 2;
+          grid-row: 2;
+
+          justify-self: start;
+
+          width: auto;
+          height: auto;
+
+          margin: 0;
+          padding: 0;
+
+          border: 0;
+          border-radius: 0;
+
+          background: transparent;
+
+          color: #7043f5;
+
+          font-size: 12px;
+          font-weight: 650;
+          line-height: 1.2;
+
+          white-space: nowrap;
+
+          cursor: pointer;
+        }
+
+
+        /* =====================================================
+           GOOGLE LOGIN
+        ===================================================== */
+
+        .login-google-panel {
+          display: none;
+
+          width: 100%;
+          max-width: none;
+        }
+
+        .login-method-content[data-login-method="EMAIL"]
+          .login-google-panel,
+        .login-method-content[data-login-method="EMAIL"]
+          .divider {
+          display: none;
+        }
+
+        .login-method-content[data-login-method="GOOGLE"]
+          .login-email-panel {
+          display: none;
+        }
+
+        .login-method-content[data-login-method="GOOGLE"]
+          .divider {
+          display: none;
+        }
+
+        .login-method-content[data-login-method="GOOGLE"]
+          .login-google-panel {
+          display: block;
+        }
+
         .google-button {
-          height: 37px;
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          width: 100%;
+          max-width: none;
+
+          height: 43px;
+
+          gap: 9px;
+
+          box-sizing: border-box;
+
+          border: 1px solid #d9dce6;
+          border-radius: 11px;
+
+          background: rgba(255, 255, 255, 0.96);
+
+          color: #202943;
+
+          font-size: 12px;
+          font-weight: 600;
+
+          cursor: pointer;
         }
 
-        .forgot-password {
-          font-size: 14px;
+        .google-icon {
+          width: 17px;
+          height: 17px;
         }
+
+
+        /* =====================================================
+           DIVIDER
+        ===================================================== */
 
         .divider {
+          display: flex;
+
+          align-items: center;
+
+          width: 100%;
+
+          gap: 7px;
+
           margin: 6px 0;
         }
 
-        .register {
-          margin-top: 5px;
+        .divider-line {
+          flex: 1;
+
+          height: 1px;
+
+          background: rgba(229, 230, 236, 0.65);
         }
+
+        .divider-text {
+          color: #a1a6b3;
+
+          font-size: 9.5px;
+        }
+
+
+        /* =====================================================
+           REGISTER
+        ===================================================== */
+
+        .register {
+          width: 100%;
+
+          margin: 8px 0 0;
+
+          text-align: center;
+
+          color: #7b8296;
+
+          font-size: 10.5px;
+        }
+
+        .login-register-desktop {
+          display: none;
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        .login-footer {
+          display: none;
+        }
+
+
+        /* =====================================================
+           SMALL MOBILE
+        ===================================================== */
+
+        @media (max-width: 380px) {
+
+          .login-content {
+            top: 20%;
+
+            left: 5%;
+            right: 5%;
+
+            width: auto;
+          }
+
+          .login-heading h1 {
+            font-size: 22px;
+          }
+
+          .login-heading p {
+            font-size: 11.5px;
+          }
+
+          .field {
+            width: 100%;
+
+            margin-bottom: 8px;
+          }
+
+          .login-input {
+            height: 39px;
+          }
+
+          .primary-button {
+            height: 39px;
+          }
+
+          .google-button {
+            height: 39px;
+          }
+
+          .divider {
+            margin: 7px 0;
+          }
+
+          .register {
+            margin-top: 6px;
+          }
+        }
+
+
+        /* =====================================================
+           SHORT MOBILE
+        ===================================================== */
+
+        @media (max-height: 700px) {
+
+          .login-content {
+            top: 20%;
+          }
+
+          .login-heading {
+            margin-bottom: 15px;
+          }
+
+          .login-heading h1 {
+            font-size: 21px;
+          }
+
+          .login-heading p {
+            font-size: 11px;
+          }
+
+          .field {
+            margin-bottom: 6px;
+          }
+
+          .login-input {
+            height: 37px;
+          }
+
+          .primary-button {
+            height: 37px;
+          }
+
+          .google-button {
+            height: 37px;
+          }
+
+          .forgot-password {
+            font-size: 14px;
+          }
+
+          .divider {
+            margin: 6px 0;
+          }
+
+          .register {
+            margin-top: 5px;
+          }
+        }
+
       }
 
 /* =========================================================
@@ -1859,54 +2016,6 @@ return (
   }
 }
 
-      @media (max-width: 600px) {
-
-        .login-page {
-          display: block;
-          width: 100%;
-          height: 100dvh;
-          min-height: 100dvh;
-          padding: 0;
-          overflow: hidden;
-          background: #f1eaff;
-        }
-
-        .login-shell {
-          position: relative;
-          width: 100%;
-          height: 100dvh;
-          min-height: 100dvh;
-          display: block;
-          overflow: hidden;
-          border: 0;
-          border-radius: 0;
-          box-shadow: none;
-          background-color: #f1eaff;
-          background-image:
-            url("/images/Mobile%20Login%20Background.png");
-          background-repeat: no-repeat;
-          background-position: center top;
-          background-size: 100% 100%;
-        }
-
-        .login-right {
-          display: none;
-        }
-
-        .login-left {
-          position: absolute;
-          z-index: 2;
-          inset: 0;
-          display: block;
-          min-height: 0;
-          padding: 0;
-          background: transparent;
-        }
-
-        .carevr-logo {
-          display: none;
-        }
-      }
 
       @media (prefers-reduced-motion: reduce) {
         *,
