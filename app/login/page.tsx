@@ -1033,6 +1033,8 @@ return (
         --------------------------------------------------------- */
 
 .mobile-login-form-block {
+  width: 100%;
+  max-width: none;
   transform: translateY(70px);
 }
 
@@ -1045,16 +1047,19 @@ return (
           font-size: 10.5px;
         }
 
-        .context-options {
-          gap: 6px;
-        }
+.context-options {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
 
-        .context-option {
-          min-height: 57px;
-          gap: 7px;
-          padding: 7px 8px;
-          border-radius: 10px;
-        }
+.context-option {
+  width: 100%;
+  min-height: 57px;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 10px;
+}
 
         .context-icon {
           width: 28px;
@@ -1197,8 +1202,8 @@ return (
   position: absolute;
 
   top: calc(28%);
-  left: 3%;
-  right: 3%;
+  left: 4%;
+  right: 4%;
 
   width: auto;
   max-width: none;
@@ -1445,12 +1450,12 @@ return (
 
 .login-method-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 
   width: 100%;
-  height: 32px;
+  height: 38px;
 
-  margin-bottom: 23px;
+  margin-bottom: 10px;
   padding: 2px;
 
   border: 1px solid #ddd7f2;
@@ -1681,9 +1686,10 @@ return (
           font-size: 16px;
         }
 
-        .field {
-          margin-bottom: 7px;
-        }
+.field {
+  width: 100%;
+  margin-bottom: 8px;
+}
 
         .login-input,
         .primary-button,
