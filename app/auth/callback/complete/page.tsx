@@ -358,12 +358,38 @@ function GoogleAuthComplete() {
 
           }
 
-          setPinVerification({
-            user: authenticatedUser,
-            role: selectedRole,
-          });
+const pinStatusResponse =
+  await fetch(
+    "/api/security/pin-status",
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
 
-          return;
+const pinStatus =
+  await pinStatusResponse.json();
+
+if (!pinStatusResponse.ok) {
+  throw new Error(
+    pinStatus?.error ||
+    "Unable to determine CareVR PIN status."
+  );
+}
+
+if (pinStatus.hasPin !== true) {
+  router.replace(
+    "/secure-access/create-pin"
+  );
+  return;
+}
+
+setPinVerification({
+  user: authenticatedUser,
+  role: selectedRole,
+});
+
+return;
 
         }
         catch (err) {
