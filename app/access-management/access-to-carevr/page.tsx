@@ -108,6 +108,12 @@ export default function AccessToCareVRPage() {
     ] =
         useState(false);
 
+const [
+    creatingInvitation,
+    setCreatingInvitation,
+] =
+    useState(false);
+
 
     const [
         activationLink,
@@ -330,51 +336,57 @@ const handleCreateInvitation =
             email.trim().toLowerCase();
 
 
+
         if (!normalizedEmail) {
             return;
         }
 
 
+
         try {
 
-const {
-    data: {
-        session,
-    },
-} =
-    await supabase.auth.getSession();
+            const {
+                data: {
+                    session,
+                },
+            } =
+                await supabase.auth.getSession();
 
 
-if (!session?.access_token) {
 
-    throw new Error(
-        "Authentication is required."
-    );
+            if (!session?.access_token) {
 
-}
+                throw new Error(
+                    "Authentication is required."
+                );
+
+            }
 
 
-const response =
-    await fetch(
-        "/api/access-management/access-to-carevr/invitations",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type":
-                    "application/json",
-                Authorization:
-                    `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({
-                email:
-                    normalizedEmail,
-            }),
-        }
-    );
+
+            const response =
+                await fetch(
+                    "/api/access-management/access-to-carevr/invitations",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                            Authorization:
+                                `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({
+                            email:
+                                normalizedEmail,
+                        }),
+                    }
+                );
+
 
 
             const result =
                 await response.json();
+
 
 
             if (!response.ok) {
@@ -387,8 +399,10 @@ const response =
             }
 
 
+
             const token =
                 result.activationToken;
+
 
 
             if (
@@ -403,10 +417,12 @@ const response =
             }
 
 
-const activationUrl =
-    `https://carevr.in/register?productInvitationToken=${encodeURIComponent(
-        token
-    )}`;
+
+            const activationUrl =
+                `https://carevr.in/register?productInvitationToken=${encodeURIComponent(
+                    token
+                )}`;
+
 
 
             const template =
@@ -417,6 +433,7 @@ const activationUrl =
                     expiresAt:
                         "7 days from creation",
                 });
+
 
 
             setEmail(

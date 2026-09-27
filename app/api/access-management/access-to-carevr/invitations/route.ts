@@ -114,61 +114,127 @@ if (
 
         }
 
+//--------------------------------------------------
+// Check whether this email already has an active
+// invitation.
+//
+// PENDING + not expired  → already invited
+// ACCEPTED + not expired → already invited
+// expired               → allow new invitation
+// no invitation          → allow new invitation
+//--------------------------------------------------
 
-        //--------------------------------------------------
-        // Generate the activation token.
-        //
-        // The raw token exists only in memory and is never
-        // persisted in the database.
-        //--------------------------------------------------
+const now =
+    new Date().toISOString();
 
-        const {
-            token,
-            tokenHash,
-        } =
-            productInvitationToken.generate();
+const {
+    data: existingInvitation,
+    error: existingInvitationError,
+} =
+    await supabaseAdmin
+        .from(
+            "carevr_product_invitations"
+        )
+        .select(
+            "id, status, expires_at"
+        )
+        .eq(
+            "email",
+            email
+        )
+        .in(
+            "status",
+            [
+                "PENDING",
+                "ACCEPTED",
+            ]
+        )
+        .gt(
+            "expires_at",
+            now
+        )
+        .limit(1)
+        .maybeSingle();
 
 
-        const expiresAt =
-            new Date(
-                Date.now() +
-                (
-                    INVITATION_VALIDITY_DAYS *
-                    24 *
-                    60 *
-                    60 *
-                    1000
-                )
-            ).toISOString();
+if (existingInvitationError) {
+
+    throw new Error(
+        existingInvitationError.message
+    );
+
+}
 
 
-        //--------------------------------------------------
-        // Create the Product Invitation.
-        //--------------------------------------------------
+if (existingInvitation) {
 
-        const {
-            data: invitation,
-            error: invitationError,
-        } =
-            await supabaseAdmin
-                .from(
-                    "carevr_product_invitations"
-                )
-                .insert({
-                    email,
-                    status: "PENDING",
-                    invitation_sent_at:
-                        new Date().toISOString(),
-                    expires_at:
-                        expiresAt,
-                    invitation_count: 1,
-                    created_by:
-                        user.id,
-                })
-                .select(
-                    "id, email, expires_at"
-                )
-                .single();
+    return NextResponse.json(
+        {
+            error:
+                "An active invitation already exists for this email address.",
+        },
+        {
+            status: 409,
+        }
+    );
+
+}
+
+
+//--------------------------------------------------
+// Generate the activation token.
+//
+// The raw token exists only in memory and is never
+// persisted in the database.
+//--------------------------------------------------
+
+const {
+    token,
+    tokenHash,
+} =
+    productInvitationToken.generate();
+
+
+const expiresAt =
+    new Date(
+        Date.now() +
+        (
+            INVITATION_VALIDITY_DAYS *
+            24 *
+            60 *
+            60 *
+            1000
+        )
+    ).toISOString();
+
+
+//--------------------------------------------------
+// Create the Product Invitation.
+//--------------------------------------------------
+
+const {
+    data: invitation,
+    error: invitationError,
+} =
+    await supabaseAdmin
+        .from(
+            "carevr_product_invitations"
+        )
+        .insert({
+            email,
+            status: "PENDING",
+            invitation_sent_at:
+                new Date().toISOString(),
+            expires_at:
+                expiresAt,
+            invitation_count: 1,
+            created_by:
+                user.id,
+        })
+        .select(
+            "id, email, expires_at"
+        )
+        .single();
 
 
         if (
