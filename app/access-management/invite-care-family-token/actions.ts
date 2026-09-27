@@ -43,10 +43,23 @@ export async function sendInvitationEmail(
     const serverSupabase =
         await createSupabaseServerClient();
 
-    const {
-        data: { user },
-        error: userError
-    } = await serverSupabase.auth.getUser();
+const authStartedAt =
+    performance.now();
+
+const {
+    data: { user },
+    error: userError
+} =
+    await serverSupabase.auth.getUser();
+
+console.log(
+    "[INVITE-PERF] auth.getUser:",
+    Math.round(
+        performance.now() -
+        authStartedAt
+    ),
+    "ms"
+);
 
     if (
         userError ||
