@@ -2035,6 +2035,8 @@ if (loading) {
 
 </div>
 {searchParams.get("view") === "care-journey" ? (
+    user.isFounder ? (
+
     <>
 
 {/*
@@ -2299,8 +2301,30 @@ onProcessingStateChange={
 )}
 
 </div>
-    </>
- ) : searchParams.get("view") === "timeline" ? (
+
+        </>
+
+    ) : (
+
+        <section className="record-health-coming-soon">
+
+            <div className="record-health-coming-soon-icon">
+                ✦
+            </div>
+
+            <h1>
+                Coming Soon...
+            </h1>
+
+            <p>
+                Care Journey is currently not available. It will be available very soon.
+            </p>
+
+        </section>
+
+    )
+
+) : searchParams.get("view") === "timeline" ? (
 
     <>
 
