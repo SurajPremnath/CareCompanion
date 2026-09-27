@@ -143,6 +143,7 @@ export async function createTokenInvitation(
     const serverSupabase =
         await createSupabaseServerClient();
 
+/*
     const {
         data: { user },
         error: userError
@@ -157,6 +158,7 @@ export async function createTokenInvitation(
             "Authentication is required to create an invitation."
         );
     }
+*/
 
 const validationStartedAt =
     performance.now();
