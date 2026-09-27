@@ -1699,10 +1699,11 @@ return (
           display: none;
         }
 
-        .login-method-content[data-login-method="GOOGLE"]
-          .login-google-panel {
-          display: block;
-        }
+.login-method-content[data-login-method="GOOGLE"]
+  .login-google-panel {
+  display: block;
+  transform: translateY(7px);
+}
 
         .google-button {
           display: flex;
