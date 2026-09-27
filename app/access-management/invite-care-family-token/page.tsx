@@ -1440,9 +1440,9 @@ const handleFinalizeInvitation =
 
                                 <div className="invitee-email-field">
 
-                                    <label htmlFor="invitee-email">
-                                        Invitee Email
-                                    </label>
+<label htmlFor="invitee-email">
+    Invitee Email <span className="required-asterisk">*</span>
+</label>
 
                                     <div className="invitee-email-input-wrap">
                                         <Mail
@@ -1467,6 +1467,15 @@ setInvitationTokenCopied(false);
                                             autoComplete="email"
                                         />
                                     </div>
+
+    {invitationError && (
+        <div
+            className="invitee-email-error"
+            role="alert"
+        >
+            {invitationError}
+        </div>
+    )}
 
                                     <small>
                                         The invitation will be created for this email address.
@@ -1561,15 +1570,6 @@ setInvitationTokenCopied(false);
 
                                 )}
 
-
-                                {invitationError && (
-                                    <div
-                                        className="invitation-error"
-                                        role="alert"
-                                    >
-                                        {invitationError}
-                                    </div>
-                                )}
 
                             </section>
 
@@ -2496,6 +2496,19 @@ setInvitationTokenCopied(false);
                     font-size: 12px;
                     font-weight: 800;
                 }
+
+.required-asterisk {
+    color: #dc2626;
+    margin-left: 3px;
+}
+
+.invitee-email-error {
+    margin-top: 6px;
+    color: #dc2626;
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: 500;
+}
 
                 .invitee-email-input-wrap {
                     display: flex;

@@ -104,13 +104,14 @@ if (!user) {
       };
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return {
-        success: false,
-        code: "INVALID_EMAIL",
-        message: "Please enter a valid invitee email address."
-      };
-    }
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  return {
+    success: false,
+    code: "INVALID_EMAIL",
+    message:
+      "The email address entered doesn’t appear to be valid. Please check the email address and try again."
+  };
+}
 
     // ----------------------------------------------------------
     // 4. Validate invitation role.

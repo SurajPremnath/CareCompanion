@@ -32,8 +32,10 @@ export interface CreateTokenInvitationResult {
     invitationExpiresAt: string;
 }
 
+
 export interface CreateTokenInvitationFailure {
     success: false;
+    code: string;
     message: string;
 }
 
@@ -68,15 +70,20 @@ export async function createTokenInvitation(
             serverSupabase
         );
 
-    if (
-        !validationResult.success ||
-        !validationResult.data
-    ) {
-        throw new Error(
+if (
+    !validationResult.success ||
+    !validationResult.data
+) {
+    return {
+        success: false,
+        code:
+            validationResult.code ??
+            "INVITATION_VALIDATION_FAILED",
+        message:
             validationResult.message ??
             "Unable to validate the invitation."
-        );
-    }
+    };
+}
 
     const validation =
         validationResult.data;
@@ -149,6 +156,7 @@ if (
 ) {
     return {
         success: false,
+	code: "INVITATION_ALREADY_EXISTS",
         message:
             "This email address already has an active or accepted CareVR invitation. Please reach out to the Primary family member for further details."
     };
