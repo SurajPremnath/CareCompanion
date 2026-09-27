@@ -515,39 +515,79 @@ export default function CareVRDashboardHandoffAnimation({
         onComplete;
 
 useEffect(() => {
-
     let cancelled = false;
 
     const runAnimation = async () => {
+        const stageDuration = 650;
 
-        for (const stage of stages) {
-
+        for (let index = 0; index < stages.length; index += 1) {
             if (cancelled) {
                 return;
             }
 
-            setActiveStage(stage.key);
+            setActiveStage(stages[index].key);
 
+            /*
+             * Keep the visual progression moving while the
+             * existing CareVR authorization/handoff process
+             * is running.
+             *
+             * The animation itself never controls or delays
+             * the real authorization process.
+             */
             await new Promise<void>((resolve) => {
                 window.setTimeout(
                     resolve,
-                    850
+                    stageDuration
                 );
             });
+
+            /*
+             * If the real CareVR handoff has completed,
+             * move directly through the remaining visual
+             * stages rather than making the user wait for
+             * the original fixed animation duration.
+             */
+            if (
+                readyToContinueRef.current &&
+                index < stages.length - 1
+            ) {
+                for (
+                    let remainingIndex = index + 1;
+                    remainingIndex < stages.length;
+                    remainingIndex += 1
+                ) {
+                    if (cancelled) {
+                        return;
+                    }
+
+                    setActiveStage(
+                        stages[remainingIndex].key
+                    );
+
+                    await new Promise<void>((resolve) => {
+                        window.setTimeout(
+                            resolve,
+                            180
+                        );
+                    });
+                }
+
+                break;
+            }
         }
 
         /*
-         * Animation has completed.
+         * The real CareVR handoff must be ready before
+         * the visual handoff can complete.
          *
-         * Wait only for the existing CareVR
-         * security / authorization / dashboard
-         * handoff process to become ready.
+         * If the real process is still running, wait for it.
+         * The animation never delays that process.
          */
         while (
             !readyToContinueRef.current &&
             !cancelled
         ) {
-
             await new Promise<void>((resolve) => {
                 window.setTimeout(
                     resolve,
@@ -557,7 +597,18 @@ useEffect(() => {
         }
 
         if (!cancelled) {
-            onCompleteRef.current();
+            setActiveStage("welcome");
+
+            await new Promise<void>((resolve) => {
+                window.setTimeout(
+                    resolve,
+                    180
+                );
+            });
+
+            if (!cancelled) {
+                onCompleteRef.current();
+            }
         }
     };
 
@@ -566,7 +617,6 @@ useEffect(() => {
     return () => {
         cancelled = true;
     };
-
 }, []);
 
     const stage =
