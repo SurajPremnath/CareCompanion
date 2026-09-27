@@ -258,22 +258,23 @@ return {
     // Family + invitee email + role
     // ----------------------------------------------------------
 
-    const { data: existingInvitations, error: invitationError } =
-      await client
+const { data: latestInvitation, error: invitationError } =
+    await client
         .from("carevr_invitation")
         .select(
-          "id, invitation_attempt_number, status, created_at, sent_at, expires_at"
+            "id, invitation_attempt_number, status, created_at, sent_at, expires_at"
         )
         .eq("family_id", familyId)
         .eq("invited_email", email)
         .eq("role", input.role)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    if (invitationError) {
-      throw invitationError;
-    }
+if (invitationError) {
+    throw invitationError;
+}
 
-    const latestInvitation = existingInvitations?.[0];
 
     // ----------------------------------------------------------
     // 10. Evaluate latest invitation.
