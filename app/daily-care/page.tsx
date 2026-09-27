@@ -15,19 +15,27 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
-import {
-  analyticsService,
-} from "@/lib/analytics/analyticsService";
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
 
-import {
-  ANALYTICS_MODULES,
-  ANALYTICS_EVENTS,
-  ANALYTICS_CONTEXTS,
-} from "@/lib/analytics/analyticsEvents";
+// import {
+//   analyticsService,
+// } from "@/lib/analytics/analyticsService";
 
-import {
-  performanceTracker,
-} from "@/lib/performance/performanceTracker";
+// import {
+//   ANALYTICS_MODULES,
+//   ANALYTICS_EVENTS,
+//   ANALYTICS_CONTEXTS,
+// } from "@/lib/analytics/analyticsEvents";
+
+// import {
+//   performanceTracker,
+// } from "@/lib/performance/performanceTracker";
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
 
 export default function DailyCarePage() {
 
@@ -88,25 +96,25 @@ setCareMode("self");
 
 const handleFamilyCare = async () => {
 
-setCareMode("family");
+  setCareMode("family");
 
-await analyticsService.track({
+  // await analyticsService.track({
 
-  module:
-    ANALYTICS_MODULES.DAILY_CARE,
+  //   module:
+  //     ANALYTICS_MODULES.DAILY_CARE,
 
-  eventName:
-    ANALYTICS_EVENTS.STARTED,
+  //   eventName:
+  //     ANALYTICS_EVENTS.STARTED,
 
-  context:
-    ANALYTICS_CONTEXTS.FAMILY,
+  //   context:
+  //     ANALYTICS_CONTEXTS.FAMILY,
 
-  pagePath:
-    "/daily-care",
+  //   pagePath:
+  //     "/daily-care",
 
-});
+  // });
 
-setCareMode("family");
+  setCareMode("family");
 
 };
 
@@ -116,18 +124,18 @@ setCareMode("family");
 
 const handleBackToDashboard = () => {
 
-  performanceTracker.start({
+  // performanceTracker.start({
 
-    fromPath:
-      "/daily-care",
+  //   fromPath:
+  //     "/daily-care",
 
-    toPath:
-      "/dashboard",
+  //   toPath:
+  //     "/dashboard",
 
-    feature:
-      "DAILY_CARE_TO_DASHBOARD",
+  //   feature:
+  //     "DAILY_CARE_TO_DASHBOARD",
 
-  });
+  // });
 
   router.push(
     "/dashboard"

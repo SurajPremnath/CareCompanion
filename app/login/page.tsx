@@ -20,11 +20,16 @@ import { authService } from "@/lib/auth/authService";
 
 import { authSecurity } from "@/lib/auth/authSecurity";
 
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+// import {
+//   performanceTracker,
+// } from "@/lib/performance/performanceTracker";
 
-import {
-  performanceTracker,
-} from "@/lib/performance/performanceTracker";
-
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
 
 import ValidatePin from "@/app/components/security/ValidatePin";
 
@@ -88,6 +93,7 @@ const [pinVerification, setPinVerification] =
 // void performanceTracker.complete({
 //   toPath: "/login",
 // });
+
   }, []);
 
 
@@ -210,7 +216,8 @@ console.log(
 return;
 
   } catch (err) {
-    performanceTracker.cancel();
+
+//    performanceTracker.cancel();
 
     const message =
       err instanceof Error

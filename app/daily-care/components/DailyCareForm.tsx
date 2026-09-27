@@ -30,16 +30,28 @@ import {
   medicalImageService,
 } from "@/lib/medical-image/medicalImageService";
 
-import {
-  analyticsService,
-} from "@/lib/analytics/analyticsService";
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
 
-import {
-  ANALYTICS_MODULES,
-  ANALYTICS_EVENTS,
-  ANALYTICS_CONTEXTS,
-  ANALYTICS_INPUT_METHODS,
-} from "@/lib/analytics/analyticsEvents";
+// import {
+//   analyticsService,
+// } from "@/lib/analytics/analyticsService";
+
+// import {
+//   ANALYTICS_MODULES,
+//   ANALYTICS_EVENTS,
+//   ANALYTICS_CONTEXTS,
+//   ANALYTICS_INPUT_METHODS,
+// } from "@/lib/analytics/analyticsEvents";
+
+// import {
+//   performanceTracker,
+// } from "@/lib/performance/performanceTracker";
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
 
 import {
   medicalVoiceService,
@@ -47,9 +59,6 @@ import {
 
 import VoiceRecorder from "@/Components/daily-care/VoiceRecorder";
 
-import {
-  performanceTracker,
-} from "@/lib/performance/performanceTracker";
 
 //------------------------------------------------------------
 // Types
@@ -498,87 +507,104 @@ if (
 
 }
 
-void analyticsService
-  .track({
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
 
-    module:
-      ANALYTICS_MODULES.DAILY_CARE,
+// void analyticsService
+//   .track({
+// 
+//     module:
+//       ANALYTICS_MODULES.DAILY_CARE,
+// 
+//     eventName:
+//       ANALYTICS_EVENTS.IMAGE_SOURCE_SELECTED,
+// 
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+// 
+//     pagePath:
+//       "/daily-care",
+// 
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.IMAGE,
+// 
+//     metadata: {
+// 
+//       source:
+//         source === "camera"
+//           ? "CAMERA"
+//           : "GALLERY",
+// 
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
+// 
+//     },
+// 
+//   })
+//   .catch(() => {
+//     Analytics must not delay image processing
+//   });
 
-    eventName:
-      ANALYTICS_EVENTS.IMAGE_SOURCE_SELECTED,
-
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
-
-    pagePath:
-      "/daily-care",
-
-    inputMethod:
-      ANALYTICS_INPUT_METHODS.IMAGE,
-
-    metadata: {
-
-      source:
-        source === "camera"
-          ? "CAMERA"
-          : "GALLERY",
-
-      patientId:
-        mode === "family"
-          ? formData.patientId || null
-          : null,
-
-    },
-
-  })
-  .catch(() => {
-    // Analytics must not delay image processing
-  });
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
 
 setActiveImageSource(source);
 
 setProcessingImage(true);
 
-void analyticsService
-  .track({
 
-    module:
-      ANALYTICS_MODULES.AI_IMAGE,
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
 
-    eventName:
-      ANALYTICS_EVENTS.ATTEMPTED,
-
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
-
-    pagePath:
-      "/daily-care",
-
-    inputMethod:
-      ANALYTICS_INPUT_METHODS.IMAGE,
-
-    metadata: {
-
-      source:
-        source === "camera"
-          ? "CAMERA"
-          : "GALLERY",
-
-      patientId:
-        mode === "family"
-          ? formData.patientId || null
-          : null,
-
-    },
-
-  })
-  .catch(() => {
+// void analyticsService
+//   .track({
+// 
+//     module:
+//       ANALYTICS_MODULES.AI_IMAGE,
+// 
+//     eventName:
+//       ANALYTICS_EVENTS.ATTEMPTED,
+// 
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+// 
+//     pagePath:
+//       "/daily-care",
+// 
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.IMAGE,
+// 
+//     metadata: {
+// 
+//       source:
+//         source === "camera"
+//           ? "CAMERA"
+//           : "GALLERY",
+// 
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
+// 
+//     },
+// 
+//   })
+//   .catch(() => {
     // Analytics must not delay image processing
-  });
+//   });
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
 
 try {
 
@@ -592,47 +618,55 @@ if (
   !result.data
 ) {
 
-  void analyticsService
-  .track({
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
 
-    module:
-      ANALYTICS_MODULES.AI_IMAGE,
+  // void analyticsService
+  //   .track({
+  //
+  //     module:
+  //       ANALYTICS_MODULES.AI_IMAGE,
+  //
+  //     eventName:
+  //       ANALYTICS_EVENTS.FAILED,
+  //
+  //     context:
+  //       mode === "self"
+  //         ? ANALYTICS_CONTEXTS.SELF
+  //         : ANALYTICS_CONTEXTS.FAMILY,
+  //
+  //     pagePath:
+  //       "/daily-care",
+  //
+  //     inputMethod:
+  //       ANALYTICS_INPUT_METHODS.IMAGE,
+  //
+  //     metadata: {
+  //
+  //       source:
+  //         source === "camera"
+  //           ? "CAMERA"
+  //           : "GALLERY",
+  //
+  //       patientId:
+  //         mode === "family"
+  //           ? formData.patientId || null
+  //           : null,
+  //
+  //       reason:
+  //         "INVALID_MEDICAL_IMAGE",
+  //
+  //     },
+  //
+  //   })
+  //   .catch(() => {
+  //     Analytics must not delay image error feedback
+  //   });
 
-    eventName:
-      ANALYTICS_EVENTS.FAILED,
-
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
-
-    pagePath:
-      "/daily-care",
-
-    inputMethod:
-      ANALYTICS_INPUT_METHODS.IMAGE,
-
-    metadata: {
-
-      source:
-        source === "camera"
-          ? "CAMERA"
-          : "GALLERY",
-
-      patientId:
-        mode === "family"
-          ? formData.patientId || null
-          : null,
-
-      reason:
-        "INVALID_MEDICAL_IMAGE",
-
-    },
-
-  })
-  .catch(() => {
-    // Analytics must not delay image error feedback
-  });
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
 
   AppAlert.error(
     t("alerts.invalidMedicalImage")
@@ -703,91 +737,107 @@ setImageReadSuccessful(
   true
 );
 
-void analyticsService
-  .track({
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
 
-    module:
-      ANALYTICS_MODULES.AI_IMAGE,
+// void analyticsService
+//   .track({
+//
+//     module:
+//       ANALYTICS_MODULES.AI_IMAGE,
+//
+//     eventName:
+//       ANALYTICS_EVENTS.SUCCEEDED,
+//
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+//
+//     pagePath:
+//       "/daily-care",
+//
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.IMAGE,
+//
+//     metadata: {
+//
+//       source:
+//         source === "camera"
+//           ? "CAMERA"
+//           : "GALLERY",
+//
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
+//
+//     },
+//
+//   })
+//   .catch(() => {
+//     Analytics must not delay image result display
+//   });
 
-    eventName:
-      ANALYTICS_EVENTS.SUCCEEDED,
-
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
-
-    pagePath:
-      "/daily-care",
-
-    inputMethod:
-      ANALYTICS_INPUT_METHODS.IMAGE,
-
-    metadata: {
-
-      source:
-        source === "camera"
-          ? "CAMERA"
-          : "GALLERY",
-
-      patientId:
-        mode === "family"
-          ? formData.patientId || null
-          : null,
-
-    },
-
-  })
-  .catch(() => {
-    // Analytics must not delay image result display
-  });
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
 
   }
   catch (error) {
 
-    void analyticsService
-  .track({
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
 
-    module:
-      ANALYTICS_MODULES.AI_IMAGE,
+// void analyticsService
+//   .track({
+//
+//     module:
+//       ANALYTICS_MODULES.AI_IMAGE,
+//
+//     eventName:
+//       ANALYTICS_EVENTS.FAILED,
+//
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+//
+//     pagePath:
+//       "/daily-care",
+//
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.IMAGE,
+//
+//     metadata: {
+//
+//       source:
+//         source === "camera"
+//           ? "CAMERA"
+//           : "GALLERY",
+//
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
+//
+//       reason:
+//         error instanceof Error
+//           ? error.message
+//           : "UNKNOWN_ERROR",
+//
+//     },
+//
+//   })
+//   .catch(() => {
+//     Analytics must not delay image error feedback
+//   });
 
-    eventName:
-      ANALYTICS_EVENTS.FAILED,
-
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
-
-    pagePath:
-      "/daily-care",
-
-    inputMethod:
-      ANALYTICS_INPUT_METHODS.IMAGE,
-
-    metadata: {
-
-      source:
-        source === "camera"
-          ? "CAMERA"
-          : "GALLERY",
-
-      patientId:
-        mode === "family"
-          ? formData.patientId || null
-          : null,
-
-      reason:
-        error instanceof Error
-          ? error.message
-          : "UNKNOWN_ERROR",
-
-    },
-
-  })
-  .catch(() => {
-    // Analytics must not delay image error feedback
-  });
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
 
     console.error(
       "Medical Image Capture Error:",
@@ -859,39 +909,47 @@ async function handleMedicalVoice(
 
   setProcessingVoice(true);
 
-void analyticsService
-  .track({
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
 
-    module:
-      ANALYTICS_MODULES.AI_VOICE,
+// void analyticsService
+//   .track({
 
-    eventName:
-      ANALYTICS_EVENTS.ATTEMPTED,
+//     module:
+//       ANALYTICS_MODULES.AI_VOICE,
 
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
+//     eventName:
+//       ANALYTICS_EVENTS.ATTEMPTED,
 
-    pagePath:
-      "/daily-care",
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
 
-    inputMethod:
-      ANALYTICS_INPUT_METHODS.VOICE,
+//     pagePath:
+//       "/daily-care",
 
-    metadata: {
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.VOICE,
 
-      patientId:
-        mode === "family"
-          ? formData.patientId || null
-          : null,
+//     metadata: {
 
-    },
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
 
-  })
-  .catch(() => {
-    // Analytics must not delay voice processing
-  });
+//     },
+
+//   })
+//   .catch(() => {
+//     // Analytics must not delay voice processing
+//   });
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
 
 
   try {
@@ -904,42 +962,50 @@ void analyticsService
 
     if (!result.success) {
 
-      void analyticsService
-  .track({
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
 
-    module:
-      ANALYTICS_MODULES.AI_VOICE,
+//       void analyticsService
+//         .track({
 
-    eventName:
-      ANALYTICS_EVENTS.FAILED,
+//           module:
+//             ANALYTICS_MODULES.AI_VOICE,
 
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
+//           eventName:
+//             ANALYTICS_EVENTS.FAILED,
 
-    pagePath:
-      "/daily-care",
+//           context:
+//             mode === "self"
+//               ? ANALYTICS_CONTEXTS.SELF
+//               : ANALYTICS_CONTEXTS.FAMILY,
 
-    inputMethod:
-      ANALYTICS_INPUT_METHODS.VOICE,
+//           pagePath:
+//             "/daily-care",
 
-    metadata: {
+//           inputMethod:
+//             ANALYTICS_INPUT_METHODS.VOICE,
 
-      patientId:
-        mode === "family"
-          ? formData.patientId || null
-          : null,
+//           metadata: {
 
-      reason:
-        result.error,
+//             patientId:
+//               mode === "family"
+//                 ? formData.patientId || null
+//                 : null,
 
-    },
+//             reason:
+//               result.error,
 
-  })
-  .catch(() => {
-    // Analytics must not delay voice error feedback
-  });
+//           },
+
+//         })
+//         .catch(() => {
+//           // Analytics must not delay voice error feedback
+//         });
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
 
 
       AppAlert.error(
@@ -1038,46 +1104,53 @@ otherPainLocation:
 
     }
 
+//------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+//------------------------------------------------------------
 
-    void analyticsService
-  .track({
+//     void analyticsService
+//   .track({
 
-    module:
-      ANALYTICS_MODULES.AI_VOICE,
+//     module:
+//       ANALYTICS_MODULES.AI_VOICE,
 
-    eventName:
-      ANALYTICS_EVENTS.SUCCEEDED,
+//     eventName:
+//       ANALYTICS_EVENTS.SUCCEEDED,
 
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
 
-    pagePath:
-      "/daily-care",
+//     pagePath:
+//       "/daily-care",
 
-    inputMethod:
-      ANALYTICS_INPUT_METHODS.VOICE,
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.VOICE,
 
-    metadata: {
+//     metadata: {
 
-      patientId:
-        mode === "family"
-          ? formData.patientId || null
-          : null,
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
 
-      usageUsed:
-        usage.used,
+//       usageUsed:
+//         usage.used,
 
-      usageRemaining:
-        usage.remaining,
+//       usageRemaining:
+//         usage.remaining,
 
-    },
+//     },
 
-  })
-  .catch(() => {
-    // Analytics must not delay voice success feedback
-  });
+//   })
+//   .catch(() => {
+//     Analytics must not delay voice success feedback
+//   });
+
+//------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+//------------------------------------------------------------
 
 
 if (usage.unlimited) {
@@ -1104,45 +1177,52 @@ else {
     );
 
 
-    void analyticsService
-  .track({
+//------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+//------------------------------------------------------------
 
-    module:
-      ANALYTICS_MODULES.AI_VOICE,
+//     void analyticsService
+//   .track({
 
-    eventName:
-      ANALYTICS_EVENTS.FAILED,
+//     module:
+//       ANALYTICS_MODULES.AI_VOICE,
 
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
+//     eventName:
+//       ANALYTICS_EVENTS.FAILED,
 
-    pagePath:
-      "/daily-care",
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
 
-    inputMethod:
-      ANALYTICS_INPUT_METHODS.VOICE,
+//     pagePath:
+//       "/daily-care",
 
-    metadata: {
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.VOICE,
 
-      patientId:
-        mode === "family"
-          ? formData.patientId || null
-          : null,
+//     metadata: {
 
-      reason:
-        error instanceof Error
-          ? error.message
-          : "UNKNOWN_ERROR",
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
 
-    },
+//       reason:
+//         error instanceof Error
+//           ? error.message
+//           : "UNKNOWN_ERROR",
 
-  })
-  .catch(() => {
-    // Analytics must not delay voice error feedback
-  });
+//     },
 
+//   })
+//   .catch(() => {
+//     // Analytics must not delay voice error feedback
+//   });
+
+//------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+//------------------------------------------------------------
 
     AppAlert.error(
       "Unable to process the voice recording."
@@ -1195,56 +1275,56 @@ function resetForm() {
 
 function handleBackToDashboard() {
 
-  performanceTracker.start({
+  // performanceTracker.start({
 
-    fromPath:
-      "/daily-care",
+  //   fromPath:
+  //     "/daily-care",
 
-    toPath:
-      "/dashboard",
+  //   toPath:
+  //     "/dashboard",
 
-    feature:
-      mode === "self"
-        ? "DAILY_CARE_SELF_TO_DASHBOARD"
-        : "DAILY_CARE_FAMILY_TO_DASHBOARD",
+  //   feature:
+  //     mode === "self"
+  //       ? "DAILY_CARE_SELF_TO_DASHBOARD"
+  //       : "DAILY_CARE_FAMILY_TO_DASHBOARD",
 
-    context:
-      mode === "self"
-        ? "SELF"
-        : "FAMILY",
+  //   context:
+  //     mode === "self"
+  //       ? "SELF"
+  //       : "FAMILY",
 
-  });
+  // });
 
-  void analyticsService
-    .track({
+  // void analyticsService
+  //   .track({
 
-      module:
-        ANALYTICS_MODULES.DAILY_CARE,
+  //     module:
+  //       ANALYTICS_MODULES.DAILY_CARE,
 
-      eventName:
-        ANALYTICS_EVENTS.BACK_TO_DASHBOARD_CLICKED,
+  //     eventName:
+  //       ANALYTICS_EVENTS.BACK_TO_DASHBOARD_CLICKED,
 
-      context:
-        mode === "self"
-          ? ANALYTICS_CONTEXTS.SELF
-          : ANALYTICS_CONTEXTS.FAMILY,
+  //     context:
+  //       mode === "self"
+  //         ? ANALYTICS_CONTEXTS.SELF
+  //         : ANALYTICS_CONTEXTS.FAMILY,
 
-      pagePath:
-        "/daily-care",
+  //     pagePath:
+  //       "/daily-care",
 
-      metadata: {
+  //     metadata: {
 
-        patientId:
-          mode === "family"
-            ? formData.patientId || null
-            : null,
+  //       patientId:
+  //         mode === "family"
+  //           ? formData.patientId || null
+  //           : null,
 
-      },
+  //     },
 
-    })
-    .catch(() => {
-      // Analytics must not block dashboard navigation
-    });
+  //   })
+  //   .catch(() => {
+  //     Analytics must not block dashboard navigation
+  //   });
 
   router.push(
     "/dashboard"
@@ -2352,43 +2432,43 @@ if (!result.success) {
 
 }
 
-void analyticsService
-  .track({
-
-    module:
-      ANALYTICS_MODULES.DAILY_CARE,
-
-    eventName:
-      ANALYTICS_EVENTS.COMPLETED,
-
-    context:
-      mode === "self"
-        ? ANALYTICS_CONTEXTS.SELF
-        : ANALYTICS_CONTEXTS.FAMILY,
-
-    pagePath:
-      "/daily-care",
-
-    inputMethod:
-      readingInputMethod === "image"
-        ? ANALYTICS_INPUT_METHODS.IMAGE
-        : readingInputMethod === "voice"
-        ? ANALYTICS_INPUT_METHODS.VOICE
-        : ANALYTICS_INPUT_METHODS.MANUAL,
-
-    metadata: {
-
-      patientId:
-        mode === "family"
-          ? formData.patientId
-          : null,
-
-    },
-
-  })
-  .catch(() => {
-    // Analytics must not delay save confirmation
-  });
+// void analyticsService
+//   .track({
+//
+//     module:
+//       ANALYTICS_MODULES.DAILY_CARE,
+//
+//     eventName:
+//       ANALYTICS_EVENTS.COMPLETED,
+//
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+//
+//     pagePath:
+//       "/daily-care",
+//
+//     inputMethod:
+//       readingInputMethod === "image"
+//         ? ANALYTICS_INPUT_METHODS.IMAGE
+//         : readingInputMethod === "voice"
+//         ? ANALYTICS_INPUT_METHODS.VOICE
+//         : ANALYTICS_INPUT_METHODS.MANUAL,
+//
+//     metadata: {
+//
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId
+//           : null,
+//
+//     },
+//
+//   })
+//   .catch(() => {
+//     Analytics must not delay save confirmation
+//   });
 
 resetForm();
 

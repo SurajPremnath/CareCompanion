@@ -94,23 +94,25 @@ import ExecutiveSummaryPdfGenerator
 import ClinicalTrendPdfGenerator
     from "@/app/journey-review/mobile/ClinicalTrendPdfGenerator";
 
-import {
-    startAuditCoordinator,
-    syncAuditCoordinatorObservations,
-    markAuditCoordinatorRendered,
-    completeAuditCoordinator,
-    recordAuditCoordinatorEvaluation,
-    type AuditCoordinator,
-} from "@/CareVRTestAuditAgent/runtime/auditCoordinator";
+// AUDIT TEMPORARILY DISABLED — DO NOT REMOVE
+//
+// import {
+//     startAuditCoordinator,
+//     syncAuditCoordinatorObservations,
+//     markAuditCoordinatorRendered,
+//     completeAuditCoordinator,
+//     recordAuditCoordinatorEvaluation,
+//     type AuditCoordinator,
+// } from "@/CareVRTestAuditAgent/runtime/auditCoordinator";
 
-import {
-    observeStrataparse,
-} from "@/CareVRTestAuditAgent/runtime/auditObserver";
+// import {
+//     observeStrataparse,
+// } from "@/CareVRTestAuditAgent/runtime/auditObserver";
 
-import {
-    recordAuditEvaluation,
-    buildAuditAccuracyComparisons,
-} from "@/CareVRTestAuditAgent/runtime/auditEvaluation";
+// import {
+//     recordAuditEvaluation,
+//     buildAuditAccuracyComparisons,
+// } from "@/CareVRTestAuditAgent/runtime/auditEvaluation";
 
 import careVRGoldStandard
     from "@/benchmarks/consultation-v1/expected-output.json";
@@ -214,12 +216,14 @@ const [
 ] = useState<string>("");
 
 
+/*
 const [
     careJourneyAuditCoordinator,
     setCareJourneyAuditCoordinator,
 ] = useState<AuditCoordinator | null>(
     null
 );
+*/
 
 const [
     reportHandoff,
@@ -472,6 +476,7 @@ const handleCareJourneyConfigurationContinue = async (
         >[0]
 ) => {
 
+/*
     const auditConfigurationResponse =
         await fetch(
             "/admin/Audit/configuration"
@@ -508,20 +513,7 @@ const auditConfiguration =
         };
     };
 
-    console.log(
-        "[CARE JOURNEY DEBUG] 02A - About to start Audit Agent",
-        {
-            timestamp:
-                new Date().toISOString(),
-
-            documentCount:
-                careJourneyDocuments.length,
-
-            careMode,
-
-            selectedPatientId,
-        }
-    );
+*/
 
     /*
      * A Care Journey configuration cannot be saved
@@ -542,81 +534,59 @@ const auditConfiguration =
      * server-side audit configuration route so
      * supabaseAdmin never enters the client bundle.
      */
-let auditCoordinator:
-        AuditCoordinator;
 
-auditCoordinator =
-    await startAuditCoordinator({
-        runId:
-            crypto.randomUUID(),
+// let auditCoordinator:
+//         AuditCoordinator;
 
-        module:
-            "CARE_JOURNEY",
+// auditCoordinator =
+//     await startAuditCoordinator({
+//         runId:
+//             crypto.randomUUID(),
 
-        documentCount:
-            careJourneyDocuments.length,
+//         module:
+//             "CARE_JOURNEY",
 
-        productId:
-            auditConfiguration.productId,
+//         documentCount:
+//             careJourneyDocuments.length,
 
-        ruleId:
-            auditConfiguration.ruleId,
+//         productId:
+//             auditConfiguration.productId,
 
-        pricing:
-            auditConfiguration.pricing,
+//         ruleId:
+//             auditConfiguration.ruleId,
 
-        /*
-         * Capture the actual documents submitted by the user
-         * at the existing CareVR Continue boundary.
-         *
-         * This is audit input evidence only.
-         * It does not modify or control Strataparse.
-         */
-        documentInventory:
-            careJourneyDocuments.map(
-                (
-                    item,
-                    index
-                ) => ({
-                    documentNumber:
-                        index + 1,
+//         pricing:
+//             auditConfiguration.pricing,
 
-                    fileName:
-                        item.file.name,
+//         documentInventory:
+//             careJourneyDocuments.map(
+//                 (
+//                     item,
+//                     index
+//                 ) => ({
+//                     documentNumber:
+//                         index + 1,
 
-                    fileType:
-                        item.file.type,
-                })
-            ),
-    });
+//                     fileName:
+//                         item.file.name,
 
-    console.log(
-        "[CARE JOURNEY DEBUG] 03 - Parent Continue handler entered",
-        {
-            configurable_Rest,
-            timestamp: new Date().toISOString(),
-        }
-    );
+//                     fileType:
+//                         item.file.type,
+//                 })
+//             ),
+//     });
 
     const configuration =
         createCareJourneyConfiguration(
             configurable_Rest
         );
 
-    console.log(
-        "[CARE JOURNEY DEBUG] 04 - Configuration created",
-        configuration
-    );
 
     const lockedConfiguration =
         lockCareJourneyConfiguration(
             configuration
         );
 
-    console.log(
-        "[CARE JOURNEY DEBUG] 05 - Configuration locked",
-        lockedConfiguration
-    );
 
     /*
      * Persist the Care Journey configuration
@@ -665,23 +635,12 @@ auditCoordinator =
      * - extraction
      * - result assembly
      */
-    console.log(
-        "[CARE JOURNEY DEBUG] 07 - About to invoke Strataparse",
-        {
-            timestamp: new Date().toISOString(),
-            documentCount:
-                careJourneyDocuments.length,
-            documents:
-                careJourneyDocuments.map(
-                    item => item.file.name
-                ),
-        }
-    );
 
     try {
 
         const formData =
             new FormData();
+
 
 formData.append(
     "digitalKey",
@@ -693,10 +652,12 @@ formData.append(
             "CARE_JOURNEY"
         );
 
+/*
 formData.append(
     "auditRunId",
     auditCoordinator.run.runId
 );
+*/
 
         formData.append(
             "documentType",
@@ -720,16 +681,6 @@ formData.append(
             }
         );
 
-        console.log(
-            "[CARE JOURNEY DEBUG] 08 - Sending documents to Strataparse",
-            {
-                timestamp:
-                    new Date().toISOString(),
-                documentCount:
-                    careJourneyDocuments.length,
-            }
-        );
-
         const response =
             await fetch(
                 "/api/strataparse",
@@ -739,17 +690,6 @@ formData.append(
                 }
             );
 
-        console.log(
-            "[CARE JOURNEY DEBUG] 09 - Strataparse response received",
-            {
-                timestamp:
-                    new Date().toISOString(),
-                status:
-                    response.status,
-                ok:
-                    response.ok,
-            }
-        );
 
         if (!response.ok) {
 
@@ -889,6 +829,7 @@ const strataparseResult =
  * evidence for Founder-level accuracy reporting.
  */
 
+/*
 const benchmarkExpectedOutput =
     careVRGoldStandard as Record<
         string,
@@ -917,7 +858,6 @@ if (
 
     const accuracyEvaluation =
         recordAuditEvaluation({
-
             runId:
                 auditCoordinator.run.runId,
 
@@ -937,28 +877,6 @@ if (
             accuracyEvaluation
         );
 
-    console.log(
-        "[CARE JOURNEY AUDIT DEBUG] Accuracy evaluation recorded",
-        {
-            runId:
-                auditCoordinator.run.runId,
-
-            evaluatedItems:
-                accuracyEvaluation.accuracyEvaluatedItems,
-
-            correctItems:
-                accuracyEvaluation.accuracyCorrectItems,
-
-            missedItems:
-                accuracyEvaluation.accuracyMissedItems,
-
-            incorrectItems:
-                accuracyEvaluation.accuracyIncorrectItems,
-
-            accuracyPercentage:
-                accuracyEvaluation.accuracyScore,
-        }
-    );
 
 } else {
 
@@ -970,20 +888,8 @@ if (
         }
     );
 }
+*/
 
-console.log(
-    "[CARE JOURNEY DEBUG] 11 - Strataparse result received",
-    {
-        timestamp:
-            new Date().toISOString(),
-
-        documentCount:
-            strataparseResult?.documentCount,
-
-        results:
-            strataparseResult?.results,
-    }
-);
 
         /*
          * STRATAPARSE â†’ CAREVR RESULT HANDOFF
@@ -1048,8 +954,8 @@ console.log(
                                 status:
                                     "COMPLETED" as const,
 
-/*
- * Preserve the complete Strataparse document result.
+
+/* Preserve the complete Strataparse document result.
  *
  * CareVR presentation uses the document type to determine
  * how the returned extraction should be displayed.
@@ -1068,27 +974,6 @@ data: {
                         }
                     );
 
-                console.log(
-                    "[CARE JOURNEY DEBUG] 12 - Strataparse results attached to workspace",
-                    {
-                        timestamp:
-                            new Date().toISOString(),
-                        patientKey,
-                        resultCount:
-                            results.length,
-                        updatedItems:
-                            updatedItems.map(
-                                item => ({
-                                    fileName:
-                                        item.file.name,
-                                    status:
-                                        item.status,
-                                    hasData:
-                                        !!item.data,
-                                })
-                            ),
-                    }
-                );
 
                 return {
                     ...currentWorkspaces,
@@ -1099,160 +984,80 @@ data: {
         );
 
 
-console.log(
-    "[CARE JOURNEY AUDIT DEBUG] 01 - Entering audit observation sync",
-    {
-        timestamp:
-            new Date().toISOString(),
-        runId:
-            auditCoordinator.run.runId,
-    }
-);
 
+// Audit temporarily disabled.
+// auditCoordinator =
+//     syncAuditCoordinatorObservations(
+//         auditCoordinator
+//     );
 
+// Audit temporarily disabled.
+// const resultRenderedAt =
+//     Date.now();
 
-        auditCoordinator =
-            syncAuditCoordinatorObservations(
-                auditCoordinator
-            );
+// Audit temporarily disabled.
+// auditCoordinator =
+//     markAuditCoordinatorRendered(
+//         auditCoordinator,
+//         resultRenderedAt
+//     );
 
+// Audit temporarily disabled.
+// observeStrataparse({
+//     type:
+//         "RESULT_RENDERED",
 
-console.log(
-    "[CARE JOURNEY AUDIT DEBUG] 02 - Audit observation sync completed",
-    {
-        timestamp:
-            new Date().toISOString(),
-        runId:
-            auditCoordinator.run.runId,
-    }
-);
+//     runId:
+//         auditCoordinator.run.runId,
 
+//     documentCount:
+//         auditCoordinator.run.documentCount,
 
-console.log(
-    "[CARE JOURNEY AUDIT DEBUG] 03 - Entering audit result rendered",
-    {
-        timestamp:
-            new Date().toISOString(),
-        runId:
-            auditCoordinator.run.runId,
-    }
-);
+//     timestamp:
+//         resultRenderedAt,
+//     });
 
-const resultRenderedAt =
-    Date.now();
+// Audit temporarily disabled.
+// auditCoordinator =
+//     await completeAuditCoordinator(
+//         auditCoordinator
+//     );
 
-auditCoordinator =
-    markAuditCoordinatorRendered(
-        auditCoordinator,
-        resultRenderedAt
-    );
+// Audit temporarily disabled.
+// const auditSaveResponse =
+// await fetch(
+//     "/admin/Audit/save",
+//     {
+//         method:
+//             "POST",
 
-observeStrataparse({
-    type:
-        "RESULT_RENDERED",
+//         headers: {
+//             "Content-Type":
+//                 "application/json",
+//         },
 
-    runId:
-        auditCoordinator.run.runId,
+//         body:
+//             JSON.stringify({
+//                 aggregation:
+//                     auditCoordinator.aggregation,
 
-    documentCount:
-        auditCoordinator.run.documentCount,
+//                 productId:
+//                     auditCoordinator.productId,
 
-    timestamp:
-        resultRenderedAt,
-});
+//                 ruleId:
+//                     auditCoordinator.ruleId,
+//             }),
+//     }
+// );
 
-
-console.log(
-    "[CARE JOURNEY AUDIT DEBUG] 04 - Audit result rendered completed",
-    {
-        timestamp:
-            new Date().toISOString(),
-        runId:
-            auditCoordinator.run.runId,
-    }
-);
-
-console.log(
-    "[CARE JOURNEY AUDIT DEBUG] 05 - Entering audit completion",
-    {
-        timestamp:
-            new Date().toISOString(),
-        runId:
-            auditCoordinator.run.runId,
-    }
-);
-
-
-
-        auditCoordinator =
-            await completeAuditCoordinator(
-                auditCoordinator
-            );
-
-
-console.log(
-    "[CARE JOURNEY AUDIT DEBUG] 06 - Audit completion returned",
-    {
-        timestamp:
-            new Date().toISOString(),
-        runId:
-            auditCoordinator.run.runId,
-        hasAggregation:
-            !!auditCoordinator.aggregation,
-        hasReport:
-            !!auditCoordinator.report,
-    }
-);
-
-console.log(
-    "[CARE JOURNEY AUDIT DEBUG] 07 - Entering audit database save",
-    {
-        timestamp:
-            new Date().toISOString(),
-        runId:
-            auditCoordinator.run.runId,
-        productId:
-            auditCoordinator.productId,
-        ruleId:
-            auditCoordinator.ruleId,
-        hasAggregation:
-            !!auditCoordinator.aggregation,
-    }
-);
-
-const auditSaveResponse =
-await fetch(
-    "/admin/Audit/save",
-    {
-        method:
-            "POST",
-
-        headers: {
-            "Content-Type":
-                "application/json",
-        },
-
-        body:
-            JSON.stringify({
-                aggregation:
-                    auditCoordinator.aggregation,
-
-                productId:
-                    auditCoordinator.productId,
-
-                ruleId:
-                    auditCoordinator.ruleId,
-            }),
-    }
-);
-
-if (
-    !auditSaveResponse.ok
-) {
-    throw new Error(
-        "Failed to save audit to database."
-    );
-}
+// Audit temporarily disabled.
+// if (
+//     !auditSaveResponse.ok
+// ) {
+//     throw new Error(
+//         "Failed to save audit to database."
+//     );
+// }
 
 
 } catch (error) {
@@ -1352,11 +1157,6 @@ if (
     );
 }
 
-console.log(
-    "[REPORT DEBUG] Incoming report handoff",
-    incomingReportHandoff
-);
-
 setReportHandoff(
     incomingReportHandoff
 );
@@ -1417,20 +1217,6 @@ setUser({
     isFounder:
         profile.isFounder,
 });
-
-console.log(
-    "[RECORD HEALTH FOUNDER CHECK]",
-    {
-        profileId: profile.id,
-        email: profile.email,
-        role: profile.role,
-        isFounder: profile.isFounder,
-        dashboardRole:
-            getCareVRDashboardHandoff()?.role,
-        accessType:
-            getCareVRDashboardHandoff()?.access.accessType,
-    }
-);
 
 
                 setConsentGranted(
@@ -2699,35 +2485,6 @@ onClick={() => {
 
 setReportDateError("");
 
-console.log(
-    "[REPORT DEBUG] Generate Report clicked",
-    {
-        selectedOption,
-        reportStartDate,
-        reportEndDate,
-
-        reportHandoffPatientId:
-            reportHandoff.patientId,
-
-        careMode,
-
-        selectedPatientId,
-
-        selectedPatient,
-
-        executionPatientId:
-            careMode === "SELF"
-                ? null
-                : selectedPatient?.id ?? null,
-
-        executionPatientName:
-            careMode === "SELF"
-                ? user.fullName
-                : selectedPatient?.fullName ??
-                    reportHandoff.patientName,
-    }
-);
-
 reportExecutionHandoffStore.set({
 
     userId:
@@ -2757,11 +2514,6 @@ reportExecutionHandoffStore.set({
         new Date().toISOString(),
 
 });
-
-console.log(
-    "[REPORT DEBUG] Setting report execution type",
-    selectedOption
-);
 
 setReportExecutionType(
     selectedOption

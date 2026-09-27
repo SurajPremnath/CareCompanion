@@ -58,22 +58,32 @@ import {
     useLanguage,
 } from "@/Components/language/LanguageProvider";
 
-import {
-    analyticsService,
-} from "@/lib/analytics/analyticsService";
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
 
-import {
-    ANALYTICS_MODULES,
-    ANALYTICS_EVENTS,
-} from "@/lib/analytics/analyticsEvents";
+// import {
+//     analyticsService,
+// } from "@/lib/analytics/analyticsService";
 
-import {
-    authSessionService,
-} from "@/lib/analytics/authSessionService";
+// import {
+//     ANALYTICS_MODULES,
+//     ANALYTICS_EVENTS,
+// } from "@/lib/analytics/analyticsEvents";
 
-import {
-    performanceTracker,
-} from "@/lib/performance/performanceTracker";
+// import {
+//     authSessionService,
+// } from "@/lib/analytics/authSessionService";
+
+
+// import {
+//     performanceTracker,
+// } from "@/lib/performance/performanceTracker";
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
+
 
 import {
     getCareVRToggle,
@@ -572,26 +582,29 @@ setUser({
 });
 
 
-        void analyticsService
-            .track({
-
-                module:
-                    ANALYTICS_MODULES
-                        .DASHBOARD,
-
-                eventName:
-                    ANALYTICS_EVENTS
-                        .PAGE_VIEWED,
-
-                pagePath:
-                    "/dashboard",
-
-            })
-            .catch(() => {
-
-                // Analytics must not block rendering
-
-            });
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO
+// ------------------------------------------------------------
+//
+//        void analyticsService
+//            .track({
+//
+//                module:
+//                    ANALYTICS_MODULES
+//                        .DASHBOARD,
+//
+//                eventName:
+//                    ANALYTICS_EVENTS
+//                        .PAGE_VIEWED,
+//
+//                pagePath:
+//                    "/dashboard",
+//
+//            })
+//            .catch(() => {
+//
+// Analytics must not block rendering
+//            });
 
     }
     catch (error) {
@@ -1247,9 +1260,9 @@ const openMobileFeature = (
 
     }
 
-    trackFeatureClick(
-        feature
-    );
+//    trackFeatureClick(
+//        feature
+//    );
 
     if (
         feature === "RECORD_HEALTH"
@@ -1363,12 +1376,12 @@ setSelectedAction(
         }
 
 
-        void performanceTracker.complete({
-
-            toPath:
-                "/dashboard",
-
-        });
+//        void performanceTracker.complete({
+//
+//            toPath:
+//                "/dashboard",
+//
+//        });
 
     }, [
         loading,
@@ -1380,48 +1393,54 @@ setSelectedAction(
     // Analytics
     //------------------------------------------------------------
 
-    const trackFeatureClick =
-        (
-            feature: HomeFeature
-        ): void => {
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+//     const trackFeatureClick =
+//         (
+//             feature: HomeFeature
+//         ): void => {
+//
+//            void analyticsService
+//                .track({
+//
+//                    module:
+//                        ANALYTICS_MODULES
+//                            .DASHBOARD,
+//
+//                    eventName:
+//                        ANALYTICS_EVENTS
+//                            .FEATURE_CLICKED,
+//
+//                    pagePath:
+//                        "/dashboard",
+//
+//                    metadata: {
+//
+//                        feature,
+//
+//                    },
+//
+//                })
+//                .catch(() => {
+//
+// Analytics must not block navigation
+//
+//                });
+// 
+//         };
 
-            void analyticsService
-                .track({
-
-                    module:
-                        ANALYTICS_MODULES
-                            .DASHBOARD,
-
-                    eventName:
-                        ANALYTICS_EVENTS
-                            .FEATURE_CLICKED,
-
-                    pagePath:
-                        "/dashboard",
-
-                    metadata: {
-
-                        feature,
-
-                    },
-
-                })
-                .catch(() => {
-
-                    // Analytics must not block navigation
-
-                });
-
-        };
-
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
 
 
 
     const openHelp = () => {
 
-        trackFeatureClick(
-            "HELP"
-        );
+//        trackFeatureClick(
+//            "HELP"
+//        );
 
 
         router.push(
@@ -1447,18 +1466,18 @@ setSelectedAction(
         setLoggingOut(true);
 
 
-        performanceTracker.start({
-
-            fromPath:
-                "/dashboard",
-
-            toPath:
-                "/login",
-
-            feature:
-                "LOGOUT_TO_LOGIN",
-
-        });
+//        performanceTracker.start({
+//
+//           fromPath:
+//                "/dashboard",
+//
+//            toPath:
+//                "/login",
+//
+//            feature:
+//                "LOGOUT_TO_LOGIN",
+//
+//        });
 
 
 // TEMPORARY LOGOUT PERFORMANCE DIAGNOSTICS — COMMENTED OUT FOR DEMO
@@ -1515,7 +1534,7 @@ catch (error) {
         error
     );
 
-    performanceTracker.cancel();
+//    performanceTracker.cancel();
 
     setLoggingOut(false);
 
@@ -2082,15 +2101,15 @@ headerAccessory={<LanguageSelector />}
         return;
     }
 
-        performanceTracker.start({
-
-            fromPath: "/dashboard",
-
-            toPath: "/carevr-journey",
-
-            feature: "DASHBOARD_TO_CAREVR_JOURNEY",
-
-        });
+//        performanceTracker.start({
+//
+//            fromPath: "/dashboard",
+//
+//            toPath: "/carevr-journey",
+//
+//            feature: "DASHBOARD_TO_CAREVR_JOURNEY",
+//
+//        });
 
         router.push("/carevr-journey");
 
@@ -2235,9 +2254,9 @@ headerAccessory={<LanguageSelector />}
             return;
         }
 
-        trackFeatureClick(
-            "RECORD_HEALTH"
-        );
+//        trackFeatureClick(
+//            "RECORD_HEALTH"
+//        );
 
         router.push(
             personSelection.mode === "SELF"
@@ -2303,9 +2322,9 @@ headerAccessory={<LanguageSelector />}
             return;
         }
 
-        trackFeatureClick(
-            "MEDICATION_MANAGEMENT"
-        );
+//        trackFeatureClick(
+//            "MEDICATION_MANAGEMENT"
+//        );
 
         router.push(
             personSelection.mode === "SELF"
@@ -2373,9 +2392,9 @@ headerAccessory={<LanguageSelector />}
                 return;
             }
 
-            trackFeatureClick(
-                "ASSESSMENT"
-            );
+//            trackFeatureClick(
+//                "ASSESSMENT"
+//            );
 
             router.push(
                 personSelection.mode === "SELF"
@@ -2547,9 +2566,9 @@ headerAccessory={<LanguageSelector />}
                 return;
             }
 
-            trackFeatureClick(
-                "ACCESS_MANAGEMENT"
-            );
+//            trackFeatureClick(
+//                "ACCESS_MANAGEMENT"
+//            );
 
             router.push(
                 "/access-management"

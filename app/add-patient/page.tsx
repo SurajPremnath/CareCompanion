@@ -23,9 +23,18 @@ import {
 
 import LanguageSelector from "@/Components/language/LanguageSelector";
 
-import {
-  performanceTracker,
-} from "@/lib/performance/performanceTracker";
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+
+// import {
+//   performanceTracker,
+// } from "@/lib/performance/performanceTracker";
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
+
 
 import {
   getCareVRDashboardHandoff,
@@ -312,18 +321,18 @@ router.replace(
 
 const handleBackToDashboard = () => {
 
-  performanceTracker.start({
-
-    fromPath:
-      "/add-patient",
-
-    toPath:
-      "/dashboard",
-
-    feature:
-      "ADD_PATIENT_TO_DASHBOARD",
-
-  });
+// performanceTracker.start({
+//
+//   fromPath:
+//     "/add-patient",
+//
+//   toPath:
+//     "/dashboard",
+//
+//   feature:
+//     "ADD_PATIENT_TO_DASHBOARD",
+//
+// });
 
   router.push(
     "/dashboard"
