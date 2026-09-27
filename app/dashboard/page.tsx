@@ -1627,6 +1627,13 @@ const mobileSnapshotKey =
     }}
     onCareVRJourney={() => {
         setMobileAccountMenuOpen(false);
+    if (!user.isFounder) {
+        alert("Coming Soon...");
+        return;
+    }
+
+
+
         router.push("/carevr-journey");
     }}
     onHelp={() => {
@@ -1928,11 +1935,16 @@ const mobileSnapshotKey =
 {hasDashboardModule("CARE_JOURNEY") && (
     <button
         type="button"
-        onClick={() =>
-            openMobileFeature(
-                "MEDICATION_MANAGEMENT"
-            )
-        }
+onClick={() => {
+    if (!user.isFounder) {
+        alert("Coming Soon...");
+        return;
+    }
+
+    openMobileFeature(
+        "MEDICATION_MANAGEMENT"
+    );
+}}
         disabled={!consentGranted}
     >
         <span className="mobile-action-icon mobile-action-purple">
