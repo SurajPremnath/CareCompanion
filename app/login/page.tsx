@@ -53,6 +53,12 @@ const [error, setError] = useState("");
 const [captchaToken, setCaptchaToken] =
     useState<string | null>(null);
 
+const [showInvitationMessage, setShowInvitationMessage] =
+    useState(false);
+
+const [submitting, setSubmitting] =
+    useState(false);
+
 const turnstileRef =
   useRef<TurnstileInstance>(null);
 
@@ -577,6 +583,23 @@ return (
   transform: translateY(-6px);
 }
 
+.invitation-required-message {
+  width: 100%;
+  margin-top: 10px;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.invitation-required-star {
+  color: #dc2626;
+  font-weight: 800;
+  margin-right: 3px;
+}
+
 .login-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -737,6 +760,7 @@ return (
         right: 0;
         bottom: 0;
         z-index: 5;
+  pointer-events: none;
       }
 
 
@@ -2067,14 +2091,16 @@ return (
      DESKTOP LOGIN CONTENT
      --------------------------------------------------------- */
 
-  .login-content {
-    position: static;
+.login-content {
+  position: relative;
+  z-index: 6;
 
-    width: 100%;
-    max-width: 430px;
+  width: 100%;
+  max-width: 430px;
 
-    margin: auto;
-  }
+  margin: auto;
+  padding-bottom: 35px;
+}
 
   /* ---------------------------------------------------------
      DESKTOP RIGHT — BRAND EXPERIENCE
@@ -2439,17 +2465,23 @@ return (
           Forgot Password?
         </button>
 
-        <button
-          type="button"
-          className="login-create-account"
-          onClick={() => {
-            inviteeToPrimaryHandoff.clear();
-            router.replace("/register");
-          }}
-          disabled={loading}
-        >
-          Create an Account
-        </button>
+<button
+  type="button"
+  className="login-create-account"
+  onClick={() => {
+    setShowInvitationMessage(true);
+  }}
+  disabled={loading}
+>
+  Create an Account
+</button>
+
+{showInvitationMessage && (
+  <div className="invitation-required-message">
+    <span className="invitation-required-star">*</span>
+    Please reach out to your Primary for an invitation.
+  </div>
+)}
 
       </div>
     </div>
