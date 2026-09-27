@@ -425,113 +425,129 @@ try {
 
 
 
-        if (
-            validation.status ===
-                "ACCEPTED" ||
-            validation.status ===
-                "PRIMARY"
-        ) {
-
-            const contextStartedAt =
-                performance.now();
-
-const {
-    activeAccessRecords,
-    contexts: availableContexts,
-} =
-    await carevrContextResolver
-        .getAvailableContexts(
-            userId
-        );
-
-            const contextCompletedAt =
-                performance.now();
-
-            console.log(
-                `[PIN-PERF] getAvailableContexts: ${Math.round(
-                    contextCompletedAt -
-                    contextStartedAt
-                )} ms`
-            );
-
-
-
-            if (
-                availableContexts.length === 0
-            ) {
-                throw new Error(
-                    "No active CareVR profiles are available for this account."
-                );
-            }
-
-
-
-            if (
-                availableContexts.length > 1
-            ) {
-                router.replace(
-                    "/profile-selection"
-                );
-                return;
-            }
-
-
-
-            const selectedContext =
-                availableContexts[0];
-
-            const dashboardRole =
-                selectedContext.loginRole;
-
-            const access =
-                activeAccessRecords.find(
-                    (record) =>
-                        record.id ===
-                        selectedContext.accessId
-                );
-
-            if (!access) {
-                throw new Error(
-                    "Selected CareVR access is no longer active."
-                );
-            }
-
+if (
+    validation.status ===
+        "ACCEPTED" ||
+    validation.status ===
+        "PRIMARY"
+) {
 
     /*
-     * Consent has already been completed.
+     * Consent is already complete and the login has been
+     * accepted. Start the visual handoff now.
      *
-     * This is the single-profile handoff point.
-     * Start the visual handoff before the dashboard
-     * authorization work begins.
+     * IMPORTANT:
+     * This does NOT authorize access and does NOT allow
+     * navigation to the dashboard.
+     *
+     * The real checks below continue normally while the
+     * animation is displayed.
      */
     setDashboardHandoffReady(false);
     setDashboardAnimationComplete(false);
     setShowDashboardHandoff(true);
 
+
+    const contextStartedAt =
+        performance.now();
+
+    const {
+        activeAccessRecords,
+        contexts: availableContexts,
+    } =
+        await carevrContextResolver
+            .getAvailableContexts(
+                userId
+            );
+
+    const contextCompletedAt =
+        performance.now();
+
+    console.log(
+        `[PIN-PERF] getAvailableContexts: ${Math.round(
+            contextCompletedAt -
+            contextStartedAt
+        )} ms`
+    );
+
+
+    if (
+        availableContexts.length === 0
+    ) {
+        throw new Error(
+            "No active CareVR profiles are available for this account."
+        );
+    }
+
+
+    if (
+        availableContexts.length > 1
+    ) {
+        setShowDashboardHandoff(false);
+
+        router.replace(
+            "/profile-selection"
+        );
+
+        return;
+    }
+
+
+    const selectedContext =
+        availableContexts[0];
+
+    const dashboardRole =
+        selectedContext.loginRole;
+
+
+    const access =
+        activeAccessRecords.find(
+            (record) =>
+                record.id ===
+                selectedContext.accessId
+        );
+
+
+    if (!access) {
+        throw new Error(
+            "Selected CareVR access is no longer active."
+        );
+    }
+
+
     const handoffStartedAt =
         performance.now();
 
 
-await resolveCareVRDashboardHandoff(
-    userId,
-    dashboardRole,
-    access
-);
+    await resolveCareVRDashboardHandoff(
+        userId,
+        dashboardRole,
+        access
+    );
 
-const handoffCompletedAt =
-    performance.now();
 
-console.log(
-    `[PIN-PERF] resolveCareVRDashboardHandoff: ${Math.round(
-        handoffCompletedAt -
-        handoffStartedAt
-    )} ms`
-);
+    const handoffCompletedAt =
+        performance.now();
 
-setDashboardHandoffReady(true);
 
-return;
-        }
+    console.log(
+        `[PIN-PERF] resolveCareVRDashboardHandoff: ${Math.round(
+            handoffCompletedAt -
+            handoffStartedAt
+        )} ms`
+    );
+
+
+    /*
+     * Only now is the real dashboard handoff ready.
+     *
+     * The animation is allowed to finish, but navigation
+     * cannot occur until this flag becomes true.
+     */
+    setDashboardHandoffReady(true);
+
+    return;
+}
 
 
 
