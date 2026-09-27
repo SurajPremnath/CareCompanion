@@ -1418,6 +1418,20 @@ setUser({
         profile.isFounder,
 });
 
+console.log(
+    "[RECORD HEALTH FOUNDER CHECK]",
+    {
+        profileId: profile.id,
+        email: profile.email,
+        role: profile.role,
+        isFounder: profile.isFounder,
+        dashboardRole:
+            getCareVRDashboardHandoff()?.role,
+        accessType:
+            getCareVRDashboardHandoff()?.access.accessType,
+    }
+);
+
 
                 setConsentGranted(
                     true
