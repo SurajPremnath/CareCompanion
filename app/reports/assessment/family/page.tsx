@@ -22,6 +22,7 @@ import ReportTable, {
   ReportTableColumn,
 } from "@/app/components/ReportTable";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -31,6 +32,8 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
+
+*/
 
 export default function FamilyAssessmentHistoryPage() {
 
@@ -166,6 +169,7 @@ const patientList =
         const records =
           result.data ?? [];
 
+/*
         void analyticsService.track({
 
           module:
@@ -197,6 +201,8 @@ const patientList =
           },
 
         });
+
+*/
 
         if (records.length === 0) {
 
@@ -250,6 +256,7 @@ const handlePatientChange = (
     patientId
   );
 
+/*
   void analyticsService.track({
 
     module:
@@ -277,6 +284,7 @@ const handlePatientChange = (
     },
 
   });
+*/
 
 };
 

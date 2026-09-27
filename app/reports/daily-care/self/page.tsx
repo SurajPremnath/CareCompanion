@@ -14,6 +14,7 @@ import {
 
 import ReportNavigation from "@/app/components/common/ReportNavigation";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -23,6 +24,7 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
+*/
 
 export default function DailyCareHistoryPage() {
   const router = useRouter();
@@ -96,6 +98,7 @@ try {
       const records =
         result.data ?? [];
 
+/*
 void analyticsService.track({
 
   module:
@@ -124,6 +127,7 @@ void analyticsService.track({
   },
 
 });
+*/
 
       setHistory(records);
 

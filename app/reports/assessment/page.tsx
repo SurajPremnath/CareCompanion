@@ -5,6 +5,7 @@ import AppHeader from "@/app/components/AppHeader";
 
 import ReportNavigation from "@/app/components/common/ReportNavigation";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -14,6 +15,7 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
+*/
 
 export default function AssessmentReportsPage() {
   const router = useRouter();
@@ -22,13 +24,18 @@ export default function AssessmentReportsPage() {
   // Assessment Report Context Selection
   //------------------------------------------------------------
 
+/*
   const handleContextSelection = async (
     context:
       | typeof ANALYTICS_CONTEXTS.SELF
       | typeof ANALYTICS_CONTEXTS.FAMILY,
     href: string
-  ) => {
 
+  ) => {
+*/
+
+
+/*
     await analyticsService.track({
 
       module:
@@ -51,9 +58,12 @@ export default function AssessmentReportsPage() {
 
     });
 
+
     router.push(href);
 
   };
+
+*/
 
   return (
     <main style={pageStyle}>
@@ -82,17 +92,16 @@ export default function AssessmentReportsPage() {
             </p>
           </div>
 
-          <button
-            style={primaryButtonStyle}
-            onClick={() =>
-  void handleContextSelection(
-    ANALYTICS_CONTEXTS.FAMILY,
-    "/reports/assessment/family"
-  )
-}
-          >
-            Open
-          </button>
+<button
+  style={primaryButtonStyle}
+  onClick={() =>
+    router.push(
+      "/reports/assessment/family"
+    )
+  }
+>
+  Open
+</button>
         </div>
 
         {/* Self Assessments */}
@@ -113,17 +122,16 @@ export default function AssessmentReportsPage() {
             </p>
           </div>
 
-          <button
-            style={primaryButtonStyle}
-            onClick={() =>
-  void handleContextSelection(
-    ANALYTICS_CONTEXTS.SELF,
-    "/reports/assessment/self"
-  )
-}
-          >
-            Open
-          </button>
+<button
+  style={primaryButtonStyle}
+  onClick={() =>
+    router.push(
+      "/reports/assessment/self"
+    )
+  }
+>
+  Open
+</button>
         </div>
 
 <ReportNavigation

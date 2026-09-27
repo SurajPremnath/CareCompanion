@@ -43,6 +43,7 @@ import {
   selfTrendPdfGenerator,
 } from "@/lib/trends/selfTrendPdfGenerator";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -52,6 +53,7 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
+*/
 
 export default function ClinicalTrendResultsPage() {
 
@@ -132,6 +134,7 @@ const result =
     historyResult.data ?? []
   );
 
+/*
 void analyticsService.track({
 
   module:
@@ -175,6 +178,7 @@ void analyticsService.track({
   },
 
 });
+*/
 
 setTrendResult(result);
 
@@ -560,6 +564,7 @@ trendRequest?.period === 1
 
   }
 
+/*
   void analyticsService.track({
 
     module:
@@ -585,6 +590,7 @@ trendRequest?.period === 1
     },
 
   });
+*/
 
   try {
 
@@ -644,6 +650,7 @@ trendRequest?.period === 1
       report
     );
 
+/*
     void analyticsService.track({
 
       module:
@@ -669,10 +676,12 @@ trendRequest?.period === 1
       },
 
     });
+*/
 
   }
   catch (error) {
 
+/*
     void analyticsService.track({
 
       module:
@@ -703,6 +712,14 @@ trendRequest?.period === 1
       },
 
     });
+*/
+  console.error(
+    "CLINICAL TRENDS Download failed:",
+    error instanceof Error
+      ? error.message
+      : error
+  );
+
 
   }
 

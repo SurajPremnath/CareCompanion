@@ -8,6 +8,7 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+/*
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
@@ -17,6 +18,7 @@ import {
   ANALYTICS_EVENTS,
   ANALYTICS_CONTEXTS,
 } from "@/lib/analytics/analyticsEvents";
+*/
 
 export default function FamilyPage4() {
   const router = useRouter();
@@ -84,6 +86,7 @@ export default function FamilyPage4() {
       waterGlasses
     );
 
+/*
 void analyticsService
   .track({
 
@@ -107,6 +110,7 @@ void analyticsService
   .catch(() => {
     // Analytics must not block assessment navigation
   });
+*/
 
 router.push(
   "/family/page5"

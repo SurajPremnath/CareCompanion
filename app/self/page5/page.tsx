@@ -8,6 +8,7 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+/*
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
@@ -17,6 +18,7 @@ import {
   ANALYTICS_EVENTS,
   ANALYTICS_CONTEXTS,
 } from "@/lib/analytics/analyticsEvents";
+*/
 
 export default function Page5() {
   const router = useRouter();
@@ -75,6 +77,7 @@ const {
     localStorage.setItem("looseMotions", looseMotions);
     localStorage.setItem("looseMotionType", looseMotionType);
 
+/*
 void analyticsService
   .track({
 
@@ -98,6 +101,7 @@ void analyticsService
   .catch(() => {
     // Analytics must not block report navigation
   });
+*/
 
 router.push(
   "/report"

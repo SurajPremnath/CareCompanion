@@ -516,7 +516,7 @@ try {
         </button>
 
         <div style={footerStyle}>
-          Created by Suraj Premnath
+          Created by Linearise AI Labs
         </div>
 
       </div>

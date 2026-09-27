@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 
 import AppHeader from "@/app/components/AppHeader";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -13,6 +14,7 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
+*/
 
 export default function DailyCareReportSelectorPage() {
 
@@ -22,6 +24,7 @@ export default function DailyCareReportSelectorPage() {
   // Daily Care Report Context Selection
   //------------------------------------------------------------
 
+/*
   const handleContextSelection = (
   context:
     | typeof ANALYTICS_CONTEXTS.SELF
@@ -60,6 +63,8 @@ export default function DailyCareReportSelectorPage() {
   );
 
 };
+*/
+
 
   const cardStyle: React.CSSProperties = {
     border: "1px solid #e5e7eb",
@@ -108,9 +113,8 @@ export default function DailyCareReportSelectorPage() {
 
           <div
             style={cardStyle}
-            onClick={() =>
-  void handleContextSelection(
-    ANALYTICS_CONTEXTS.SELF,
+onClick={() =>
+  router.push(
     "/reports/daily-care/self"
   )
 }
@@ -153,9 +157,8 @@ export default function DailyCareReportSelectorPage() {
 
           <div
             style={cardStyle}
-            onClick={() =>
-  void handleContextSelection(
-    ANALYTICS_CONTEXTS.FAMILY,
+onClick={() =>
+  router.push(
     "/reports/daily-care"
   )
 }

@@ -19,19 +19,19 @@ import {
   markAssessmentSaved,
 } from "@/lib/reportStorage";
 
-import {
-  analyticsService,
-} from "@/lib/analytics/analyticsService";
+// import {
+//   analyticsService,
+// } from "@/lib/analytics/analyticsService";
 
-import {
-  ANALYTICS_MODULES,
-  ANALYTICS_EVENTS,
-  ANALYTICS_CONTEXTS,
-} from "@/lib/analytics/analyticsEvents";
+// import {
+//   ANALYTICS_MODULES,
+//   ANALYTICS_EVENTS,
+//   ANALYTICS_CONTEXTS,
+// } from "@/lib/analytics/analyticsEvents";
 
-import {
-  performanceTracker,
-} from "@/lib/performance/performanceTracker";
+// import {
+//   performanceTracker,
+// } from "@/lib/performance/performanceTracker";
 
 type Row = {
   label: string;
@@ -792,6 +792,8 @@ if (!result.success) {
 
   markAssessmentSaved();
 
+/*
+
   await analyticsService.track({
 
     module:
@@ -850,6 +852,8 @@ if (!result.success) {
 
   });
 
+*/
+
 })();
 
     setSummaryRows(reportSummary);
@@ -865,6 +869,7 @@ const handleDownloadReport = async () => {
     return;
   }
 
+/*
   await analyticsService.track({
 
     module:
@@ -882,6 +887,7 @@ const handleDownloadReport = async () => {
       "/report",
 
   });
+*/
 
   try {
 
@@ -890,6 +896,7 @@ const handleDownloadReport = async () => {
       patientName
     );
 
+/*
     await analyticsService.track({
 
       module:
@@ -907,6 +914,7 @@ const handleDownloadReport = async () => {
         "/report",
 
     });
+*/
 
   } catch (error) {
 
@@ -914,6 +922,8 @@ const handleDownloadReport = async () => {
       "Assessment PDF download failed:",
       error
     );
+
+/*
 
     await analyticsService.track({
 
@@ -932,6 +942,7 @@ const handleDownloadReport = async () => {
         "/report",
 
     });
+*/
 
   }
 
@@ -939,6 +950,7 @@ const handleDownloadReport = async () => {
 
 const handleNewAssessment = () => {
 
+/*
   performanceTracker.start({
 
     fromPath:
@@ -980,6 +992,7 @@ const handleNewAssessment = () => {
     .catch(() => {
       // Analytics must not block dashboard navigation
     });
+*/
 
   router.push(
     "/dashboard"
@@ -1207,7 +1220,7 @@ const handleNewAssessment = () => {
   }}
 >
   <p>
-    Created by <strong>Suraj Premnath</strong>
+    Created by <strong>Linearise AI Labs</strong>
   </p>
 
   <p>

@@ -8,6 +8,7 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+/*
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
@@ -21,6 +22,7 @@ import {
 import {
   performanceTracker,
 } from "@/lib/performance/performanceTracker";
+*/
 
 export default function SelfPage2() {
   const router = useRouter();
@@ -47,6 +49,7 @@ useEffect(() => {
 
 const handleBackToDashboard = () => {
 
+/*
   performanceTracker.start({
 
     fromPath:
@@ -62,6 +65,7 @@ const handleBackToDashboard = () => {
       "SELF",
 
   });
+*/
 
   router.push(
     "/dashboard"
@@ -113,6 +117,7 @@ const handleBackToDashboard = () => {
     localStorage.setItem("energy", energy);
 
 
+/*
 void analyticsService
   .track({
 
@@ -136,6 +141,7 @@ void analyticsService
   .catch(() => {
     // Analytics must not block assessment navigation
   });
+*/
 
 router.push(
   "/self/page3"

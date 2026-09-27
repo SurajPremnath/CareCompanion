@@ -66,7 +66,7 @@ export default function HomePage() {
             color: "#111827",
           }}
         >
-          Created by Suraj Premnath
+          Created by Linearise AI Labs
         </h2>
 
         {/* CARD */}
@@ -145,7 +145,7 @@ export default function HomePage() {
             marginTop: "10px",
           }}
         >
-          © 2026 Suraj Premnath • v1.0.1
+          © 2026 Linearise AI Labs• v1.0.1
         </div>
       </div>
     </main>

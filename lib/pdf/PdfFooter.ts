@@ -108,7 +108,7 @@ PdfDrawing.text(page, {
 
 PdfDrawing.text(page, {
 
-    text: "Designed & Developed by Suraj Premnath",
+    text: "Designed & Developed by Linearise AI Labs",
 
     x: 210,
 

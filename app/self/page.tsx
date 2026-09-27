@@ -12,6 +12,7 @@ import {
   clearAssessmentData,
 } from "@/lib/assessmentStorage";
 
+/*
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
@@ -21,6 +22,7 @@ import {
   ANALYTICS_EVENTS,
   ANALYTICS_CONTEXTS,
 } from "@/lib/analytics/analyticsEvents";
+*/
 
 export default function SelfPage() {
   const router = useRouter();
@@ -40,6 +42,7 @@ const {
 
     clearAssessmentData();
 
+/*
 await analyticsService.track({
 
   module:
@@ -55,7 +58,7 @@ await analyticsService.track({
     "/self",
 
 });
-
+*/
 
     localStorage.setItem("patientName", name);
     localStorage.setItem("patientAge", age);

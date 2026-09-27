@@ -15,6 +15,7 @@ import {
 
 import ReportNavigation from "@/app/components/common/ReportNavigation";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -24,6 +25,7 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
+*/
 
 export default function DailyCareHistoryPage() {
   const router = useRouter();
@@ -91,6 +93,7 @@ const loadHistory = async (
     const records =
       result.data ?? [];
 
+/*
     void analyticsService
       .track({
 
@@ -125,6 +128,7 @@ const loadHistory = async (
       .catch(() => {
         // Analytics must not delay history display
       });
+*/
 
     setHistory(
       records
@@ -265,6 +269,7 @@ const handlePatientChange = (
     patientId
   );
 
+/*
   void analyticsService
     .track({
 
@@ -296,6 +301,7 @@ const handlePatientChange = (
     .catch(() => {
       // Analytics must not delay patient change
     });
+*/
 
   void loadHistory(
     patientId

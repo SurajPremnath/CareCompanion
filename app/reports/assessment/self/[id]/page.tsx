@@ -16,6 +16,7 @@ import type {
 
 import AppHeader from "@/app/components/AppHeader";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -25,6 +26,7 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
+*/
 
 export default function SelfAssessmentDetailPage() {
 
@@ -85,6 +87,7 @@ export default function SelfAssessmentDetailPage() {
 
         if (loadedAssessment) {
 
+/*
           void analyticsService.track({
 
             module:
@@ -113,7 +116,7 @@ export default function SelfAssessmentDetailPage() {
             },
 
           });
-
+*/
         }
 
 const profile =

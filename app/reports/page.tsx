@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import AppHeader from "@/app/components/AppHeader";
 
+/*
 import {
   ANALYTICS_EVENTS,
   ANALYTICS_MODULES,
@@ -18,16 +19,21 @@ import {
   performanceTracker,
 } from "@/lib/performance/performanceTracker";
 
+*/
+
 export default function ReportsPage() {
   const router = useRouter();
 
+/*
   const openedTrackedRef =
     useRef(false);
+*/
 
   //------------------------------------------------------------
   // Track Reports Landing Page Open
   //------------------------------------------------------------
 
+/*
   useEffect(() => {
 
     if (openedTrackedRef.current) {
@@ -71,6 +77,8 @@ void analyticsService
 
   }, []);
 
+*/
+
   //------------------------------------------------------------
   // Report Category Navigation
   //------------------------------------------------------------
@@ -80,6 +88,7 @@ void analyticsService
     href: string
   ) => {
 
+/*
     await analyticsService.track({
 
       module:
@@ -98,6 +107,7 @@ void analyticsService
       },
 
     });
+*/
 
     router.push(href);
 
@@ -109,6 +119,7 @@ void analyticsService
 
 const handleBackToDashboard = () => {
 
+/*
   performanceTracker.start({
 
     fromPath:
@@ -139,6 +150,7 @@ const handleBackToDashboard = () => {
     .catch(() => {
       // Analytics must not block dashboard navigation
     });
+*/
 
   router.push(
     "/dashboard"

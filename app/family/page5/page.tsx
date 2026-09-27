@@ -12,6 +12,7 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+/*
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
@@ -21,6 +22,7 @@ import {
   ANALYTICS_EVENTS,
   ANALYTICS_CONTEXTS,
 } from "@/lib/analytics/analyticsEvents";
+*/
 
 export default function FamilyPage5() {
   const router = useRouter();
@@ -200,6 +202,7 @@ finishProcessingRef.current = true;
       confusion
     );
 
+/*
 void analyticsService
   .track({
 
@@ -223,6 +226,7 @@ void analyticsService
   .catch(() => {
     // Analytics must not block report navigation
   });
+*/
 
 router.push(
   "/report"

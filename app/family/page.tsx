@@ -18,6 +18,7 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+/*
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
@@ -31,6 +32,7 @@ import {
 import {
   performanceTracker,
 } from "@/lib/performance/performanceTracker";
+*/
 
 type UserProfile = {
   id: string;
@@ -66,6 +68,7 @@ const {
 
 const handleBackToDashboard = () => {
 
+/*
   performanceTracker.start({
 
     fromPath:
@@ -81,6 +84,7 @@ const handleBackToDashboard = () => {
       "FAMILY",
 
   });
+*/
 
   router.push(
     "/dashboard"
@@ -287,6 +291,7 @@ if (loadedPatients.length > 0) {
 
 clearAssessmentData();
 
+/*
 void analyticsService
   .track({
 
@@ -313,6 +318,8 @@ void analyticsService
   .catch(() => {
     // Analytics must not block assessment navigation
   });
+
+*/
 
 localStorage.setItem(
   "assessmentType",

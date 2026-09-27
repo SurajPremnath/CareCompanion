@@ -87,7 +87,7 @@ for (let i = 1; i <= totalPages; i++) {
   pdf.setTextColor(120);
 
   pdf.text(
-    "Created by Suraj Premnath",
+    "Created by Linearise AI Labs",
     105,
     287,
     { align: "center" }

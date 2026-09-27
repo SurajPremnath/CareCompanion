@@ -6,6 +6,7 @@ import AppHeader from "@/app/components/AppHeader";
 
 import ReportNavigation from "@/app/components/common/ReportNavigation";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -15,6 +16,7 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
+*/
 
 export default function TrendSelectorPage() {
 
@@ -24,6 +26,7 @@ export default function TrendSelectorPage() {
   // Clinical Trends Context Selection
   //------------------------------------------------------------
 
+/*
   const handleContextSelection = async (
     context:
       | typeof ANALYTICS_CONTEXTS.SELF
@@ -56,7 +59,7 @@ export default function TrendSelectorPage() {
     router.push(href);
 
   };
-
+*/
   return (
 
     <main
@@ -101,12 +104,9 @@ export default function TrendSelectorPage() {
 
   <button
     style={primaryButton}
-    onClick={() =>
-  void handleContextSelection(
-    ANALYTICS_CONTEXTS.SELF,
-    "/reports/trends/self"
-  )
-}
+  onClick={() =>
+    router.push("/reports/trends/self")
+  }
   >
     Continue →
   </button>
@@ -124,12 +124,9 @@ export default function TrendSelectorPage() {
 
   <button
     style={primaryButton}
-    onClick={() =>
-  void handleContextSelection(
-    ANALYTICS_CONTEXTS.FAMILY,
-    "/reports/trends"
-  )
-}
+  onClick={() =>
+    router.push("/reports/trends")
+  }
   >
     Continue →
   </button>

@@ -31,6 +31,7 @@ from "@/lib/pdf/DailyCarePdfGenerator";
 import type { DailyCarePdfRequest }
 from "@/lib/pdf/PdfModels";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -40,7 +41,7 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
-
+*/
 
 export default function DailyCareReportPage() {
 
@@ -102,6 +103,7 @@ useEffect(() => {
 
 const dailyCare = result.data;
 
+/*
 void analyticsService.track({
 
   module:
@@ -130,6 +132,7 @@ void analyticsService.track({
   },
 
 });
+*/
 
 setRecord(
   dailyCare
@@ -522,6 +525,7 @@ onClick={async () => {
 
   };
 
+/*
   void analyticsService.track({
 
     module:
@@ -547,6 +551,7 @@ onClick={async () => {
     },
 
   });
+*/
 
   try {
 
@@ -558,6 +563,7 @@ onClick={async () => {
 
     );
 
+/*
     void analyticsService.track({
 
       module:
@@ -583,10 +589,12 @@ onClick={async () => {
       },
 
     });
+*/
 
   }
   catch (error) {
 
+/*
     void analyticsService.track({
 
       module:
@@ -617,6 +625,14 @@ onClick={async () => {
       },
 
     });
+*/
+  console.error(
+    "[SELF ID PDF] Download failed:",
+    error instanceof Error
+      ? error.message
+      : error
+  );
+
 
   }
 

@@ -15,6 +15,7 @@ import {
 
 import { authService } from "@/lib/auth/authService";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -24,6 +25,7 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
+*/
 
 //------------------------------------------------------------
 // Patient Storage
@@ -241,6 +243,7 @@ endDate:
   // Track Valid Trend Generation Request
   //----------------------------------------------------------
 
+/*
   void analyticsService.track({
 
     module:
@@ -281,6 +284,7 @@ endDate:
     },
 
   });
+*/
 
   //----------------------------------------------------------
   // Save Trend Request

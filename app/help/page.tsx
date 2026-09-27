@@ -4,15 +4,19 @@ import Link from "next/link";
 
 import HelpCard from "@/Components/help/HelpCard";
 
-import { performanceTracker } from "@/lib/performance/performanceTracker";
+// import { performanceTracker } from "@/lib/performance/performanceTracker";
 
 export default function HelpPage() {
   const handleBackToDashboard = () => {
+
+/*
     performanceTracker.start({
       fromPath: "/help",
       toPath: "/dashboard",
       feature: "HELP_TO_DASHBOARD",
     });
+*/
+
   };
 
   return (

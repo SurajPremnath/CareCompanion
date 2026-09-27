@@ -643,7 +643,7 @@ page.drawText(
   );
 
   page.drawText(
-    "Created by Suraj Premnath",
+    "Created by Linearise AI Labs",
     {
       x: 215,
       y: 18,

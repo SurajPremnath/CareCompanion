@@ -21,6 +21,7 @@ import {
 import { patientStorage } from "@/lib/storage/patientStorage";
 import { Patient } from "@/lib/types/patient";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -30,6 +31,7 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
+*/
 
 export default function ClinicalTrendsPage() {
 
@@ -181,6 +183,7 @@ const handlePatientChange = (
     patientId
   );
 
+/*
   void analyticsService.track({
 
     module:
@@ -208,6 +211,7 @@ const handlePatientChange = (
     },
 
   });
+*/
 
 };
 
@@ -302,6 +306,7 @@ endDate:
   // Track Valid Trend Generation Request
   //----------------------------------------------------------
 
+/*
   void analyticsService.track({
 
     module:
@@ -345,6 +350,7 @@ endDate:
     },
 
   });
+*/
 
   //----------------------------------------------------------
   // Save Trend Request

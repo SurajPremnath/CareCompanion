@@ -8,6 +8,7 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+/*
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
@@ -17,6 +18,7 @@ import {
   ANALYTICS_EVENTS,
   ANALYTICS_CONTEXTS,
 } from "@/lib/analytics/analyticsEvents";
+*/
 
 export default function Page4() {
   const router = useRouter();
@@ -94,6 +96,7 @@ const discomfortAreaOptions = [
     localStorage.setItem("discomfortAreas", JSON.stringify(discomfortAreas));
     localStorage.setItem("otherDiscomfort", otherDiscomfort);
 
+/*
 void analyticsService
   .track({
 
@@ -117,6 +120,7 @@ void analyticsService
   .catch(() => {
     // Analytics must not block assessment navigation
   });
+*/
 
 router.push(
   "/self/page5"

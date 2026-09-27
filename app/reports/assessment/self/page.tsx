@@ -20,6 +20,7 @@ import ReportTable, {
   ReportTableColumn,
 } from "@/app/components/ReportTable";
 
+/*
 import {
   ANALYTICS_CONTEXTS,
   ANALYTICS_EVENTS,
@@ -29,6 +30,7 @@ import {
 import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
+*/
 
 export default function SelfAssessmentHistoryPage() {
 
@@ -87,6 +89,7 @@ const [profile, setProfile] =
               "SELF"
           );
 
+/*
         void analyticsService.track({
 
           module:
@@ -115,6 +118,8 @@ const [profile, setProfile] =
           },
 
         });
+*/
+
 
 const currentProfile =
   await profileRepository.getCurrentProfile();

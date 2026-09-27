@@ -161,7 +161,7 @@ className={`
                     </div>
 
                     <div className="mt-2 text-lg font-bold text-blue-700">
-                        Suraj Premnath
+                        Linearise AI Labs
                     </div>
 
                 </div>
