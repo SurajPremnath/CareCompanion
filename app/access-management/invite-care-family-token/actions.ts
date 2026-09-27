@@ -43,6 +43,10 @@ export async function sendInvitationEmail(
     const serverSupabase =
         await createSupabaseServerClient();
 
+// Authentication is resolved by invitationValidation.validate().
+// Reuse validation.userId downstream instead of querying auth again.
+
+/*
 const authStartedAt =
     performance.now();
 
@@ -69,6 +73,7 @@ console.log(
             "Authentication is required to send an invitation email."
         );
     }
+*/
 
     const email =
         input.email
@@ -295,10 +300,17 @@ if (
 const provisioningStartedAt =
     performance.now();
 
+/*
 await productInvitationProvisioning
     .provisionAccepted(
         email,
         user.id
+    );
+*/
+await productInvitationProvisioning
+    .provisionAccepted(
+        email,
+        validation.userId
     );
 
 console.log(
