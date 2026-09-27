@@ -1694,10 +1694,6 @@ return (
           display: none;
         }
 
-        .login-method-content[data-login-method="GOOGLE"]
-          .divider {
-          display: none;
-        }
 
 .login-method-content[data-login-method="GOOGLE"]
   .login-google-panel {
@@ -1736,37 +1732,6 @@ return (
         .google-icon {
           width: 17px;
           height: 17px;
-        }
-
-
-        /* =====================================================
-           DIVIDER
-        ===================================================== */
-
-        .divider {
-          display: flex;
-
-          align-items: center;
-
-          width: 100%;
-
-          gap: 7px;
-
-          margin: 6px 0;
-        }
-
-        .divider-line {
-          flex: 1;
-
-          height: 1px;
-
-          background: rgba(229, 230, 236, 0.65);
-        }
-
-        .divider-text {
-          color: #a1a6b3;
-
-          font-size: 9.5px;
         }
 
 
@@ -1993,23 +1958,25 @@ return (
      LOGIN METHOD CONTENT
      --------------------------------------------------------- */
 
-  .login-method-content[data-login-method="EMAIL"]
-    .login-google-panel,
-  .login-method-content[data-login-method="EMAIL"]
-    .divider {
-    display: none !important;
-  }
+.login-method-content[data-login-method="EMAIL"]
+  .login-google-panel,
+.login-method-content[data-login-method="EMAIL"]
+  .divider {
+  display: none !important;
+}
 
-  .login-method-content[data-login-method="GOOGLE"]
-    .login-email-panel {
-    display: none !important;
-  }
+.login-method-content[data-login-method="GOOGLE"]
+  .login-email-panel,
+.login-method-content[data-login-method="GOOGLE"]
+  .divider {
+  display: none !important;
+}
 
-  .login-method-content[data-login-method="GOOGLE"]
-    .login-google-panel {
-    display: block !important;
-    transform: translateY(5px);
-  }
+.login-method-content[data-login-method="GOOGLE"]
+  .login-google-panel {
+  display: block !important;
+  transform: translateY(5px);
+}
 
   /* ---------------------------------------------------------
      DESKTOP PAGE
@@ -2542,21 +2509,6 @@ return (
 
   </div>
 
-</div>
-
-<div className="register login-register-desktop">
-  <span className="registerPrompt">New to CareVR?  </span>{" "}
-  <button
-    type="button"
-    onClick={() => {
-      inviteeToPrimaryHandoff.clear();
-
-      router.replace("/register");
-    }}
-    disabled={loading}
-  >
-    Create an account
-  </button>
 </div>
 
 
