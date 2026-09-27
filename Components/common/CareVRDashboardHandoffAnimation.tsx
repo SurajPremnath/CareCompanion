@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useRef,
+    useState,
+} from "react"
 
 type AnimationStage =
     | "preparing"
@@ -494,56 +498,76 @@ export default function CareVRDashboardHandoffAnimation({
     onComplete,
     readyToContinue,
 }: CareVRDashboardHandoffAnimationProps) {
+
     const [activeStage, setActiveStage] =
         useState<AnimationStage>("preparing");
 
-    useEffect(() => {
-        let cancelled = false;
+    const readyToContinueRef =
+        useRef(readyToContinue);
 
-        const runAnimation = async () => {
-            for (const stage of stages) {
-                if (cancelled) {
-                    return;
-                }
+    const onCompleteRef =
+        useRef(onComplete);
 
-                setActiveStage(stage.key);
+    readyToContinueRef.current =
+        readyToContinue;
 
-                await new Promise<void>((resolve) => {
-                    window.setTimeout(resolve, 850);
-                });
+    onCompleteRef.current =
+        onComplete;
+
+useEffect(() => {
+
+    let cancelled = false;
+
+    const runAnimation = async () => {
+
+        for (const stage of stages) {
+
+            if (cancelled) {
+                return;
             }
 
-            /*
-             * The visual animation has completed.
-             *
-             * Navigation remains blocked until the parent
-             * confirms that the existing CareVR security /
-             * authorization / dashboard handoff work has
-             * completed successfully.
-             */
-            while (
-                !readyToContinue &&
-                !cancelled
-            ) {
-                await new Promise<void>((resolve) => {
-                    window.setTimeout(resolve, 50);
-                });
-            }
+            setActiveStage(stage.key);
 
-            if (!cancelled) {
-                onComplete();
-            }
-        };
+            await new Promise<void>((resolve) => {
+                window.setTimeout(
+                    resolve,
+                    850
+                );
+            });
+        }
 
-        void runAnimation();
+        /*
+         * Animation has completed.
+         *
+         * Wait only for the existing CareVR
+         * security / authorization / dashboard
+         * handoff process to become ready.
+         */
+        while (
+            !readyToContinueRef.current &&
+            !cancelled
+        ) {
 
-        return () => {
-            cancelled = true;
-        };
-    }, [
-        onComplete,
-        readyToContinue,
-    ]);
+            await new Promise<void>((resolve) => {
+                window.setTimeout(
+                    resolve,
+                    50
+                );
+            });
+        }
+
+        if (!cancelled) {
+            onCompleteRef.current();
+        }
+    };
+
+    void runAnimation();
+
+    return () => {
+        cancelled = true;
+    };
+
+}, []);
 
     const stage =
         stages.find(
