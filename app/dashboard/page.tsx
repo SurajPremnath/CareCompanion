@@ -2065,6 +2065,11 @@ headerAccessory={<LanguageSelector />}
 
     onCareVRJourneyClick={() => {
 
+    if (!user.isFounder) {
+        alert("Coming Soon...");
+        return;
+    }
+
         performanceTracker.start({
 
             fromPath: "/dashboard",
