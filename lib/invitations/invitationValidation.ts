@@ -252,63 +252,73 @@ return {
 };
     });
 
-    // ----------------------------------------------------------
-    // 9. Check existing invitations for:
-    //
-    // Family + invitee email + role
-    // ----------------------------------------------------------
+// ----------------------------------------------------------
+// 9. Check existing invitations for:
+//
+// Family + invitee email + role
+//
+// Only the latest invitation is required.
+// ----------------------------------------------------------
 
 const { data: latestInvitation, error: invitationError } =
-    await client
-        .from("carevr_invitation")
-        .select(
-            "id, invitation_attempt_number, status, created_at, sent_at, expires_at"
-        )
-        .eq("family_id", familyId)
-        .eq("invited_email", email)
-        .eq("role", input.role)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+  await client
+    .from("carevr_invitation")
+    .select(
+      "id, invitation_attempt_number, status, created_at, expires_at"
+    )
+    .eq("family_id", familyId)
+    .eq("invited_email", email)
+    .eq("role", input.role)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
 if (invitationError) {
-    throw invitationError;
+  throw invitationError;
 }
 
+// ----------------------------------------------------------
+// 10. Evaluate latest invitation.
+// ----------------------------------------------------------
 
-    // ----------------------------------------------------------
-    // 10. Evaluate latest invitation.
-    // ----------------------------------------------------------
+if (latestInvitation) {
 
-    if (latestInvitation) {
+  const now =
+    new Date();
 
-      const now = new Date();
-      const expiresAt = new Date(latestInvitation.expires_at);
+  const expiresAt =
+    new Date(
+      latestInvitation.expires_at
+    );
 
-      if (
-        latestInvitation.status === "PENDING" &&
-        expiresAt > now
-      ) {
-        return {
-          success: false,
-          code: "INVITATION_ALREADY_ACTIVE",
-          message:
-            `An invitation for this person and role is already active. ` +
-            `The existing invitation was created on ${new Date(
-              latestInvitation.created_at
-            ).toLocaleString()}.`
-        };
-      }
+  if (
+    latestInvitation.status === "ACCEPTED"
+  ) {
+    return {
+      success: false,
+      code:
+        "INVITATION_ALREADY_ACCEPTED",
+      message:
+        "This person has already accepted an invitation for this role."
+    };
+  }
 
-      if (latestInvitation.status === "ACCEPTED") {
-        return {
-          success: false,
-          code: "INVITATION_ALREADY_ACCEPTED",
-          message:
-            "This person has already accepted an invitation for this role."
-        };
-      }
-    }
+  if (
+    latestInvitation.status === "PENDING" &&
+    expiresAt > now
+  ) {
+    return {
+      success: false,
+      code:
+        "INVITATION_ALREADY_ACTIVE",
+      message:
+        `An invitation for this person and role is already active. ` +
+        `The existing invitation was created on ${new Date(
+          latestInvitation.created_at
+        ).toLocaleString()}.`
+    };
+  }
+}
 
     // ----------------------------------------------------------
     // 11. Determine next invitation attempt number.
