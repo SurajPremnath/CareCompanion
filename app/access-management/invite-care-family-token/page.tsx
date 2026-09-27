@@ -3566,6 +3566,11 @@ setInvitationTokenCopied(false);
 }
 
 
+.copy-email-template-button:disabled {
+    cursor: default;
+    opacity: 0.65;
+}
+
 .copy-email-template-button small {
     font-size: 10px;
     line-height: 1.3;
