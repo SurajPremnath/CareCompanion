@@ -57,6 +57,9 @@ const accessToken =
     );
 
 
+const authCheckStartedAt =
+    performance.now();
+
 const {
     data: {
         user,
@@ -66,6 +69,15 @@ const {
     await supabaseAdmin.auth.getUser(
         accessToken
     );
+
+console.log(
+    "[INVITATION-PERF] auth.getUser:",
+    Math.round(
+        performance.now() -
+        authCheckStartedAt
+    ),
+    "ms"
+);
 
 
 if (
@@ -127,6 +139,9 @@ if (
 const now =
     new Date().toISOString();
 
+const existingCheckStartedAt =
+    performance.now();
+
 const {
     data: existingInvitation,
     error: existingInvitationError,
@@ -155,6 +170,15 @@ const {
         )
         .limit(1)
         .maybeSingle();
+
+console.log(
+    "[INVITATION-PERF] existing invitation check:",
+    Math.round(
+        performance.now() -
+        existingCheckStartedAt
+    ),
+    "ms"
+);
 
 
 if (existingInvitationError) {
@@ -212,6 +236,9 @@ const expiresAt =
 // Create the Product Invitation.
 //--------------------------------------------------
 
+const invitationInsertStartedAt =
+    performance.now();
+
 const {
     data: invitation,
     error: invitationError,
@@ -236,6 +263,15 @@ const {
         )
         .single();
 
+console.log(
+    "[INVITATION-PERF] invitation insert:",
+    Math.round(
+        performance.now() -
+        invitationInsertStartedAt
+    ),
+    "ms"
+);
+
 
         if (
             invitationError ||
@@ -254,23 +290,35 @@ const {
         // Store only the token hash.
         //--------------------------------------------------
 
-        const {
-            error: tokenError,
-        } =
-            await supabaseAdmin
-                .from(
-                    "carevr_product_invitation_tokens"
-                )
-                .insert({
-                    product_invitation_id:
-                        invitation.id,
-                    token_hash:
-                        tokenHash,
-                    status:
-                        "PENDING",
-                    expires_at:
-                        expiresAt,
-                });
+const tokenInsertStartedAt =
+    performance.now();
+
+const {
+    error: tokenError,
+} =
+    await supabaseAdmin
+        .from(
+            "carevr_product_invitation_tokens"
+        )
+        .insert({
+            product_invitation_id:
+                invitation.id,
+            token_hash:
+                tokenHash,
+            status:
+                "PENDING",
+            expires_at:
+                expiresAt,
+        });
+
+console.log(
+    "[INVITATION-PERF] token insert:",
+    Math.round(
+        performance.now() -
+        tokenInsertStartedAt
+    ),
+    "ms"
+);
 
 
         if (tokenError) {
