@@ -1196,9 +1196,9 @@ return (
 .login-content {
   position: absolute;
 
-top: calc(28%);
-  left: 6%;
-  right: 6%;
+  top: calc(28%);
+  left: 3%;
+  right: 3%;
 
   width: auto;
   max-width: none;
