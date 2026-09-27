@@ -160,14 +160,27 @@ if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     const familyId = membership.family_id;
 
     // ----------------------------------------------------------
-    // 6. Resolve the active Care Family governance policy.
+    // 6. Resolve the active Care Family governance policy
+    //    and its permitted modules in one database query.
     // ----------------------------------------------------------
 
     const { data: governance, error: governanceError } = await client
       .from("carevr_access_governance")
-      .select("id, version")
+      .select(`
+        id,
+        version,
+        modules:carevr_access_governance_modules!inner(
+          id,
+          module,
+          permission,
+          role,
+          status
+        )
+      `)
       .eq("access_type", "CARE_FAMILY")
       .lte("effective_at", new Date().toISOString())
+      .eq("modules.role", input.role)
+      .eq("modules.status", "ACTIVE")
       .order("effective_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -185,25 +198,21 @@ if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     }
 
     // ----------------------------------------------------------
-    // 7. Get permitted modules for the selected role.
+    // 7. Resolve permitted modules from the governance result.
     // ----------------------------------------------------------
 
-    const { data: governanceModules, error: modulesError } = await client
-      .from("carevr_access_governance_modules")
-      .select("id, module, permission")
-      .eq("carevr_access_governance_id", governance.id)
-      .eq("role", input.role)
-      .eq("status", "ACTIVE");
+    const governanceModules =
+      governance.modules;
 
-    if (modulesError) {
-      throw modulesError;
-    }
-
-    if (!governanceModules || governanceModules.length === 0) {
+    if (
+      !governanceModules ||
+      governanceModules.length === 0
+    ) {
       return {
         success: false,
         code: "ROLE_GOVERNANCE_NOT_FOUND",
-        message: "No active governance configuration exists for the selected role."
+        message:
+          "No active governance configuration exists for the selected role."
       };
     }
 
