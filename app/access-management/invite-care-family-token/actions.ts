@@ -140,11 +140,23 @@ export async function createTokenInvitation(
         );
     }
 
-    const validationResult =
-        await invitationValidation.validate(
-            input,
-            serverSupabase
-        );
+const validationStartedAt =
+    performance.now();
+
+const validationResult =
+    await invitationValidation.validate(
+        input,
+        serverSupabase
+    );
+
+console.log(
+    "[INVITE-PERF] invitationValidation:",
+    Math.round(
+        performance.now() -
+        validationStartedAt
+    ),
+    "ms"
+);
 
 if (
     !validationResult.success ||
@@ -178,46 +190,58 @@ if (
             .trim()
             .toLowerCase();
 
-    const {
-        data,
-        error
-    } =
-        await serverSupabase.rpc(
-            "create_carevr_invitation",
-            {
-                p_invited_email:
-                    email,
+const rpcStartedAt =
+    performance.now();
 
-                p_role:
-                    input.role,
+const {
+    data,
+    error
+} =
+    await serverSupabase.rpc(
+        "create_carevr_invitation",
+        {
+            p_invited_email:
+                email,
 
-                p_governance_id:
-                    validation.governanceId,
+            p_role:
+                input.role,
 
-                p_token_hash:
-                    tokenResult.tokenHash,
+            p_governance_id:
+                validation.governanceId,
 
-                p_expires_at:
-                    invitationExpiresAt,
+            p_token_hash:
+                tokenResult.tokenHash,
 
-                p_modules:
-                    validation.permittedModules.map(
-                        (module) => ({
-                            id:
-                                module.id,
+            p_expires_at:
+                invitationExpiresAt,
 
-                            module:
-                                module.module,
+            p_modules:
+                validation.permittedModules.map(
+                    (module) => ({
+                        id:
+                            module.id,
 
-                            requestedPermission:
-                                module.requestedPermission,
+                        module:
+                            module.module,
 
-                            permittedPermission:
-                                module.permittedPermission
-                        })
-                    )
-            }
-        );
+                        requestedPermission:
+                            module.requestedPermission,
+
+                        permittedPermission:
+                            module.permittedPermission
+                    })
+                )
+        }
+    );
+
+console.log(
+    "[INVITE-PERF] create_carevr_invitation:",
+    Math.round(
+        performance.now() -
+        rpcStartedAt
+    ),
+    "ms"
+);
 
     if (error) {
 
@@ -255,11 +279,23 @@ if (
         );
     }
 
-    await productInvitationProvisioning
-        .provisionAccepted(
-            email,
-            user.id
-        );
+const provisioningStartedAt =
+    performance.now();
+
+await productInvitationProvisioning
+    .provisionAccepted(
+        email,
+        user.id
+    );
+
+console.log(
+    "[INVITE-PERF] provisionAccepted:",
+    Math.round(
+        performance.now() -
+        provisioningStartedAt
+    ),
+    "ms"
+);
 
     return {
         success: true,
