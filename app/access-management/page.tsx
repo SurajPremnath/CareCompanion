@@ -384,82 +384,85 @@ setUser({
 
                     <div className="access-management-options">
 
-                        <button
-                            type="button"
-                            className="access-management-option access-management-option-blue"
-                            onClick={() =>
-                                router.push(
-                                    "/access-management/manage-access"
-                                )
-                            }
-                        >
+                        {user.isFounder && (
+                            <button
+                                type="button"
+                                className="access-management-option access-management-option-blue"
+                                onClick={() =>
+                                    router.push(
+                                        "/access-management/manage-access"
+                                    )
+                                }
+                            >
 
-                            <span className="access-management-option-icon">
+                                <span className="access-management-option-icon">
 
-                                <svg
-                                    width="34"
-                                    height="34"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    aria-hidden="true"
-                                >
-                                    <circle
-                                        cx="9"
-                                        cy="8"
-                                        r="3"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                    />
+                                    <svg
+                                        width="34"
+                                        height="34"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        aria-hidden="true"
+                                    >
+                                        <circle
+                                            cx="9"
+                                            cy="8"
+                                            r="3"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                        />
 
-                                    <path
-                                        d="M3.5 19C4.2 15.8 6.1 14 9 14C11.9 14 13.8 15.8 14.5 19"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                        strokeLinecap="round"
-                                    />
+                                        <path
+                                            d="M3.5 19C4.2 15.8 6.1 14 9 14C11.9 14 13.8 15.8 14.5 19"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                        />
 
-                                    <circle
-                                        cx="17"
-                                        cy="9"
-                                        r="2.5"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                    />
+                                        <circle
+                                            cx="17"
+                                            cy="9"
+                                            r="2.5"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                        />
 
-                                    <path
-                                        d="M15.2 14.5C17.8 14.7 19.5 16.1 20.5 18.5"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                        strokeLinecap="round"
-                                    />
-                                </svg>
+                                        <path
+                                            d="M15.2 14.5C17.8 14.7 19.5 16.1 20.5 18.5"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                        />
 
-                            </span>
+                                    </svg>
 
-
-                            <span className="access-management-option-copy">
-
-                                <strong>
-                                    Manage Access
-                                </strong>
-
-                                <span>
-                                    Add or revoke CareVR access
-                                    for existing family members,
-                                    caretakers and doctors.
                                 </span>
 
-                            </span>
+
+                                <span className="access-management-option-copy">
+
+                                    <strong>
+                                        Manage Access
+                                    </strong>
+
+                                    <span>
+                                        Add or revoke CareVR access
+                                        for existing family members,
+                                        caretakers and doctors.
+                                    </span>
+
+                                </span>
 
 
-                            <span
-                                className="access-management-chevron"
-                                aria-hidden="true"
-                            >
-                                →
-                            </span>
+                                <span
+                                    className="access-management-chevron"
+                                    aria-hidden="true"
+                                >
+                                    →
+                                </span>
 
-                        </button>
+                            </button>
+                        )}
 
 
 {user.isFounder && (
@@ -678,81 +681,84 @@ setUser({
                         </button>
 
 
-                        <button
-                            type="button"
-                            className="access-management-option access-management-option-purple"
-                            onClick={() =>
-                                router.push(
-                                    "/access-management/clinical-monitoring"
-                                )
-                            }
-                        >
+                        {user.isFounder && (
+                            <button
+                                type="button"
+                                className="access-management-option access-management-option-purple"
+                                onClick={() =>
+                                    router.push(
+                                        "/access-management/clinical-monitoring"
+                                    )
+                                }
+                            >
 
-                            <span className="access-management-option-icon">
+                                <span className="access-management-option-icon">
 
-                                <svg
-                                    width="34"
-                                    height="34"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    aria-hidden="true"
-                                >
-                                    <path
-                                        d="M6 4V12C6 15.3 8.7 18 12 18C15.3 18 18 15.3 18 12V4"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                        strokeLinecap="round"
-                                    />
+                                    <svg
+                                        width="34"
+                                        height="34"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M6 4V12C6 15.3 8.7 18 12 18C15.3 18 18 15.3 18 12V4"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                        />
 
-                                    <path
-                                        d="M4 4H8"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                        strokeLinecap="round"
-                                    />
+                                        <path
+                                            d="M4 4H8"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                        />
 
-                                    <path
-                                        d="M16 4H20"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                        strokeLinecap="round"
-                                    />
+                                        <path
+                                            d="M16 4H20"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                        />
 
-                                    <circle
-                                        cx="18.5"
-                                        cy="17.5"
-                                        r="2.5"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                    />
-                                </svg>
+                                        <circle
+                                            cx="18.5"
+                                            cy="17.5"
+                                            r="2.5"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                        />
 
-                            </span>
+                                    </svg>
 
-
-                            <span className="access-management-option-copy">
-
-                                <strong>
-                                    Clinical Monitoring
-                                </strong>
-
-                                <span>
-                                    Configure the vitals and symptoms
-                                    to be monitored for each patient
-                                    based on their doctor's specialist.
                                 </span>
 
-                            </span>
+
+                                <span className="access-management-option-copy">
+
+                                    <strong>
+                                        Clinical Monitoring
+                                    </strong>
+
+                                    <span>
+                                        Configure the vitals and symptoms
+                                        to be monitored for each patient
+                                        based on their doctor's specialist.
+                                    </span>
+
+                                </span>
 
 
-                            <span
-                                className="access-management-chevron"
-                                aria-hidden="true"
-                            >
-                                →
-                            </span>
+                                <span
+                                    className="access-management-chevron"
+                                    aria-hidden="true"
+                                >
+                                    →
+                                </span>
 
-                        </button>
+                            </button>
+                        )}
 
                     </div>
 
