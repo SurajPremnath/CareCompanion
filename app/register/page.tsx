@@ -832,42 +832,19 @@ if (
 
 }
 
-const {
-    error: existingDigitalHealthProfileError,
-} =
-    await supabase
-        .from("digital_health_profile")
-        .update({
-            role_status:
-                "DUAL",
-        })
-        .eq(
-            "user_id",
-            user.id
-        )
-        .eq(
-            "digital_health_flag",
-            true
-        );
-
-if (
-    existingDigitalHealthProfileError
-) {
-
-    throw existingDigitalHealthProfileError;
-
-}
-
-
 /*
- * Create the additional PRIMARY digital health profile.
+ * =========================================================
+ * CREATE THE ADDITIONAL PRIMARY DIGITAL HEALTH PROFILE
+ * =========================================================
  *
- * The existing profile retains its own:
- * - role
- * - family_id
- * - carevr_access_id
+ * The existing invitee profile is not modified yet.
  *
- * Only role_status changes to DUAL.
+ * First create the new PRIMARY/SELF profile using the
+ * carevr_access record that provisionPrimaryAccess()
+ * has already resolved or created.
+ *
+ * Only after this INSERT succeeds do we mark the existing
+ * profile as DUAL.
  */
 
 const {
@@ -904,8 +881,51 @@ const {
 if (
     digitalHealthProfileError
 ) {
+    console.error(
+        "[PRIMARY-PROFILE-INSERT-ERROR]",
+        digitalHealthProfileError
+    );
+
 
     throw digitalHealthProfileError;
+
+}
+
+
+/*
+ * =========================================================
+ * MARK EXISTING PROFILE AS DUAL
+ * =========================================================
+ *
+ * The additional PRIMARY/SELF profile now exists.
+ *
+ * Only now do we update the user's existing digital
+ * health profile so both records represent the DUAL state.
+ */
+
+const {
+    error: existingDigitalHealthProfileError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .update({
+            role_status:
+                "DUAL",
+        })
+        .eq(
+            "user_id",
+            user.id
+        )
+        .eq(
+            "digital_health_flag",
+            true
+        );
+
+if (
+    existingDigitalHealthProfileError
+) {
+
+    throw existingDigitalHealthProfileError;
 
 }
 
