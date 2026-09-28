@@ -365,6 +365,29 @@ async acceptConsent(
 
     }
 
+const {
+    error: digitalHealthProfileError,
+} = await supabase
+    .from("digital_health_profile")
+    .update({
+        carevr_access_id:
+            carevrAccessId,
+
+        role:
+            authorizationHandoff.carevrRole,
+    })
+    .eq(
+        "user_id",
+        userId
+    );
+
+if (digitalHealthProfileError) {
+
+    throw digitalHealthProfileError;
+
+}
+
+
     /*
      * Consent has now been accepted and the CareVR
      * authorization has been successfully provisioned.
