@@ -13,6 +13,8 @@ import {
     authService,
 } from "@/lib/auth/authService";
 
+import { supabase } from "@/lib/supabase";
+
 import MobileHeader, {
     type MobileCareMode,
 } from "@/Components/common/MobileHeader";
@@ -433,56 +435,90 @@ if (
 ) {
 
     /*
-     * Consent is already complete and the login has been
-     * accepted. Start the visual handoff now.
+     * =========================================================
+     * DIGITAL HEALTH PROFILE + CAREVR ACCESS
+     * =========================================================
      *
-     * IMPORTANT:
-     * This does NOT authorize access and does NOT allow
-     * navigation to the dashboard.
+     * digital_health_profile is now the routing source.
      *
-     * The real checks below continue normally while the
-     * animation is displayed.
+     * Each profile already contains carevr_access_id, so the
+     * profile and its corresponding CareVR access are retrieved
+     * together in a single query.
+     *
+     * Result:
+     *
+     *   1 record → SINGLE
+     *   2 records → DUAL
+     *
+     * No getAvailableContexts() call is required.
      */
-    setDashboardHandoffReady(false);
-    setDashboardAnimationComplete(false);
-    setShowDashboardHandoff(true);
-
-
-    const contextStartedAt =
-        performance.now();
 
     const {
-        activeAccessRecords,
-        contexts: availableContexts,
+        data: digitalHealthProfiles,
+        error: digitalHealthProfileError,
     } =
-        await carevrContextResolver
-            .getAvailableContexts(
+        await supabase
+            .from("digital_health_profile")
+            .select(`
+                id,
+                family_id,
+                role_status,
+                role,
+                carevr_access_id,
+                carevr_access:carevr_access_id (
+                    id,
+                    user_id,
+                    family_id,
+                    access_type,
+                    access_status
+                )
+            `)
+            .eq(
+                "user_id",
                 userId
+            )
+            .eq(
+                "digital_health_flag",
+                true
             );
-
-    const contextCompletedAt =
-        performance.now();
-
-    console.log(
-        `[PIN-PERF] getAvailableContexts: ${Math.round(
-            contextCompletedAt -
-            contextStartedAt
-        )} ms`
-    );
 
 
     if (
-        availableContexts.length === 0
+        digitalHealthProfileError
     ) {
-        throw new Error(
-            "No active CareVR profiles are available for this account."
-        );
+
+        throw digitalHealthProfileError;
+
     }
 
 
     if (
-        availableContexts.length > 1
+        !digitalHealthProfiles ||
+        digitalHealthProfiles.length === 0
     ) {
+
+        throw new Error(
+            "CareVR digital health profile could not be found."
+        );
+
+    }
+
+
+    /*
+     * =========================================================
+     * DUAL ROLE
+     * =========================================================
+     *
+     * Two digital health profile records means the user has
+     * two CareVR role/access contexts.
+     *
+     * Profile selection must happen before Dashboard handoff.
+     */
+
+    if (
+        digitalHealthProfiles.length > 1
+    ) {
+
         setShowDashboardHandoff(false);
 
         router.replace(
@@ -490,30 +526,163 @@ if (
         );
 
         return;
+
     }
 
 
-    const selectedContext =
-        availableContexts[0];
+    /*
+     * =========================================================
+     * SINGLE ROLE
+     * =========================================================
+     *
+     * Exactly one digital health profile exists.
+     *
+     * The joined CareVR access record is already available from
+     * the same query.
+     */
 
-    const dashboardRole =
-        selectedContext.loginRole;
+    const digitalHealthProfile =
+        digitalHealthProfiles[0];
 
 
-    const access =
-        activeAccessRecords.find(
-            (record) =>
-                record.id ===
-                selectedContext.accessId
-        );
+    if (
+        digitalHealthProfile.role_status !==
+        "SINGLE"
+    ) {
 
-
-    if (!access) {
         throw new Error(
-            "Selected CareVR access is no longer active."
+            "The CareVR role state could not be determined."
         );
+
     }
 
+
+const dashboardRole =
+    digitalHealthProfile.role;
+
+
+/*
+ * =========================================================
+ * RESOLVE JOINED CAREVR ACCESS
+ * =========================================================
+ */
+
+const joinedAccess =
+    Array.isArray(
+        digitalHealthProfile.carevr_access
+    )
+        ? digitalHealthProfile.carevr_access[0]
+        : digitalHealthProfile.carevr_access;
+
+
+if (
+    !dashboardRole ||
+    !joinedAccess
+) {
+
+    throw new Error(
+        "CareVR access information is incomplete."
+    );
+
+}
+
+
+/*
+ * =========================================================
+ * VERIFY THE JOINED ACCESS RELATIONSHIP
+ * =========================================================
+ */
+
+if (
+    joinedAccess.id !==
+    digitalHealthProfile.carevr_access_id
+) {
+
+    throw new Error(
+        "CareVR access relationship is invalid."
+    );
+
+}
+
+
+if (
+    joinedAccess.user_id !==
+    userId
+) {
+
+    throw new Error(
+        "CareVR access does not belong to the authenticated user."
+    );
+
+}
+
+
+if (
+    joinedAccess.access_status !==
+    "ACTIVE"
+) {
+
+    throw new Error(
+        "Selected CareVR access is no longer active."
+    );
+
+}
+
+
+/*
+ * =========================================================
+ * MAP DATABASE SHAPE TO EXISTING
+ * ACTIVE CAREVR ACCESS SHAPE
+ * =========================================================
+ */
+
+const access = {
+
+    id:
+        joinedAccess.id,
+
+    userId:
+        joinedAccess.user_id,
+
+    familyId:
+        joinedAccess.family_id,
+
+    patientId:
+        null,
+
+    accessType:
+        joinedAccess.access_type,
+
+    accessStatus:
+        joinedAccess.access_status,
+
+};
+
+
+    /*
+     * =========================================================
+     * SINGLE ROLE — START DASHBOARD HANDOFF ANIMATION
+     * =========================================================
+     *
+     * The animation starts before the existing dashboard
+     * authorization handoff so the user sees the transition
+     * while the real authorization work completes.
+     */
+
+    setDashboardHandoffReady(false);
+
+    setDashboardAnimationComplete(false);
+
+    setShowDashboardHandoff(true);
+
+
+    /*
+     * =========================================================
+     * EXISTING DASHBOARD AUTHORIZATION HANDOFF
+     * =========================================================
+     *
+     * Existing authorization logic remains unchanged.
+     */
 
     const handoffStartedAt =
         performance.now();
@@ -539,11 +708,10 @@ if (
 
 
     /*
-     * Only now is the real dashboard handoff ready.
-     *
-     * The animation is allowed to finish, but navigation
-     * cannot occur until this flag becomes true.
+     * Only after the real authorization handoff succeeds
+     * can the animation complete and navigation continue.
      */
+
     setDashboardHandoffReady(true);
 
     return;

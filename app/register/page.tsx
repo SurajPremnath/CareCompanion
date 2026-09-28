@@ -14,6 +14,8 @@ import {
     useSearchParams,
 } from "next/navigation"
 
+import { supabase } from "@/lib/supabase";
+
 import CareVRFooter from "@/Components/common/CareVRFooter";
 import { authService } from "@/lib/auth/authService";
 import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
@@ -784,7 +786,89 @@ Primary Family Member.
                                      * access context for the existing user.
                                      * It does not create another Auth account.
                                      */
-                                    await provisionPrimaryAccess(user.id);
+                                    const carevrAccessId =
+    await provisionPrimaryAccess(user.id);
+
+const {
+    data: primaryAccess,
+    error: primaryAccessError,
+} =
+    await supabase
+        .from("carevr_access")
+        .select(
+            "family_id"
+        )
+        .eq(
+            "id",
+            carevrAccessId
+        )
+        .eq(
+            "user_id",
+            user.id
+        )
+        .eq(
+            "access_type",
+            "PRIMARY"
+        )
+        .eq(
+            "access_status",
+            "ACTIVE"
+        )
+        .single();
+
+if (primaryAccessError) {
+
+    throw primaryAccessError;
+
+}
+
+if (
+    !primaryAccess?.family_id
+) {
+
+    throw new Error(
+        "Primary CareVR family could not be resolved."
+    );
+
+}
+
+const {
+    error: digitalHealthProfileError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .insert({
+            user_id:
+                user.id,
+
+            family_id:
+                primaryAccess.family_id,
+
+            invitation_status:
+                "ACCEPTED",
+
+            consent_status:
+                "ACCEPTED",
+
+            digital_health_flag:
+                true,
+
+            role_status:
+                "DUAL",
+
+            carevr_access_id:
+                carevrAccessId,
+
+            role:
+                "PRIMARY",
+        });
+
+if (digitalHealthProfileError) {
+
+    throw digitalHealthProfileError;
+
+}
+
 
                                     /*
                                      * The additional PRIMARY profile has been
