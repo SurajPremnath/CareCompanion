@@ -266,6 +266,8 @@ async acceptConsent(
 
     let carevrAccessId: string;
 
+    let digitalHealthProfileRole: string;
+
     if (
         authorizationHandoff.carevrRole ===
         "PRIMARY"
@@ -288,6 +290,10 @@ async acceptConsent(
 
         carevrAccessId =
             existingPrimaryAccess.id;
+
+        digitalHealthProfileRole =
+            "SELF";
+
 
     } else {
 
@@ -327,6 +333,9 @@ async acceptConsent(
 
         carevrAccessId =
             carevrAccess.id;
+
+    digitalHealthProfileRole =
+        authorizationHandoff.carevrRole;
 
     }
 
@@ -374,7 +383,7 @@ const {
             carevrAccessId,
 
         role:
-            authorizationHandoff.carevrRole,
+            digitalHealthProfileRole,
     })
     .eq(
         "user_id",

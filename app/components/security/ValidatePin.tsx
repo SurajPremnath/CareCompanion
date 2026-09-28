@@ -688,12 +688,26 @@ const access = {
         performance.now();
 
 
+console.log(
+    "[PIN-DEBUG] BEFORE DASHBOARD HANDOFF",
+    {
+        userId,
+        dashboardRole,
+        access,
+    }
+);
+
+
     await resolveCareVRDashboardHandoff(
         userId,
         dashboardRole,
         access
     );
 
+
+console.log(
+    "[PIN-DEBUG] AFTER DASHBOARD HANDOFF"
+);
 
     const handoffCompletedAt =
         performance.now();

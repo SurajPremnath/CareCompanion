@@ -833,6 +833,44 @@ if (
 }
 
 const {
+    error: existingDigitalHealthProfileError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .update({
+            role_status:
+                "DUAL",
+        })
+        .eq(
+            "user_id",
+            user.id
+        )
+        .eq(
+            "digital_health_flag",
+            true
+        );
+
+if (
+    existingDigitalHealthProfileError
+) {
+
+    throw existingDigitalHealthProfileError;
+
+}
+
+
+/*
+ * Create the additional PRIMARY digital health profile.
+ *
+ * The existing profile retains its own:
+ * - role
+ * - family_id
+ * - carevr_access_id
+ *
+ * Only role_status changes to DUAL.
+ */
+
+const {
     error: digitalHealthProfileError,
 } =
     await supabase
@@ -860,10 +898,12 @@ const {
                 carevrAccessId,
 
             role:
-                "PRIMARY",
+                "SELF",
         });
 
-if (digitalHealthProfileError) {
+if (
+    digitalHealthProfileError
+) {
 
     throw digitalHealthProfileError;
 
