@@ -21,6 +21,10 @@ import {
     carevrAuthorizationHandoff,
 } from "@/lib/authorization/carevrAuthorizationHandoff";
 
+import {
+    markDigitalHealthConsentAccepted,
+} from "./actions";
+
 export default function ConsentPage() {
 
     const router = useRouter();
@@ -260,6 +264,8 @@ await consentStorage.acceptConsent({
         privacyPolicyAcknowledged,
 
 });
+
+await markDigitalHealthConsentAccepted();
 
 // CareVR post-consent continuation returns to the Create PIN flow.
 router.replace(
