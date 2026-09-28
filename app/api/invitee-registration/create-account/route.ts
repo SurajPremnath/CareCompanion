@@ -278,7 +278,7 @@ const fullName =
         createdUserId =
             createdUser.user.id;
 
-
+// Accept invitation
         const now =
             new Date().toISOString();
 
@@ -321,6 +321,40 @@ const fullName =
                 "The account was created, but the invitation could not be accepted."
             );
         }
+
+// Create Digital Health Profile
+const {
+    error: digitalHealthProfileError
+} =
+    await supabaseAdmin
+        .from("digital_health_profile")
+        .insert({
+            user_id:
+                createdUserId,
+
+            family_id:
+                invitation.family_id,
+
+            invitation_status:
+                "ACCEPTED",
+
+            consent_status:
+                "PENDING",
+
+            digital_health_flag:
+                false,
+
+            role_status:
+                "SINGLE",
+        });
+
+if (digitalHealthProfileError) {
+
+    throw new Error(
+        "The invitation was accepted, but the digital health profile could not be created."
+    );
+}
+
 
         const {
             error: logError
