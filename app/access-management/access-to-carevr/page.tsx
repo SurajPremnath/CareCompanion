@@ -449,7 +449,7 @@ if (!response.ok) {
 
 
 
-            const activationUrl =
+const activationUrl =
     `https://carevr.in/register?productInvitationToken=${encodeURIComponent(
         token
     )}`;

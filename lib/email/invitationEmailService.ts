@@ -104,53 +104,65 @@ private toHtml(
     body: string
 ): string {
 
-    const escapedBody =
-        body
-            .replace(
-                /&/g,
-                "&amp;"
-            )
-            .replace(
-                /</g,
-                "&lt;"
-            )
-            .replace(
-                />/g,
-                "&gt;"
-            )
-            .replace(
-                /"/g,
-                "&quot;"
-            )
-            .replace(
-                /'/g,
-                "&#039;"
-            );
+    const escapeHtml =
+        (value: string): string =>
+            value
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
 
-    /*
-     * Convert CareVR invitation URLs into clickable links.
-     *
-     * The body remains HTML-escaped first, so arbitrary
-     * content cannot become executable HTML.
-     */
     const linkedBody =
-        escapedBody.replace(
-            /(https?:\/\/[^\s<]+)/g,
-            (url) => `
-                <a
-                    href="${url}"
-                    style="
-                        color:#244b7f;
-                        text-decoration:underline;
-                        font-weight:600;
-                    "
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    ${url}
-                </a>
-            `
+        body.replace(
+            /(https?:\/\/[^\s]+)/g,
+            (url) => {
+
+                const safeUrl =
+                    escapeHtml(url);
+
+                return `
+<a
+    href="${safeUrl}"
+    style="
+        color:#244b7f;
+        text-decoration:underline;
+        font-weight:600;
+    "
+    target="_blank"
+    rel="noopener noreferrer"
+>
+    ${safeUrl}
+</a>
+`;
+            }
         );
+
+    const safeBody =
+        linkedBody
+            .split(/(<a[\s\S]*?<\/a>)/gi)
+            .map(
+                (part) =>
+                    /^<a[\s\S]*?<\/a>$/i.test(part)
+                        ? part
+                        : escapeHtml(part)
+            )
+            .join("");
 
     return `
 <!DOCTYPE html>
@@ -206,7 +218,7 @@ private toHtml(
                     white-space:pre-wrap;
                 "
             >
-                ${linkedBody}
+                ${safeBody}
             </div>
         </div>
 
