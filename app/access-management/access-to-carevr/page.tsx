@@ -114,6 +114,17 @@ const [
 ] =
     useState(false);
 
+const [
+    sendingEmail,
+    setSendingEmail,
+] =
+    useState(false);
+
+const [
+    emailSent,
+    setEmailSent,
+] =
+    useState(false);
 
     const [
         activationLink,
@@ -439,9 +450,9 @@ if (!response.ok) {
 
 
             const activationUrl =
-                `https://carevr.in/register?productInvitationToken=${encodeURIComponent(
-                    token
-                )}`;
+    `https://carevr.in/register?productInvitationToken=${encodeURIComponent(
+        token
+    )}`;
 
 
 
@@ -487,6 +498,101 @@ if (!response.ok) {
                     ? error.message
                     : "Unable to create invitation."
             );
+
+        }
+
+    };
+
+
+const handleSendToEmail =
+    async () => {
+
+        if (
+            !email ||
+            !invitationTemplateSubject ||
+            !invitationTemplateBody ||
+            sendingEmail
+        ) {
+            return;
+        }
+
+        setSendingEmail(true);
+        setEmailSent(false);
+
+        try {
+
+            const {
+                data: {
+                    session,
+                },
+            } =
+                await supabase.auth.getSession();
+
+            if (!session?.access_token) {
+
+                throw new Error(
+                    "Your session has expired. Please sign in again."
+                );
+
+            }
+
+            const response =
+                await fetch(
+                    "/api/access-management/access-to-carevr/invitations/send-email",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                            Authorization:
+                                `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({
+                            email:
+                                email.trim().toLowerCase(),
+
+                            subject:
+                                invitationTemplateSubject,
+
+                            body:
+                                invitationTemplateBody,
+                        }),
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (!response.ok) {
+
+                throw new Error(
+                    typeof result.error === "string"
+                        ? result.error
+                        : "Unable to send the invitation email."
+                );
+
+            }
+
+            setEmailSent(true);
+
+        }
+        catch (error) {
+
+            console.error(
+                "Unable to send CareVR invitation email.",
+                error
+            );
+
+            alert(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to send the invitation email."
+            );
+
+        }
+        finally {
+
+            setSendingEmail(false);
 
         }
 
@@ -732,21 +838,47 @@ if (!response.ok) {
                             </div>
 
 
-                            <button
-                                type="button"
-                                className={
-                                    invitationTemplateCopied
-                                        ? "access-carevr-copy-button access-carevr-copy-button-copied"
-                                        : "access-carevr-copy-button"
-                                }
-                                onClick={
-                                    handleCopyInvitationTemplate
-                                }
-                            >
-                                {invitationTemplateCopied
-                                    ? "✓ Template Copied"
-                                    : "Copy Template"}
-                            </button>
+<div className="access-carevr-template-actions">
+
+    <button
+        type="button"
+        className={
+            emailSent
+                ? "access-carevr-email-button access-carevr-email-button-sent"
+                : "access-carevr-email-button"
+        }
+        onClick={
+            handleSendToEmail
+        }
+        disabled={
+            sendingEmail ||
+            emailSent
+        }
+    >
+        {sendingEmail
+            ? "Sending..."
+            : emailSent
+                ? "✓ Email Sent"
+                : "Send to Email"}
+    </button>
+
+    <button
+        type="button"
+        className={
+            invitationTemplateCopied
+                ? "access-carevr-copy-button access-carevr-copy-button-copied"
+                : "access-carevr-copy-button"
+        }
+        onClick={
+            handleCopyInvitationTemplate
+        }
+    >
+        {invitationTemplateCopied
+            ? "✓ Template Copied"
+            : "Copy Template"}
+    </button>
+
+</div>
 
                         </div>
 
@@ -1162,18 +1294,51 @@ if (!response.ok) {
                     word-break: break-word;
                 }
 
-                .access-carevr-copy-button {
-                    width: 100%;
-                    margin-top: 12px;
-                    border: 1px solid #7c3aed;
-                    border-radius: 9px;
-                    padding: 11px 15px;
-                    background: white;
-                    color: #6d28d9;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                }
+.access-carevr-template-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.access-carevr-template-actions button {
+    flex: 1;
+}
+
+.access-carevr-email-button {
+    width: 100%;
+    border: 1px solid #7c3aed;
+    border-radius: 9px;
+    padding: 11px 15px;
+    background: #7c3aed;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.access-carevr-email-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.access-carevr-email-button-sent {
+    border-color: #16a34a;
+    background: #16a34a;
+    color: white;
+}
+
+
+.access-carevr-copy-button {
+    width: 100%;
+    border: 1px solid #7c3aed;
+    border-radius: 9px;
+    padding: 11px 15px;
+    background: white;
+    color: #6d28d9;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
 
                 .access-carevr-copy-button-copied {
                     border-color: #16a34a;
@@ -1302,6 +1467,10 @@ if (!response.ok) {
                     .access-carevr-detail strong {
                         text-align: left;
                     }
+
+.access-carevr-template-actions {
+    flex-direction: column;
+}
 
                 }
 
