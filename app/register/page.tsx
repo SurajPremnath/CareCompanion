@@ -385,9 +385,11 @@ if (registrationResumeRequired) {
  * not performed in this step.
  */
 const secureAccessUrl =
-    `/secure-access/create-pin?context=${encodeURIComponent(
+    `/secure-access/create-pin?registrationContext=${encodeURIComponent(
         registrationContext
     )}`;
+
+router.replace(secureAccessUrl);
 
 router.replace(secureAccessUrl);
 
