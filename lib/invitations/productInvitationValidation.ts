@@ -1,3 +1,5 @@
+import { createHash } from "crypto";
+
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export type ProductInvitationStatus =
@@ -12,35 +14,40 @@ export interface ProductInvitationValidationResult {
 class ProductInvitationValidation {
 
     async validate(
+        token: string,
         email: string
     ): Promise<ProductInvitationValidationResult> {
+
+        const normalizedToken =
+            token.trim();
 
         const normalizedEmail =
             email.trim().toLowerCase();
 
-        if (!normalizedEmail) {
+        if (!normalizedToken) {
             return {
                 status: "NO_INVITATION",
             };
         }
 
+        const tokenHash =
+            createHash("sha256")
+                .update(
+                    normalizedToken,
+                    "utf8"
+                )
+                .digest("hex");
+
         const { data, error } =
             await supabaseAdmin
                 .from("carevr_product_invitations")
                 .select(
-                    "status, expires_at"
+                    "email, status, expires_at"
                 )
                 .eq(
-                    "email",
-                    normalizedEmail
+                    "token_hash",
+                    tokenHash
                 )
-                .order(
-                    "created_at",
-                    {
-                        ascending: false,
-                    }
-                )
-                .limit(1)
                 .maybeSingle();
 
         if (error) {
@@ -50,6 +57,22 @@ class ProductInvitationValidation {
         }
 
         if (!data) {
+            return {
+                status: "NO_INVITATION",
+            };
+        }
+
+        /*
+         * The token identifies the invitation.
+         * Email is only a consistency check.
+         */
+        if (
+            normalizedEmail &&
+            data.email
+                .trim()
+                .toLowerCase() !==
+                normalizedEmail
+        ) {
             return {
                 status: "NO_INVITATION",
             };

@@ -156,38 +156,98 @@ const handleRegister = async () => {
          * registration email has a valid, unexpired
          * PENDING CareVR product invitation.
          */
-        const invitationResponse =
-            await fetch(
-                "/api/access-management/access-to-carevr/validation",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        email: email.trim(),
-                    }),
-                }
-            );
+/*
+ * Primary registrations are authorized through
+ * carevr_access.
+ *
+ * Invitee registrations continue through the
+ * existing product invitation validation.
+ */
 
-        const invitationResult =
-            await invitationResponse.json();
+if (productInvitationToken) {
 
-        if (!invitationResponse.ok) {
-            throw new Error(
-                invitationResult.message ??
-                "Unable to validate the CareVR invitation."
-            );
-        }
+    // ==================================================
+    // INVITEE / PRODUCT INVITATION
+    // ==================================================
 
-        if (
-            invitationResult.status !==
-            "PENDING"
-        ) {
-            throw new Error(
-                "A valid CareVR invitation is required to register."
-            );
-        }
+    const invitationResponse =
+        await fetch(
+            "/api/access-management/access-to-carevr/validation",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    token:
+                        productInvitationToken,
+                    email:
+                        email.trim(),
+                }),
+            }
+        );
+
+    const invitationResult =
+        await invitationResponse.json();
+
+    if (!invitationResponse.ok) {
+        throw new Error(
+            invitationResult.message ??
+            "Unable to validate the CareVR invitation."
+        );
+    }
+
+    if (
+        invitationResult.status !==
+        "PENDING"
+    ) {
+        throw new Error(
+            "A valid CareVR invitation is required to register."
+        );
+    }
+
+} else {
+
+    // ==================================================
+    // PRIMARY
+    // ==================================================
+
+    const primaryAccessResponse =
+        await fetch(
+            "/api/access-management/access-to-carevr/primary-validation",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    token:
+                        productInvitationToken,
+                    email:
+                        email.trim(),
+                }),
+            }
+        );
+
+    const primaryAccessResult =
+        await primaryAccessResponse.json();
+
+    if (!primaryAccessResponse.ok) {
+        throw new Error(
+            primaryAccessResult.message ??
+            "Unable to validate CareVR access."
+        );
+    }
+
+    if (
+        primaryAccessResult.status !==
+        "ACTIVE"
+    ) {
+        throw new Error(
+            "Active CareVR access is required to register as Primary."
+        );
+    }
+}
 
         /*
          * Existing registration service remains unchanged.

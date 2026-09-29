@@ -10,28 +10,32 @@ export async function POST(request: Request) {
 
         const body = await request.json();
 
-        const email =
-            typeof body.email === "string"
-                ? body.email.trim()
-                : "";
+const token =
+    typeof body.token === "string"
+        ? body.token.trim()
+        : "";
 
-        if (!email) {
+const email =
+    typeof body.email === "string"
+        ? body.email.trim()
+        : "";
 
-            return NextResponse.json(
-                {
-                    status: "NO_INVITATION",
-                },
-                {
-                    status: 200,
-                }
-            );
-
+if (!token) {
+    return NextResponse.json(
+        {
+            status: "NO_INVITATION",
+        },
+        {
+            status: 200,
         }
+    );
+}
 
-        const result =
-            await productInvitationValidation.validate(
-                email
-            );
+const result =
+    await productInvitationValidation.validate(
+        token,
+        email
+    );
 
         return NextResponse.json(
             result,
