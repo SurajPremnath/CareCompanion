@@ -231,7 +231,7 @@ if (
 
     const invitationResponse =
         await fetch(
-            "/api/access-management/access-to-carevr/validation",
+            "/api/access-management/access-to-carevr/primary-validation",
             {
                 method: "POST",
                 headers: {
@@ -259,7 +259,7 @@ if (
 
     if (
         invitationResult.status !==
-        "PENDING"
+        "VALID"
     ) {
         throw new Error(
             "A valid CareVR invitation is required to register."
