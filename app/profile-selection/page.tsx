@@ -55,12 +55,12 @@ export default function ProfileSelectionPage() {
 type DigitalHealthProfile = {
     id: string;
     family_id: string | null;
-    role_status: string | null;
-    role: string;
-    carevr_access_id: string;
-    patient_id: string | null;
-    consent_completed: boolean;
+    invitation_status: string | null;
+    consent_status: string | null;
     digital_health_flag: boolean;
+    role_status: string | null;
+    carevr_access_id: string;
+    role: string;
 };
 
 const [
@@ -136,12 +136,12 @@ const {
         .select(`
             id,
             family_id,
+            invitation_status,
+            consent_status,
+            digital_health_flag,
             role_status,
-            role,
             carevr_access_id,
-            patient_id,
-            consent_completed,
-            digital_health_flag
+            role
         `)
         .eq(
             "user_id",
@@ -350,14 +350,9 @@ const carevrRole =
 const familyId =
     selectedProfile.family_id;
 
-const patientId =
-    selectedProfile.patient_id;
-
 const accessId =
     selectedProfile.carevr_access_id;
 
-const consentCompleted =
-    selectedProfile.consent_completed;
 
 const access =
     activeAccessRecords.find(
@@ -407,7 +402,8 @@ if (!access) {
  */
 
 if (
-    consentCompleted !== true
+    selectedProfile.consent_status !==
+    "ACCEPTED"
 ) {
 
     /*
@@ -423,11 +419,11 @@ carevrAuthorizationHandoff.set({
     userId:
         user.id,
     carevrRole:
-        carevrRole,
+        selectedRole,
     familyId:
-        familyId,
+        selectedProfile.family_id,
     patientId:
-        patientId,
+        null,
     consentStage:
         "POST_LOGIN",
     governanceId:
@@ -461,13 +457,14 @@ carevrAuthorizationHandoff.set({
 carevrAuthorizationHandoff.set({
     userId:
         user.id,
-    carevrRole,
+    carevrRole:
+        selectedRole,
     familyId:
-        familyId,
+        selectedProfile.family_id,
     patientId:
-        patientId,
+        null,
     consentStage:
-        "COMPLETED",
+        "POST_LOGIN",
     governanceId:
         null,
     governanceVersion:
