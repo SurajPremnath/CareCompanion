@@ -13,14 +13,19 @@ import CareVRFooter from "@/Components/common/CareVRFooter";
 
 import { authService } from "@/lib/auth/authService";
 
+import { supabase } from "@/lib/supabase";
+
+
 import {
     carevrContextResolver,
     type CareVRAvailableContext,
 } from "@/lib/auth/carevrContextResolver";
 
+/*
 import {
     validateInvitedUserLogin,
 } from "@/lib/invitations/invitedUserLoginValidation";
+*/
 
 import {
     resolveCareVRDashboardHandoff,
@@ -46,6 +51,29 @@ export default function ProfileSelectionPage() {
     ] = useState<
         CareVRAvailableContext[]
     >([]);
+
+type DigitalHealthProfile = {
+    id: string;
+    family_id: string | null;
+    role_status: string | null;
+    role: string;
+    carevr_access_id: string;
+    patient_id: string | null;
+    consent_completed: boolean;
+    digital_health_flag: boolean;
+};
+
+const [
+    digitalHealthProfiles,
+    setDigitalHealthProfiles,
+] = useState<
+    DigitalHealthProfile[]
+>([]);
+
+const [
+    activeAccessRecords,
+    setActiveAccessRecords,
+] = useState<any[]>([]);
 
     const [
         selectedContextId,
@@ -100,33 +128,80 @@ const [dashboardAnimationComplete, setDashboardAnimationComplete] =
                 }
 
 const {
-    activeAccessRecords,
-    contexts,
+    data: profiles,
+    error: digitalHealthProfileError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .select(`
+            id,
+            family_id,
+            role_status,
+            role,
+            carevr_access_id,
+            patient_id,
+            consent_completed,
+            digital_health_flag
+        `)
+        .eq(
+            "user_id",
+            user.id
+        )
+        .eq(
+            "digital_health_flag",
+            true
+        );
+
+if (digitalHealthProfileError) {
+    throw digitalHealthProfileError;
+}
+
+if (cancelled) {
+    return;
+}
+
+const loadedProfiles =
+    profiles ?? [];
+
+if (
+    loadedProfiles.length === 0
+) {
+    setError(
+        "No active CareVR profiles are available for this account."
+    );
+
+    return;
+}
+
+/*
+ * The existing dashboard handoff requires the
+ * complete CareVR access record.
+ *
+ * Resolve active access records ONCE here.
+ * Nothing below re-queries them.
+ */
+const {
+    activeAccessRecords:
+        loadedAccessRecords,
 } =
     await carevrContextResolver
         .getAvailableContexts(
             user.id
         );
 
-                if (cancelled) {
-                    return;
-                }
+if (cancelled) {
+    return;
+}
 
-                if (
-                    contexts.length === 0
-                ) {
 
-                    setError(
-                        "No active CareVR profiles are available for this account."
-                    );
+setDigitalHealthProfiles(
+    loadedProfiles
+);
 
-                    return;
-                }
 
-                setAvailableContexts(
-                    contexts
-                );
-
+setActiveAccessRecords(
+    loadedAccessRecords
+);
             } catch (err) {
 
                 if (cancelled) {
@@ -180,12 +255,11 @@ useEffect(() => {
 ]);
 
 
-    const getRoleIcon = (
-        loginRole:
-            CareVRAvailableContext["loginRole"]
-    ) => {
+const getRoleIcon = (
+    role: string
+) => {
 
-        switch (loginRole) {
+        switch (role) {
 
             case "SELF":
                 return "👤";
@@ -235,61 +309,68 @@ const handleSelectedContext = async () => {
             return;
         }
 
-        /*
-         * Re-resolve the user's active contexts before
-         * accepting the selection.
-         *
-         * The UI selection itself is never authoritative.
-         */
-const {
-    activeAccessRecords,
-    contexts: currentContexts,
-} =
-    await carevrContextResolver
-        .getAvailableContexts(
-            user.id
-        );
 
-        const selectedContext =
-            currentContexts.find(
-                (context) =>
-                    context.accessId ===
-                    selectedContextId
-            );
+const selectedProfile =
+    digitalHealthProfiles.find(
+        (profile) =>
+            profile.id ===
+            selectedContextId
+    );
 
-        if (!selectedContext) {
-
-            throw new Error(
-                "Selected CareVR context is no longer available."
-            );
-        }
-
-        const access =
-            activeAccessRecords.find(
-                (record) =>
-                    record.id ===
-                    selectedContext.accessId
-            );
-
-        if (!access) {
-
-            throw new Error(
-                "Selected CareVR access is no longer active."
-            );
-        }
+if (!selectedProfile) {
+    throw new Error(
+        "The selected CareVR digital health profile could not be found."
+    );
+}
 
 const selectedRole =
-    selectedContext.loginRole ===
-        "DOCTOR"
+    selectedProfile.role === "DOCTOR"
         ? "DOCTOR"
-        : selectedContext.loginRole ===
-            "CARETAKER"
+        : selectedProfile.role === "CARETAKER"
             ? "CARETAKER"
-            : selectedContext.loginRole ===
-                "FAMILY"
+            : selectedProfile.role === "FAMILY"
                 ? "SECONDARY_FAMILY_MEMBER"
                 : "SELF";
 
+
+const dashboardRole =
+    selectedProfile.role === "PRIMARY"
+        ? "SELF"
+        : selectedProfile.role === "FAMILY"
+            ? "FAMILY"
+            : selectedProfile.role === "CARETAKER"
+                ? "CARETAKER"
+                : "DOCTOR";
+
+const carevrRole =
+    selectedRole === "SELF"
+        ? "PRIMARY"
+        : selectedRole;
+
+const familyId =
+    selectedProfile.family_id;
+
+const patientId =
+    selectedProfile.patient_id;
+
+const accessId =
+    selectedProfile.carevr_access_id;
+
+const consentCompleted =
+    selectedProfile.consent_completed;
+
+const access =
+    activeAccessRecords.find(
+        (record) =>
+            record.id ===
+            selectedProfile.carevr_access_id
+    );
+
+if (!access) {
+    throw new Error(
+        "Selected CareVR access is no longer active."
+    );
+}
 
         /*
          * Start the visual handoff immediately after
@@ -304,49 +385,56 @@ const selectedRole =
         setShowDashboardHandoff(true);
 
         /*
-         * Use the same normal CareVR login validation
-         * used by the existing Login flow.
+         * =========================================================
+         * RETURNING USER — DIGITAL HEALTH PROFILE
+         * =========================================================
+         *
+         * The user has already authenticated with their CareVR PIN.
+         *
+         * Profile selection is therefore resolved from the user's
+         * established digital_health_profile records.
+         *
+         * Invitation validation is NOT performed here.
          */
-        const validation =
-            await validateInvitedUserLogin({
-                email:
-                    user.email ?? "",
-                userId:
-                    user.id,
-                selectedRole,
-                mode: "NORMAL",
-            });
 
-        if (
-            validation.status ===
-            "CONSENT_REQUIRED"
-        ) {
+/*
+ * =========================================================
+ * DIGITAL HEALTH PROFILE — CONSENT STATE
+ * =========================================================
+ *
+ * Consent is now read from the established digital health
+ * profile instead of re-running invitation validation.
+ */
 
-            /*
-             * Fallback only:
-             * if consent was not actually completed,
-             * stop the animation and return to Consent.
-             */
+if (
+    consentCompleted !== true
+) {
+
+    /*
+     * Fallback only:
+     * if consent has not actually been completed,
+     * stop the animation and return to Consent.
+     */
+
             setShowDashboardHandoff(false);
             setDashboardHandoffReady(false);
 
-            carevrAuthorizationHandoff.set({
-                userId:
-                    user.id,
-                carevrRole:
-                    selectedRole,
-                familyId:
-                    validation.familyId ??
-                    selectedContext.familyId,
-                patientId:
-                    selectedContext.patientId,
-                consentStage:
-                    "POST_LOGIN",
-                governanceId:
-                    null,
-                governanceVersion:
-                    null,
-            });
+carevrAuthorizationHandoff.set({
+    userId:
+        user.id,
+    carevrRole:
+        carevrRole,
+    familyId:
+        familyId,
+    patientId:
+        patientId,
+    consentStage:
+        "POST_LOGIN",
+    governanceId:
+        null,
+    governanceVersion:
+        null,
+});
 
             router.replace(
                 "/consent"
@@ -355,38 +443,36 @@ const selectedRole =
             return;
         }
 
-        if (
-            validation.status ===
-                "PRIMARY" ||
-            validation.status ===
-                "ACCEPTED" ||
-            validation.status ===
-                "NOT_INVITED"
-        ) {
+/*
+ * =========================================================
+ * DIGITAL HEALTH PROFILE — COMPLETED
+ * =========================================================
+ *
+ * The remainder of the existing sequence is unchanged:
+ *
+ *   Authorization handoff
+ *   → Encryption
+ *   → Dashboard handoff
+ *   → Analytics
+ *   → Animation completion
+ *   → Dashboard
+ */
 
-            const dashboardRole =
-                selectedContext.loginRole;
-
-            const carevrRole =
-                selectedRole === "SELF"
-                    ? "PRIMARY"
-                    : selectedRole;
-
-            carevrAuthorizationHandoff.set({
-                userId:
-                    user.id,
-                carevrRole,
-                familyId:
-                    selectedContext.familyId,
-                patientId:
-                    selectedContext.patientId,
-                consentStage:
-                    "COMPLETED",
-                governanceId:
-                    null,
-                governanceVersion:
-                    null,
-            });
+carevrAuthorizationHandoff.set({
+    userId:
+        user.id,
+    carevrRole,
+    familyId:
+        familyId,
+    patientId:
+        patientId,
+    consentStage:
+        "COMPLETED",
+    governanceId:
+        null,
+    governanceVersion:
+        null,
+});
 
 const encryptionResponse =
     await fetch(
@@ -397,17 +483,18 @@ const encryptionResponse =
                 "Content-Type":
                     "application/json",
             },
-            body: JSON.stringify({
-                accessId:
-                    selectedContext.accessId,
-                selectedRole:
-                    selectedRole === "SELF"
-                        ? "SELF"
-                        : selectedRole ===
-                            "SECONDARY_FAMILY_MEMBER"
-                            ? "FAMILY"
-                            : selectedRole,
-            }),
+
+body: JSON.stringify({
+    accessId:
+        accessId,
+    selectedRole:
+        selectedRole === "SELF"
+            ? "SELF"
+            : selectedRole ===
+                "SECONDARY_FAMILY_MEMBER"
+                ? "FAMILY"
+                : selectedRole,
+}),
         }
     );
 
@@ -439,25 +526,7 @@ void authSessionService
 setDashboardHandoffReady(true);
 
 return;
-        }
 
-        if (
-            validation.status ===
-                "ROLE_MISMATCH" ||
-            validation.status ===
-                "INVALID_INVITATION" ||
-            validation.status ===
-                "VALID_INVITATION"
-        ) {
-
-            throw new Error(
-                validation.message
-            );
-        }
-
-        throw new Error(
-            validation.message
-        );
 
     } catch (err) {
 
@@ -558,25 +627,43 @@ return (
 
                         )}
 
-                    {!loading &&
-                        !error &&
-                        availableContexts.length > 0 && (
+{!loading &&
+    !error &&
+    digitalHealthProfiles.length > 0 && (
 
-                            <>
+        <>
 
-                                <div className="profile-grid">
+            <div className="profile-grid">
 
-                                    {availableContexts.map(
-                                        (context) => {
+                {digitalHealthProfiles.map(
+                    (profile) => {
 
-                                            const selected =
-                                                selectedContextId ===
-                                                context.accessId;
+                        const selected =
+                            selectedContextId ===
+                            profile.id;
+
+        const profileRole =
+            profile.role === "PRIMARY"
+                ? "SELF"
+                : profile.role === "FAMILY"
+                    ? "FAMILY"
+                    : profile.role === "CARETAKER"
+                        ? "CARETAKER"
+                        : "DOCTOR";
+
+        const profileLabel =
+            profile.role === "PRIMARY"
+                ? "Your Profile"
+                : profile.role === "FAMILY"
+                    ? "Family"
+                    : profile.role === "CARETAKER"
+                        ? "Caretaker"
+                        : "Doctor";
 
                                             return (
                                                 <button
                                                     key={
-                                                        context.accessId
+                                                        profile.id
                                                     }
                                                     type="button"
                                                     className={`profile-card ${
@@ -586,7 +673,7 @@ return (
                                                     }`}
                                                     onClick={() =>
                                                         setSelectedContextId(
-                                                            context.accessId
+                                                            profile.id
                                                         )
                                                     }
                                                     disabled={
@@ -603,32 +690,32 @@ return (
                                                     >
                                                         {
                                                             getRoleIcon(
-                                                                context.loginRole
+                                                                profileRole
                                                             )
                                                         }
                                                     </span>
 
                                                     <span className="profile-label">
                                                         {
-                                                            context.label
+                                                             profileLabel
                                                         }
                                                     </span>
 
                                                     <span className="profile-description">
 
-                                                        {context.loginRole ===
+                                                        {profileRole ===
                                                             "SELF" &&
                                                             "Your personal CareVR profile"}
 
-                                                        {context.loginRole ===
+                                                        {profileRole ===
                                                             "DOCTOR" &&
                                                             "Access your assigned doctor context"}
 
-                                                        {context.loginRole ===
+                                                        {profileRole ===
                                                             "CARETAKER" &&
                                                             "Care for the people assigned to you"}
 
-                                                        {context.loginRole ===
+                                                        {profileRole ===
                                                             "FAMILY" &&
                                                             "Access your family care context"}
 
