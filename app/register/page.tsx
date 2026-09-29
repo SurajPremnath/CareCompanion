@@ -164,49 +164,7 @@ const handleRegister = async () => {
  * existing product invitation validation.
  */
 
-if (productInvitationToken) {
-
-    // ==================================================
-    // INVITEE / PRODUCT INVITATION
-    // ==================================================
-
-    const invitationResponse =
-        await fetch(
-            "/api/access-management/access-to-carevr/validation",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    token:
-                        productInvitationToken,
-                    email:
-                        email.trim(),
-                }),
-            }
-        );
-
-    const invitationResult =
-        await invitationResponse.json();
-
-    if (!invitationResponse.ok) {
-        throw new Error(
-            invitationResult.message ??
-            "Unable to validate the CareVR invitation."
-        );
-    }
-
-    if (
-        invitationResult.status !==
-        "PENDING"
-    ) {
-        throw new Error(
-            "A valid CareVR invitation is required to register."
-        );
-    }
-
-} else {
+if (isPrimaryFamilyMember === true) {
 
     // ==================================================
     // PRIMARY
@@ -245,6 +203,48 @@ if (productInvitationToken) {
     ) {
         throw new Error(
             "Active CareVR access is required to register as Primary."
+        );
+    }
+
+} else {
+
+    // ==================================================
+    // INVITEE / PRODUCT INVITATION
+    // ==================================================
+
+    const invitationResponse =
+        await fetch(
+            "/api/access-management/access-to-carevr/validation",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    token:
+                        productInvitationToken,
+                    email:
+                        email.trim(),
+                }),
+            }
+        );
+
+    const invitationResult =
+        await invitationResponse.json();
+
+    if (!invitationResponse.ok) {
+        throw new Error(
+            invitationResult.message ??
+            "Unable to validate the CareVR invitation."
+        );
+    }
+
+    if (
+        invitationResult.status !==
+        "PENDING"
+    ) {
+        throw new Error(
+            "A valid CareVR invitation is required to register."
         );
     }
 }
