@@ -4,6 +4,7 @@ import React, {
     Suspense,
     useEffect,
     useState,
+    useRef,
 } from "react";
 
 import {
@@ -16,6 +17,8 @@ import MobileHeader, {
 } from "@/Components/common/MobileHeader";
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
+
+import { supabase } from "@/lib/supabase";
 
 
 import {
@@ -608,6 +611,15 @@ const [userName, setUserName] = useState("");
 
 const [animationVisibleCount, setAnimationVisibleCount] = useState(0);
 
+let invitedRole: string | null = null;
+let familyId: string | null = null;
+
+const invitedRoleRef =
+    useRef<string | null>(null);
+
+const familyIdRef =
+    useRef<string | null>(null);
+
 useEffect(() => {
     if (!consentAccepted) {
         return;
@@ -686,6 +698,56 @@ useEffect(() => {
             }
 
 
+/*
+ * Retrieve the invitation authorization context once.
+ *
+ * Create PIN does not need to run
+ * validateInvitedUserLogin().
+ *
+ * The invitation supplies the role and family
+ * needed to establish the POST_LOGIN handoff.
+ */
+const { data: invitation, error: invitationError } =
+    await supabase
+        .from("carevr_invitations")
+        .select(
+            "role, family_id"
+        )
+        .eq(
+            "invited_user_id",
+            user.id
+        )
+        .eq(
+            "status",
+            "ACCEPTED"
+        )
+        .order(
+            "accepted_at",
+            {
+                ascending: false,
+            }
+        )
+        .limit(1)
+        .maybeSingle();
+
+if (invitationError) {
+    throw new Error(
+        invitationError.message
+    );
+}
+
+if (!invitation) {
+    throw new Error(
+        "CareVR invitation context is unavailable."
+    );
+}
+
+invitedRoleRef.current =
+    invitation.role;
+
+familyIdRef.current =
+    invitation.family_id;
+
             /*
              * validateInvitedUserLogin() has already done
              * its job earlier in the authentication flow.
@@ -707,9 +769,6 @@ useEffect(() => {
                         user.id
                     );
 
-            if (cancelled) {
-                return;
-            }
 
             const selectedContext =
                 availableContexts.contexts[0];
@@ -927,18 +986,32 @@ useEffect(() => {
          * re-running invitation validation.
          */
 
+
+const invitedRole =
+    invitedRoleRef.current;
+
+const familyId =
+    familyIdRef.current;
+
+if (!invitedRole || !familyId) {
+    throw new Error(
+        "CareVR invitation context is unavailable."
+    );
+}
+
         carevrAuthorizationHandoff.set({
             userId:
                 user.id,
 
-            carevrRole:
-                selectedContext.accessType,
+    carevrRole:
+        invitedRole,
 
-            familyId:
-                selectedContext.familyId,
+    familyId:
+        familyId,
+
 
             patientId:
-                selectedContext.patientId,
+                null,
 
             consentStage:
                 "POST_LOGIN",
@@ -949,7 +1022,7 @@ useEffect(() => {
             governanceVersion:
                 null,
         });
-
+	
         const hasAcceptedConsent =
             await consentRepository
                 .hasAcceptedCurrentConsent();
