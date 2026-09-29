@@ -48,6 +48,29 @@ export interface InvitedUserLoginValidationResult {
     checks: InvitedUserLoginValidationChecks;
 }
 
+type InvitationRow = {
+    id: string;
+    family_id: string;
+    invited_user_id: string | null;
+    invited_by: string;
+    invited_email: string;
+    role: InvitedUserLoginRole;
+    governance_id: string | null;
+    invitation_attempt_number: number;
+    status:
+        | "PENDING"
+        | "ACCEPTED"
+        | "REJECTED"
+        | "EXPIRED"
+        | "CANCELLED";
+    token_hash: string;
+    expires_at: string | null;
+    consent_accepted_at: string | null;
+    authorised_at: string | null;
+    created_at: string;
+};
+
+
 const EMPTY_CHECKS: InvitedUserLoginValidationChecks = {
     invitationExists: false,
     invitationPendingAndUnexpired: false,
@@ -80,26 +103,6 @@ function getRoleName(
     }
 }
 
-type InvitationRow = {
-    id: string;
-    family_id: string;
-    invited_user_id: string | null;
-    invited_by: string;
-    invited_email: string;
-    role: InvitedUserLoginRole;
-    governance_id: string | null;
-    invitation_attempt_number: number;
-    status:
-        | "PENDING"
-        | "ACCEPTED"
-        | "REJECTED"
-        | "EXPIRED"
-        | "CANCELLED";
-    token_hash: string;
-    expires_at: string | null;
-    consent_accepted_at: string | null;
-    authorised_at: string | null;
-};
 
 export async function validateInvitedUserLogin(
     input: InvitedUserLoginValidationInput
@@ -107,83 +110,90 @@ export async function validateInvitedUserLogin(
     const serverSupabase =
         await createSupabaseServerClient();
 
-    let authenticatedUserId =
-        input.userId;
+const authenticatedUserId =
+    input.userId;
 
-    let authenticatedEmail =
-        input.email.trim().toLowerCase();
+const authenticatedEmail =
+    input.email.trim().toLowerCase();
 
-    let passwordAuthenticationSucceeded =
-        authenticatedEmail.length > 0;
+const passwordAuthenticationSucceeded =
+    authenticatedEmail.length > 0;
 
-    if (input.mode === "NORMAL") {
-        const {
-            data: { user },
-            error: userError,
-        } = await serverSupabase.auth.getUser();
+const suppliedEmail =
+    authenticatedEmail;
 
-        if (userError || !user) {
-            return {
-                status: "INVALID_INVITATION",
-                message: "Authentication is required.",
-                checks: EMPTY_CHECKS,
-            };
-        }
+let selectedRole =
+    input.selectedRole;
 
-        authenticatedUserId =
-            user.id;
+const {
+    data: invitationRows,
+    error: invitationError,
+} =
+    await serverSupabase
+        .from("carevr_invitation")
+        .select(
+            [
+                "id",
+                "family_id",
+                "invited_user_id",
+                "invited_by",
+                "invited_email",
+                "role",
+                "governance_id",
+                "invitation_attempt_number",
+                "status",
+                "token_hash",
+                "expires_at",
+                "consent_accepted_at",
+                "authorised_at",
+                "created_at",
+            ].join(",")
+        )
+        .or(
+            `invited_user_id.eq.${authenticatedUserId},invited_email.eq.${suppliedEmail}`
+        )
+        .order("created_at", {
+            ascending: false,
+        });
 
-        authenticatedEmail =
-            user.email?.trim().toLowerCase() ?? "";
+if (invitationError) {
+    console.error(
+        "Unable to load CareVR invitations.",
+        invitationError
+    );
 
-        passwordAuthenticationSucceeded =
-            authenticatedEmail.length > 0;
-    }
+    throw new Error(
+        "Unable to determine the CareVR invitation."
+    );
+}
 
-    const suppliedEmail =
-        input.email.trim().toLowerCase();
+const invitations =
+    (invitationRows ?? []) as unknown as InvitationRow[];
 
-    let selectedRole =
-        input.selectedRole;
 
-    if (!selectedRole) {
-        const {
-            data: latestAcceptedInvitation,
-            error: latestAcceptedInvitationError,
-        } =
-            await serverSupabase
-                .from("carevr_invitation")
-                .select(
-                    "id, family_id, invited_user_id, invited_by, invited_email, role, invitation_attempt_number, status, token_hash, expires_at, consent_accepted_at, authorised_at"
-                )
-                .eq("invited_email", suppliedEmail)
-                .eq("status", "ACCEPTED")
-                .order("created_at", {
-                    ascending: false,
-                })
-                .limit(1)
-                .maybeSingle();
+const latestInvitation =
+    invitations.find(
+        (invitation) =>
+            invitation.invited_email
+                .trim()
+                .toLowerCase() === suppliedEmail
+    ) ?? null;
 
-        if (latestAcceptedInvitationError) {
-            console.error(
-                "Unable to discover accepted CareVR invitation role.",
-                latestAcceptedInvitationError
-            );
+const latestAcceptedInvitation =
+    invitations.find(
+        (invitation) =>
+            invitation.status === "ACCEPTED" &&
+            invitation.invited_email
+                .trim()
+                .toLowerCase() === suppliedEmail
+    ) ?? null;
 
-            throw new Error(
-                "Unable to determine the CareVR login role."
-            );
-        }
+selectedRole =
+    selectedRole ??
+    latestAcceptedInvitation?.role ??
+    latestInvitation?.role ??
+    "SELF";
 
-        if (latestAcceptedInvitation) {
-            selectedRole =
-                latestAcceptedInvitation.role as InvitedUserLoginRole;
-        }
-    }
-
-    if (!selectedRole) {
-        selectedRole = "SELF";
-    }
 
     const accessType =
         selectedRole === "SELF"
@@ -192,209 +202,103 @@ export async function validateInvitedUserLogin(
                 ? "SECONDARY_FAMILY_MEMBER"
                 : selectedRole;
 
-    const {
-        data: activeCareVRAccess,
-        error: activeCareVRAccessError,
-    } =
-        await serverSupabase
-            .from("carevr_access")
-            .select(
-                "id, family_id, patient_id, access_type, access_status"
-            )
-            .eq("user_id", authenticatedUserId)
-            .eq("access_status", "ACTIVE")
-            .eq("access_type", accessType)
-            .limit(1)
-            .maybeSingle();
 
-    if (activeCareVRAccessError) {
-        console.error(
-            "Unable to validate active CareVR access.",
-            activeCareVRAccessError
-        );
+const invitationIssuerUserId =
+    latestInvitation?.invited_by ?? null;
 
-        throw new Error(
-            "Unable to validate CareVR access."
-        );
-    }
+const {
+    data: careVRAccessRows,
+    error: careVRAccessError,
+} =
+    await serverSupabase
+        .from("carevr_access")
+        .select(
+            "id, user_id, family_id, patient_id, access_type, access_status"
+        )
+        .or(
+            invitationIssuerUserId
+                ? `user_id.eq.${authenticatedUserId},user_id.eq.${invitationIssuerUserId}`
+                : `user_id.eq.${authenticatedUserId}`
+        )
+        .eq("access_status", "ACTIVE");
 
-    if (
-        selectedRole === "SELF" &&
-        activeCareVRAccess?.access_type === "PRIMARY"
-    ) {
-        return {
-            status: "PRIMARY",
-            message: "",
-            checks: {
-                ...EMPTY_CHECKS,
-                emailMatches:
-                    authenticatedEmail === suppliedEmail,
-                passwordAuthenticationSucceeded,
-                roleMatches: true,
-            },
-        };
-    }
+if (careVRAccessError) {
+    console.error(
+        "Unable to validate CareVR access.",
+        careVRAccessError
+    );
 
-    const {
-        data: primaryProfile,
-        error: primaryProfileError,
-    } =
-        await serverSupabase
-            .from("profiles")
-            .select("id")
-.eq("id", authenticatedUserId)
-            .eq("family_member_type", "PRIMARY")
-            .maybeSingle();
+    throw new Error(
+        "Unable to validate CareVR access."
+    );
+}
 
-    if (primaryProfileError) {
-        console.error(
-            "Unable to validate CareVR PRIMARY profile.",
-            primaryProfileError
-        );
+const activeCareVRAccess =
+    careVRAccessRows ?? [];
 
-        throw new Error(
-            "Unable to validate the CareVR user profile."
-        );
-    }
+const authenticatedUserAccess =
+    activeCareVRAccess.filter(
+        (access) =>
+            access.user_id ===
+            authenticatedUserId
+    );
 
-    if (
-        primaryProfile &&
-        selectedRole === "SELF"
-    ) {
-        return {
-            status: "PRIMARY",
-            message: "",
-            checks: {
-                ...EMPTY_CHECKS,
-                emailMatches:
-                    authenticatedEmail === suppliedEmail,
-                passwordAuthenticationSucceeded,
-                roleMatches: true,
-            },
-        };
-    }
+const selectedAccess =
+    authenticatedUserAccess.find(
+        (access) =>
+            access.access_type ===
+            accessType
+    ) ?? null;
 
-    const {
-        data: acceptedInvitationData,
-        error: acceptedInvitationError,
-    } =
-        await serverSupabase
-            .from("carevr_invitation")
-            .select(
-                [
-                    "id",
-                    "family_id",
-                    "invited_user_id",
-                    "invited_email",
-                    "role",
-                    "governance_id",
-                    "status",
-                    "consent_accepted_at",
-                    "authorised_at",
-                ].join(",")
-            )
-.eq("invited_user_id", authenticatedUserId)
-            .eq("role", selectedRole)
-            .eq("status", "ACCEPTED")
-            .not("consent_accepted_at", "is", null)
-            .order("created_at", {
-                ascending: false,
-            })
-            .limit(1)
-            .maybeSingle();
+const primaryAccess =
+    authenticatedUserAccess.find(
+        (access) =>
+            access.access_type ===
+            "PRIMARY"
+    ) ?? null;
 
-    const acceptedInvitation =
-        acceptedInvitationData as InvitationRow | null;
 
-    if (acceptedInvitationError) {
-        console.error(
-            "Unable to validate accepted CareVR invitation.",
-            acceptedInvitationError
-        );
+if (
+    selectedRole === "SELF" &&
+    primaryAccess
+) {
+    return {
+        status: "PRIMARY",
+        message: "",
+        familyId:
+            primaryAccess.family_id,
+        checks: {
+            ...EMPTY_CHECKS,
+            emailMatches:
+                authenticatedEmail ===
+                suppliedEmail,
+            passwordAuthenticationSucceeded,
+            roleMatches: true,
+        },
+    };
+}
 
-        throw new Error(
-            "Unable to validate the invitation."
-        );
-    }
+// No separate profiles lookup.
+// PRIMARY is established from active carevr_access.
 
-    if (acceptedInvitation) {
-        return {
-            status: "ACCEPTED",
-            message: "",
-            invitationRole:
-                acceptedInvitation.role as InvitedUserLoginRole,
-            checks: {
-                invitationExists: true,
-                invitationPendingAndUnexpired: false,
-                tokenHashValid: true,
-                invitedByActivePrimary: true,
-                emailMatches:
-                    authenticatedEmail ===
-                    acceptedInvitation.invited_email
-                        .trim()
-                        .toLowerCase(),
-                passwordAuthenticationSucceeded,
-                roleMatches:
-                    input.selectedRole ===
-                    acceptedInvitation.role,
-            },
-        };
-    }
 
-    const {
-        data: invitationData,
-        error: invitationError,
-    } =
-        await serverSupabase
-            .from("carevr_invitation")
-            .select(
-                [
-                    "id",
-                    "family_id",
-                    "invited_by",
-                    "invited_email",
-                    "role",
-                    "invitation_attempt_number",
-                    "status",
-                    "token_hash",
-                    "expires_at",
-                    "consent_accepted_at",
-                ].join(",")
-            )
-            .eq("invited_email", suppliedEmail)
-            .order("created_at", {
-                ascending: false,
-            })
-            .limit(1)
-            .maybeSingle();
 
-    if (invitationError) {
-        console.error(
-            "Unable to validate invited-user login.",
-            invitationError
-        );
+const invitation =
+    latestInvitation;
 
-        throw new Error(
-            "Unable to validate the invitation."
-        );
-    }
-
-    const invitation =
-        invitationData as InvitationRow | null;
-
-    if (!invitation) {
-        return {
-            status: "NOT_INVITED",
-            message:
-                "No active CareVR invitation was found for this email address.",
-            checks: {
-                ...EMPTY_CHECKS,
-                emailMatches:
-                    authenticatedEmail === suppliedEmail,
-                passwordAuthenticationSucceeded,
-            },
-        };
-    }
+if (!invitation) {
+    return {
+        status: "NOT_INVITED",
+        message:
+            "No active CareVR invitation was found for this email address.",
+        checks: {
+            ...EMPTY_CHECKS,
+            emailMatches:
+                authenticatedEmail === suppliedEmail,
+            passwordAuthenticationSucceeded,
+        },
+    };
+}
 
     const invitationRole =
         invitation.role as InvitedUserLoginRole;
@@ -409,32 +313,18 @@ export async function validateInvitedUserLogin(
         typeof invitation.token_hash === "string" &&
         isSha256Hex(invitation.token_hash);
 
-    const {
-        data: primaryAccess,
-        error: primaryError,
-    } =
-        await serverSupabase
-            .from("carevr_access")
-            .select("id")
-            .eq("user_id", invitation.invited_by)
-            .eq("access_type", "PRIMARY")
-            .eq("access_status", "ACTIVE")
-            .limit(1)
-            .maybeSingle();
 
-    if (primaryError) {
-        console.error(
-            "Unable to validate invitation Primary.",
-            primaryError
-        );
-
-        throw new Error(
-            "Unable to validate the invitation issuer."
-        );
-    }
-
-    const invitedByActivePrimary =
-        Boolean(primaryAccess);
+const invitedByActivePrimary =
+    invitationIssuerUserId !== null &&
+    activeCareVRAccess.some(
+        (access) =>
+            access.user_id ===
+                invitationIssuerUserId &&
+            access.access_type ===
+                "PRIMARY" &&
+            access.access_status ===
+                "ACTIVE"
+    );
 
     const emailMatches =
         authenticatedEmail === suppliedEmail &&
