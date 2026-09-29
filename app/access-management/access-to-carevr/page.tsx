@@ -389,14 +389,34 @@ const handleCreateInvitation =
 
 
 
-            if (!response.ok) {
+if (!response.ok) {
 
-                throw new Error(
-                    result.error ??
-                    "Unable to create invitation."
-                );
+    const errorMessage =
+        typeof result.error === "string"
+            ? result.error
+            : "";
 
-            }
+    if (
+        errorMessage.includes(
+            "ux_carevr_product_invitations_email"
+        ) ||
+        errorMessage.includes(
+            "duplicate key value violates unique constraint"
+        )
+    ) {
+
+        throw new Error(
+            "An invitation already exists for this email address. " +
+            "The person may already have a CareVR invitation or account."
+        );
+
+    }
+
+    throw new Error(
+        errorMessage ||
+        "Unable to create invitation."
+    );
+}
 
 
 
