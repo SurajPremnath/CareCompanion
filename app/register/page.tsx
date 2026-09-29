@@ -199,7 +199,7 @@ if (isPrimaryFamilyMember === true) {
 
     if (
         primaryAccessResult.status !==
-        "ACTIVE"
+        "VALID"
     ) {
         throw new Error(
             "Active CareVR access is required to register as Primary."
