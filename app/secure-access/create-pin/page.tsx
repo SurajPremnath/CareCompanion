@@ -689,7 +689,7 @@ useEffect(() => {
                 data: invitation,
                 error: invitationError,
             } = await supabase
-                .from("carevr_invitations")
+                .from("carevr_invitation")
                 .select(
                     "role, family_id"
                 )
