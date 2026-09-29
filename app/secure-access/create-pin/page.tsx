@@ -609,6 +609,10 @@ const [error, setError] = useState("");
 const [saving, setSaving] = useState(false);
 const [userName, setUserName] = useState("");
 
+
+const [invitationContextReady, setInvitationContextReady] =
+    useState(false);
+
 const [animationVisibleCount, setAnimationVisibleCount] = useState(0);
 
 let invitedRole: string | null = null;
@@ -670,6 +674,87 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
+    let cancelled = false;
+
+    const loadInvitationContext = async () => {
+        try {
+            const user =
+                await authService.getCurrentUser();
+
+            if (!user?.id) {
+                return;
+            }
+
+            const {
+                data: invitation,
+                error: invitationError,
+            } = await supabase
+                .from("carevr_invitations")
+                .select(
+                    "role, family_id"
+                )
+                .eq(
+                    "invited_user_id",
+                    user.id
+                )
+                .eq(
+                    "status",
+                    "ACCEPTED"
+                )
+                .order(
+                    "accepted_at",
+                    {
+                        ascending: false,
+                    }
+                )
+                .limit(1)
+                .maybeSingle();
+
+            if (cancelled) {
+                return;
+            }
+
+            if (invitationError) {
+                throw new Error(
+                    invitationError.message
+                );
+            }
+
+            if (!invitation) {
+                throw new Error(
+                    "CareVR invitation context is unavailable."
+                );
+            }
+
+            invitedRoleRef.current =
+                invitation.role;
+
+            familyIdRef.current =
+                invitation.family_id;
+	
+	setInvitationContextReady(true);
+
+        } catch (error) {
+            if (cancelled) {
+                return;
+            }
+
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to load CareVR invitation context."
+            );
+        }
+    };
+
+    void loadInvitationContext();
+
+    return () => {
+        cancelled = true;
+    };
+}, []);
+
+useEffect(() => {
     if (!consentAccepted) {
         return;
     }
@@ -698,55 +783,7 @@ useEffect(() => {
             }
 
 
-/*
- * Retrieve the invitation authorization context once.
- *
- * Create PIN does not need to run
- * validateInvitedUserLogin().
- *
- * The invitation supplies the role and family
- * needed to establish the POST_LOGIN handoff.
- */
-const { data: invitation, error: invitationError } =
-    await supabase
-        .from("carevr_invitations")
-        .select(
-            "role, family_id"
-        )
-        .eq(
-            "invited_user_id",
-            user.id
-        )
-        .eq(
-            "status",
-            "ACCEPTED"
-        )
-        .order(
-            "accepted_at",
-            {
-                ascending: false,
-            }
-        )
-        .limit(1)
-        .maybeSingle();
 
-if (invitationError) {
-    throw new Error(
-        invitationError.message
-    );
-}
-
-if (!invitation) {
-    throw new Error(
-        "CareVR invitation context is unavailable."
-    );
-}
-
-invitedRoleRef.current =
-    invitation.role;
-
-familyIdRef.current =
-    invitation.family_id;
 
             /*
              * validateInvitedUserLogin() has already done
@@ -872,6 +909,13 @@ familyIdRef.current =
         setter(digitsOnly);
         setError("");
     };
+
+if (!invitationContextReady) {
+    setError(
+        "Please wait while your CareVR access is being prepared."
+    );
+    return;
+}
 
     const handleSave = async () => {
         setError("");
