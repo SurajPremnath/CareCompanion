@@ -625,23 +625,23 @@ return (
                             selectedContextId ===
                             profile.id;
 
-        const profileRole =
-            profile.role === "PRIMARY"
-                ? "SELF"
-                : profile.role === "FAMILY"
-                    ? "FAMILY"
-                    : profile.role === "CARETAKER"
-                        ? "CARETAKER"
-                        : "DOCTOR";
+const profileRole =
+    profile.role === "SELF"
+        ? "SELF"
+        : profile.role === "FAMILY"
+            ? "FAMILY"
+            : profile.role === "CARETAKER"
+                ? "CARETAKER"
+                : "DOCTOR";
 
-        const profileLabel =
-            profile.role === "PRIMARY"
-                ? "Your Profile"
-                : profile.role === "FAMILY"
-                    ? "Family"
-                    : profile.role === "CARETAKER"
-                        ? "Caretaker"
-                        : "Doctor";
+const profileLabel =
+    profile.role === "SELF"
+        ? "Self"
+        : profile.role === "FAMILY"
+            ? "Family"
+            : profile.role === "CARETAKER"
+                ? "Caretaker"
+                : "Doctor";
 
                                             return (
                                                 <button
