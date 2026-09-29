@@ -881,148 +881,93 @@ useEffect(() => {
             }
 
 
-const user =
-    await authService.getCurrentUser();
+        const user =
+            await authService.getCurrentUser();
 
-if (!user?.id || !user.email) {
-    throw new Error(
-        "Authenticated user context is unavailable."
-    );
-}
+        if (!user?.id) {
+            throw new Error(
+                "Authenticated user context is unavailable."
+            );
+        }
 
+
+        /*
+         * Do NOT call validateInvitedUserLogin() here.
+         *
+         * Invitation / login validation has already
+         * occurred earlier in the authentication flow.
+         *
+         * After PIN creation, only the persisted consent
+         * state determines whether we proceed to Consent
+         * or continue with the existing CareVR handoff.
+         */
+
+        const hasAcceptedConsent =
+            await consentRepository
+                .hasAcceptedCurrentConsent();
+
+        if (!hasAcceptedConsent) {
+            router.replace(
+                "/consent"
+            );
+
+            return;
+        }
+
+        /*
+         * Existing CareVR context resolution.
+         *
+         * The authenticated user ID is the input.
+         * No in-memory authorization handoff is required.
+         */
+
+        const availableContexts =
+            await carevrContextResolver
+                .getAvailableContexts(
+                    user.id
+                );
+
+
+        /*
+         * Preserve the existing context-selection model.
+         *
+         * The context resolver is now the source of the
+         * active CareVR context rather than the temporary
+         * authorization handoff object.
+         */
+
+
+        const selectedContext =
+            availableContexts.contexts[0];
+
+        if (!selectedContext) {
+            throw new Error(
+                "Unable to resolve the active CareVR context."
+            );
+        }
+
+
+        /*
+         * Existing active-access resolution.
+         */
+        const activeAccess =
+            availableContexts.activeAccessRecords.find(
+                (access) =>
+                    access.id ===
+                    selectedContext.accessId
+            );
+
+        if (!activeAccess) {
+            throw new Error(
+                "Unable to resolve the active CareVR access."
+            );
+        }
+
+        /*
+         * Existing dashboard authorization handoff.
+         */
 
 /*
- * REDUNDANT:
- * validateInvitedUserLogin() previously performed
- * invitation/role/consent validation again here.
- *
- * Consent is already persisted and is checked directly.
- * The CareVR role/context was established earlier in
- * the authentication/authorization flow.
- */
-
-/*
-
-const validation =
-    await validateInvitedUserLogin({
-        email: user.email,
-        userId: user.id,
-        mode: "NORMAL",
-    });
-
-if (
-    validation.status ===
-    "CONSENT_REQUIRED"
-) {
-    if (
-        !validation.invitationRole ||
-        !validation.familyId
-    ) {
-        throw new Error(
-            "CareVR authorization context is incomplete."
-        );
-    }
-*/
-
-/*
- * Consent check replaces only the redundant
- * validateInvitedUserLogin() call.
- *
- * Existing consentAccepted state is used.
- */
-
-/*
-if (!consentAccepted) {
-
-    carevrAuthorizationHandoff.set({
-        userId: user.id,
-        carevrRole:
-            validation.invitationRole,
-        familyId:
-            validation.familyId,
-        patientId:
-            null,
-        consentStage:
-            "POST_LOGIN",
-        governanceId:
-            null,
-        governanceVersion:
-            null,
-    });
-
-    router.replace("/consent");
-    return;
-}
-*/
-
-/*
-const hasAcceptedConsent =
-    await consentRepository
-        .hasAcceptedCurrentConsent();
-
-if (!hasAcceptedConsent) {
-    router.replace("/consent");
-    return;
-}
-
-
-if (
-    validation.status ===
-        "ROLE_MISMATCH" ||
-    validation.status ===
-        "INVALID_INVITATION" ||
-    validation.status ===
-        "NOT_INVITED"
-) {
-    throw new Error(
-        validation.message
-    );
-}
-
-if (
-    validation.status ===
-        "ACCEPTED" ||
-    validation.status ===
-        "PRIMARY"
-) {
-    const selectedRole =
-        validation.status ===
-            "PRIMARY"
-            ? "SELF"
-            : validation.invitationRole ===
-                "SECONDARY_FAMILY_MEMBER"
-                ? "FAMILY"
-                : validation.invitationRole ===
-                    "CARETAKER"
-                    ? "CARETAKER"
-                    : validation.invitationRole ===
-                        "DOCTOR"
-                        ? "DOCTOR"
-                        : "SELF";
-
-*/
-
-const consentAccepted =
-    await consentRepository.hasAcceptedCurrentConsent();
-
-if (!consentAccepted) {
-
-    const authorizationHandoff =
-        carevrAuthorizationHandoff.get();
-
-    if (!authorizationHandoff) {
-        throw new Error(
-            "CareVR authorization context is unavailable."
-        );
-    }
-
-    router.replace(
-        "/consent"
-    );
-
-    return;
-}
-
 const authorizationHandoff =
     carevrAuthorizationHandoff.get();
 
@@ -1046,6 +991,7 @@ const selectedRole =
                     "DOCTOR"
                     ? "DOCTOR"
                     : "SELF";
+
 
 const availableContexts =
     await carevrContextResolver
@@ -1079,11 +1025,18 @@ if (!selectedContext) {
         );
     }
 
+
     await resolveCareVRDashboardHandoff(
         user.id,
         selectedRole,
         activeAccess
     );
+*/
+        await resolveCareVRDashboardHandoff(
+            user.id,
+            selectedContext.loginRole,
+            activeAccess
+        );
 
     router.replace(
         "/dashboard"
