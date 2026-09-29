@@ -380,153 +380,33 @@ try {
      * ------------------------------------------------------
      */
 
-    const {
-        data: profile,
-        error: profileError,
-    } =
-        await supabaseAdmin
-            .from("profiles")
-            .select(
-                `
-                id,
-                email,
-                family_member_type
-                `
-            )
-            .eq(
-                "email",
-                email
-            )
-            .eq(
-                "family_member_type",
-                "PRIMARY"
-            )
-            .maybeSingle();
-
-    if (profileError) {
-
-        console.error(
-            "Unable to validate Primary profile.",
-            profileError
-        );
-
-        return NextResponse.json(
-            {
-                message:
-                    "Unable to validate CareVR access.",
-            },
-            {
-                status: 500,
-            }
-        );
-
+return NextResponse.json(
+    {
+        status:
+            "VALID",
+        invitationId:
+            invitation.id,
+        tokenId:
+            tokenRecord.id,
+    },
+    {
+        status: 200,
     }
+);
 
-    if (!profile) {
+/*
+ * ------------------------------------------------------
+ * Primary Product Invitation is valid.
+ *
+ * This endpoint only validates the token and invitation.
+ * It does not require profiles or carevr_access because
+ * this validation occurs before Auth account creation.
+ *
+ * The invitation/token is consumed later in the
+ * registration lifecycle.
+ * ------------------------------------------------------
+ */
 
-        return NextResponse.json(
-            {
-                status:
-                    "NO_ACCESS",
-            },
-            {
-                status: 200,
-            }
-        );
-
-    }
-
-    const {
-        data: access,
-        error: accessError,
-    } =
-        await supabaseAdmin
-            .from("carevr_access")
-            .select(
-                `
-                id,
-                user_id,
-                access_type,
-                access_status
-                `
-            )
-            .eq(
-                "user_id",
-                profile.id
-            )
-            .eq(
-                "access_type",
-                "PRIMARY"
-            )
-            .eq(
-                "access_status",
-                "ACTIVE"
-            )
-            .maybeSingle();
-
-    if (accessError) {
-
-        console.error(
-            "Unable to validate Primary CareVR access.",
-            accessError
-        );
-
-        return NextResponse.json(
-            {
-                message:
-                    "Unable to validate CareVR access.",
-            },
-            {
-                status: 500,
-            }
-        );
-
-    }
-
-    if (!access) {
-
-        return NextResponse.json(
-            {
-                status:
-                    "NO_ACCESS",
-            },
-            {
-                status: 200,
-            }
-        );
-
-    }
-
-    /*
-     * ------------------------------------------------------
-     * 9. Primary invitation + active Primary access are
-     *    both valid.
-     *
-     * The Product Invitation is NOT consumed here.
-     *
-     * Consumption/acceptance remains a separate lifecycle
-     * event so registration can proceed to Create PIN and
-     * Consent without prematurely accepting the invitation.
-     * ------------------------------------------------------
-     */
-
-    return NextResponse.json(
-        {
-            status:
-                "ACTIVE",
-            invitationId:
-                invitation.id,
-            tokenId:
-                tokenRecord.id,
-            userId:
-                profile.id,
-            accessId:
-                access.id,
-        },
-        {
-            status: 200,
-        }
-    );
 
 } catch (error) {
 
