@@ -3,6 +3,100 @@ import { carevrModulePermissions } from "@/lib/repositories/carevrModulePermissi
 import { familyRepository } from "@/lib/repositories/familyRepository";
 import { supabase } from "@/lib/supabase";
 
+async function ensurePrimaryDigitalHealthProfile(
+    userId: string,
+    familyId: string,
+    carevrAccessId: string
+): Promise<void> {
+
+    const {
+        data: existingProfile,
+        error: lookupError,
+    } =
+        await supabase
+            .from("digital_health_profile")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("family_id", familyId)
+            .maybeSingle();
+
+    if (lookupError) {
+
+        throw lookupError;
+
+    }
+
+    if (existingProfile) {
+
+        const {
+            error: updateError,
+        } =
+            await supabase
+                .from("digital_health_profile")
+                .update({
+                    carevr_access_id:
+                        carevrAccessId,
+
+                    role:
+                        "PRIMARY",
+
+                    invitation_status:
+                        "ACCEPTED",
+                })
+                .eq(
+                    "id",
+                    existingProfile.id
+                );
+
+        if (updateError) {
+
+            throw updateError;
+
+        }
+
+        return;
+    }
+
+    const {
+        error: insertError,
+    } =
+        await supabase
+            .from("digital_health_profile")
+            .insert({
+                user_id:
+                    userId,
+
+                family_id:
+                    familyId,
+
+                invitation_status:
+                    "ACCEPTED",
+
+                consent_status:
+                    "PENDING",
+
+                digital_health_flag:
+                    false,
+
+                role_status:
+                    "SINGLE",
+
+                carevr_access_id:
+                    carevrAccessId,
+
+                role:
+                    "PRIMARY",
+            });
+
+    if (insertError) {
+
+        throw new Error(
+            "Primary CareVR access was established, but the digital health profile could not be created."
+        );
+
+    }
+}
+
 export async function provisionPrimaryAccess(
     userId: string
 ): Promise<string> {
@@ -125,6 +219,13 @@ if (!profile.full_name?.trim() && profile.email?.trim()) {
                 userId
             );
 
+
+    await ensurePrimaryDigitalHealthProfile(
+        userId,
+        existingAccess.familyId,
+        existingAccess.id
+    );
+
             return existingAccess.id;
 
         }
@@ -197,6 +298,12 @@ if (!profile.full_name?.trim() && profile.email?.trim()) {
             existingAccess.id,
             userId
         );
+
+await ensurePrimaryDigitalHealthProfile(
+    userId,
+    familyId,
+    existingAccess.id
+);
 
         return existingAccess.id;
     }
@@ -280,6 +387,12 @@ if (!profile.full_name?.trim() && profile.email?.trim()) {
         carevrAccessId,
         userId
     );
+
+await ensurePrimaryDigitalHealthProfile(
+    userId,
+    familyId,
+    carevrAccessId
+);
 
     return carevrAccessId;
 }
