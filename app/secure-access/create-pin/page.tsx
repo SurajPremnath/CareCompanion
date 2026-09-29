@@ -910,12 +910,6 @@ useEffect(() => {
         setError("");
     };
 
-if (!invitationContextReady) {
-    setError(
-        "Please wait while your CareVR access is being prepared."
-    );
-    return;
-}
 
     const handleSave = async () => {
         setError("");
@@ -944,6 +938,14 @@ if (!invitationContextReady) {
         if (saving) {
             return;
         }
+
+if (!invitationContextReady) {
+    setError(
+        "Please wait while your CareVR access is being prepared."
+    );
+    return;
+}
+
 
         setSaving(true);
 
