@@ -151,32 +151,92 @@ const handleRegister = async () => {
 
         setSuccess("");
 
-        /*
-         * A CareVR account may only be created when the
-         * registration email has a valid, unexpired
-         * PENDING CareVR product invitation.
-         */
 /*
- * Primary registrations are authorized through
- * carevr_access.
+ * =========================================================
+ * CAREVR REGISTRATION ENTRY
+ * =========================================================
  *
- * Invitee registrations continue through the
- * existing product invitation validation.
+ * Do not decide Primary vs Invitee from the registration
+ * form.
+ *
+ * The invitation itself determines the entry path:
+ *
+ * Founder -> New Primary
+ *      = PRODUCT
+ *
+ * Primary -> Family Invitee
+ *      = INVITATION
+ *
+ * Invitee -> Primary
+ *      = CONVERTED
+ *
+ * The Role Clarification record is only used to determine
+ * which existing validation path should continue.
+ *
+ * It does NOT replace or modify the existing authorization,
+ * invitation, access, PIN, consent, or registration logic.
+ * =========================================================
  */
 
-if (isPrimaryFamilyMember === true) {
+const roleClarificationResponse =
+    await fetch(
+        "/api/access-management/role-clarification",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+            body: JSON.stringify({
+                email:
+                    email.trim(),
+            }),
+        }
+    );
 
-    // ==================================================
-    // PRIMARY
-    // ==================================================
+const roleClarificationResult =
+    await roleClarificationResponse.json();
 
-    const primaryAccessResponse =
+if (!roleClarificationResponse.ok) {
+    throw new Error(
+        roleClarificationResult.message ??
+        "Unable to determine CareVR registration context."
+    );
+}
+
+const registrationContext =
+    roleClarificationResult.context;
+
+
+/*
+ * =========================================================
+ * FOUNDER -> NEW PRIMARY
+ * =========================================================
+ *
+ * The Role Clarification table says PRODUCT.
+ *
+ * Continue through the existing Product Invitation
+ * validation. Do NOT require carevr_access yet because
+ * this is pre-authentication registration.
+ *
+ * carevr_access is established later by the existing
+ * Primary provisioning flow.
+ * =========================================================
+ */
+
+if (
+    registrationContext ===
+    "PRODUCT"
+) {
+
+    const invitationResponse =
         await fetch(
-            "/api/access-management/access-to-carevr/primary-validation",
+            "/api/access-management/access-to-carevr/validation",
             {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type":
+                        "application/json",
                 },
                 body: JSON.stringify({
                     token:
@@ -187,22 +247,22 @@ if (isPrimaryFamilyMember === true) {
             }
         );
 
-    const primaryAccessResult =
-        await primaryAccessResponse.json();
+    const invitationResult =
+        await invitationResponse.json();
 
-    if (!primaryAccessResponse.ok) {
+    if (!invitationResponse.ok) {
         throw new Error(
-            primaryAccessResult.message ??
-            "Unable to validate CareVR access."
+            invitationResult.message ??
+            "Unable to validate the CareVR invitation."
         );
     }
 
     if (
-        primaryAccessResult.status !==
-        "VALID"
+        invitationResult.status !==
+        "PENDING"
     ) {
         throw new Error(
-            "Active CareVR access is required to register as Primary."
+            "A valid CareVR invitation is required to register."
         );
     }
 
@@ -325,9 +385,9 @@ if (registrationResumeRequired) {
  * not performed in this step.
  */
 const secureAccessUrl =
-    productInvitationToken
-        ? `/secure-access/create-pin?productInvitationToken=${encodeURIComponent(productInvitationToken)}`
-        : "/secure-access/create-pin";
+    `/secure-access/create-pin?context=${encodeURIComponent(
+        registrationContext
+    )}`;
 
 router.replace(secureAccessUrl);
 

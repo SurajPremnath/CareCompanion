@@ -196,22 +196,57 @@ console.log(
 );
 
 
-        if (
-            invitationError ||
-            !invitation
-        ) {
+if (
+    invitationError ||
+    !invitation
+) {
 
-            throw new Error(
-                invitationError?.message ??
-                "Unable to create product invitation."
-            );
+    throw new Error(
+        invitationError?.message ??
+        "Unable to create product invitation."
+    );
 
-        }
+}
 
 
-        //--------------------------------------------------
-        // Store only the token hash.
-        //--------------------------------------------------
+/*
+ * ------------------------------------------------------
+ * ROLE CLARIFICATION
+ *
+ * This invitation originated from the Founder and is
+ * therefore a PRODUCT invitation.
+ *
+ * This record only identifies the entry path.
+ * It does not change authorization, access, roles,
+ * registration, PIN, consent, or invitation logic.
+ * ------------------------------------------------------
+ */
+
+const {
+    error: roleClarificationError,
+} =
+    await supabaseAdmin
+        .from("role_clarification")
+        .insert({
+            email,
+            type:
+                "PRODUCT",
+        });
+
+if (
+    roleClarificationError
+) {
+
+    throw new Error(
+        roleClarificationError.message
+    );
+
+}
+
+
+//--------------------------------------------------
+// Store only the token hash.
+//--------------------------------------------------
 
 const tokenInsertStartedAt =
     performance.now();

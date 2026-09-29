@@ -673,11 +673,19 @@ useEffect(() => {
     };
 }, []);
 
+const registrationContext =
+    searchParams.get(
+        "registrationContext"
+    );
+
 useEffect(() => {
+
     let cancelled = false;
 
-    const loadInvitationContext = async () => {
+    const loadCareVRContext = async () => {
+
         try {
+
             const user =
                 await authService.getCurrentUser();
 
@@ -685,56 +693,178 @@ useEffect(() => {
                 return;
             }
 
-            const {
-                data: invitation,
-                error: invitationError,
-            } = await supabase
-                .from("carevr_invitation")
-                .select(
-                    "role, family_id"
-                )
-                .eq(
-                    "invited_user_id",
-                    user.id
-                )
-                .eq(
-                    "status",
-                    "ACCEPTED"
-                )
-                .order(
-                    "accepted_at",
-                    {
-                        ascending: false,
-                    }
-                )
-                .limit(1)
-                .maybeSingle();
+            /*
+             * =====================================================
+             * PRODUCT
+             *
+             * Founder -> New Primary
+             *
+             * The Primary CareVR access record is the source of
+             * the Primary context.
+             * =====================================================
+             */
 
-            if (cancelled) {
+            if (
+                registrationContext ===
+                "PRODUCT"
+            ) {
+
+                const {
+                    data: access,
+                    error: accessError,
+                } =
+                    await supabase
+                        .from(
+                            "carevr_access"
+                        )
+                        .select(
+                            "access_type, family_id"
+                        )
+                        .eq(
+                            "user_id",
+                            user.id
+                        )
+                        .eq(
+                            "access_type",
+                            "PRIMARY"
+                        )
+                        .eq(
+                            "access_status",
+                            "ACTIVE"
+                        )
+                        .maybeSingle();
+
+                if (cancelled) {
+                    return;
+                }
+
+                if (accessError) {
+                    throw new Error(
+                        accessError.message
+                    );
+                }
+
+                if (!access) {
+                    throw new Error(
+                        "Primary CareVR access is unavailable."
+                    );
+                }
+
+                invitedRoleRef.current =
+                    "PRIMARY";
+
+                familyIdRef.current =
+                    access.family_id;
+
+                setInvitationContextReady(
+                    true
+                );
+
                 return;
             }
 
-            if (invitationError) {
-                throw new Error(
-                    invitationError.message
+
+            /*
+             * =====================================================
+             * INVITATION
+             *
+             * Primary -> Family Invitee
+             *
+             * Continue using the existing accepted
+             * CareVR invitation context.
+             * =====================================================
+             */
+
+            if (
+                registrationContext ===
+                "INVITATION"
+            ) {
+
+                const {
+                    data: invitation,
+                    error: invitationError,
+                } =
+                    await supabase
+                        .from(
+                            "carevr_invitation"
+                        )
+                        .select(
+                            "role, family_id"
+                        )
+                        .eq(
+                            "invited_user_id",
+                            user.id
+                        )
+                        .eq(
+                            "status",
+                            "ACCEPTED"
+                        )
+                        .order(
+                            "accepted_at",
+                            {
+                                ascending: false,
+                            }
+                        )
+                        .limit(1)
+                        .maybeSingle();
+
+                if (cancelled) {
+                    return;
+                }
+
+                if (invitationError) {
+                    throw new Error(
+                        invitationError.message
+                    );
+                }
+
+                if (!invitation) {
+                    throw new Error(
+                        "CareVR invitation context is unavailable."
+                    );
+                }
+
+                invitedRoleRef.current =
+                    invitation.role;
+
+                familyIdRef.current =
+                    invitation.family_id;
+
+                setInvitationContextReady(
+                    true
                 );
+
+                return;
             }
 
-            if (!invitation) {
+
+            /*
+             * CONVERTED should not normally reach Create PIN.
+             *
+             * Invitee -> Primary reuses the existing PIN.
+             * If it ever reaches this page accidentally, do not
+             * silently manufacture a new context.
+             */
+
+            if (
+                registrationContext ===
+                "CONVERTED"
+            ) {
+
                 throw new Error(
-                    "CareVR invitation context is unavailable."
+                    "Existing CareVR access must be used for this profile transition."
                 );
+
             }
 
-            invitedRoleRef.current =
-                invitation.role;
 
-            familyIdRef.current =
-                invitation.family_id;
-	
-	setInvitationContextReady(true);
+            throw new Error(
+                "CareVR registration context is unavailable."
+            );
 
-        } catch (error) {
+        }
+        catch (error) {
+
             if (cancelled) {
                 return;
             }
@@ -742,17 +872,22 @@ useEffect(() => {
             setError(
                 error instanceof Error
                     ? error.message
-                    : "Unable to load CareVR invitation context."
+                    : "Unable to load CareVR access context."
             );
+
         }
+
     };
 
-    void loadInvitationContext();
+    void loadCareVRContext();
 
     return () => {
         cancelled = true;
     };
-}, []);
+
+}, [
+    registrationContext,
+]);
 
 useEffect(() => {
     if (!consentAccepted) {
