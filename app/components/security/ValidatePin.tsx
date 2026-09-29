@@ -23,9 +23,11 @@ import CareVRFooter from "@/Components/common/CareVRFooter";
 
 import CareVRDashboardHandoffAnimation from "@/Components/common/CareVRDashboardHandoffAnimation";
 
+/*
 import {
     validateInvitedUserLogin,
 } from "@/lib/invitations/invitedUserLoginValidation";
+*/
 
 import {
     resolveCareVRDashboardHandoff,
@@ -355,85 +357,6 @@ try {
 
 
 
-        const validationStartedAt =
-            performance.now();
-
-        const validation =
-            await validateInvitedUserLogin({
-                email,
-                userId,
-                mode: "NORMAL",
-            });
-
-        const validationCompletedAt =
-            performance.now();
-
-        console.log(
-            `[PIN-PERF] validateInvitedUserLogin: ${Math.round(
-                validationCompletedAt -
-                validationStartedAt
-            )} ms`
-        );
-
-
-
-        if (
-            validation.status ===
-            "CONSENT_REQUIRED"
-        ) {
-
-            if (
-                !validation.invitationRole ||
-                !validation.familyId
-            ) {
-                throw new Error(
-                    "CareVR authorization context is incomplete."
-                );
-            }
-
-            carevrAuthorizationHandoff.set({
-                userId,
-                carevrRole:
-                    validation.invitationRole,
-                familyId:
-                    validation.familyId,
-                patientId:
-                    null,
-                consentStage:
-                    "POST_LOGIN",
-                governanceId:
-                    null,
-                governanceVersion:
-                    null,
-            });
-
-            router.replace("/consent");
-            return;
-        }
-
-
-        if (
-            validation.status ===
-                "ROLE_MISMATCH" ||
-            validation.status ===
-                "INVALID_INVITATION" ||
-            validation.status ===
-                "NOT_INVITED"
-        ) {
-            throw new Error(
-                validation.message
-            );
-        }
-
-
-
-if (
-    validation.status ===
-        "ACCEPTED" ||
-    validation.status ===
-        "PRIMARY"
-) {
-
     /*
      * =========================================================
      * DIGITAL HEALTH PROFILE + CAREVR ACCESS
@@ -729,13 +652,7 @@ console.log(
     setDashboardHandoffReady(true);
 
     return;
-}
 
-
-
-        throw new Error(
-            validation.message
-        );
 
 } catch (err) {
 
