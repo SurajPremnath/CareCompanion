@@ -100,34 +100,59 @@ class InvitationEmailService {
         };
     }
 
-    private toHtml(
-        body: string
-    ): string {
+private toHtml(
+    body: string
+): string {
 
-        const escapedBody =
-            body
-                .replace(
-                    /&/g,
-                    "&amp;"
-                )
-                .replace(
-                    /</g,
-                    "&lt;"
-                )
-                .replace(
-                    />/g,
-                    "&gt;"
-                )
-                .replace(
-                    /"/g,
-                    "&quot;"
-                )
-                .replace(
-                    /'/g,
-                    "&#039;"
-                );
+    const escapedBody =
+        body
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+            .replace(
+                /</g,
+                "&lt;"
+            )
+            .replace(
+                />/g,
+                "&gt;"
+            )
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+            .replace(
+                /'/g,
+                "&#039;"
+            );
 
-        return `
+    /*
+     * Convert CareVR invitation URLs into clickable links.
+     *
+     * The body remains HTML-escaped first, so arbitrary
+     * content cannot become executable HTML.
+     */
+    const linkedBody =
+        escapedBody.replace(
+            /(https?:\/\/[^\s<]+)/g,
+            (url) => `
+                <a
+                    href="${url}"
+                    style="
+                        color:#244b7f;
+                        text-decoration:underline;
+                        font-weight:600;
+                    "
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    ${url}
+                </a>
+            `
+        );
+
+    return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -181,7 +206,7 @@ class InvitationEmailService {
                     white-space:pre-wrap;
                 "
             >
-                ${escapedBody}
+                ${linkedBody}
             </div>
         </div>
 
@@ -200,7 +225,7 @@ class InvitationEmailService {
 </body>
 </html>
 `;
-    }
+}
 }
 
 export const invitationEmailService =
