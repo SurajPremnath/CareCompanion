@@ -324,17 +324,7 @@ if (!selectedProfile) {
 }
 
 const selectedRole =
-    selectedProfile.role === "DOCTOR"
-        ? "DOCTOR"
-        : selectedProfile.role === "CARETAKER"
-            ? "CARETAKER"
-            : selectedProfile.role === "FAMILY"
-                ? "SECONDARY_FAMILY_MEMBER"
-                : "SELF";
-
-
-const dashboardRole =
-    selectedProfile.role === "PRIMARY"
+    selectedProfile.role === "SELF"
         ? "SELF"
         : selectedProfile.role === "FAMILY"
             ? "FAMILY"
@@ -342,10 +332,6 @@ const dashboardRole =
                 ? "CARETAKER"
                 : "DOCTOR";
 
-const carevrRole =
-    selectedRole === "SELF"
-        ? "PRIMARY"
-        : selectedRole;
 
 const familyId =
     selectedProfile.family_id;
@@ -354,11 +340,16 @@ const accessId =
     selectedProfile.carevr_access_id;
 
 
+/*
+ * The dashboard handoff requires the complete
+ * CareVR access record.
+ *
+ * This record was loaded once during page initialization.
+ */
 const access =
     activeAccessRecords.find(
         (record) =>
-            record.id ===
-            selectedProfile.carevr_access_id
+            record.id === accessId
     );
 
 if (!access) {
@@ -485,12 +476,7 @@ body: JSON.stringify({
     accessId:
         accessId,
     selectedRole:
-        selectedRole === "SELF"
-            ? "SELF"
-            : selectedRole ===
-                "SECONDARY_FAMILY_MEMBER"
-                ? "FAMILY"
-                : selectedRole,
+        selectedRole,
 }),
         }
     );
@@ -510,7 +496,7 @@ if (
 
 await resolveCareVRDashboardHandoff(
     user.id,
-    dashboardRole,
+    selectedRole,
     access
 );
 
