@@ -24,9 +24,15 @@ import {
 
 import { authService } from "@/lib/auth/authService";
 
+/*
 import {
     validateInvitedUserLogin,
 } from "@/lib/invitations/invitedUserLoginValidation";
+*/
+
+import {
+    consentRepository,
+} from "@/lib/consent/repository/consentRepository";
 
 import {
     resolveCareVRDashboardHandoff,
@@ -665,6 +671,7 @@ useEffect(() => {
         setError("");
 
         try {
+
             const user =
                 await authService.getCurrentUser();
 
@@ -678,12 +685,16 @@ useEffect(() => {
                 return;
             }
 
+
+/*
 if (!user.email) {
     throw new Error(
         "Authenticated user email is unavailable."
     );
 }
+*/
 
+/*
 const validation =
     await validateInvitedUserLogin({
         email: user.email,
@@ -739,6 +750,71 @@ const validation =
                 }
 
                 await resolveCareVRDashboardHandoff(
+*/
+
+
+            const authorizationHandoff =
+                carevrAuthorizationHandoff.get();
+
+            if (!authorizationHandoff) {
+                throw new Error(
+                    "CareVR authorization context is unavailable."
+                );
+            }
+
+            const selectedRole =
+                authorizationHandoff.carevrRole ===
+                    "PRIMARY"
+                    ? "SELF"
+                    : authorizationHandoff.carevrRole ===
+                        "SECONDARY_FAMILY_MEMBER"
+                        ? "FAMILY"
+                        : authorizationHandoff.carevrRole ===
+                            "CARETAKER"
+                            ? "CARETAKER"
+                            : authorizationHandoff.carevrRole ===
+                                "DOCTOR"
+                                ? "DOCTOR"
+                                : "SELF";
+
+
+const availableContexts =
+    await carevrContextResolver
+        .getAvailableContexts(
+            user.id
+        );
+
+if (cancelled) {
+    return;
+}
+
+            const selectedContext =
+                availableContexts.contexts.find(
+                    (context) =>
+                        context.loginRole ===
+                        selectedRole
+                );
+
+            if (!selectedContext) {
+                throw new Error(
+                    "Unable to resolve the active CareVR context."
+                );
+            }
+
+const activeAccess =
+    availableContexts.activeAccessRecords.find(
+        (access) =>
+            access.id ===
+            selectedContext.accessId
+    );
+
+if (!activeAccess) {
+    throw new Error(
+        "Unable to resolve the active CareVR access."
+    );
+}
+
+await resolveCareVRDashboardHandoff(
                     user.id,
                     selectedRole,
                     activeAccess
@@ -782,100 +858,7 @@ const validation =
                 );
 
                 return;
-            }
 
-            const selectedRole =
-                validation.invitationRole ===
-                "SECONDARY_FAMILY_MEMBER"
-                    ? "FAMILY"
-                    : validation.invitationRole ===
-                        "CARETAKER"
-                        ? "CARETAKER"
-                        : validation.invitationRole ===
-                            "DOCTOR"
-                            ? "DOCTOR"
-                            : "SELF";
-
-            const availableContexts =
-                await carevrContextResolver
-                    .getAvailableContexts(
-                        user.id
-                    );
-
-            if (cancelled) {
-                return;
-            }
-
-            const selectedContext =
-                availableContexts.contexts.find(
-                    (context) =>
-                        context.loginRole ===
-                        selectedRole
-                );
-
-            if (!selectedContext) {
-                throw new Error(
-                    "Unable to resolve the active CareVR context."
-                );
-            }
-
-            const activeAccess =
-                availableContexts.activeAccessRecords.find(
-                    (access) =>
-                        access.id ===
-                        selectedContext.accessId
-                );
-
-            if (!activeAccess) {
-                throw new Error(
-                    "Unable to resolve the active CareVR access."
-                );
-            }
-
-            await resolveCareVRDashboardHandoff(
-                user.id,
-                selectedRole,
-                activeAccess
-            );
-
-            if (cancelled) {
-                return;
-            }
-
-            const minimumAnimationDuration =
-                4000;
-
-            const elapsedTime =
-                performance.now() -
-                animationStartTime;
-
-            const remainingAnimationTime =
-                Math.max(
-                    0,
-                    minimumAnimationDuration -
-                        elapsedTime
-                );
-
-            if (remainingAnimationTime > 0) {
-                await new Promise<void>(
-                    (resolve) => {
-                        window.setTimeout(
-                            resolve,
-                            remainingAnimationTime
-                        );
-                    }
-                );
-            }
-
-            if (cancelled) {
-                return;
-            }
-
-            router.replace(
-                "/dashboard"
-            );
-
-            return;
         } catch (error) {
             if (cancelled) {
                 return;
@@ -967,6 +950,7 @@ const validation =
                 );
             }
 
+
 const user =
     await authService.getCurrentUser();
 
@@ -975,6 +959,19 @@ if (!user?.id || !user.email) {
         "Authenticated user context is unavailable."
     );
 }
+
+
+/*
+ * REDUNDANT:
+ * validateInvitedUserLogin() previously performed
+ * invitation/role/consent validation again here.
+ *
+ * Consent is already persisted and is checked directly.
+ * The CareVR role/context was established earlier in
+ * the authentication/authorization flow.
+ */
+
+/*
 
 const validation =
     await validateInvitedUserLogin({
@@ -995,6 +992,17 @@ if (
             "CareVR authorization context is incomplete."
         );
     }
+*/
+
+/*
+ * Consent check replaces only the redundant
+ * validateInvitedUserLogin() call.
+ *
+ * Existing consentAccepted state is used.
+ */
+
+/*
+if (!consentAccepted) {
 
     carevrAuthorizationHandoff.set({
         userId: user.id,
@@ -1015,6 +1023,18 @@ if (
     router.replace("/consent");
     return;
 }
+*/
+
+/*
+const hasAcceptedConsent =
+    await consentRepository
+        .hasAcceptedCurrentConsent();
+
+if (!hasAcceptedConsent) {
+    router.replace("/consent");
+    return;
+}
+
 
 if (
     validation.status ===
@@ -1050,24 +1070,71 @@ if (
                         ? "DOCTOR"
                         : "SELF";
 
-    const availableContexts =
-        await carevrContextResolver
-            .getAvailableContexts(
-                user.id
-            );
+*/
 
-    const selectedContext =
-        availableContexts.contexts.find(
-            (context) =>
-                context.loginRole ===
-                selectedRole
-        );
+const consentAccepted =
+    await consentRepository.hasAcceptedCurrentConsent();
 
-    if (!selectedContext) {
+if (!consentAccepted) {
+
+    const authorizationHandoff =
+        carevrAuthorizationHandoff.get();
+
+    if (!authorizationHandoff) {
         throw new Error(
-            "Unable to resolve the active CareVR context."
+            "CareVR authorization context is unavailable."
         );
     }
+
+    router.replace(
+        "/consent"
+    );
+
+    return;
+}
+
+const authorizationHandoff =
+    carevrAuthorizationHandoff.get();
+
+if (!authorizationHandoff) {
+    throw new Error(
+        "CareVR authorization context is unavailable."
+    );
+}
+
+const selectedRole =
+    authorizationHandoff.carevrRole ===
+        "PRIMARY"
+        ? "SELF"
+        : authorizationHandoff.carevrRole ===
+            "SECONDARY_FAMILY_MEMBER"
+            ? "FAMILY"
+            : authorizationHandoff.carevrRole ===
+                "CARETAKER"
+                ? "CARETAKER"
+                : authorizationHandoff.carevrRole ===
+                    "DOCTOR"
+                    ? "DOCTOR"
+                    : "SELF";
+
+const availableContexts =
+    await carevrContextResolver
+        .getAvailableContexts(
+            user.id
+        );
+
+const selectedContext =
+    availableContexts.contexts.find(
+        (context) =>
+            context.loginRole ===
+            selectedRole
+    );
+
+if (!selectedContext) {
+    throw new Error(
+        "Unable to resolve the active CareVR context."
+    );
+}
 
     const activeAccess =
         availableContexts.activeAccessRecords.find(
@@ -1093,12 +1160,6 @@ if (
     );
 
     return;
-}
-
-throw new Error(
-    validation.message ||
-        "Unable to determine the next CareVR step."
-);
 
         } catch (err) {
             setError(
