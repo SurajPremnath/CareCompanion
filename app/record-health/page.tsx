@@ -1637,7 +1637,7 @@ if (loading) {
             <main className="record-health-page">
 
                 <div className="record-health-loading">
-                    Loadingâ€¦
+                    Loading...
                 </div>
 
                 <style jsx>{`
