@@ -481,7 +481,10 @@ try {
 
 
 const dashboardRole =
-    digitalHealthProfile.role;
+    digitalHealthProfile.role ===
+    "SECONDARY_FAMILY_MEMBER"
+        ? "FAMILY"
+        : digitalHealthProfile.role;
 
 
 /*
