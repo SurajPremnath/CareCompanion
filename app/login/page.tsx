@@ -37,6 +37,8 @@ import {
   inviteeToPrimaryHandoff,
 } from "@/lib/authorization/inviteeToPrimaryHandoff";
 
+import { supabase } from "@/lib/supabase";
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -146,6 +148,141 @@ const authenticatedUser =
     verifiedCaptchaToken
   );
 
+
+// ------------------------------------------------------------
+// CAREVR REGISTRATION CONTEXT
+//
+// Determine whether this user entered CareVR as:
+// PRODUCT    → PRIMARY
+// INVITATION → SECONDARY / CARETAKER / DOCTOR
+//
+// The invitation role is authoritative from
+// carevr_invitation. role_clarification only confirms that
+// the corresponding registration context exists.
+// ------------------------------------------------------------
+
+let registrationContext:
+  | "PRODUCT"
+  | "INVITATION"
+  | null = null;
+
+
+// Check accepted CareVR invitation first.
+// The role comes from the authoritative invitation record.
+const {
+  data: invitation,
+  error: invitationError,
+} = await supabase
+  .from("carevr_invitation")
+  .select("role")
+  .eq(
+    "invited_user_id",
+    authenticatedUser.id
+  )
+  .eq(
+    "status",
+    "ACCEPTED"
+  )
+  .order(
+    "accepted_at",
+    {
+      ascending: false,
+    }
+  )
+  .limit(1)
+  .maybeSingle();
+
+if (invitationError) {
+  throw new Error(
+    invitationError.message
+  );
+}
+
+if (invitation) {
+  const {
+    data: roleContext,
+    error: roleContextError,
+  } = await supabase
+    .from("role_clarification")
+    .select("type")
+    .eq(
+      "email",
+      authenticatedUser.email
+    )
+    .eq(
+      "type",
+      "INVITATION"
+    )
+    .eq(
+      "invited_role",
+      invitation.role
+    )
+    .order(
+      "created_at",
+      {
+        ascending: false,
+      }
+    )
+    .limit(1)
+    .maybeSingle();
+
+  if (roleContextError) {
+    throw new Error(
+      roleContextError.message
+    );
+  }
+
+  if (roleContext) {
+    registrationContext =
+      "INVITATION";
+  }
+}
+
+// If there is no accepted invitation, check the
+// existing PRODUCT registration context for Primary.
+if (!registrationContext) {
+  const {
+    data: productContext,
+    error: productContextError,
+  } = await supabase
+    .from("role_clarification")
+    .select("type")
+    .eq(
+      "email",
+      authenticatedUser.email
+    )
+    .eq(
+      "type",
+      "PRODUCT"
+    )
+    .eq(
+      "invited_role",
+      "PRIMARY"
+    )
+    .order(
+      "created_at",
+      {
+        ascending: false,
+      }
+    )
+    .limit(1)
+    .maybeSingle();
+
+  if (productContextError) {
+    throw new Error(
+      productContextError.message
+    );
+  }
+
+  if (productContext) {
+    registrationContext =
+      "PRODUCT";
+  }
+}
+
+
+
+
 // const loginCompletedAt = performance.now();
 
 // console.log(
@@ -194,9 +331,17 @@ if (!pinStatusResponse.ok) {
 }
 
 if (pinStatus.hasPin !== true) {
+
+  if (!registrationContext) {
+    throw new Error(
+      "CareVR registration context is unavailable."
+    );
+  }
+
   router.replace(
-    "/secure-access/create-pin"
+    `/secure-access/create-pin?registrationContext=${registrationContext}`
   );
+
   return;
 }
 
