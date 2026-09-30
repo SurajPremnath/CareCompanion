@@ -51,7 +51,8 @@ async acceptConsent(
         | "voluntaryProcessingAgreement"
         | "termsMedicalAgreement"
         | "privacyPolicyAcknowledgement"
-    >
+    >,
+    registrationContext: string | null
 ): Promise<void> {
 
     const allConsentRequirementsAccepted =
@@ -268,6 +269,7 @@ async acceptConsent(
 
     let digitalHealthProfileRole: string;
 
+
     if (
         authorizationHandoff.carevrRole ===
         "PRIMARY"
@@ -337,6 +339,7 @@ async acceptConsent(
     digitalHealthProfileRole =
         authorizationHandoff.carevrRole;
 
+
     }
 
     const permissions =
@@ -360,6 +363,8 @@ async acceptConsent(
             })
         );
 
+if (registrationContext !== "PRODUCT") {
+
     const {
         error: permissionsError,
     } = await supabase
@@ -373,6 +378,8 @@ async acceptConsent(
         throw permissionsError;
 
     }
+
+}
 
 const {
     error: digitalHealthProfileError,

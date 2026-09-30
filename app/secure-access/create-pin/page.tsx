@@ -1177,14 +1177,25 @@ if (!invitationContextReady) {
             await consentRepository
                 .hasAcceptedCurrentConsent();
 
-        if (!hasAcceptedConsent) {
 
-            router.replace(
-                "/consent"
-            );
+if (!hasAcceptedConsent) {
 
-            return;
-        }
+    if (registrationContext === null) {
+
+        throw new Error(
+            "CareVR registration context is unavailable."
+        );
+
+    }
+
+    router.replace(
+        `/consent?registrationContext=${encodeURIComponent(
+            registrationContext
+        )}`
+    );
+
+    return;
+}
 
 
         /*

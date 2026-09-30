@@ -6,7 +6,11 @@ import React, {
     useState,
 } from "react";
 
-import { useRouter } from "next/navigation";
+import {
+    useRouter,
+    useSearchParams,
+} from "next/navigation";
+
 import { authService } from "@/lib/auth/authService";
 
 import {
@@ -25,9 +29,17 @@ import {
     markDigitalHealthConsentAccepted,
 } from "./actions";
 
-export default function ConsentPage() {
+function ConsentPageContent() {
 
     const router = useRouter();
+
+    const searchParams =
+        useSearchParams();
+
+    const registrationContext =
+        searchParams.get(
+            "registrationContext"
+        );
 
     const [selectedTab, setSelectedTab] =
         useState("privacy");
@@ -263,7 +275,7 @@ await consentStorage.acceptConsent({
     privacyPolicyAcknowledgement:
         privacyPolicyAcknowledged,
 
-});
+}, registrationContext);
 
 await markDigitalHealthConsentAccepted();
 
@@ -894,4 +906,12 @@ fullWidthTab: {
 
     },
 
-};
+}
+
+export default function ConsentPage() {
+    return (
+        <React.Suspense fallback={null}>
+            <ConsentPageContent />
+        </React.Suspense>
+    );
+}
