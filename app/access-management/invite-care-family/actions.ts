@@ -208,7 +208,14 @@ if (roleClarificationError) {
 
     console.error(
         "Unable to create role clarification record.",
-        roleClarificationError
+        {
+            email,
+            inputRole: input.role,
+            code: roleClarificationError.code,
+            message: roleClarificationError.message,
+            details: roleClarificationError.details,
+            hint: roleClarificationError.hint,
+        }
     );
 
 }
