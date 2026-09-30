@@ -231,6 +231,8 @@ const {
             email,
             type:
                 "PRODUCT",
+    invited_role:
+        "PRIMARY",
         });
 
 if (

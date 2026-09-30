@@ -200,6 +200,8 @@ const {
             email,
             type:
                 "INVITATION",
+            invited_role:
+                input.role,
         });
 
 if (roleClarificationError) {
