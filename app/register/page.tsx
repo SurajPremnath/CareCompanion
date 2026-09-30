@@ -54,6 +54,11 @@ const isInviteeToPrimary = inviteePrimaryHandoff !== null;
 const [inviteePrimaryConfirmed, setInviteePrimaryConfirmed] =
     useState(false);
 
+const [
+    primaryDigitalHealthProfileId,
+    setPrimaryDigitalHealthProfileId,
+] = useState<string | null>(null);
+
     const [fullName, setFullName] = useState("");
 
     const [email, setEmail] = useState("");
@@ -1005,6 +1010,7 @@ if (
  */
 
 const {
+    data: primaryDigitalHealthProfile,
     error: digitalHealthProfileError,
 } =
     await supabase
@@ -1023,45 +1029,64 @@ const {
                 "ACCEPTED",
 
             digital_health_flag:
-                true,
+                false,
 
             role_status:
-                "DUAL",
+                "SINGLE",
 
             carevr_access_id:
                 carevrAccessId,
 
             role:
-                "SELF",
-        });
+                "PRIMARY",
+        })
+        .select("id")
+        .single();
 
 if (
-    digitalHealthProfileError
+    digitalHealthProfileError ||
+    !primaryDigitalHealthProfile
 ) {
     console.error(
         "[PRIMARY-PROFILE-INSERT-ERROR]",
         digitalHealthProfileError
     );
 
-
-    throw digitalHealthProfileError;
-
+    throw (
+        digitalHealthProfileError ||
+        new Error(
+            "Unable to create Primary digital health profile."
+        )
+    );
 }
 
 
 /*
+ * Keep the exact DHP record created for the
+ * Primary profile so Cancel can restore it.
+ */
+
+setPrimaryDigitalHealthProfileId(
+    primaryDigitalHealthProfile.id
+);
+
+
+
+/*
  * =========================================================
- * MARK EXISTING PROFILE AS DUAL
+ * MARK BOTH DIGITAL HEALTH PROFILES AS DUAL
  * =========================================================
  *
- * The additional PRIMARY/SELF profile now exists.
+ * At this point the additional PRIMARY digital health
+ * profile has already been inserted.
  *
- * Only now do we update the user's existing digital
- * health profile so both records represent the DUAL state.
+ * Both profiles belong to the same authenticated user.
+ *
+ * Therefore update both records together.
  */
 
 const {
-    error: existingDigitalHealthProfileError,
+    error: digitalHealthProfileUpdateError,
 } =
     await supabase
         .from("digital_health_profile")
@@ -1072,20 +1097,15 @@ const {
         .eq(
             "user_id",
             user.id
-        )
-        .eq(
-            "digital_health_flag",
-            true
         );
 
 if (
-    existingDigitalHealthProfileError
+    digitalHealthProfileUpdateError
 ) {
 
-    throw existingDigitalHealthProfileError;
+    throw digitalHealthProfileUpdateError;
 
 }
-
 
                                     /*
                                      * The additional PRIMARY profile has been
@@ -1125,17 +1145,78 @@ inviteeToPrimaryHandoff.clear();
                                 : "Confirm"}
                         </button>
 
-                        <button
-                            type="button"
-                            className="login-link-button"
-                            onClick={() => {
-                                setIsPrimaryFamilyMember(null);
-                                setInviteePrimaryConfirmed(false);
-                            }}
-                            disabled={loading}
-                        >
-                            Cancel
-                        </button>
+<button
+    type="button"
+    className="login-link-button"
+    onClick={async () => {
+
+        try {
+
+            setLoading(true);
+            setError("");
+            setSuccess("");
+
+            /*
+             * Restore ONLY the additional PRIMARY DHP
+             * created during Primary registration.
+             *
+             * The original invitee DHP is not modified.
+             */
+            if (
+                primaryDigitalHealthProfileId
+            ) {
+
+                const {
+                    error:
+                        restorePrimaryProfileError,
+                } =
+                    await supabase
+                        .from(
+                            "digital_health_profile"
+                        )
+                        .update({
+                            role_status:
+                                "SINGLE",
+
+                            digital_health_flag:
+                                false,
+                        })
+                        .eq(
+                            "id",
+                            primaryDigitalHealthProfileId
+                        );
+
+                if (
+                    restorePrimaryProfileError
+                ) {
+                    throw restorePrimaryProfileError;
+                }
+            }
+
+            setPrimaryDigitalHealthProfileId(null);
+            setIsPrimaryFamilyMember(null);
+            setInviteePrimaryConfirmed(false);
+
+        } catch (err) {
+
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Unable to cancel Primary registration.";
+
+            setError(message);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    }}
+    disabled={loading}
+>
+    Cancel
+</button>
                     </div>
                 </>
             ) : (
