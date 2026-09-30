@@ -948,7 +948,10 @@ Primary Family Member.
                                      * access context for the existing user.
                                      * It does not create another Auth account.
                                      */
-                                    const carevrAccessId =
+const {
+    carevrAccessId,
+    primaryDigitalHealthProfileId,
+} =
     await provisionPrimaryAccess(user.id);
 
 const {
@@ -994,80 +997,6 @@ if (
 
 }
 
-/*
- * =========================================================
- * CREATE THE ADDITIONAL PRIMARY DIGITAL HEALTH PROFILE
- * =========================================================
- *
- * The existing invitee profile is not modified yet.
- *
- * First create the new PRIMARY/SELF profile using the
- * carevr_access record that provisionPrimaryAccess()
- * has already resolved or created.
- *
- * Only after this INSERT succeeds do we mark the existing
- * profile as DUAL.
- */
-
-console.log("[PRIMARY] BEFORE DHP INSERT");
-
-const {
-    data: primaryDigitalHealthProfile,
-    error: digitalHealthProfileError,
-} =
-    await supabase
-        .from("digital_health_profile")
-        .insert({
-            user_id:
-                user.id,
-
-            family_id:
-                primaryAccess.family_id,
-
-            invitation_status:
-                "ACCEPTED",
-
-            consent_status:
-                "ACCEPTED",
-
-            digital_health_flag:
-                false,
-
-            role_status:
-                "SINGLE",
-
-            carevr_access_id:
-                carevrAccessId,
-
-            role:
-                "PRIMARY",
-        })
-        .select("id")
-        .single();
-
-console.log(
-    "[PRIMARY] AFTER DHP INSERT",
-    primaryDigitalHealthProfile,
-    digitalHealthProfileError
-);
-
-
-if (
-    digitalHealthProfileError ||
-    !primaryDigitalHealthProfile
-) {
-    console.error(
-        "[PRIMARY-PROFILE-INSERT-ERROR]",
-        digitalHealthProfileError
-    );
-
-    throw (
-        digitalHealthProfileError ||
-        new Error(
-            "Unable to create Primary digital health profile."
-        )
-    );
-}
 
 /*
  * Keep the exact DHP record created for the
@@ -1075,7 +1004,7 @@ if (
  */
 
 setPrimaryDigitalHealthProfileId(
-    primaryDigitalHealthProfile.id
+    primaryDigitalHealthProfileId
 );
 
 

@@ -7,7 +7,7 @@ async function ensurePrimaryDigitalHealthProfile(
     userId: string,
     familyId: string,
     carevrAccessId: string
-): Promise<void> {
+): Promise<string> {
 
     const {
         data: existingProfile,
@@ -25,38 +25,40 @@ async function ensurePrimaryDigitalHealthProfile(
         throw lookupError;
 
     }
-if (existingProfile) {
 
-    const {
-        error: updateError,
-    } =
-        await supabase
-            .from("digital_health_profile")
-            .update({
-                carevr_access_id:
-                    carevrAccessId,
+    if (existingProfile) {
 
-                role_status:
-                    "DUAL",
+        const {
+            error: updateError,
+        } =
+            await supabase
+                .from("digital_health_profile")
+                .update({
+                    carevr_access_id:
+                        carevrAccessId,
 
-                invitation_status:
-                    "ACCEPTED",
-            })
-            .eq(
-                "id",
-                existingProfile.id
-            );
+                    role_status:
+                        "DUAL",
 
-    if (updateError) {
+                    invitation_status:
+                        "ACCEPTED",
+                })
+                .eq(
+                    "id",
+                    existingProfile.id
+                );
 
-        throw updateError;
+        if (updateError) {
 
+            throw updateError;
+
+        }
+
+        return existingProfile.id;
     }
 
-    return;
-}
-
     const {
+        data: insertedProfile,
         error: insertError,
     } =
         await supabase
@@ -85,20 +87,31 @@ if (existingProfile) {
 
                 role:
                     "PRIMARY",
-            });
+            })
+            .select("id")
+            .single();
 
-    if (insertError) {
+    if (insertError || !insertedProfile) {
 
-        throw new Error(
-            "Primary CareVR access was established, but the digital health profile could not be created."
+        throw (
+            insertError ||
+            new Error(
+                "Primary CareVR access was established, but the digital health profile could not be created."
+            )
         );
 
     }
+
+    return insertedProfile.id;
 }
+
 
 export async function provisionPrimaryAccess(
     userId: string
-): Promise<string> {
+): Promise<{
+    carevrAccessId: string;
+    primaryDigitalHealthProfileId: string;
+}> {
 
     if (!userId) {
 
@@ -116,81 +129,82 @@ export async function provisionPrimaryAccess(
     // establishing a PRIMARY context.
     //------------------------------------------------------
 
-const {
-    data: profile,
-    error: profileError
-} = await supabase
-    .from("profiles")
-    .select("id, full_name, email")
-    .eq("id", userId)
-    .maybeSingle();
+    const {
+        data: profile,
+        error: profileError
+    } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .eq("id", userId)
+        .maybeSingle();
 
-if (profileError) {
+    if (profileError) {
 
-    throw profileError;
-
-}
-
-if (!profile) {
-
-    throw new Error(
-        "CareVR user profile could not be found."
-    );
-
-}
-
-/*
- * Existing invitees already have an Auth/Profile identity.
- * When an invitee accepts Primary responsibility, establish
- * a temporary profile name from the authenticated email if
- * the profile does not yet have a name.
- *
- * Example:
- * test222@gmail.com -> Test222
- *
- * This is intentionally limited to an empty profile name.
- * A later Profile feature will allow the user to maintain
- * their proper full name.
- */
-if (!profile.full_name?.trim() && profile.email?.trim()) {
-
-    const emailLocalPart =
-        profile.email
-            .trim()
-            .split("@")[0]
-            .trim();
-
-    const derivedFullName =
-        emailLocalPart
-            .replace(/[._-]+/g, " ")
-            .replace(/\s+/g, " ")
-            .trim()
-            .replace(/\b\w/g, (character: string) =>
-                character.toUpperCase()
-            );
-
-    if (derivedFullName) {
-
-        const {
-            error: profileUpdateError
-        } = await supabase
-            .from("profiles")
-            .update({
-                full_name: derivedFullName,
-            })
-            .eq("id", userId);
-
-        if (profileUpdateError) {
-
-            throw profileUpdateError;
-
-        }
-
-        profile.full_name = derivedFullName;
+        throw profileError;
 
     }
 
-}
+    if (!profile) {
+
+        throw new Error(
+            "CareVR user profile could not be found."
+        );
+
+    }
+
+    /*
+     * Existing invitees already have an Auth/Profile identity.
+     * When an invitee accepts Primary responsibility, establish
+     * a temporary profile name from the authenticated email if
+     * the profile does not yet have a name.
+     *
+     * Example:
+     * test222@gmail.com -> Test222
+     *
+     * This is intentionally limited to an empty profile name.
+     * A later Profile feature will allow the user to maintain
+     * their proper full name.
+     */
+
+    if (!profile.full_name?.trim() && profile.email?.trim()) {
+
+        const emailLocalPart =
+            profile.email
+                .trim()
+                .split("@")[0]
+                .trim();
+
+        const derivedFullName =
+            emailLocalPart
+                .replace(/[._-]+/g, " ")
+                .replace(/\s+/g, " ")
+                .trim()
+                .replace(/\b\w/g, (character: string) =>
+                    character.toUpperCase()
+                );
+
+        if (derivedFullName) {
+
+            const {
+                error: profileUpdateError
+            } = await supabase
+                .from("profiles")
+                .update({
+                    full_name: derivedFullName,
+                })
+                .eq("id", userId);
+
+            if (profileUpdateError) {
+
+                throw profileUpdateError;
+
+            }
+
+            profile.full_name = derivedFullName;
+
+        }
+
+    }
 
     //------------------------------------------------------
     // Resolve an existing active PRIMARY access context.
@@ -218,16 +232,22 @@ if (!profile.full_name?.trim() && profile.email?.trim()) {
                 userId
             );
 
+            const primaryDigitalHealthProfileId =
+                await ensurePrimaryDigitalHealthProfile(
+                    userId,
+                    existingAccess.familyId,
+                    existingAccess.id
+                );
 
-    await ensurePrimaryDigitalHealthProfile(
-        userId,
-        existingAccess.familyId,
-        existingAccess.id
-    );
+            return {
+                carevrAccessId:
+                    existingAccess.id,
 
-            return existingAccess.id;
+                primaryDigitalHealthProfileId,
+            };
 
-        }
+        } // closes existingAccess.familyId
+
 
         //--------------------------------------------------
         // Existing PRIMARY access without a Family is the
@@ -298,14 +318,22 @@ if (!profile.full_name?.trim() && profile.email?.trim()) {
             userId
         );
 
-await ensurePrimaryDigitalHealthProfile(
-    userId,
-    familyId,
-    existingAccess.id
-);
+        const primaryDigitalHealthProfileId =
+            await ensurePrimaryDigitalHealthProfile(
+                userId,
+                familyId,
+                existingAccess.id
+            );
 
-        return existingAccess.id;
-    }
+        return {
+            carevrAccessId:
+                existingAccess.id,
+
+            primaryDigitalHealthProfileId,
+        };
+
+    } // closes existingAccess
+
 
     //------------------------------------------------------
     // No active PRIMARY access exists.
@@ -387,11 +415,16 @@ await ensurePrimaryDigitalHealthProfile(
         userId
     );
 
-await ensurePrimaryDigitalHealthProfile(
-    userId,
-    familyId,
-    carevrAccessId
-);
+    const primaryDigitalHealthProfileId =
+        await ensurePrimaryDigitalHealthProfile(
+            userId,
+            familyId,
+            carevrAccessId
+        );
 
-    return carevrAccessId;
+    return {
+        carevrAccessId,
+        primaryDigitalHealthProfileId,
+    };
+
 }
