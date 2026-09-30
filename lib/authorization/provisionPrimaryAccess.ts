@@ -25,37 +25,36 @@ async function ensurePrimaryDigitalHealthProfile(
         throw lookupError;
 
     }
+if (existingProfile) {
 
-    if (existingProfile) {
+    const {
+        error: updateError,
+    } =
+        await supabase
+            .from("digital_health_profile")
+            .update({
+                carevr_access_id:
+                    carevrAccessId,
 
-        const {
-            error: updateError,
-        } =
-            await supabase
-                .from("digital_health_profile")
-                .update({
-                    carevr_access_id:
-                        carevrAccessId,
+                role_status:
+                    "DUAL",
 
-                    role:
-                        "PRIMARY",
+                invitation_status:
+                    "ACCEPTED",
+            })
+            .eq(
+                "id",
+                existingProfile.id
+            );
 
-                    invitation_status:
-                        "ACCEPTED",
-                })
-                .eq(
-                    "id",
-                    existingProfile.id
-                );
+    if (updateError) {
 
-        if (updateError) {
+        throw updateError;
 
-            throw updateError;
-
-        }
-
-        return;
     }
+
+    return;
+}
 
     const {
         error: insertError,

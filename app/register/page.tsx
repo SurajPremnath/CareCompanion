@@ -374,6 +374,43 @@ if (registrationResumeRequired) {
     }
 }
 
+
+/*
+ * =========================================================
+ * FOUNDER -> PRIMARY CAREVR PROVISIONING
+ * =========================================================
+ *
+ * Auth/Profile now exists.
+ *
+ * Provision the PRIMARY CareVR access context before
+ * handing the user to Create PIN.
+ *
+ * provisionPrimaryAccess() also ensures the corresponding
+ * digital_health_profile exists.
+ * =========================================================
+ */
+
+if (
+    registrationContext ===
+    "PRODUCT"
+) {
+
+    const authenticatedUser =
+        await authService.getCurrentUser();
+
+    if (!authenticatedUser?.id) {
+
+        throw new Error(
+            "Authenticated user could not be established after registration."
+        );
+
+    }
+
+    await provisionPrimaryAccess(
+        authenticatedUser.id
+    );
+}
+
 /*
  * Account creation or registration resumption
  * is complete.
@@ -388,8 +425,6 @@ const secureAccessUrl =
     `/secure-access/create-pin?registrationContext=${encodeURIComponent(
         registrationContext
     )}`;
-
-router.replace(secureAccessUrl);
 
 router.replace(secureAccessUrl);
 
