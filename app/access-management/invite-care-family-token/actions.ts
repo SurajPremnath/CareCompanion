@@ -299,6 +299,38 @@ if (
         );
     }
 
+
+/*
+ * Role clarification
+ *
+ * This invitation was created by an existing Primary.
+ * Record only the entry context so registration can
+ * distinguish an INVITATION from a PRODUCT link.
+ *
+ * This does not replace or modify carevr_invitation.
+ */
+const {
+    error: roleClarificationError,
+} =
+    await serverSupabase
+        .from("role_clarification")
+        .insert({
+            email,
+            type:
+                "INVITATION",
+            invited_role:
+                input.role,
+        });
+
+if (roleClarificationError) {
+
+    console.error(
+        "Unable to create role clarification record.",
+        roleClarificationError
+    );
+
+}
+
 const provisioningStartedAt =
     performance.now();
 
