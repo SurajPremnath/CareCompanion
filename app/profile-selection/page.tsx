@@ -324,9 +324,9 @@ if (!selectedProfile) {
 }
 
 const selectedRole =
-    selectedProfile.role === "SELF"
+    selectedProfile.role === "PRIMARY"
         ? "SELF"
-        : selectedProfile.role === "FAMILY"
+        : selectedProfile.role === "SECONDARY_FAMILY_MEMBER"
             ? "FAMILY"
             : selectedProfile.role === "CARETAKER"
                 ? "CARETAKER"
