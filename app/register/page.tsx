@@ -1093,6 +1093,10 @@ const {
         .update({
             role_status:
                 "DUAL",
+
+            digital_health_flag:
+                "TRUE",
+
         })
         .eq(
             "user_id",
