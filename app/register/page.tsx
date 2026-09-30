@@ -1009,6 +1009,8 @@ if (
  * profile as DUAL.
  */
 
+console.log("[PRIMARY] BEFORE DHP INSERT");
+
 const {
     data: primaryDigitalHealthProfile,
     error: digitalHealthProfileError,
@@ -1043,6 +1045,13 @@ const {
         .select("id")
         .single();
 
+console.log(
+    "[PRIMARY] AFTER DHP INSERT",
+    primaryDigitalHealthProfile,
+    digitalHealthProfileError
+);
+
+
 if (
     digitalHealthProfileError ||
     !primaryDigitalHealthProfile
@@ -1060,7 +1069,6 @@ if (
     );
 }
 
-
 /*
  * Keep the exact DHP record created for the
  * Primary profile so Cancel can restore it.
@@ -1070,6 +1078,8 @@ setPrimaryDigitalHealthProfileId(
     primaryDigitalHealthProfile.id
 );
 
+
+console.log("[PRIMARY] BEFORE DHP UPDATE");
 
 
 /*
@@ -1086,29 +1096,38 @@ setPrimaryDigitalHealthProfileId(
  */
 
 const {
+    data: updatedDigitalHealthProfiles,
     error: digitalHealthProfileUpdateError,
 } =
     await supabase
         .from("digital_health_profile")
         .update({
-            role_status:
-                "DUAL",
-
-            digital_health_flag:
-                "TRUE",
-
+            role_status: "DUAL",
+            digital_health_flag: true,
         })
-        .eq(
-            "user_id",
-            user.id
-        );
+        .eq("user_id", user.id)
+        .select("id, user_id, role, role_status, digital_health_flag");
+
+console.log("[PRIMARY] AFTER DHP UPDATE");
+
+console.log(
+    "[PRIMARY] AFTER DHP UPDATE VALUES",
+    updatedDigitalHealthProfiles,
+    digitalHealthProfileUpdateError
+);
+
+
+if (digitalHealthProfileUpdateError) {
+    throw digitalHealthProfileUpdateError;
+}
 
 if (
-    digitalHealthProfileUpdateError
+    !updatedDigitalHealthProfiles ||
+    updatedDigitalHealthProfiles.length === 0
 ) {
-
-    throw digitalHealthProfileUpdateError;
-
+    throw new Error(
+        "No digital health profiles were updated for the authenticated user."
+    );
 }
 
                                     /*
@@ -1128,10 +1147,21 @@ setInviteePrimaryConfirmed(true);
 
 /*
  * The handoff has now been consumed successfully.
+ *
+ * Clearing the client-side handoff is cleanup only.
+ * It must not cause a successful Primary registration
+ * to be reported as a failure.
  */
-inviteeToPrimaryHandoff.clear();
+try {
+    inviteeToPrimaryHandoff.clear();
+} catch (handoffClearError) {
+    console.error(
+        "[PRIMARY-REGISTRATION-HANDOFF-CLEAR]",
+        handoffClearError
+    );
+}
 
-                                } catch (err) {
+} catch (err) {
                                     const message =
                                         err instanceof Error
                                             ? err.message
