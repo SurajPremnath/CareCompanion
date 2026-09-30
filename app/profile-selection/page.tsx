@@ -626,18 +626,18 @@ return (
                             profile.id;
 
 const profileRole =
-    profile.role === "SELF"
+    profile.role === "PRIMARY"
         ? "SELF"
-        : profile.role === "FAMILY"
+        : profile.role === "SECONDARY_FAMILY_MEMBER"
             ? "FAMILY"
             : profile.role === "CARETAKER"
                 ? "CARETAKER"
                 : "DOCTOR";
 
 const profileLabel =
-    profile.role === "SELF"
+    profile.role === "PRIMARY"
         ? "Self"
-        : profile.role === "FAMILY"
+        : profile.role === "SECONDARY_FAMILY_MEMBER"
             ? "Family"
             : profile.role === "CARETAKER"
                 ? "Caretaker"

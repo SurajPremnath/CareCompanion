@@ -609,6 +609,7 @@ const [error, setError] = useState("");
 const [saving, setSaving] = useState(false);
 const [userName, setUserName] = useState("");
 
+const pinInputRef = useRef<HTMLInputElement>(null);
 
 const [invitationContextReady, setInvitationContextReady] =
     useState(false);
@@ -623,6 +624,12 @@ const invitedRoleRef =
 
 const familyIdRef =
     useRef<string | null>(null);
+
+
+    useEffect(() => {
+        pinInputRef.current?.focus();
+    }, []);
+
 
 useEffect(() => {
     if (!consentAccepted) {
@@ -2162,6 +2169,7 @@ if (consentAccepted) {
 
 <div className="pin-input-wrapper">
     <input
+        ref={pinInputRef}
         id="carevr-pin"
         type={showPin ? "text" : "password"}
         inputMode="numeric"

@@ -1190,13 +1190,8 @@ function generateCurrentTreatment(
     _week: any
 ): string {
 
-    return [
-        "Active medicines",
-        "Rahika 200 mg · Twice a day",
-        "",
-        "Treatment",
-        "Rahika 200 mg is being taken twice a day."
-    ].join("\n");
+	return "Treatment information will be integrated soon.";
+
 }
 
 

@@ -222,7 +222,7 @@ const handleSwitchProfile = async () => {
             .filter(Boolean);
 
         if (parts.length === 0) {
-            return "";
+            return "CV";
         }
 
         if (parts.length === 1) {

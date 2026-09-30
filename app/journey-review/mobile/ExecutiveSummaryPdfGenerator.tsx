@@ -544,10 +544,6 @@ const groupedTimeline = [
     bucket
 ];
 
-console.log(
-    "[ExecutiveSummary SELF DEBUG] groupedTimeline:",
-    groupedTimeline
-);
 
 const story =
     buildClinicalStory(

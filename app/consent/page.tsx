@@ -61,6 +61,8 @@ function ConsentPageContent() {
 const [userName, setUserName] =
     useState("");
 
+const [consenting, setConsenting] = useState(false);
+
 useEffect(() => {
 
     const loadUserName = async () => {
@@ -238,7 +240,14 @@ const INFORMATION_SECTION_COUNT =
 
 const handleAccept = async () => {
 
+    if (consenting) {
+        return;
+    }
+
     try {
+
+
+        setConsenting(true);
 
 await consentStorage.acceptConsent({
 
@@ -290,6 +299,8 @@ router.replace(
             "Unable to save consent.",
             error
         );
+
+        setConsenting(false);
 
     }
 
@@ -532,7 +543,7 @@ router.replace(
                     <button
                         type="button"
                         onClick={handleAccept}
-                        disabled={!canContinue}
+                        disabled={!canContinue || consenting}
                         style={{
                             ...styles.primaryButton,
 
@@ -547,7 +558,9 @@ router.replace(
                                     : "not-allowed",
                         }}
                     >
-                        Accept & Continue
+                        {consenting
+    ? "Consenting..."
+    : "Accept & Continue"}
                     </button>
 
                     <button
