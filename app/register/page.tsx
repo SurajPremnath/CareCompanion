@@ -59,6 +59,11 @@ const [
     setPrimaryDigitalHealthProfileId,
 ] = useState<string | null>(null);
 
+const [
+    primaryRoleConsentAccepted,
+    setPrimaryRoleConsentAccepted,
+] = useState(false);
+
     const [fullName, setFullName] = useState("");
 
     const [email, setEmail] = useState("");
@@ -899,28 +904,59 @@ router.replace(secureAccessUrl);
             </div>
         )}
 
-        <div className="invitee-primary-confirmation">
-            {!inviteePrimaryConfirmed ? (
-                <>
-                    <p>
-                        You are about to take on additional responsibility as a{" "}
-Primary Family Member.
-                    </p>
+<div className="invitee-primary-confirmation">
+    {!inviteePrimaryConfirmed ? (
+        <>
+            <p>
+                You are about to take on additional responsibility as a{" "}
+                Primary Family Member.
+            </p>
 
-                    <div className="confirmation-actions">
-                        <button
-                            type="button"
-                            className="create-account-button"
-                            onClick={async () => {
-                                if (!inviteePrimaryHandoff) {
-                                    setError(
-                                        "Primary registration handoff is no longer available."
-                                    );
-                                    return;
-                                }
+            {isInviteeToPrimary && (
+                <label className="primary-role-consent">
+                    <input
+                        type="checkbox"
+                        checked={primaryRoleConsentAccepted}
+                        onChange={(event) =>
+                            setPrimaryRoleConsentAccepted(
+                                event.target.checked
+                            )
+                        }
+                    />
 
-                                try {
-                                    setLoading(true);
+                    <span>
+                        I consent to assuming and using Primary access,
+                        rights and responsibilities in CareVR, and
+                        acknowledge that this role provides access to
+                        additional CareVR capabilities and information.
+                    </span>
+                </label>
+            )}
+
+            <div className="confirmation-actions">
+                <button
+                    type="button"
+                    className="create-account-button"
+onClick={async () => {
+    if (!inviteePrimaryHandoff) {
+        setError(
+            "Primary registration handoff is no longer available."
+        );
+        return;
+    }
+
+    if (
+        isInviteeToPrimary &&
+        !primaryRoleConsentAccepted
+    ) {
+        setError(
+            "Please confirm your consent to assume Primary access, rights and responsibilities."
+        );
+        return;
+    }
+
+    try {
+        setLoading(true);
                                     setError("");
                                     setSuccess("");
 
@@ -1033,9 +1069,16 @@ const {
         .update({
             role_status: "DUAL",
             digital_health_flag: true,
+            ...(isInviteeToPrimary
+                ? {
+                      consent_status: "ACCEPTED",
+                  }
+                : {}),
         })
         .eq("user_id", user.id)
-        .select("id, user_id, role, role_status, digital_health_flag");
+        .select(
+            "id, user_id, role, role_status, consent_status, digital_health_flag"
+        );
 
 console.log("[PRIMARY] AFTER DHP UPDATE");
 
@@ -1101,7 +1144,13 @@ try {
                                     setLoading(false);
                                 }
                             }}
-                            disabled={loading}
+                            disabled={
+    loading ||
+    (
+        isInviteeToPrimary &&
+        !primaryRoleConsentAccepted
+    )
+}
                         >
                             {loading
                                 ? "Confirming..."
@@ -1159,6 +1208,7 @@ try {
             setPrimaryDigitalHealthProfileId(null);
             setIsPrimaryFamilyMember(null);
             setInviteePrimaryConfirmed(false);
+            setPrimaryRoleConsentAccepted(false);
 
         } catch (err) {
 
