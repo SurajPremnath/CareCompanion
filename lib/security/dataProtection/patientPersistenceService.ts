@@ -349,7 +349,10 @@ const existingPatients = Array.isArray(digitalHealthProfile?.patients)
 
 const updatedPatients = [
   ...existingPatients,
-  persistenceRow,
+  {
+    id: data.id,
+    ...persistenceRow,
+  },
 ];
 
 const {
