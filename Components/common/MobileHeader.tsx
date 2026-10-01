@@ -584,13 +584,14 @@ return (
     line-height: 1.3;
 }
 
-                .carevr-mobile-logo {
-                    display: block;
-                    width: 200px;
-                    height: 100px;
-                    object-fit: contain;
-                    object-position: left center;
-                }
+.carevr-mobile-logo {
+    display: block;
+    width: 140px;
+    height: 50px;
+    object-fit: contain;
+    object-position: left center;
+    flex: 0 0 auto;
+}
 
 .carevr-mobile-header-actions {
     display: flex;
@@ -782,11 +783,12 @@ return (
                     background: #fee2e2;
                 }
 
-                @media (max-width: 420px) {
-                    .carevr-mobile-logo {
-                        width: 160px;
-                        height: 82px;
-                    }
+@media (max-width: 420px) {
+    .carevr-mobile-logo {
+        width: 130px;
+        height: 46px;
+        max-width: 130px;
+    }
 
 .carevr-mobile-header-actions {
     display: flex;

@@ -925,7 +925,7 @@ router.replace(secureAccessUrl);
                     />
 
                     <span>
-                        I consent to assuming and using Primary access,
+                          I consent to assuming and using Primary access,
                         rights and responsibilities in CareVR, and
                         acknowledge that this role provides access to
                         additional CareVR capabilities and information.
