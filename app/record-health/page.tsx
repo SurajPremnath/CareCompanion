@@ -18,6 +18,10 @@ import {
 } from "@/lib/auth/authService";
 
 import {
+    supabase,
+} from "@/lib/supabase";
+
+import {
     profileRepository,
 } from "@/lib/repositories/profileRepository";
 
@@ -1249,6 +1253,8 @@ if (!dashboardHandoff) {
  * constructing incomplete Patient objects from
  * the lightweight Dashboard handoff.
  */
+
+/*
 const scopedPatientIds =
     dashboardHandoff.patients.map(
         patient => patient.id
@@ -1293,6 +1299,109 @@ setPatients(
     loadedPatients
 );
 
+*/
+
+/*
+ * Family mode defaults to
+ * the first authorized patient.
+ */
+
+/*
+if (
+    loadedPatients.length > 0
+) {
+
+    setSelectedPatientId(
+        loadedPatients[0].id
+    );
+
+}
+
+*/
+
+const scopedPatientIds =
+    dashboardHandoff.patients.map(
+        patient => patient.id
+    );
+
+const authorizedFamilyId =
+    dashboardHandoff.access.familyId;
+
+if (!authorizedFamilyId) {
+    throw new Error(
+        "Authorized CareVR Family could not be resolved."
+    );
+}
+
+const {
+    data: digitalHealthProfile,
+    error: digitalHealthProfileError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .select("patients")
+        .eq("user_id", authUser.id)
+        .eq("family_id", authorizedFamilyId)
+        .eq("digital_health_flag", true)
+        .maybeSingle();
+
+if (digitalHealthProfileError) {
+    throw digitalHealthProfileError;
+}
+
+const dhpPatients =
+    Array.isArray(
+        digitalHealthProfile?.patients
+    )
+        ? digitalHealthProfile.patients
+        : [];
+
+const loadedPatients: Patient[] =
+    dhpPatients
+        .filter(
+            patient =>
+                patient &&
+                typeof patient.id === "string" &&
+                scopedPatientIds.includes(
+                    patient.id
+                )
+        )
+        .map(
+            patient => ({
+                id: patient.id,
+                userId:
+                    patient.user_id ??
+                    authUser.id,
+                fullName:
+                    patient.full_name,
+                dateOfBirth:
+                    patient.date_of_birth ??
+                    null,
+                gender:
+                    patient.gender ??
+                    null,
+                relationship:
+                    patient.relationship ??
+                    null,
+                status:
+                    patient.status ??
+                    "ACTIVE",
+                createdAt:
+                    patient.created_at ??
+                    "",
+                updatedAt:
+                    patient.updated_at ??
+                    "",
+            })
+        );
+
+if (cancelled) {
+    return;
+}
+
+setPatients(
+    loadedPatients
+);
 
 /*
  * Family mode defaults to
