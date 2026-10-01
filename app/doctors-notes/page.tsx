@@ -161,11 +161,20 @@ const authorizedFamilyId =
       return;
     }
 
-    if (authorizedPatients.length > 0) {
-      setSelectedPatient(
-        authorizedPatients[0].id
-      );
-    }
+setPatients(
+  authorizedPatients.map(
+    patient => ({
+      id: patient.id,
+      name: patient.full_name,
+    })
+  )
+);
+
+if (authorizedPatients.length > 0) {
+  setSelectedPatient(
+    authorizedPatients[0].id
+  );
+}
   } catch (error) {
     console.error(
       "Unable to retrieve patients from Digital Health Profile.",
