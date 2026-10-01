@@ -925,7 +925,7 @@ router.replace(secureAccessUrl);
                     />
 
                     <span>
-                          I consent to assuming and using Primary access,
+                        I consent to assuming and using Primary access,
                         rights and responsibilities in CareVR, and
                         acknowledge that this role provides access to
                         additional CareVR capabilities and information.
@@ -1523,6 +1523,13 @@ onClick={async () => {
                         0 0 0 2px
                         rgba(112, 67, 245, 0.08);
                 }
+
+.primary-role-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
 
                 .radio-circle {
                     width: 18px;
