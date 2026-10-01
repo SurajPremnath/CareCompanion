@@ -487,9 +487,12 @@ async function loadDashboard() {
         }
 
 
-        const profile =
-            await profileRepository
-                .getCurrentProfile();
+// NEW
+const profile =
+    await profileRepository
+        .getCurrentProfile(
+            authUser
+        );
 
         const consentGranted =
             await consentStorage

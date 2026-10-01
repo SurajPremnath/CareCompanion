@@ -563,13 +563,17 @@ export async function getProtectedPatientScopeForAccess(
     );
   }
 
-  let query =
-    supabase
-      .from("patients")
-      .select(
-        "id, user_id, family_id, full_name, date_of_birth, full_name_ciphertext, full_name_lookup_hash, date_of_birth_ciphertext, date_of_birth_lookup_hash, gender, relationship, status, created_at, updated_at"
-      )
-      .eq("status", "ACTIVE");
+  //------------------------------------------------------
+  // Resolve Patient Scope from Digital Health Profile
+  //------------------------------------------------------
+  //
+  // Authorization has already been completed above.
+  //
+  // DHP is now the patient-context read source.
+  // No patients-table query.
+  // No patient decryption.
+  //
+  //------------------------------------------------------
 
   let scope:
     | "SELF_ONLY"
@@ -586,61 +590,100 @@ export async function getProtectedPatientScopeForAccess(
         patients: [],
       };
     }
-
-    query =
-      query.eq(
-        "family_id",
-        access.family_id
-      );
-  } else if (access.patient_id) {
-    query =
-      query.eq(
-        "id",
-        access.patient_id
-      );
-  } else if (access.family_id) {
-    query =
-      query.eq(
-        "family_id",
-        access.family_id
-      );
-  } else {
+  } else if (
+    !access.patient_id &&
+    !access.family_id
+  ) {
     return {
       scope,
       patients: [],
     };
   }
 
-  const {
-    data,
-    error,
-  } = await query;
+  //------------------------------------------------------
+  // Load DHP
+  //------------------------------------------------------
 
-  if (error) {
-    throw error;
+  let digitalHealthProfileQuery =
+    supabase
+      .from("digital_health_profile")
+      .select("patients")
+      .eq("user_id", user.id)
+      .eq("digital_health_flag", true);
+
+  if (access.family_id) {
+    digitalHealthProfileQuery =
+      digitalHealthProfileQuery.eq(
+        "family_id",
+        access.family_id
+      );
   }
 
-  const patients =
-    (data ?? [])
-      .map((row) => {
-        const decrypted =
-          unprotectPatientData(
-            row as Record<string, unknown>
-          );
+  const {
+    data: digitalHealthProfile,
+    error: digitalHealthProfileError,
+  } =
+    await digitalHealthProfileQuery.maybeSingle();
 
-        return {
-          id:
-            decrypted.id as string,
-          userId:
-            decrypted.user_id as string,
-          fullName:
-            decrypted.fullName as string,
-          relationship:
-            decrypted.relationship as
-              | string
-              | null,
-        };
-      })
+  if (digitalHealthProfileError) {
+    throw digitalHealthProfileError;
+  }
+
+  const dhpPatients =
+    Array.isArray(
+      digitalHealthProfile?.patients
+    )
+      ? digitalHealthProfile.patients
+      : [];
+
+  //------------------------------------------------------
+  // Apply the same authorized patient scope
+  //------------------------------------------------------
+
+  let scopedPatients = dhpPatients.filter(
+    (patient) =>
+      patient &&
+      typeof patient.id === "string" &&
+      patient.status === "ACTIVE"
+  );
+
+  if (access.patient_id) {
+    scopedPatients =
+      scopedPatients.filter(
+        (patient) =>
+          patient.id ===
+          access.patient_id
+      );
+  } else if (access.family_id) {
+    scopedPatients =
+      scopedPatients.filter(
+        (patient) =>
+          patient.family_id ===
+          access.family_id
+      );
+  }
+
+  //------------------------------------------------------
+  // Return application-level patient scope
+  //------------------------------------------------------
+
+  const patients =
+    scopedPatients
+      .map((patient) => ({
+        id:
+          patient.id,
+
+        userId:
+          patient.user_id as string,
+
+        fullName:
+          patient.full_name as string,
+
+        relationship:
+          patient.relationship as
+            | string
+            | null,
+      }))
       .sort(
         (a, b) =>
           a.fullName.localeCompare(

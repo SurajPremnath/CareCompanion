@@ -1080,13 +1080,6 @@ const {
             "id, user_id, role, role_status, consent_status, digital_health_flag"
         );
 
-console.log("[PRIMARY] AFTER DHP UPDATE");
-
-console.log(
-    "[PRIMARY] AFTER DHP UPDATE VALUES",
-    updatedDigitalHealthProfiles,
-    digitalHealthProfileUpdateError
-);
 
 
 if (digitalHealthProfileUpdateError) {

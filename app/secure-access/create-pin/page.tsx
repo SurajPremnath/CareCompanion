@@ -625,6 +625,11 @@ const invitedRoleRef =
 const familyIdRef =
     useRef<string | null>(null);
 
+const authenticatedUserRef =
+    useRef<{
+        id: string;
+    } | null>(null);
+
 
     useEffect(() => {
         pinInputRef.current?.focus();
@@ -693,12 +698,16 @@ useEffect(() => {
 
         try {
 
-            const user =
-                await authService.getCurrentUser();
+const user =
+    await authService.getCurrentUser();
 
-            if (!user?.id) {
-                return;
-            }
+if (!user?.id) {
+    return;
+}
+
+authenticatedUserRef.current = {
+    id: user.id,
+};
 
             /*
              * =====================================================
@@ -911,18 +920,18 @@ useEffect(() => {
 
         try {
 
-            const user =
-                await authService.getCurrentUser();
+const user =
+    authenticatedUserRef.current;
 
-            if (!user) {
-                throw new Error(
-                    "Unable to determine the current user."
-                );
-            }
+if (!user) {
+    throw new Error(
+        "Unable to determine the current user."
+    );
+}
 
-            if (cancelled) {
-                return;
-            }
+if (cancelled) {
+    return;
+}
 
 
 
@@ -1117,14 +1126,14 @@ if (!invitationContextReady) {
             }
 
 
-        const user =
-            await authService.getCurrentUser();
+const user =
+    authenticatedUserRef.current;
 
-        if (!user?.id) {
-            throw new Error(
-                "Authenticated user context is unavailable."
-            );
-        }
+if (!user?.id) {
+    throw new Error(
+        "Authenticated user context is unavailable."
+    );
+}
 
 
         /*

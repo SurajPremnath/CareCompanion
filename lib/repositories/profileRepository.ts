@@ -8,19 +8,23 @@ export class ProfileRepository extends BaseRepository {
   /**
    * Returns the currently authenticated user's profile.
    */
-  async getCurrentProfile(): Promise<Profile | null> {
+async getCurrentProfile(
+  authenticatedUser?: { id: string } | null
+): Promise<Profile | null> {
 
-    const user = await authService.getCurrentUser();
+  const user =
+    authenticatedUser ??
+    await authService.getCurrentUser();
 
-    if (!user) {
-      return null;
-    }
+  if (!user) {
+    return null;
+  }
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
     if (error) {
 

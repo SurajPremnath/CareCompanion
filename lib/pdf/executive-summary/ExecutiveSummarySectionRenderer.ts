@@ -167,7 +167,7 @@ static drawHealthEvents(
             const source = this.cleanText(period?.answer);
             const values = [
                 this.extractCategory(source, ["Symptoms Change", "Symptom progression"], ["Vital Changes", "Medication Changes", "Clinical Changes"]),
-                this.extractCategory(source, ["Vital Changes", "Vital changes"], ["Medication Changes", "Clinical Changes"]),
+                this.extractCategory(source, ["Vital Changes", "Vital changes"], ["Medication Changes", "Medication Changes", "Clinical Changes"]),
                 this.extractCategory(source, ["Medication Changes", "Medication changes"], ["Clinical Changes"])
             ];
             const wrapped = values.map(value => this.wrapText(this.safePdfText(value || "No change recorded."), 27));

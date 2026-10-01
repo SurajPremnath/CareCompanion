@@ -3,6 +3,7 @@
 import React, {
     useEffect,
     useState,
+    useRef,
 } from "react";
 
 import { useRouter } from "next/navigation";
@@ -44,6 +45,11 @@ import CareVRDashboardHandoffAnimation from "@/Components/common/CareVRDashboard
 export default function ProfileSelectionPage() {
 
     const router = useRouter();
+
+const authenticatedUserRef =
+    useRef<{
+        id: string;
+    } | null>(null);
 
     const [
         availableContexts,
@@ -117,15 +123,19 @@ const [dashboardAnimationComplete, setDashboardAnimationComplete] =
                 setLoading(true);
                 setError("");
 
-                const user =
-                    await authService.getCurrentUser();
+const user =
+    await authService.getCurrentUser();
 
-                if (!user) {
+if (!user) {
 
-                    router.replace("/login");
+    router.replace("/login");
 
-                    return;
-                }
+    return;
+}
+
+authenticatedUserRef.current = {
+    id: user.id,
+};
 
 const {
     data: profiles,
@@ -299,15 +309,15 @@ const handleSelectedContext = async () => {
         setContinuing(true);
         setError("");
 
-        const user =
-            await authService.getCurrentUser();
+const user =
+    authenticatedUserRef.current;
 
-        if (!user) {
+if (!user) {
 
-            router.replace("/login");
+    router.replace("/login");
 
-            return;
-        }
+    return;
+}
 
 
 const selectedProfile =
