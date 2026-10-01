@@ -313,14 +313,51 @@ if (!data) {
 // DHP is updated for the same user + family.
 //------------------------------------------------------
 
+//------------------------------------------------------
+// Update Digital Health Profile
+//------------------------------------------------------
+//
+// Reuse the exact same persistenceRow that was used
+// to insert the patient.
+//
+// No second patient query.
+// No second encryption.
+// No second family resolution.
+//
+// DHP is updated for the same user + family.
+// Existing patient context is preserved and the new
+// patient is appended.
+//------------------------------------------------------
+
+const {
+  data: digitalHealthProfile,
+  error: digitalHealthProfileFetchError,
+} = await supabase
+  .from("digital_health_profile")
+  .select("patients")
+  .eq("user_id", user.id)
+  .eq("family_id", access.family_id)
+  .maybeSingle();
+
+if (digitalHealthProfileFetchError) {
+  throw digitalHealthProfileFetchError;
+}
+
+const existingPatients = Array.isArray(digitalHealthProfile?.patients)
+  ? digitalHealthProfile.patients
+  : [];
+
+const updatedPatients = [
+  ...existingPatients,
+  persistenceRow,
+];
+
 const {
   error: digitalHealthProfileError,
 } = await supabase
   .from("digital_health_profile")
   .update({
-    patients: [
-      persistenceRow,
-    ],
+    patients: updatedPatients,
   })
   .eq("user_id", user.id)
   .eq("family_id", access.family_id);
