@@ -447,7 +447,7 @@ return (
     onCareModeChange={setCareMode}
     userName={userName}
     pageTitle="Doctors Notes"
-    pageSubtitle="Record a clear note for the patient's health journey."
+    pageSubtitle=""
         showCareModeToggle={true}
         showSelfToggle={false}
         showFamilyToggle={true}
