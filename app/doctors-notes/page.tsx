@@ -446,8 +446,6 @@ return (
     careMode={careMode}
     onCareModeChange={setCareMode}
     userName={userName}
-    pageTitle="Doctors Notes"
-    pageSubtitle=""
         showCareModeToggle={true}
         showSelfToggle={false}
         showFamilyToggle={true}
