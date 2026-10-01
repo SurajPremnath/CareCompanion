@@ -280,26 +280,56 @@ export async function createProtectedPatient(
   // Persist through Supabase RLS
   //------------------------------------------------------
 
-  const {
-    data,
-    error,
-  } = await supabase
-    .from("patients")
-    .insert(persistenceRow)
-    .select()
-    .single();
+const {
+  data,
+  error,
+} = await supabase
+  .from("patients")
+  .insert(persistenceRow)
+  .select()
+  .single();
 
-  if (error) {
-    throw error;
-  }
+if (error) {
+  throw error;
+}
 
-  if (!data) {
-    throw new Error(
-      "Patient could not be created."
-    );
-  }
+if (!data) {
+  throw new Error(
+    "Patient could not be created."
+  );
+}
 
-  return data;
+//------------------------------------------------------
+// Update Digital Health Profile
+//------------------------------------------------------
+//
+// Reuse the exact same persistenceRow that was used
+// to insert the patient.
+//
+// No second patient query.
+// No second encryption.
+// No second family resolution.
+//
+// DHP is updated for the same user + family.
+//------------------------------------------------------
+
+const {
+  error: digitalHealthProfileError,
+} = await supabase
+  .from("digital_health_profile")
+  .update({
+    patients: [
+      persistenceRow,
+    ],
+  })
+  .eq("user_id", user.id)
+  .eq("family_id", access.family_id);
+
+if (digitalHealthProfileError) {
+  throw digitalHealthProfileError;
+}
+
+return data;
 }
 
 export async function getProtectedPatient(
