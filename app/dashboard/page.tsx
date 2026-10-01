@@ -16,6 +16,10 @@ import {
 } from "@/lib/auth/authService";
 
 import {
+    supabase,
+} from "@/lib/supabase";
+
+import {
     profileRepository,
 } from "@/lib/repositories/profileRepository";
 
@@ -895,6 +899,8 @@ setMobileSnapshots(
 // FAMILY MODE
 //--------------------------------------------------------
 
+/*
+
 const authorizedPatientIds =
     (careVRHandoff?.patients ?? [])
         .map(
@@ -925,6 +931,98 @@ const patients: Patient[] =
         .map(
             result =>
                 result.data as Patient
+        );
+
+setMobilePatients(
+    patients
+);
+
+setFamilyModeAvailable(
+    patients.length > 0
+);
+
+*/
+
+
+const authorizedPatientIds =
+    (careVRHandoff?.patients ?? [])
+        .map(
+            patient =>
+                patient.id
+        );
+
+const authorizedFamilyId =
+    careVRHandoff?.access.familyId;
+
+if (
+    !authorizedFamilyId
+) {
+    setMobilePatients([]);
+    setFamilyModeAvailable(false);
+    setMobileSelectedPatientId("");
+    return;
+}
+
+const {
+    data: digitalHealthProfile,
+    error: digitalHealthProfileError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .select("patients")
+        .eq("user_id", currentUserId)
+        .eq("family_id", authorizedFamilyId)
+        .eq("digital_health_flag", true)
+        .maybeSingle();
+
+if (digitalHealthProfileError) {
+    throw digitalHealthProfileError;
+}
+
+const dhpPatients =
+    Array.isArray(
+        digitalHealthProfile?.patients
+    )
+        ? digitalHealthProfile.patients
+        : [];
+
+const patients: Patient[] =
+    dhpPatients
+        .filter(
+            patient =>
+                patient &&
+                typeof patient.id === "string" &&
+                authorizedPatientIds.includes(
+                    patient.id
+                )
+        )
+        .map(
+            patient => ({
+                id: patient.id,
+                userId:
+                    patient.user_id ??
+                    currentUserId,
+                fullName:
+                    patient.full_name,
+                dateOfBirth:
+                    patient.date_of_birth ??
+                    null,
+                gender:
+                    patient.gender ??
+                    null,
+                relationship:
+                    patient.relationship ??
+                    null,
+                status:
+                    patient.status ??
+                    "ACTIVE",
+                createdAt:
+                    patient.created_at ??
+                    "",
+                updatedAt:
+                    patient.updated_at ??
+                    "",
+            })
         );
 
 setMobilePatients(
