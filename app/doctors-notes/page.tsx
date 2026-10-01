@@ -13,6 +13,7 @@ import {
 
 import { authService } from "@/lib/auth/authService";
 import { profileRepository } from "@/lib/repositories/profileRepository";
+import { supabase } from "@/lib/supabase";
 
 interface DoctorsNoteDoctorOption {
   providerId: string;
@@ -40,8 +41,22 @@ const [userName, setUserName] =
 const [loggingOut, setLoggingOut] =
   useState(false);
 
+/*
   const [selectedPatient, setSelectedPatient] =
     useState<string>("");
+*/
+
+
+const [selectedPatient, setSelectedPatient] =
+  useState<string>("");
+
+const [patients, setPatients] =
+  useState<
+    Array<{
+      id: string;
+      name: string;
+    }>
+  >([]);
 
 const [doctorOptions, setDoctorOptions] =
   useState<DoctorsNoteDoctorOption[]>([]);
@@ -71,20 +86,95 @@ const selectedDoctor = useMemo(
 );
 
 useEffect(() => {
-  const handoff = getCareVRDashboardHandoff();
+const handoff =
+  getCareVRDashboardHandoff();
 
-  if (!handoff) {
-    router.replace("/dashboard");
-    return;
+if (!handoff) {
+  router.replace("/dashboard");
+  return;
+}
+
+const currentHandoff = handoff;
+
+setDashboardHandoff(currentHandoff);
+
+let cancelled = false;
+
+async function loadPatientsFromDHP() {
+  try {
+    const authUser =
+      await authService.getCurrentUser();
+
+    if (!authUser) {
+      router.replace("/login");
+      return;
+    }
+
+const authorizedPatientIds =
+  currentHandoff.patients.map(
+    patient => patient.id
+  );
+
+const authorizedFamilyId =
+  currentHandoff.access.familyId;
+
+    if (!authorizedFamilyId) {
+      throw new Error(
+        "Authorized CareVR Family could not be resolved."
+      );
+    }
+
+    const {
+      data: digitalHealthProfile,
+      error: digitalHealthProfileError,
+    } =
+      await supabase
+        .from("digital_health_profile")
+        .select("patients")
+        .eq("user_id", authUser.id)
+        .eq("family_id", authorizedFamilyId)
+        .eq("digital_health_flag", true)
+        .maybeSingle();
+
+    if (digitalHealthProfileError) {
+      throw digitalHealthProfileError;
+    }
+
+    const dhpPatients =
+      Array.isArray(
+        digitalHealthProfile?.patients
+      )
+        ? digitalHealthProfile.patients
+        : [];
+
+    const authorizedPatients =
+      dhpPatients.filter(
+        patient =>
+          patient &&
+          typeof patient.id === "string" &&
+          authorizedPatientIds.includes(
+            patient.id
+          )
+      );
+
+    if (cancelled) {
+      return;
+    }
+
+    if (authorizedPatients.length > 0) {
+      setSelectedPatient(
+        authorizedPatients[0].id
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Unable to retrieve patients from Digital Health Profile.",
+      error
+    );
   }
+}
 
-  setDashboardHandoff(handoff);
-
-  if (handoff.patients.length > 0) {
-    setSelectedPatient(handoff.patients[0].id);
-  }
-
-  let cancelled = false;
+void loadPatientsFromDHP();
 
   async function loadUserProfile() {
     try {
@@ -178,9 +268,12 @@ useEffect(() => {
   };
 }, [selectedPatient]);
 
+/*
 const patients =
   dashboardHandoff?.patients ?? [];
-
+*/
+// Removed.
+// Patients now come from DHP.
 
 
 const handleAccountMenuToggle = () => {
