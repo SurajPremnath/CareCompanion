@@ -896,10 +896,12 @@ setMobileSnapshots(
 
 
 //--------------------------------------------------------
-// FAMILY MODE
+// FAMILY MODE - BELOW CODE WAS COMMENTED SINCE NOW PATIENT INFO IS BEING TAKEN FROM DHP
 //--------------------------------------------------------
 
 /*
+
+
 
 const authorizedPatientIds =
     (careVRHandoff?.patients ?? [])
