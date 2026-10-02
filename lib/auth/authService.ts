@@ -217,12 +217,6 @@ async login(
       },
     });
 
-  console.log(
-    `[LOGIN-PERF] supabase.auth.signInWithPassword: ${Math.round(
-      performance.now() -
-        loginStartedAt
-    )} ms`
-  );
 
   if (error) {
     throw error;

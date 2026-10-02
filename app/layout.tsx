@@ -3,6 +3,8 @@ import {
   LanguageProvider,
 } from "@/Components/language/LanguageProvider";
 
+import SessionManager from "@/Components/auth/SessionManager";
+
 export default function RootLayout({
   children,
 }: {
@@ -20,7 +22,8 @@ export default function RootLayout({
           color: "#111827",
         }}
       >
-        <LanguageProvider>
+<LanguageProvider>
+  <SessionManager />
   {children}
 </LanguageProvider>
       </body>
