@@ -974,10 +974,23 @@ const {
 } =
     await supabase
         .from("digital_health_profile")
-        .select("patients")
-        .eq("user_id", currentUserId)
+        .select(`
+            patients,
+            carevr_access:carevr_access_id!inner (
+                access_type,
+                access_status
+            )
+        `)
         .eq("family_id", authorizedFamilyId)
         .eq("digital_health_flag", true)
+        .eq(
+            "carevr_access.access_type",
+            "PRIMARY"
+        )
+        .eq(
+            "carevr_access.access_status",
+            "ACTIVE"
+        )
         .maybeSingle();
 
 if (digitalHealthProfileError) {
