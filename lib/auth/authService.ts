@@ -258,16 +258,32 @@ async login(
   /**
    * Logout.
    */
-  async logout(): Promise<void> {
+async logout(): Promise<void> {
 
-    const { error } =
-      await supabase.auth.signOut();
+  const { error } =
+    await supabase.auth.signOut();
 
-    if (error) {
-      throw error;
-    }
-
+  if (error) {
+    throw error;
   }
+
+  if (
+    typeof window !== "undefined" &&
+    "BroadcastChannel" in window
+  ) {
+    const channel =
+      new BroadcastChannel(
+        "carevr-session"
+      );
+
+    channel.postMessage({
+      type: "SESSION_LOGOUT",
+    });
+
+    channel.close();
+  }
+
+}
 
   /**
    * Returns authenticated user.
