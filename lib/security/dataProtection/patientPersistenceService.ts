@@ -604,20 +604,32 @@ export async function getProtectedPatientScopeForAccess(
   // Load DHP
   //------------------------------------------------------
 
-  let digitalHealthProfileQuery =
+const digitalHealthProfileQuery =
     supabase
-      .from("digital_health_profile")
-      .select("patients")
-      .eq("user_id", user.id)
-      .eq("digital_health_flag", true);
-
-  if (access.family_id) {
-    digitalHealthProfileQuery =
-      digitalHealthProfileQuery.eq(
-        "family_id",
-        access.family_id
-      );
-  }
+        .from("digital_health_profile")
+        .select(`
+            patients,
+            carevr_access:carevr_access_id!inner (
+                access_type,
+                access_status
+            )
+        `)
+        .eq(
+            "family_id",
+            access.family_id
+        )
+        .eq(
+            "digital_health_flag",
+            true
+        )
+        .eq(
+            "carevr_access.access_type",
+            "PRIMARY"
+        )
+        .eq(
+            "carevr_access.access_status",
+            "ACTIVE"
+        );
 
   const {
     data: digitalHealthProfile,
