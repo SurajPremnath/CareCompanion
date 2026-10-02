@@ -64,8 +64,17 @@ const [doctorOptions, setDoctorOptions] =
 const [selectedDoctorId, setSelectedDoctorId] =
   useState("");
 
-  const [note, setNote] =
-    useState("");
+const [doctorName, setDoctorName] =
+  useState("");
+
+const [facilityName, setFacilityName] =
+  useState("");
+
+const [specialisation, setSpecialisation] =
+  useState("");
+
+const [note, setNote] =
+  useState("");
 
 const [saving, setSaving] =
   useState(false);
@@ -84,6 +93,27 @@ const selectedDoctor = useMemo(
     ) ?? null,
   [doctorOptions, selectedDoctorId],
 );
+
+useEffect(() => {
+  if (!selectedDoctor) {
+    setDoctorName("");
+    setFacilityName("");
+    setSpecialisation("");
+    return;
+  }
+
+  setDoctorName(
+    selectedDoctor.doctorName ?? ""
+  );
+
+  setFacilityName(
+    selectedDoctor.facilityName ?? ""
+  );
+
+  setSpecialisation(
+    selectedDoctor.specialisation ?? ""
+  );
+}, [selectedDoctor]);
 
 useEffect(() => {
 const handoff =
@@ -395,17 +425,30 @@ const handleSave = async () => {
           "Content-Type":
             "application/json",
         },
-        body: JSON.stringify({
-          patientId: selectedPatient,
-          providerId:
-            selectedDoctor.providerId,
-          doctorProfileId: null,
-          facilityId:
-            selectedDoctor.facilityId,
-          noteAt:
-            noteDateTime.toISOString(),
-          note,
-        }),
+body: JSON.stringify({
+  patientId: selectedPatient,
+  providerId:
+    selectedDoctor &&
+    doctorName.trim() === selectedDoctor.doctorName
+      ? selectedDoctor.providerId
+      : null,
+  doctorName:
+    doctorName.trim() || null,
+  doctorProfileId: null,
+  facilityId:
+    selectedDoctor &&
+    facilityName.trim() ===
+      (selectedDoctor.facilityName ?? "")
+      ? selectedDoctor.facilityId
+      : null,
+  facilityName:
+    facilityName.trim() || null,
+  specialisation:
+    specialisation.trim() || null,
+  noteAt:
+    noteDateTime.toISOString(),
+  note,
+}),
       }
     );
 
@@ -549,63 +592,43 @@ loggingOut={loggingOut}
               </div>
             </div>
           ) : (
-            <div className="selection-fields">
-              <label>
-                <span>Doctor</span>
-<select
-  value={selectedDoctorId}
-  onChange={(event) =>
-    setSelectedDoctorId(
-      event.target.value
-    )
-  }
-  disabled={doctorOptions.length === 0}
->
-  {doctorOptions.length === 0 ? (
-    <option value="">
-      No doctor associated with this patient
-    </option>
-  ) : (
-    doctorOptions.map((doctor) => (
-      <option
-        key={doctor.providerId}
-        value={doctor.providerId}
-      >
-        {doctor.doctorName}
-      </option>
-    ))
-  )}
-</select>
-              </label>
+<div className="selection-fields">
+  <label>
+    <span>Doctor</span>
+    <input
+      type="text"
+      value={doctorName}
+      onChange={(event) =>
+        setDoctorName(event.target.value)
+      }
+      placeholder="Enter doctor name"
+    />
+  </label>
 
-              <label>
-                <span>Hospital</span>
-<select
-  value={selectedDoctor?.facilityId ?? ""}
-  onChange={() => {}}
-  disabled={!selectedDoctor}
->
-  <option value="">
-    {selectedDoctor?.facilityName ??
-      "No hospital associated"}
-  </option>
-</select>
-              </label>
+  <label>
+    <span>Hospital</span>
+    <input
+      type="text"
+      value={facilityName}
+      onChange={(event) =>
+        setFacilityName(event.target.value)
+      }
+      placeholder="Enter hospital name"
+    />
+  </label>
 
-              <label>
-                <span>Specialisation</span>
-<select
-  value={selectedDoctor?.specialisation ?? ""}
-  onChange={() => {}}
-  disabled={!selectedDoctor}
->
-  <option value="">
-    {selectedDoctor?.specialisation ??
-      "No specialisation available"}
-  </option>
-</select>
-              </label>
-            </div>
+  <label>
+    <span>Specialisation</span>
+    <input
+      type="text"
+      value={specialisation}
+      onChange={(event) =>
+        setSpecialisation(event.target.value)
+      }
+      placeholder="Enter specialisation"
+    />
+  </label>
+</div>
           )}
         </section>
 

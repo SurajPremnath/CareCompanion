@@ -4,6 +4,10 @@ import {
   doctorsNotesRepository,
 } from "@/lib/repositories/doctorsNotesRepository";
 
+import {
+  saveHealthcareDetails,
+} from "@/lib/healthcare/healthcarePersistenceService";
+
 export async function POST(
   request: Request
 ) {
@@ -14,8 +18,17 @@ export async function POST(
     const patientId =
       body?.patientId;
 
-    const providerId =
-      body?.providerId;
+const providerId =
+  body?.providerId ?? null;
+
+const doctorName =
+  body?.doctorName ?? null;
+
+const facilityName =
+  body?.facilityName ?? null;
+
+const specialisation =
+  body?.specialisation ?? null;
 
     const doctorProfileId =
       body?.doctorProfileId ?? null;
@@ -45,21 +58,69 @@ export async function POST(
       );
     }
 
-    if (
-      typeof providerId !== "string" ||
-      !providerId
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Doctor identifier is required.",
-        },
-        {
-          status: 400,
-        }
-      );
+if (
+  providerId !== null &&
+  typeof providerId !== "string"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      error:
+        "Invalid doctor identifier.",
+    },
+    {
+      status: 400,
     }
+  );
+}
+
+if (
+  doctorName !== null &&
+  typeof doctorName !== "string"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      error:
+        "Invalid doctor name.",
+    },
+    {
+      status: 400,
+    }
+  );
+}
+
+if (
+  facilityName !== null &&
+  typeof facilityName !== "string"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      error:
+        "Invalid hospital name.",
+    },
+    {
+      status: 400,
+    }
+  );
+}
+
+if (
+  specialisation !== null &&
+  typeof specialisation !== "string"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      error:
+        "Invalid specialisation.",
+    },
+    {
+      status: 400,
+    }
+  );
+}
 
     if (
       doctorProfileId !== null &&
@@ -138,15 +199,27 @@ export async function POST(
       );
     }
 
-    const savedNote =
-      await doctorsNotesRepository.create({
-        patientId,
-        providerId,
-        doctorProfileId,
-        facilityId,
-        noteAt,
-        note,
-      });
+const healthcareDetails =
+  await saveHealthcareDetails({
+    patientId,
+    providerId,
+    doctorName,
+    facilityId,
+    facilityName,
+    specialisation,
+  });
+
+const savedNote =
+  await doctorsNotesRepository.create({
+    patientId,
+    providerId:
+      healthcareDetails.providerId,
+    doctorProfileId,
+    facilityId:
+      healthcareDetails.facilityId,
+    noteAt,
+    note,
+  });
 
     return NextResponse.json(
       {

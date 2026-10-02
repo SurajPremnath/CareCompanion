@@ -23,11 +23,17 @@ export interface DoctorsNote {
 export interface CreateDoctorsNoteRequest {
   patientId: string;
 
-  providerId: string;
+  providerId?: string | null;
+
+  doctorName?: string | null;
 
   doctorProfileId?: string | null;
 
   facilityId?: string | null;
+
+  facilityName?: string | null;
+
+  specialisation?: string | null;
 
   noteAt: string;
 
