@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { authService } from "@/lib/auth/authService";
+/*
 import { hasPrimaryAccess } from "@/lib/carevr/hasPrimaryAccess";
+*/
 import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 import { supabase } from "@/lib/supabase";
 
@@ -78,6 +80,13 @@ const [switchingProfile, setSwitchingProfile] =
 const [showSwitchProfile, setShowSwitchProfile] =
     useState(false);
 
+const [activeAccess, setActiveAccess] = useState<
+    {
+        id: string;
+        access_type: string;
+    }[]
+>([]);
+
 useEffect(() => {
     let cancelled = false;
 
@@ -94,29 +103,36 @@ useEffect(() => {
                     return;
                 }
 
-                const {
-                    data: activeAccess,
-                    error,
-                } = await supabase
-                    .from("carevr_access")
-                    .select("access_type")
-                    .eq("user_id", user.id)
-                    .eq("access_status", "ACTIVE");
+const {
+    data: loadedActiveAccess,
+    error,
+} = await supabase
+    .from("carevr_access")
+    .select("id, access_type")
+    .eq("user_id", user.id)
+    .eq("access_status", "ACTIVE");
 
-                if (error) {
-                    throw error;
-                }
+if (error) {
+    throw error;
+}
 
-                const hasOriginalInviteeRole =
-                    (activeAccess ?? []).some(
-                        (access) =>
-                            access.access_type ===
-                                "CARETAKER" ||
-                            access.access_type ===
-                                "DOCTOR" ||
-                            access.access_type ===
-                                "SECONDARY_FAMILY_MEMBER"
-                    );
+const accessRecords = loadedActiveAccess ?? [];
+
+
+if (!cancelled) {
+    setActiveAccess(accessRecords);
+}
+
+const hasOriginalInviteeRole =
+    accessRecords.some(
+        (access) =>
+            access.access_type ===
+                "CARETAKER" ||
+            access.access_type ===
+                "DOCTOR" ||
+            access.access_type ===
+                "SECONDARY_FAMILY_MEMBER"
+    );
 
                 if (!cancelled) {
                     setShowSwitchProfile(
@@ -158,50 +174,50 @@ const handleSwitchProfile = async () => {
             return;
         }
 
-        const primaryAccessExists =
-            await hasPrimaryAccess(user.id);
+const primaryAccessExists =
+    activeAccess.some(
+        (access) =>
+            access.access_type === "PRIMARY"
+    );
 
-        if (!primaryAccessExists) {
-            const { data: activeAccess, error } =
-                await supabase
-                    .from("carevr_access")
-                    .select("access_type")
-                    .eq("user_id", user.id)
-                    .eq("access_status", "ACTIVE");
+if (!primaryAccessExists) {
+const inviteeAccess =
+    activeAccess.find(
+        (access) =>
+            access.access_type ===
+                "CARETAKER" ||
+            access.access_type ===
+                "DOCTOR" ||
+            access.access_type ===
+                "SECONDARY_FAMILY_MEMBER"
+    ) as
+        | {
+              id: string;
+              access_type:
+                  | "CARETAKER"
+                  | "DOCTOR"
+                  | "SECONDARY_FAMILY_MEMBER";
+          }
+        | undefined;
 
-            if (error) {
-                throw error;
-            }
+    if (!inviteeAccess) {
+        throw new Error(
+            "No valid invitee access was found for profile switching."
+        );
+    }
 
-            const inviteeAccess =
-                (activeAccess ?? []).find(
-                    (access) =>
-                        access.access_type ===
-                            "CARETAKER" ||
-                        access.access_type ===
-                            "DOCTOR" ||
-                        access.access_type ===
-                            "SECONDARY_FAMILY_MEMBER"
-                );
+    inviteeToPrimaryHandoff.set({
+        userId: user.id,
+        sourceRole:
+            inviteeAccess.access_type,
+        targetRole: "PRIMARY",
+        createdAt:
+            new Date().toISOString(),
+    });
 
-            if (!inviteeAccess) {
-                throw new Error(
-                    "No valid invitee access was found for profile switching."
-                );
-            }
-
-            inviteeToPrimaryHandoff.set({
-                userId: user.id,
-                sourceRole:
-                    inviteeAccess.access_type,
-                targetRole: "PRIMARY",
-                createdAt:
-                    new Date().toISOString(),
-            });
-
-            router.replace("/register");
-            return;
-        }
+    router.replace("/register");
+    return;
+}
 
         router.replace("/profile-selection");
     }
