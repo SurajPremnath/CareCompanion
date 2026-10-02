@@ -242,15 +242,7 @@ const fallbackVitals: {
 } =
     summary?.fallbackVitals ?? {};
 
-console.log(
-    "[ExecutiveSummary PatientStatus] fallbackVitals:",
-    fallbackVitals
-);
 
-console.log(
-    "[ExecutiveSummary PatientStatus] temperature:",
-    fallbackVitals.temperature
-);
 
 const applyFallback = (
     data: any,

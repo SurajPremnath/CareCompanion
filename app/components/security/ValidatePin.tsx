@@ -254,14 +254,6 @@ try {
         const validatePinCompletedAt =
             performance.now();
 
-        console.log(
-            `[PIN-PERF] /api/security/validate-pin: ${Math.round(
-                validatePinCompletedAt -
-                validatePinStartedAt
-            )} ms`
-        );
-
-
 
         const jsonStartedAt =
             performance.now();
@@ -271,14 +263,6 @@ try {
 
         const jsonCompletedAt =
             performance.now();
-
-        console.log(
-            `[PIN-PERF] validate-pin JSON: ${Math.round(
-                jsonCompletedAt -
-                jsonStartedAt
-            )} ms`
-        );
-
 
 
         if (!response.ok) {
@@ -614,14 +598,6 @@ const access = {
         performance.now();
 
 
-console.log(
-    "[PIN-DEBUG] BEFORE DASHBOARD HANDOFF",
-    {
-        userId,
-        dashboardRole,
-        access,
-    }
-);
 
 
     await resolveCareVRDashboardHandoff(
@@ -631,20 +607,10 @@ console.log(
     );
 
 
-console.log(
-    "[PIN-DEBUG] AFTER DASHBOARD HANDOFF"
-);
 
     const handoffCompletedAt =
         performance.now();
 
-
-    console.log(
-        `[PIN-PERF] resolveCareVRDashboardHandoff: ${Math.round(
-            handoffCompletedAt -
-            handoffStartedAt
-        )} ms`
-    );
 
 
     /*

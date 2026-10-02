@@ -842,18 +842,6 @@ async function handleGeneratePdf() {
 
         setDownloadingPdf(true);
 
-console.log(
-    "PDF INPUT TRENDS:",
-    trends
-);
-
-console.log(
-    "PDF INPUT HISTORY:",
-    trends.map(trend => ({
-        parameter: trend.parameter,
-        history: trend.history
-    }))
-);
 
 const pdfBytes =
     await trendReportPdf.generate(
@@ -980,13 +968,6 @@ link.download =
 
 useEffect(() => {
 
-    console.log(
-        "CLINICAL TREND EFFECT:",
-        {
-            generateRequested,
-            selectedPeriod
-        }
-    );
 
 
     if (
@@ -1020,10 +1001,6 @@ const data =
 
 if (!cancelled) {
 
-    console.log(
-        "CLINICAL TRENDS DATA:",
-        data
-    );
 
     setTrends(data);
 

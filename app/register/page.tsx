@@ -1044,8 +1044,6 @@ setPrimaryDigitalHealthProfileId(
 );
 
 
-console.log("[PRIMARY] BEFORE DHP UPDATE");
-
 
 /*
  * =========================================================

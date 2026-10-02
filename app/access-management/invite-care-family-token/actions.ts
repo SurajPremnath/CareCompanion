@@ -56,14 +56,6 @@ const {
 } =
     await serverSupabase.auth.getUser();
 
-console.log(
-    "[INVITE-PERF] auth.getUser:",
-    Math.round(
-        performance.now() -
-        authStartedAt
-    ),
-    "ms"
-);
 
     if (
         userError ||
@@ -169,14 +161,6 @@ const validationResult =
         serverSupabase
     );
 
-console.log(
-    "[INVITE-PERF] invitationValidation:",
-    Math.round(
-        performance.now() -
-        validationStartedAt
-    ),
-    "ms"
-);
 
 if (
     !validationResult.success ||
@@ -254,14 +238,6 @@ const {
         }
     );
 
-console.log(
-    "[INVITE-PERF] create_carevr_invitation:",
-    Math.round(
-        performance.now() -
-        rpcStartedAt
-    ),
-    "ms"
-);
 
     if (error) {
 
@@ -348,14 +324,6 @@ await productInvitationProvisioning
         validation.userId
     );
 
-console.log(
-    "[INVITE-PERF] provisionAccepted:",
-    Math.round(
-        performance.now() -
-        provisioningStartedAt
-    ),
-    "ms"
-);
 
 */
     return {

@@ -67,11 +67,6 @@ static drawSection(
     options: PdfSectionOptions
 ): number {
 
-console.log(
-    "PDF DRAW SECTION:",
-    options.trend.parameter,
-    options.trend.history
-);
 
     const {
 
@@ -606,11 +601,6 @@ headers.forEach(
 
     }) {
 
-console.log(
-    "PDF DRAW TREND GRAPH",
-    options.trend.parameter,
-    options.trend.history
-);
 
         const {
 

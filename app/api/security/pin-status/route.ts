@@ -19,12 +19,6 @@ const supabase =
 const supabaseClientReadyAt =
     performance.now();
 
-console.log(
-    `[PIN-STATUS-PERF] createSupabaseServerClient: ${Math.round(
-        supabaseClientReadyAt -
-        supabaseStartedAt
-    )} ms`
-);
 
 const userStartedAt =
     performance.now();
@@ -38,12 +32,6 @@ const {
 const userCompletedAt =
     performance.now();
 
-console.log(
-    `[PIN-STATUS-PERF] auth.getUser: ${Math.round(
-        userCompletedAt -
-        userStartedAt
-    )} ms`
-);
 
 if (userError || !user) {
     return NextResponse.json(
@@ -64,12 +52,6 @@ const hasPin =
 const pinCompletedAt =
     performance.now();
 
-console.log(
-    `[PIN-STATUS-PERF] hasCareVRPin: ${Math.round(
-        pinCompletedAt -
-        pinStartedAt
-    )} ms`
-);
 
         return NextResponse.json({
             hasPin,

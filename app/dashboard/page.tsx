@@ -1384,19 +1384,6 @@ if (
     feature === "VIEW_HEALTH"
 ) {
 
- console.log(
-    "[REPORT DEBUG] FINAL Dashboard patient for report",
-    {
-        mobileCareMode,
-        mobileSelectedPatientId,
-        selectedPatient,
-        patientId: selectedPatient?.id ?? null,
-        patientName:
-            selectedPatient?.fullName ??
-            user.fullName,
-    }
-);
-
     reportHandoffStore.set({
         userId:
             user.id,

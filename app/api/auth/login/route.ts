@@ -50,11 +50,6 @@ const supabase =
 const supabaseClientReadyAt =
   performance.now();
 
-console.log(
-  `[LOGIN-SERVER-PERF] createSupabaseServerClient: ${Math.round(
-    supabaseClientReadyAt - supabaseStartedAt
-  )} ms`
-);
 
 const authStartedAt =
   performance.now();
@@ -71,11 +66,6 @@ const { data, error } =
 const authCompletedAt =
   performance.now();
 
-console.log(
-  `[LOGIN-SERVER-PERF] signInWithPassword: ${Math.round(
-    authCompletedAt - authStartedAt
-  )} ms`
-);
 
     if (error) {
       return NextResponse.json(

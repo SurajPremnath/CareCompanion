@@ -52,21 +52,10 @@ const [
 
 function handleContinue() {
 
-    console.log(
-        "[CARE JOURNEY DEBUG] 01 - Continue clicked",
-        {
-            configurable_Rest,
-            timestamp: new Date().toISOString(),
-        }
-    );
-
     onContinue(
         configurable_Rest
     );
 
-    console.log(
-        "[CARE JOURNEY DEBUG] 02 - onContinue returned"
-    );
 
 }
 

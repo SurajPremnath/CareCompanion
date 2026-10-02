@@ -165,12 +165,6 @@ async login(
     }),
   });
 
-  console.log(
-    `[LOGIN-PERF] /api/auth/login fetch: ${Math.round(
-      performance.now() -
-        loginFetchStartedAt
-    )} ms`
-  );
 
   let result: {
     message?: string;
@@ -184,13 +178,7 @@ async login(
   try {
     result = await response.json();
 
-    console.log(
-      `[LOGIN-PERF] /api/auth/login JSON: ${Math.round(
-        performance.now() -
-          loginJsonStartedAt
-      )} ms`
-    );
-  } catch {
+ } catch {
     throw new Error("Unable to login.");
   }
 

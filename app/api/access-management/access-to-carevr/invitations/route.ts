@@ -70,14 +70,6 @@ const {
         accessToken
     );
 
-console.log(
-    "[INVITATION-PERF] auth.getUser:",
-    Math.round(
-        performance.now() -
-        authCheckStartedAt
-    ),
-    "ms"
-);
 
 
 if (
@@ -186,14 +178,6 @@ const {
         )
         .single();
 
-console.log(
-    "[INVITATION-PERF] invitation insert:",
-    Math.round(
-        performance.now() -
-        invitationInsertStartedAt
-    ),
-    "ms"
-);
 
 
 if (
@@ -271,14 +255,6 @@ const {
                 expiresAt,
         });
 
-console.log(
-    "[INVITATION-PERF] token insert:",
-    Math.round(
-        performance.now() -
-        tokenInsertStartedAt
-    ),
-    "ms"
-);
 
 
         if (tokenError) {

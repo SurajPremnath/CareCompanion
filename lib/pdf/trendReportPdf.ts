@@ -99,10 +99,7 @@ let content =
 
         for (const trend of trends) {
 
-    console.log(
-        "PDF GENERATE TREND:",
-        trend
-    );
+
 
             const footerReservedSpace = 120;
 

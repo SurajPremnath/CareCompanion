@@ -352,11 +352,6 @@ setPinVerification({
   user: authenticatedUser,
 });
 
-console.log(
-  `[LOGIN-PERF] setPinVerification: ${Math.round(
-    performance.now() - pinRenderStartedAt
-  )} ms`
-);
 
 // console.log(
 //   `[LOGIN-PERF] total login-to-pin state transition: ${Math.round(

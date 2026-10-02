@@ -29,15 +29,7 @@ export interface ExecutiveSummaryReport {
 export class ExecutiveSummaryPdf {
 
     async generate(report: ExecutiveSummaryReport): Promise<Uint8Array> {
-    console.log(
-        "[ExecutiveSummaryPdf DEBUG] generate called",
-        {
-            patientId: report.patient?.id,
-            reportPeriod: report.reportPeriod,
-            fallbackVitals:
-                report.summary?.fallbackVitals
-        }
-    );
+
 
     const pdf = await PDFDocument.create();
         const regularFont = await pdf.embedFont(StandardFonts.Helvetica);

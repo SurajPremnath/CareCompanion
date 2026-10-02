@@ -560,60 +560,6 @@ export async function runVerifyPinAccessDiagnostic() {
      * =========================================================
      */
 
-    console.log(
-        "[SECURITY-DIAGNOSTIC] authenticated user",
-        {
-            userId:
-                authenticatedUserId,
-            email:
-                authenticatedEmail,
-        }
-    );
-
-    console.log(
-        "[SECURITY-DIAGNOSTIC] carevr_access / all active",
-        accessRecords
-    );
-
-    console.log(
-        "[SECURITY-DIAGNOSTIC] carevr_invitation / accepted by email",
-        latestAcceptedInvitation
-    );
-
-    console.log(
-        "[SECURITY-DIAGNOSTIC] carevr_access / resolved role",
-        roleAccessRecord
-    );
-
-    console.log(
-        "[SECURITY-DIAGNOSTIC] profiles / primary",
-        primaryProfile
-    );
-
-    console.log(
-        "[SECURITY-DIAGNOSTIC] carevr_invitation / accepted user + role",
-        acceptedInvitationForUser
-    );
-
-    console.log(
-        "[SECURITY-DIAGNOSTIC] carevr_invitation / latest by email",
-        latestInvitation
-    );
-
-    console.log(
-        "[SECURITY-DIAGNOSTIC] carevr_access / inviter primary",
-        inviterPrimaryAccess
-    );
-
-    console.log(
-        "[SECURITY-DIAGNOSTIC] carevr_module_permissions",
-        modulePermissions
-    );
-
-    console.log(
-        "[SECURITY-DIAGNOSTIC] patients",
-        patientRecords
-    );
 
 
     /*

@@ -2140,30 +2140,7 @@ onDocumentsSelected={(documents) => {
     />
 ) : (
 <>
-    {console.log(
-        "[CARE JOURNEY DEBUG] 07 - Processing Workspace render branch reached",
-        {
-            timestamp: new Date().toISOString(),
-            selectedPatientId,
-            configurationExists:
-                careJourneyConfiguration !== null,
-            documentsCount:
-                careJourneyDocuments.length,
-            documents:
-                careJourneyDocuments.map(
-                    item => ({
-                        name: item.file.name,
-                        size: item.file.size,
-                    })
-                ),
-            persistedItemsCount:
-                (
-                    careJourneyDocumentWorkspaces[
-                        selectedPatientId ?? "SELF"
-                    ] ?? []
-                ).length,
-        }
-    )}
+
 
     <CareJourneyProcessingWorkspace
 documents={
