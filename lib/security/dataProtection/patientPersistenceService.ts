@@ -613,47 +613,47 @@ export async function getProtectedPatientScopeForAccess(
       // Resolve the PRIMARY DHP for this family
       //--------------------------------------------------
 
-      const {
-        data: primaryAccess,
-        error: primaryAccessError,
-      } = await supabase
-        .from("carevr_access")
-        .select("id")
-        .eq(
-          "family_id",
-          access.family_id
-        )
-        .eq(
-          "access_type",
-          "PRIMARY"
-        )
-        .eq(
-          "access_status",
-          "ACTIVE"
-        )
-        .maybeSingle();
+const {
+  data: primaryAccess,
+  error: primaryAccessError,
+} = await supabase
+  .from("carevr_access")
+  .select("user_id")
+  .eq(
+    "family_id",
+    access.family_id
+  )
+  .eq(
+    "access_type",
+    "PRIMARY"
+  )
+  .eq(
+    "access_status",
+    "ACTIVE"
+  )
+  .maybeSingle();
 
-      if (primaryAccessError) {
-        throw primaryAccessError;
-      }
+if (primaryAccessError) {
+  throw primaryAccessError;
+}
 
-      if (!primaryAccess) {
-        return {
-          scope,
-          patients: [],
-        };
-      }
+if (!primaryAccess?.user_id) {
+  return {
+    scope,
+    patients: [],
+  };
+}
 
-      digitalHealthProfileQuery =
-        digitalHealthProfileQuery
-          .eq(
-            "carevr_access_id",
-            primaryAccess.id
-          )
-          .eq(
-            "family_id",
-            access.family_id
-          );
+digitalHealthProfileQuery =
+  digitalHealthProfileQuery
+    .eq(
+      "user_id",
+      primaryAccess.user_id
+    )
+    .eq(
+      "family_id",
+      access.family_id
+    );
     }
 
     const {

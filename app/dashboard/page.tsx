@@ -949,12 +949,6 @@ setFamilyModeAvailable(
 */
 
 
-const authorizedPatientIds =
-    (careVRHandoff?.patients ?? [])
-        .map(
-            patient =>
-                patient.id
-        );
 
 const authorizedFamilyId =
     careVRHandoff?.access.familyId;
@@ -969,22 +963,25 @@ if (
 }
 
 //------------------------------------------------------
-// Load DHP
+// Load DHP for selected profile / family context
 //------------------------------------------------------
 
 let digitalHealthProfileQuery =
     supabase
         .from("digital_health_profile")
         .select("patients")
-        .eq("digital_health_flag", true);
+        .eq(
+            "digital_health_flag",
+            true
+        );
 
 if (
     careVRHandoff?.access.accessType ===
     "PRIMARY"
 ) {
+
     //--------------------------------------------------
-    // PRIMARY / SELF
-    // Use the logged-in user's own DHP
+    // SELF / PRIMARY CONTEXT
     //--------------------------------------------------
 
     digitalHealthProfileQuery =
@@ -999,9 +996,9 @@ if (
             );
 
 } else {
+
     //--------------------------------------------------
-    // INVITEE / FAMILY CONTEXT
-    // Resolve the PRIMARY DHP for this family
+    // INVITED FAMILY CONTEXT
     //--------------------------------------------------
 
     const {
@@ -1009,7 +1006,7 @@ if (
         error: primaryAccessError,
     } = await supabase
         .from("carevr_access")
-        .select("id")
+        .select("user_id")
         .eq(
             "family_id",
             authorizedFamilyId
@@ -1038,8 +1035,8 @@ if (
     digitalHealthProfileQuery =
         digitalHealthProfileQuery
             .eq(
-                "carevr_access_id",
-                primaryAccess.id
+                "user_id",
+                primaryAccess.user_id
             )
             .eq(
                 "family_id",
@@ -1070,10 +1067,7 @@ const patients: Patient[] =
         .filter(
             patient =>
                 patient &&
-                typeof patient.id === "string" &&
-                authorizedPatientIds.includes(
-                    patient.id
-                )
+                typeof patient.id === "string"
         )
         .map(
             patient => ({
