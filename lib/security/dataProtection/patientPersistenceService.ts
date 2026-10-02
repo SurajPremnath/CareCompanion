@@ -600,46 +600,84 @@ export async function getProtectedPatientScopeForAccess(
     };
   }
 
-  //------------------------------------------------------
-  // Load DHP
-  //------------------------------------------------------
+    //------------------------------------------------------
+    // Load DHP
+    //------------------------------------------------------
 
-const digitalHealthProfileQuery =
-    supabase
+    let digitalHealthProfileQuery =
+      supabase
         .from("digital_health_profile")
-        .select(`
-            patients,
-            carevr_access:carevr_access_id!inner (
-                access_type,
-                access_status
-            )
-        `)
+        .select("patients")
+        .eq("digital_health_flag", true);
+
+    if (access.access_type === "PRIMARY") {
+      //--------------------------------------------------
+      // PRIMARY / SELF
+      // Use the logged-in user's own DHP
+      //--------------------------------------------------
+
+      digitalHealthProfileQuery =
+        digitalHealthProfileQuery
+          .eq("user_id", user.id)
+          .eq("family_id", access.family_id);
+    } else {
+      //--------------------------------------------------
+      // INVITEE / FAMILY CONTEXT
+      // Resolve the PRIMARY DHP for this family
+      //--------------------------------------------------
+
+      const {
+        data: primaryAccess,
+        error: primaryAccessError,
+      } = await supabase
+        .from("carevr_access")
+        .select("id")
         .eq(
+          "family_id",
+          access.family_id
+        )
+        .eq(
+          "access_type",
+          "PRIMARY"
+        )
+        .eq(
+          "access_status",
+          "ACTIVE"
+        )
+        .maybeSingle();
+
+      if (primaryAccessError) {
+        throw primaryAccessError;
+      }
+
+      if (!primaryAccess) {
+        return {
+          scope,
+          patients: [],
+        };
+      }
+
+      digitalHealthProfileQuery =
+        digitalHealthProfileQuery
+          .eq(
+            "carevr_access_id",
+            primaryAccess.id
+          )
+          .eq(
             "family_id",
             access.family_id
-        )
-        .eq(
-            "digital_health_flag",
-            true
-        )
-        .eq(
-            "carevr_access.access_type",
-            "PRIMARY"
-        )
-        .eq(
-            "carevr_access.access_status",
-            "ACTIVE"
-        );
+          );
+    }
 
-  const {
-    data: digitalHealthProfile,
-    error: digitalHealthProfileError,
-  } =
-    await digitalHealthProfileQuery.maybeSingle();
+    const {
+      data: digitalHealthProfile,
+      error: digitalHealthProfileError,
+    } =
+      await digitalHealthProfileQuery.maybeSingle();
 
-  if (digitalHealthProfileError) {
-    throw digitalHealthProfileError;
-  }
+    if (digitalHealthProfileError) {
+      throw digitalHealthProfileError;
+    }
 
   const dhpPatients =
     Array.isArray(
