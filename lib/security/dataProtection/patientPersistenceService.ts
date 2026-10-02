@@ -528,6 +528,7 @@ export async function getProtectedPatientScopeForAccess(
     );
   }
 
+
   const allowedAccessTypes =
     selectedRole === "SELF"
       ? ["PRIMARY"]
@@ -613,6 +614,7 @@ export async function getProtectedPatientScopeForAccess(
       // Resolve the PRIMARY DHP for this family
       //--------------------------------------------------
 
+
 const {
   data: primaryAccess,
   error: primaryAccessError,
@@ -637,6 +639,7 @@ if (primaryAccessError) {
   throw primaryAccessError;
 }
 
+
 if (!primaryAccess?.user_id) {
   return {
     scope,
@@ -656,13 +659,16 @@ digitalHealthProfileQuery =
     );
     }
 
-    const {
-      data: digitalHealthProfile,
-      error: digitalHealthProfileError,
-    } =
-      await digitalHealthProfileQuery.maybeSingle();
 
-    if (digitalHealthProfileError) {
+const {
+  data: digitalHealthProfile,
+  error: digitalHealthProfileError,
+} =
+  await digitalHealthProfileQuery.maybeSingle();
+
+
+
+   if (digitalHealthProfileError) {
       throw digitalHealthProfileError;
     }
 
@@ -727,6 +733,8 @@ digitalHealthProfileQuery =
             b.fullName
           )
       );
+
+
 
   return {
     scope,

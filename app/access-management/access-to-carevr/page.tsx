@@ -346,13 +346,14 @@ const handleCreateInvitation =
         const normalizedEmail =
             email.trim().toLowerCase();
 
-
-
-        if (!normalizedEmail) {
+        if (
+            !normalizedEmail ||
+            creatingInvitation
+        ) {
             return;
         }
 
-
+        setCreatingInvitation(true);
 
         try {
 
@@ -500,6 +501,12 @@ const activationUrl =
             );
 
         }
+        finally {
+
+            setCreatingInvitation(false);
+
+        }
+
 
     };
 
@@ -885,19 +892,22 @@ const handleSendToEmail =
                     )}
 
 
-                    <button
-                        type="button"
-                        className="access-carevr-primary-button"
-                        onClick={
-                            handleCreateInvitation
-                        }
-                        disabled={
-                            !email.trim() ||
-                            created
-                        }
-                    >
-                        Create Invitation
-                    </button>
+<button
+    type="button"
+    className="access-carevr-primary-button"
+    onClick={
+        handleCreateInvitation
+    }
+    disabled={
+        !email.trim() ||
+        created ||
+        creatingInvitation
+    }
+>
+    {creatingInvitation
+        ? "Creating..."
+        : "Create Invitation"}
+</button>
 
                 </section>
 

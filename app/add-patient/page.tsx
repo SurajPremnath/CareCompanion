@@ -179,10 +179,56 @@ const [loggingOut, setLoggingOut] =
   // Save Patient
   //------------------------------------------------------------
 
-  const handleSavePatient =
+const handleSavePatient =
     async () => {
 
       if (saving) {
+
+        return;
+
+      }
+
+      //------------------------------------------------------------
+      // Validate Gender / Relationship consistency
+      //------------------------------------------------------------
+
+      const maleRelationships = [
+        "Father",
+        "Brother",
+        "Son",
+        "Grandfather",
+        "Uncle",
+      ];
+
+      const femaleRelationships = [
+        "Mother",
+        "Sister",
+        "Daughter",
+        "Grandmother",
+        "Aunt",
+      ];
+
+      if (
+        gender === "Male" &&
+        femaleRelationships.includes(relationship)
+      ) {
+
+        AppAlert.error(
+          "The selected relationship does not match the patient's gender."
+        );
+
+        return;
+
+      }
+
+      if (
+        gender === "Female" &&
+        maleRelationships.includes(relationship)
+      ) {
+
+        AppAlert.error(
+          "The selected relationship does not match the patient's gender."
+        );
 
         return;
 

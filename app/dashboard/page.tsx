@@ -662,6 +662,7 @@ setUser({
 
 useEffect(() => {
 
+
     if (
         !user ||
         !consentGranted
@@ -903,8 +904,6 @@ setMobileSnapshots(
 //--------------------------------------------------------
 // FAMILY MODE - BELOW CODE WAS COMMENTED SINCE NOW PATIENT INFO IS BEING TAKEN FROM DHP
 //--------------------------------------------------------
-
-
 
 
 const response =
