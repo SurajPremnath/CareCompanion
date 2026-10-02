@@ -95,25 +95,12 @@ const selectedDoctor = useMemo(
 );
 
 useEffect(() => {
-  if (!selectedDoctor) {
+  if (!selectedPatient) {
     setDoctorName("");
     setFacilityName("");
     setSpecialisation("");
-    return;
   }
-
-  setDoctorName(
-    selectedDoctor.doctorName ?? ""
-  );
-
-  setFacilityName(
-    selectedDoctor.facilityName ?? ""
-  );
-
-  setSpecialisation(
-    selectedDoctor.specialisation ?? ""
-  );
-}, [selectedDoctor]);
+}, [selectedPatient]);
 
 useEffect(() => {
 const handoff =
