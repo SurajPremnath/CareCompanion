@@ -921,9 +921,9 @@ useEffect(() => {
         try {
 
 const user =
-    authenticatedUserRef.current;
+    await authService.getCurrentUser();
 
-if (!user) {
+if (!user?.id) {
     throw new Error(
         "Unable to determine the current user."
     );
