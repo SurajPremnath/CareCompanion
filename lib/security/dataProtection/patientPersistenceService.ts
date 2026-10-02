@@ -299,19 +299,6 @@ if (!data) {
   );
 }
 
-//------------------------------------------------------
-// Update Digital Health Profile
-//------------------------------------------------------
-//
-// Reuse the exact same persistenceRow that was used
-// to insert the patient.
-//
-// No second patient query.
-// No second encryption.
-// No second family resolution.
-//
-// DHP is updated for the same user + family.
-//------------------------------------------------------
 
 //------------------------------------------------------
 // Update Digital Health Profile

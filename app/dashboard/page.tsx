@@ -968,29 +968,90 @@ if (
     return;
 }
 
+//------------------------------------------------------
+// Load DHP
+//------------------------------------------------------
+
+let digitalHealthProfileQuery =
+    supabase
+        .from("digital_health_profile")
+        .select("patients")
+        .eq("digital_health_flag", true);
+
+if (
+    careVRHandoff?.access.accessType ===
+    "PRIMARY"
+) {
+    //--------------------------------------------------
+    // PRIMARY / SELF
+    // Use the logged-in user's own DHP
+    //--------------------------------------------------
+
+    digitalHealthProfileQuery =
+        digitalHealthProfileQuery
+            .eq(
+                "user_id",
+                currentUserId
+            )
+            .eq(
+                "family_id",
+                authorizedFamilyId
+            );
+
+} else {
+    //--------------------------------------------------
+    // INVITEE / FAMILY CONTEXT
+    // Resolve the PRIMARY DHP for this family
+    //--------------------------------------------------
+
+    const {
+        data: primaryAccess,
+        error: primaryAccessError,
+    } = await supabase
+        .from("carevr_access")
+        .select("id")
+        .eq(
+            "family_id",
+            authorizedFamilyId
+        )
+        .eq(
+            "access_type",
+            "PRIMARY"
+        )
+        .eq(
+            "access_status",
+            "ACTIVE"
+        )
+        .maybeSingle();
+
+    if (primaryAccessError) {
+        throw primaryAccessError;
+    }
+
+    if (!primaryAccess) {
+        setMobilePatients([]);
+        setFamilyModeAvailable(false);
+        setMobileSelectedPatientId("");
+        return;
+    }
+
+    digitalHealthProfileQuery =
+        digitalHealthProfileQuery
+            .eq(
+                "carevr_access_id",
+                primaryAccess.id
+            )
+            .eq(
+                "family_id",
+                authorizedFamilyId
+            );
+}
+
 const {
     data: digitalHealthProfile,
     error: digitalHealthProfileError,
 } =
-    await supabase
-        .from("digital_health_profile")
-        .select(`
-            patients,
-            carevr_access:carevr_access_id!inner (
-                access_type,
-                access_status
-            )
-        `)
-        .eq("family_id", authorizedFamilyId)
-        .eq("digital_health_flag", true)
-        .eq(
-            "carevr_access.access_type",
-            "PRIMARY"
-        )
-        .eq(
-            "carevr_access.access_status",
-            "ACTIVE"
-        )
+    await digitalHealthProfileQuery
         .maybeSingle();
 
 if (digitalHealthProfileError) {
