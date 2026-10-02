@@ -14,6 +14,7 @@ import {
 import { authService } from "@/lib/auth/authService";
 import { profileRepository } from "@/lib/repositories/profileRepository";
 import { supabase } from "@/lib/supabase";
+import { AppAlert } from "@/lib/utils/appAlert";
 
 interface DoctorsNoteDoctorOption {
   providerId: string;
@@ -449,9 +450,7 @@ body: JSON.stringify({
       );
     }
 
-    setSaveSuccess(
-      "Doctors Note saved successfully."
-    );
+AppAlert.success("Doctors Note saved successfully.");
 
     setNote("");
   } catch (error) {
