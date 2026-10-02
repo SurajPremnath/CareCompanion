@@ -122,6 +122,8 @@ import {
     reportHandoffStore,
 } from "@/lib/authorization/reportHandoff";
 
+
+
 type DashboardUser = {
 
     id: string;
@@ -902,201 +904,35 @@ setMobileSnapshots(
 // FAMILY MODE - BELOW CODE WAS COMMENTED SINCE NOW PATIENT INFO IS BEING TAKEN FROM DHP
 //--------------------------------------------------------
 
-/*
 
 
 
-const authorizedPatientIds =
-    (careVRHandoff?.patients ?? [])
-        .map(
-            patient =>
-                patient.id
-        );
+const response =
+    await fetch("/api/patients/scope", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+body: JSON.stringify({
+    accessId:
+        careVRHandoff!.access.id,
+    selectedRole:
+        mobileCareMode,
+}),
+    });
 
-const authorizedFamilyId =
-    careVRHandoff?.access.familyId;
+const result =
+    await response.json();
 
-const patientResults =
-    await Promise.all(
-        authorizedPatientIds.map(
-            patientId =>
-                patientStorage.getProtectedPatient(
-                    patientId
-                )
-        )
+if (!response.ok || !result.success) {
+    throw new Error(
+        result.error ||
+            "Unable to retrieve patient scope."
     );
+}
 
 const patients: Patient[] =
-    patientResults
-        .filter(
-            result =>
-                result.success &&
-                result.data != null
-        )
-        .map(
-            result =>
-                result.data as Patient
-        );
-
-setMobilePatients(
-    patients
-);
-
-setFamilyModeAvailable(
-    patients.length > 0
-);
-
-*/
-
-
-
-const authorizedFamilyId =
-    careVRHandoff?.access.familyId;
-
-if (
-    !authorizedFamilyId
-) {
-    setMobilePatients([]);
-    setFamilyModeAvailable(false);
-    setMobileSelectedPatientId("");
-    return;
-}
-
-//------------------------------------------------------
-// Load DHP for selected profile / family context
-//------------------------------------------------------
-
-let digitalHealthProfileQuery =
-    supabase
-        .from("digital_health_profile")
-        .select("patients")
-        .eq(
-            "digital_health_flag",
-            true
-        );
-
-if (
-    careVRHandoff?.access.accessType ===
-    "PRIMARY"
-) {
-
-    //--------------------------------------------------
-    // SELF / PRIMARY CONTEXT
-    //--------------------------------------------------
-
-    digitalHealthProfileQuery =
-        digitalHealthProfileQuery
-            .eq(
-                "user_id",
-                currentUserId
-            )
-            .eq(
-                "family_id",
-                authorizedFamilyId
-            );
-
-} else {
-
-    //--------------------------------------------------
-    // INVITED FAMILY CONTEXT
-    //--------------------------------------------------
-
-    const {
-        data: primaryAccess,
-        error: primaryAccessError,
-    } = await supabase
-        .from("carevr_access")
-        .select("user_id")
-        .eq(
-            "family_id",
-            authorizedFamilyId
-        )
-        .eq(
-            "access_type",
-            "PRIMARY"
-        )
-        .eq(
-            "access_status",
-            "ACTIVE"
-        )
-        .maybeSingle();
-
-    if (primaryAccessError) {
-        throw primaryAccessError;
-    }
-
-    if (!primaryAccess) {
-        setMobilePatients([]);
-        setFamilyModeAvailable(false);
-        setMobileSelectedPatientId("");
-        return;
-    }
-
-    digitalHealthProfileQuery =
-        digitalHealthProfileQuery
-            .eq(
-                "user_id",
-                primaryAccess.user_id
-            )
-            .eq(
-                "family_id",
-                authorizedFamilyId
-            );
-}
-
-const {
-    data: digitalHealthProfile,
-    error: digitalHealthProfileError,
-} =
-    await digitalHealthProfileQuery
-        .maybeSingle();
-
-if (digitalHealthProfileError) {
-    throw digitalHealthProfileError;
-}
-
-const dhpPatients =
-    Array.isArray(
-        digitalHealthProfile?.patients
-    )
-        ? digitalHealthProfile.patients
-        : [];
-
-const patients: Patient[] =
-    dhpPatients
-        .filter(
-            patient =>
-                patient &&
-                typeof patient.id === "string"
-        )
-        .map(
-            patient => ({
-                id: patient.id,
-                userId:
-                    patient.user_id ??
-                    currentUserId,
-                fullName:
-                    patient.full_name,
-                dateOfBirth:
-                    patient.date_of_birth ??
-                    null,
-                gender:
-                    patient.gender ??
-                    null,
-                relationship:
-                    patient.relationship ??
-                    null,
-                status:
-                    patient.status ??
-                    "ACTIVE",
-                createdAt:
-                    patient.created_at ??
-                    "",
-                updatedAt:
-                    patient.updated_at ??
-                    "",
-            })
-        );
+    result.data.patients as Patient[];
 
 setMobilePatients(
     patients
