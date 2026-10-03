@@ -682,6 +682,7 @@ const bytes =
                     }
                 );
 
+/*
             const url =
                 URL.createObjectURL(blob);
 
@@ -705,6 +706,57 @@ const bytes =
                 onComplete?.();
 
             }, 300);
+
+*/
+
+const url =
+    URL.createObjectURL(blob);
+
+const safePatientName =
+    (patientName || "Patient")
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[<>:"/\\|?*]/g, "");
+
+const now = new Date();
+
+const timestamp =
+    `${now.getFullYear()}-` +
+    `${String(now.getMonth() + 1).padStart(2, "0")}-` +
+    `${String(now.getDate()).padStart(2, "0")}_` +
+    `${String(now.getHours()).padStart(2, "0")}-` +
+    `${String(now.getMinutes()).padStart(2, "0")}-` +
+    `${String(now.getSeconds()).padStart(2, "0")}`;
+
+const fileName =
+    `CareVR_ExecutiveSummary_${safePatientName}_${timestamp}.pdf`;
+
+const link =
+    document.createElement("a");
+
+link.href = url;
+link.download = fileName;
+
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+
+setProgress(100);
+
+setMessage(
+    "Opening report..."
+);
+
+setTimeout(() => {
+
+    URL.revokeObjectURL(
+        url
+    );
+
+    onComplete?.();
+
+}, 300);
+
 
         }
 catch (error) {
