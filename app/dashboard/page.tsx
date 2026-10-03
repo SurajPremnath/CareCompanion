@@ -905,7 +905,7 @@ setMobileSnapshots(
 // FAMILY MODE - BELOW CODE WAS COMMENTED SINCE NOW PATIENT INFO IS BEING TAKEN FROM DHP
 //--------------------------------------------------------
 
-
+/*
 const response =
     await fetch("/api/patients/scope", {
         method: "POST",
@@ -932,6 +932,122 @@ if (!response.ok || !result.success) {
 
 const patients: Patient[] =
     result.data.patients as Patient[];
+*/
+
+//--------------------------------------------------------
+// FAMILY MODE
+// Patient context is loaded directly from the PRIMARY DHP
+// for the currently authorized CareVR Family.
+//--------------------------------------------------------
+
+const authorizedFamilyId =
+    careVRHandoff!.access.familyId;
+
+if (!authorizedFamilyId) {
+    throw new Error(
+        "Authorized CareVR Family could not be resolved."
+    );
+}
+
+// The Dashboard handoff already contains the
+// authorization-resolved patient scope.
+// Use those IDs to ensure DHP patients remain
+// constrained to the current CareVR context.
+
+const scopedPatientIds =
+    careVRHandoff!.patients.map(
+        patient => patient.id
+    );
+
+const {
+    data: digitalHealthProfile,
+    error: digitalHealthProfileError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .select(`
+            patients,
+            carevr_access:carevr_access_id!inner (
+                access_type,
+                access_status
+            )
+        `)
+        .eq(
+            "family_id",
+            authorizedFamilyId
+        )
+        .eq(
+            "digital_health_flag",
+            true
+        )
+        .eq(
+            "carevr_access.access_type",
+            "PRIMARY"
+        )
+        .eq(
+            "carevr_access.access_status",
+            "ACTIVE"
+        )
+        .maybeSingle();
+
+if (digitalHealthProfileError) {
+    throw digitalHealthProfileError;
+}
+
+const dhpPatients =
+    Array.isArray(
+        digitalHealthProfile?.patients
+    )
+        ? digitalHealthProfile.patients
+        : [];
+
+const patients: Patient[] =
+    dhpPatients
+        .filter(
+            patient =>
+                patient &&
+                typeof patient.id === "string" &&
+                scopedPatientIds.includes(
+                    patient.id
+                )
+        )
+        .map(
+            patient => ({
+                id:
+                    patient.id,
+
+                userId:
+                    patient.user_id ??
+                    currentUserId,
+
+                fullName:
+                    patient.full_name,
+
+                dateOfBirth:
+                    patient.date_of_birth ??
+                    null,
+
+                gender:
+                    patient.gender ??
+                    null,
+
+                relationship:
+                    patient.relationship ??
+                    null,
+
+                status:
+                    patient.status ??
+                    "ACTIVE",
+
+                createdAt:
+                    patient.created_at ??
+                    "",
+
+                updatedAt:
+                    patient.updated_at ??
+                    "",
+            })
+        );
 
 setMobilePatients(
     patients
