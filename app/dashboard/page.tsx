@@ -1113,6 +1113,7 @@ records =
                                 }
 
 */
+
                                 const snapshot =
                                     await dailyCareRepository
                                         .getLatestSnapshotByPatientId(

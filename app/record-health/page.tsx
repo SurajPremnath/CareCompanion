@@ -3168,13 +3168,13 @@ if (
     line-height: 1.45;
 }
 
-                .record-health-page {
-                    min-height: 100vh;
-                    width: 100%;
-                    box-sizing: border-box;
-                    background: #f8f6ff;
-                    color: #101d45;
-                }
+.record-health-page {
+    min-height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
+    background: #f8f6ff;
+    color: #101d45;
+}
 
 .record-health-shell {
     width: 100%;
@@ -3191,6 +3191,37 @@ if (
     width: 100%;
     padding: 6px 16px 8px;
     box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MOBILE VIEWPORT / INPUT STABILITY
+   Keep the page fixed while allowing the content to scroll.
+   This prevents the entire Record Health page from moving
+   when the mobile keyboard opens.
+========================================================= */
+
+@media (max-width: 640px) {
+
+    .record-health-page {
+        height: 100dvh;
+        min-height: 100dvh;
+        overflow: hidden;
+    }
+
+    .record-health-shell {
+        height: 100dvh;
+        min-height: 100dvh;
+        overflow: hidden;
+    }
+
+    .record-health-content {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
 }
 
 
