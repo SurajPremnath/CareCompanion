@@ -615,7 +615,7 @@ return (
     justify-content: flex-end;
     gap: 8px;
     flex: 0 0 auto;
-    margin-right: 14px;
+    margin-right: 18px;
 }
 
 .carevr-mobile-home-button {
@@ -812,7 +812,7 @@ return (
     justify-content: flex-end;
     gap: 8px;
     flex: 0 0 auto;
-    margin-right: 14px;
+    margin-right: 18px;
 }
                     .carevr-mobile-mode-option {
                         min-width: 52px;
