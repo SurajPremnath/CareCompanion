@@ -56,6 +56,8 @@ const [patients, setPatients] =
     Array<{
       id: string;
       name: string;
+      dateOfBirth: string | null;
+      sex: string | null;
     }>
   >([]);
 
@@ -94,6 +96,33 @@ const selectedDoctor = useMemo(
     ) ?? null,
   [doctorOptions, selectedDoctorId],
 );
+
+const calculateAge = (dateOfBirth: string | null) => {
+  if (!dateOfBirth) {
+    return "—";
+  }
+
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+
+  let age =
+    today.getFullYear() -
+    birthDate.getFullYear();
+
+  const monthDifference =
+    today.getMonth() -
+    birthDate.getMonth();
+
+  if (
+    monthDifference < 0 ||
+    (monthDifference === 0 &&
+      today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+
+  return `${age} yrs`;
+};
 
 useEffect(() => {
   if (!selectedPatient) {
@@ -184,9 +213,14 @@ setPatients(
     patient => ({
       id: patient.id,
       name: patient.full_name,
+      dateOfBirth: patient.date_of_birth ?? null,
+      sex: patient.gender ?? null,
     })
   )
 );
+
+
+
 
 if (authorizedPatients.length > 0) {
   setSelectedPatient(
@@ -521,8 +555,13 @@ loggingOut={loggingOut}
 
 <span className="patient-details">
   <strong>{patient.name}</strong>
-  <small>Patient</small>
+  <small>
+    Age: {calculateAge(patient.dateOfBirth)}
+    {" · "}
+    Sex: {patient.sex ?? "—"}
+  </small>
 </span>
+
 
                   <span className={`selection-dot ${isSelected ? "checked" : ""}`}>
                     {isSelected ? "✓" : ""}
@@ -1092,39 +1131,39 @@ input {
           box-shadow: 0 7px 16px rgba(83, 48, 191, 0.2);
         }
 
-        @media (max-width: 700px) {
-          .page-content {
-            width: min(100% - 22px, 940px);
-            padding: 30px 0 38px;
-          }
+@media (max-width: 700px) {
+    .page-content {
+        width: min(100% - 22px, 940px);
+        padding: 30px 0 38px;
+    }
 
-          .page-heading {
-            margin-bottom: 21px;
-          }
+    .page-heading {
+        margin-bottom: 21px;
+    }
 
-          .subtitle {
-            font-size: 14px;
-          }
+    .subtitle {
+        font-size: 14px;
+    }
 
-          .demo-role-switch {
-            max-width: 100%;
-          }
+    .demo-role-switch {
+        max-width: 100%;
+    }
 
-          .patient-grid,
-          .selection-fields,
-          .date-time-grid {
-            grid-template-columns: 1fr;
-          }
+    .selection-fields,
+    .date-time-grid {
+        grid-template-columns: 1fr;
+    }
 
-          .patient-grid {
-            gap: 10px;
-          }
+    .patient-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
 
-          .patient-section,
-          .doctor-section,
-          .note-section {
-            padding: 18px;
-          }
+    .patient-section,
+    .doctor-section,
+    .note-section {
+        padding: 18px;
+    }
 
           .doctor-meta {
             flex-direction: column;
