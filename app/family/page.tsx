@@ -18,6 +18,11 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+    supabase,
+} from "@/lib/supabase";
+
+
 /*
 import {
   analyticsService,
@@ -125,6 +130,7 @@ const handleBackToDashboard = () => {
           fullName: profile.fullName,
         });
 
+/*
 const response =
   await fetch(
     "/api/patients/scope",
@@ -171,6 +177,114 @@ if (loadedPatients.length > 0) {
     loadedPatients[0].id
   );
 }
+*/
+
+const authorizedFamilyId =
+  dashboardHandoff?.access.familyId;
+
+if (!authorizedFamilyId) {
+  throw new Error(
+    "Authorized CareVR Family could not be resolved."
+  );
+}
+
+const scopedPatientIds =
+  dashboardHandoff.patients.map(
+    patient => patient.id
+  );
+
+const {
+  data: digitalHealthProfile,
+  error: digitalHealthProfileError,
+} =
+  await supabase
+    .from("digital_health_profile")
+    .select(`
+      patients,
+      carevr_access:carevr_access_id!inner (
+        access_type,
+        access_status
+      )
+    `)
+    .eq(
+      "family_id",
+      authorizedFamilyId
+    )
+    .eq(
+      "digital_health_flag",
+      true
+    )
+    .eq(
+      "carevr_access.access_type",
+      "PRIMARY"
+    )
+    .eq(
+      "carevr_access.access_status",
+      "ACTIVE"
+    )
+    .maybeSingle();
+
+if (!mounted) return;
+
+if (digitalHealthProfileError) {
+  console.error(
+    "Unable to load patients:",
+    digitalHealthProfileError
+  );
+
+  setError(
+    t("assessment.patientLoadError")
+  );
+
+  return;
+}
+
+const dhpPatients =
+  Array.isArray(
+    digitalHealthProfile?.patients
+  )
+    ? digitalHealthProfile.patients
+    : [];
+
+const loadedPatients: Patient[] =
+  dhpPatients
+    .filter(
+      (patient: any) =>
+        patient?.status === "ACTIVE" &&
+        scopedPatientIds.includes(
+          patient?.id
+        )
+    )
+    .map(
+      (patient: any) => ({
+        id: patient.id,
+        userId:
+          patient.user_id ?? null,
+        fullName:
+          patient.full_name,
+        dateOfBirth:
+          patient.date_of_birth ?? null,
+        gender:
+          patient.gender ?? null,
+        relationship:
+          patient.relationship ?? null,
+        status:
+          patient.status,
+        createdAt:
+          patient.created_at ?? "",
+        updatedAt:
+          patient.updated_at ?? "",
+      })
+    );
+
+setPatients(loadedPatients);
+
+if (loadedPatients.length > 0) {
+  setSelectedPatientId(
+    loadedPatients[0].id
+  );
+}
+
       } catch (err) {
         console.error(err);
 

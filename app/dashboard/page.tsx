@@ -1084,6 +1084,7 @@ const snapshotEntries =
 
                             try {
 
+/*
                                 let records:
                                     DailyCare[] = [];
 
@@ -1111,12 +1112,15 @@ records =
                                         );
                                 }
 
+*/
                                 const snapshot =
                                     await dailyCareRepository
                                         .getLatestSnapshotByPatientId(
                                             patient.id
                                         );
 
+
+/*
                                 const sortedRecords = [
                                     ...records,
                                 ].sort(
@@ -1128,6 +1132,8 @@ records =
                                             a.recordedAt
                                         ).getTime()
                                 );
+
+*/
 
                                 const latestDailyCare =
                                     snapshot?.latest?.id
