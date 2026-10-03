@@ -545,13 +545,7 @@ loggingOut={loggingOut}
                   className={`patient-card ${isSelected ? "selected" : ""}`}
                   onClick={() => setSelectedPatient(patient.id)}
                 >
-                  <span className="patient-avatar">
-                    {patient.name
-                      .split(" ")
-                      .map((part) => part[0])
-                      .slice(0, 2)
-                      .join("")}
-                  </span>
+
 
 <span className="patient-details">
   <strong>{patient.name}</strong>
