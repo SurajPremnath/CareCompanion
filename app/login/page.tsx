@@ -2630,14 +2630,6 @@ return (
 
   {/* GOOGLE LOGIN */}
 
-  <div className="divider">
-    <span className="divider-line" />
-    <span className="divider-text">
-      or
-    </span>
-    <span className="divider-line" />
-  </div>
-
   <div className="login-google-panel">
 
     <button
