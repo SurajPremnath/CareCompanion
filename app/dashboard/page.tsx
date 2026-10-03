@@ -590,6 +590,27 @@ setUser({
 
 });
 
+// ------------------------------------------------------------
+// CAREVR ONBOARDING EMAIL
+//
+// Send the onboarding email after the Dashboard has been
+// successfully initialized.
+//
+// Email delivery must never block Dashboard access.
+// ------------------------------------------------------------
+
+void fetch(
+    "/api/onboarding/send-email",
+    {
+        method: "POST",
+    }
+)
+    .catch(
+        () => {
+            // Onboarding email failure must not
+            // affect Dashboard access.
+        }
+    );
 
 // ------------------------------------------------------------
 // ANALYTICS — COMMENTED OUT FOR DEMO
