@@ -935,7 +935,7 @@ const patients: Patient[] =
 */
 
 //--------------------------------------------------------
-// FAMILY MODE
+// FAMILY MODE - TOGGLE LOADING PATIENTS
 // Patient context is loaded directly from the PRIMARY DHP
 // for the currently authorized CareVR Family.
 //--------------------------------------------------------
