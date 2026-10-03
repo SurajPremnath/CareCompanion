@@ -165,11 +165,25 @@ static drawHealthEvents(
 
         for (const period of section?.periods ?? []) {
             const source = this.cleanText(period?.answer);
-            const values = [
-                this.extractCategory(source, ["Symptoms Change", "Symptom progression"], ["Vital Changes", "Medication Changes", "Clinical Changes"]),
-                this.extractCategory(source, ["Vital Changes", "Vital changes"], []) || "No vitals recorded.",
-                this.extractCategory(source, ["Medication Changes", "Medication changes"], ["Clinical Changes"])
-            ];
+const values = [
+    this.extractCategory(
+        source,
+        ["Symptoms Change", "Symptom progression"],
+        ["Vital Changes", "Medication Changes", "Clinical Changes"]
+    ),
+
+    this.extractCategory(
+        source,
+        ["Vital Changes", "Vital changes"],
+        ["Medication Changes", "Clinical Changes"]
+    ) || "No vitals recorded.",
+
+    this.extractCategory(
+        source,
+        ["Medication Changes", "Medication changes"],
+        ["Clinical Changes"]
+    )
+];
             const wrapped = values.map(value => this.wrapText(this.safePdfText(value || "No change recorded."), 27));
             const lines = Math.max(...wrapped.map(value => value.split("\n").length), 1);
             const height = Math.max(96, 43 + lines * 11);
