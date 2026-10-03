@@ -346,6 +346,7 @@ async function startGeneration() {
             }
         );
 
+/*
     const url =
         URL.createObjectURL(blob);
 
@@ -365,6 +366,50 @@ async function startGeneration() {
         onComplete?.();
 
     }, 300);
+
+*/
+
+const url =
+    URL.createObjectURL(blob);
+
+const safePatientName =
+    (patientName || "Patient")
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[<>:"/\\|?*]/g, "");
+
+const now = new Date();
+
+const date =
+    `${now.getFullYear()}-` +
+    `${String(now.getMonth() + 1).padStart(2, "0")}-` +
+    `${String(now.getDate()).padStart(2, "0")}`;
+
+const time =
+    `${String(now.getHours()).padStart(2, "0")}-` +
+    `${String(now.getMinutes()).padStart(2, "0")}-` +
+    `${String(now.getSeconds()).padStart(2, "0")}`;
+
+const fileName =
+    `CareVR_${safePatientName}_${date}_${time}.pdf`;
+
+const link =
+    document.createElement("a");
+
+link.href = url;
+link.download = fileName;
+
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+
+setProgress(100);
+setMessage("Opening report...");
+
+setTimeout(() => {
+    URL.revokeObjectURL(url);
+    onComplete?.();
+}, 300);
 
 }
 
