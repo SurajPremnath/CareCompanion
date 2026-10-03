@@ -694,13 +694,35 @@ private static deduplicateSymptoms(
         return match[1].split("\n").map(value => value.replace(/^[•●▪\-]+\s*/, "").trim()).filter(Boolean);
     }
 
-    private static extractCategory(answer: string, labels: string[], stopLabels: string[]): string {
-        if (!answer) return "";
-        const labelPattern = labels.map(label => this.escapeRegex(label)).join("|");
-        const stopPattern = stopLabels.map(label => this.escapeRegex(label)).join("|");
-        const expression = new RegExp(`(?:${labelPattern})\\s*[:\\-]?\\s*([\\s\\S]*?)(?=\\s+(?:${stopPattern})\\s*[:\\-]?|$)`, "i");
-        return answer.match(expression)?.[1]?.trim() ?? "";
-    }
+private static extractCategory(
+    answer: string,
+    labels: string[],
+    stopLabels: string[]
+): string {
+    if (!answer) return "";
+
+    const labelPattern = labels.map(label =>
+        this.escapeRegex(label)
+    ).join("|");
+
+    const stopPattern = stopLabels.length > 0
+        ? stopLabels.map(label =>
+            this.escapeRegex(label)
+        ).join("|")
+        : "";
+
+    const expression = stopPattern
+        ? new RegExp(
+            `(?:${labelPattern})\\s*[:\\-]?\\s*([\\s\\S]*?)(?=\\s+(?:${stopPattern})\\s*[:\\-]?|$)`,
+            "i"
+        )
+        : new RegExp(
+            `(?:${labelPattern})\\s*[:\\-]?\\s*([\\s\\S]*?)(?=\\s+(?:Medication Changes|Clinical Changes|Symptoms Change|Vital Changes|Symptom progression)\\s*[:\\-]?|$)`,
+            "i"
+        );
+
+    return answer.match(expression)?.[1]?.trim() ?? "";
+}
 
     private static cleanText(value: any): string {
         return String(value ?? "").replace(/\r\n/g, "\n").trim();
