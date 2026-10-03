@@ -3210,21 +3210,18 @@ if (
     }
 
     .record-health-shell {
+        position: relative;
         height: 100dvh;
         min-height: 100dvh;
         overflow: hidden;
     }
 
     .record-health-content {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        box-sizing: border-box;
     }
 
 }
-
-
 
                 .self-mode-card {
                     position: relative;
