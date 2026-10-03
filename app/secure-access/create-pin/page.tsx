@@ -616,6 +616,9 @@ const pinInputRef = useRef<HTMLInputElement>(null);
 const [invitationContextReady, setInvitationContextReady] =
     useState(false);
 
+const [showDashboardHandoff, setShowDashboardHandoff] =
+    useState(false);
+
 const [dashboardHandoffReady, setDashboardHandoffReady] =
     useState(false);
 
@@ -642,18 +645,12 @@ const authenticatedUserRef =
     }, []);
 
 useEffect(() => {
-    if (
-        !consentAccepted ||
-        !dashboardHandoffReady ||
-        !dashboardAnimationComplete
-    ) {
+    if (!dashboardAnimationComplete) {
         return;
     }
 
     router.replace("/dashboard");
 }, [
-    consentAccepted,
-    dashboardHandoffReady,
     dashboardAnimationComplete,
     router,
 ]);
@@ -943,6 +940,7 @@ const continueAfterConsent = async () => {
 
     setDashboardHandoffReady(false);
     setDashboardAnimationComplete(false);
+    setShowDashboardHandoff(true);
 
     try {
 
@@ -1014,33 +1012,25 @@ if (cancelled) {
 
 setDashboardHandoffReady(true);
 
-                if (cancelled) {
-                    return;
-                }
+if (cancelled) {
+    return;
+}
 
-                const minimumAnimationDuration =
-                    4000;
+return;
 
-                if (cancelled) {
-                    return;
-                }
+} catch (error) {
+    if (cancelled) {
+        return;
+    }
 
-                router.replace(
-                    "/dashboard"
-                );
+    setShowDashboardHandoff(false);
+    setDashboardHandoffReady(false);
 
-                return;
-
-        } catch (error) {
-            if (cancelled) {
-                return;
-            }
-
-            setError(
-                error instanceof Error
-                    ? error.message
-                    : "Unable to continue to CareVR Dashboard."
-            );
+    setError(
+        error instanceof Error
+            ? error.message
+            : "Unable to continue to CareVR Dashboard."
+    );
         } finally {
             if (!cancelled) {
                 setSaving(false);
@@ -1053,7 +1043,7 @@ setDashboardHandoffReady(true);
     return () => {
         cancelled = true;
     };
-}, [consentAccepted, router]);
+}, [consentAccepted]);
 
 
     const handlePinChange = (
@@ -1258,17 +1248,17 @@ if (!hasAcceptedConsent) {
             );
         }
 
-        await resolveCareVRDashboardHandoff(
-            user.id,
-            selectedContext.loginRole,
-            activeAccess
-        );
+setShowDashboardHandoff(true);
 
-    router.replace(
-        "/dashboard"
-    );
+await resolveCareVRDashboardHandoff(
+    user.id,
+    selectedContext.loginRole,
+    activeAccess
+);
 
-    return;
+setDashboardHandoffReady(true);
+
+return;
 
         } catch (err) {
             setError(
@@ -1281,7 +1271,7 @@ if (!hasAcceptedConsent) {
         }
     };
 
-if (consentAccepted) {
+if (showDashboardHandoff) {
     return (
         <main className="pin-page">
             <CareVRDashboardHandoffAnimation
