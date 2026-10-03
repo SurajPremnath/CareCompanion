@@ -556,9 +556,9 @@ loggingOut={loggingOut}
 <span className="patient-details">
   <strong>{patient.name}</strong>
   <small>
-    Age: {calculateAge(patient.dateOfBirth)}
+    {calculateAge(patient.dateOfBirth)}
     {" · "}
-    Sex: {patient.sex ?? "—"}
+    {patient.sex ?? "—"}
   </small>
 </span>
 
