@@ -18,6 +18,8 @@ import MobileHeader, {
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
+import CareVRDashboardHandoffAnimation from "@/Components/common/CareVRDashboardHandoffAnimation";
+
 import { supabase } from "@/lib/supabase";
 
 
@@ -614,7 +616,11 @@ const pinInputRef = useRef<HTMLInputElement>(null);
 const [invitationContextReady, setInvitationContextReady] =
     useState(false);
 
-const [animationVisibleCount, setAnimationVisibleCount] = useState(0);
+const [dashboardHandoffReady, setDashboardHandoffReady] =
+    useState(false);
+
+const [dashboardAnimationComplete, setDashboardAnimationComplete] =
+    useState(false);
 
 let invitedRole: string | null = null;
 let familyId: string | null = null;
@@ -635,7 +641,24 @@ const authenticatedUserRef =
         pinInputRef.current?.focus();
     }, []);
 
+useEffect(() => {
+    if (
+        !consentAccepted ||
+        !dashboardHandoffReady ||
+        !dashboardAnimationComplete
+    ) {
+        return;
+    }
 
+    router.replace("/dashboard");
+}, [
+    consentAccepted,
+    dashboardHandoffReady,
+    dashboardAnimationComplete,
+    router,
+]);
+
+/*
 useEffect(() => {
     if (!consentAccepted) {
         return;
@@ -653,6 +676,7 @@ useEffect(() => {
         );
     };
 }, [consentAccepted]);
+*/
 
 useEffect(() => {
     let cancelled = false;
@@ -912,13 +936,15 @@ useEffect(() => {
 
     let cancelled = false;
 
-    const continueAfterConsent = async () => {
-        const animationStartTime =
-            performance.now();
+const continueAfterConsent = async () => {
+    if (saving) return;
 
-        setError("");
+    setSaving(true);
 
-        try {
+    setDashboardHandoffReady(false);
+    setDashboardAnimationComplete(false);
+
+    try {
 
 const user =
     await authService.getCurrentUser();
@@ -986,34 +1012,14 @@ if (cancelled) {
                     activeAccess
                 );
 
+setDashboardHandoffReady(true);
+
                 if (cancelled) {
                     return;
                 }
 
                 const minimumAnimationDuration =
                     4000;
-
-                const elapsedTime =
-                    performance.now() -
-                    animationStartTime;
-
-                const remainingAnimationTime =
-                    Math.max(
-                        0,
-                        minimumAnimationDuration -
-                            elapsedTime
-                    );
-
-                if (remainingAnimationTime > 0) {
-                    await new Promise<void>(
-                        (resolve) => {
-                            window.setTimeout(
-                                resolve,
-                                remainingAnimationTime
-                            );
-                        }
-                    );
-                }
 
                 if (cancelled) {
                     return;
@@ -1099,6 +1105,8 @@ if (!invitationContextReady) {
 
 
         setSaving(true);
+setDashboardHandoffReady(false);
+setDashboardAnimationComplete(false);
 
         try {
             const response = await fetch(
@@ -1275,801 +1283,14 @@ if (!hasAcceptedConsent) {
 
 if (consentAccepted) {
     return (
-        <main className="carevr-animation-page">
-
-            <div className="ambient ambient-one" />
-            <div className="ambient ambient-two" />
-            <div className="ambient ambient-three" />
-
-            <div className="landscape landscape-back" />
-            <div className="landscape landscape-front" />
-
-{/*
-    TEMPORARILY HIDDEN FOR ANIMATION LAYOUT TEST
-
-    <header className="carevr-test-header">
-
-        <div className="brand">
-
-            <img
-                src="/images/CareVR v1.0.png"
-                alt="CareVR"
-                style={{
-                    width: "52px",
-                    height: "52px",
-                    objectFit: "contain",
+        <main className="pin-page">
+            <CareVRDashboardHandoffAnimation
+                readyToContinue={dashboardHandoffReady}
+                onComplete={() => {
+                    setDashboardAnimationComplete(true);
                 }}
             />
-
-            <div>
-                <strong>
-                    CareVR
-                </strong>
-
-                <span>
-                    Record Ã‚Â· Understand Â· Manage Â· Share
-                </span>
-            </div>
-
-        </div>
-
-        <div className="secure-label">
-            SECURE ACCESS
-        </div>
-
-    </header>
-*/}
-
-
-            <section className="carevr-stage-area">
-
-<div
-    className="stage-heading"
-    style={{
-        width: "100%",
-        textAlign: "center",
-    }}
->
-
-    <h1>
-        Finalizing Your Secure Access
-    </h1>
-
-    <p>
-        Your consent has been recorded. We are securely preparing your CareVR dashboard.
-    </p>
-
-</div>
-
-
-                <div
-                    className="stage-strip"
-                    style={{
-                        width: "min(1180px, calc(100% - 80px))",
-                        margin: "0 auto",
-                        display: "grid",
-                        gridTemplateColumns:
-                            "repeat(5, minmax(0, 1fr))",
-                        alignItems: "start",
-                        justifyItems: "stretch",
-                        columnGap: "28px",
-                        rowGap: "0",
-                    }}
-                >
-    {stages.map((stage, index) => (
-        <section
-            key={stage.key}
-            className={
-                index < animationVisibleCount
-                    ? "stage-card is-visible"
-                    : "stage-card"
-            }
-            style={{
-                width: "100%",
-                minWidth: 0,
-            }}
-        >
-            <div
-                className="stage-icon-wrap"
-                style={{
-                    position: "relative",
-                    width: "100%",
-                    maxWidth: "180px",
-                    aspectRatio: "1",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: "7px",
-                    marginLeft: "auto",
-                    marginRight: "auto",
-                }}
-            >
-                <StageIcon
-                    type={
-                        stage.key === "preparing"
-                            ? "context"
-                            : stage.key
-                    }
-                />
-            </div>
-
-            <div className="stage-tag">
-                SECURE ACCESS
-            </div>
-
-            <div className="stage-copy">
-                <div className="stage-title">
-                    {stage.title}
-                </div>
-
-                {stage.accent && (
-                    <div
-                        className={
-                            stage.key === "welcome"
-                                ? "stage-accent welcome-accent"
-                                : "stage-accent"
-                        }
-                    >
-                        {stage.accent}
-                    </div>
-                )}
-
-                <div className="stage-description">
-                    {stage.description}
-                </div>
-            </div>
-        </section>
-    ))}
-                </div>
-
-{/*
-    TEMPORARILY HIDDEN FOR ANIMATION LAYOUT TEST
-
-    <div className="privacy">
-
-        <span>
-            Ã¢â€”Â
-        </span>
-
-        Your health information is private and secure.
-
-    </div>
-*/}
-
-            </section>
-
-
-{/*
-    TEMPORARILY HIDDEN FOR ANIMATION LAYOUT TEST
-
-    <div className="bottom-progress">
-        {stages.map((stage, index) => (
-            <div
-                key={stage.key}
-                className={
-                    index < animationVisibleCount
-                        ? "progress-step is-visible"
-                        : "progress-step"
-                }
-            >
-                <div className="progress-dot">
-                    {index < animationVisibleCount ? "Ã¢Å“â€œ" : ""}
-                </div>
-
-                <span>
-                    {stage.key === "preparing"
-                        ? "Prepare"
-                        : stage.key === "verifying"
-                            ? "Verify"
-                            : stage.key === "verified"
-                                ? "Verified"
-                                : stage.key === "dashboard"
-                                    ? "Opening"
-                                    : "Welcome"}
-                </span>
-            </div>
-        ))}
-    </div>
-*/}
-
-        
-
-<style jsx global>{`
-                * {
-                    box-sizing: border-box;
-                }
-
-                html,
-                body {
-                    margin: 0;
-                    padding: 0;
-                    min-height: 100%;
-                }
-
-                body {
-                    font-family:
-                        Inter,
-                        ui-sans-serif,
-                        system-ui,
-                        -apple-system,
-                        BlinkMacSystemFont,
-                        "Segoe UI",
-                        sans-serif;
-                    background:
-                        linear-gradient(
-                            135deg,
-                            #f8faff 0%,
-                            #f1f5ff 48%,
-                            #f8f1ff 100%
-                        );
-                    color: #102957;
-                }
-
-                .carevr-animation-page {
-                    position: relative;
-                    min-height: 100vh;
-                    overflow: hidden;
-                    background:
-                        radial-gradient(
-                            circle at 50% 34%,
-                            rgba(255, 255, 255, 0.98) 0%,
-                            rgba(255, 255, 255, 0.72) 30%,
-                            rgba(238, 244, 255, 0.78) 62%,
-                            rgba(245, 238, 255, 0.95) 100%
-                        );
-                }
-
-                .ambient {
-                    position: absolute;
-                    border-radius: 50%;
-                    pointer-events: none;
-                    filter: blur(5px);
-                }
-
-                .ambient-one {
-                    width: 520px;
-                    height: 520px;
-                    left: -170px;
-                    top: 130px;
-                    background:
-                        radial-gradient(
-                            circle,
-                            rgba(85, 180, 244, 0.16),
-                            rgba(85, 180, 244, 0)
-                        );
-                }
-
-                .ambient-two {
-                    width: 620px;
-                    height: 620px;
-                    right: -210px;
-                    top: 70px;
-                    background:
-                        radial-gradient(
-                            circle,
-                            rgba(171, 102, 229, 0.16),
-                            rgba(171, 102, 229, 0)
-                        );
-                }
-
-                .ambient-three {
-                    width: 440px;
-                    height: 440px;
-                    left: 42%;
-                    bottom: -250px;
-                    background:
-                        radial-gradient(
-                            circle,
-                            rgba(62, 205, 194, 0.12),
-                            rgba(62, 205, 194, 0)
-                        );
-                }
-
-                .landscape {
-                    position: absolute;
-                    left: -5%;
-                    width: 110%;
-                    pointer-events: none;
-                    border-radius: 50% 50% 0 0;
-                }
-
-                .landscape-back {
-                    bottom: -190px;
-                    height: 310px;
-                    background:
-                        linear-gradient(
-                            180deg,
-                            rgba(165, 189, 232, 0.17),
-                            rgba(157, 145, 219, 0.08)
-                        );
-                    transform: rotate(-2deg);
-                }
-
-                .landscape-front {
-                    bottom: -235px;
-                    height: 280px;
-                    background:
-                        linear-gradient(
-                            180deg,
-                            rgba(111, 168, 222, 0.13),
-                            rgba(135, 116, 209, 0.08)
-                        );
-                    transform: rotate(2deg);
-                }
-
-                .carevr-test-header {
-                    position: relative;
-                    z-index: 5;
-                    height: 84px;
-                    padding: 0 54px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    border-bottom: 1px solid rgba(103, 122, 176, 0.12);
-                    background: rgba(255, 255, 255, 0.68);
-                    backdrop-filter: blur(14px);
-                }
-
-                .brand {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                }
-
-                .brand img {
-                    width: 52px;
-                    height: 52px;
-                    object-fit: contain;
-                }
-
-                .brand strong {
-                    display: block;
-                    font-size: 21px;
-                    line-height: 1;
-                    letter-spacing: -0.5px;
-                    color: #142c62;
-                }
-
-                .brand span {
-                    display: block;
-                    margin-top: 5px;
-                    font-size: 10px;
-                    color: #6475a6;
-                    letter-spacing: 0.2px;
-                }
-
-                .secure-label {
-                    font-size: 12px;
-                    font-weight: 800;
-                    letter-spacing: 2px;
-                    color: #6756bd;
-                }
-
-                .carevr-stage-area {
-                    position: relative;
-                    z-index: 2;
-                    min-height: calc(100vh - 164px);
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    padding: 58px 32px 105px;
-                }
-
-                .stage-heading {
-                    text-align: center;
-                    margin-bottom: 30px;
-                }
-
-                .heading-kicker {
-                    margin-bottom: 8px;
-                    font-size: 12px;
-                    font-weight: 800;
-                    letter-spacing: 2.5px;
-                    color: #7359d7;
-                }
-
-                .stage-heading h1 {
-                    margin: 0;
-                    font-size: clamp(28px, 3vw, 42px);
-                    line-height: 1.05;
-                    letter-spacing: -1.4px;
-                    color: #122b60;
-                }
-
-                .stage-heading p {
-                    margin: 10px 0 0;
-                    font-size: 14px;
-                    color: #7181a7;
-                }
-
-.stage-strip {
-    width: min(1180px, calc(100% - 80px));
-    margin: 0 auto;
-    display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    align-items: start;
-    justify-items: stretch;
-    column-gap: 28px;
-    row-gap: 0;
-}
-
-.stage-strip > .stage-card {
-    width: 100%;
-    min-width: 0;
-}
-
-                .stage-card {
-                    width: 100%;
-		    min-width: 0;
-                    opacity: 0;
-                    transform:
-                        translateY(34px)
-                        scale(0.92);
-                    filter: blur(3px);
-                    transition:
-                        opacity 620ms cubic-bezier(0.22, 0.8, 0.3, 1),
-                        transform 620ms cubic-bezier(0.22, 0.8, 0.3, 1),
-                        filter 620ms ease;
-                    justify-content: center;
-                }
-
-                .stage-card.is-visible {
-                    opacity: 1;
-                    transform:
-                        translateY(0)
-                        scale(1);
-                    filter: blur(0);
-                }
-
-                .stage-icon-wrap {
-                    position: relative;
-                    width: 100%;
-                    max-width: 180px;
-                    aspect-ratio: 1;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-bottom: 7px;
-                }
-
-                .stage-icon-wrap::before {
-                    content: "";
-                    position: absolute;
-                    width: 76%;
-                    height: 76%;
-                    border-radius: 50%;
-                    background:
-                        radial-gradient(
-                            circle,
-                            rgba(139, 116, 233, 0.11),
-                            rgba(139, 116, 233, 0)
-                        );
-                    filter: blur(5px);
-                }
-
-.care-icon {
-    position: relative;
-    z-index: 1;
-    width: 145px;
-    height: 145px;
-                    overflow: visible;
-                    animation: iconFloat 4.4s ease-in-out infinite;
-                }
-
-                .stage-card:nth-child(2) .care-icon {
-                    animation-delay: 0.3s;
-                }
-
-                .stage-card:nth-child(3) .care-icon {
-                    animation-delay: 0.55s;
-                }
-
-                .stage-card:nth-child(4) .care-icon {
-                    animation-delay: 0.8s;
-                }
-
-                .stage-card:nth-child(5) .care-icon {
-                    animation-delay: 1.05s;
-                }
-
-                .stage-card:nth-child(6) .care-icon {
-                    animation-delay: 1.3s;
-                }
-
-                .stage-tag {
-                    text-align: center;
-                    font-size: 8px;
-                    font-weight: 800;
-                    letter-spacing: 1.8px;
-                    color: #7968c9;
-                    margin-bottom: 5px;
-                }
-
-                .stage-copy {
-                    min-height: 92px;
-                    text-align: center;
-                }
-
-                .stage-title {
-                    font-size: 15px;
-                    font-weight: 700;
-                    line-height: 1.2;
-                    color: #162d62;
-                }
-
-                .stage-accent {
-                    margin-top: 2px;
-                    font-size: 16px;
-                    font-weight: 800;
-                    line-height: 1.15;
-                    background:
-                        linear-gradient(
-                            90deg,
-                            #3159dc,
-                            #9b48d1
-                        );
-                    -webkit-background-clip: text;
-                    background-clip: text;
-                    color: transparent;
-                }
-
-                .welcome-accent {
-                    font-size: 19px;
-                }
-
-                .stage-description {
-                    max-width: 180px;
-                    margin: 7px auto 0;
-                    font-size: 10px;
-                    line-height: 1.45;
-                    color: #7382a4;
-                }
-
-                .privacy {
-                    margin-top: 18px;
-                    display: flex;
-                    align-items: center;
-                    gap: 7px;
-                    font-size: 11px;
-                    color: #7484a8;
-                }
-
-                .privacy span {
-                    color: #31c4ad;
-                    font-size: 9px;
-                }
-
-                .bottom-progress {
-                    position: absolute;
-                    z-index: 6;
-                    bottom: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 80px;
-                    padding: 0 8%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    border-top: 1px solid rgba(101, 120, 173, 0.12);
-                    background: rgba(255, 255, 255, 0.64);
-                    backdrop-filter: blur(15px);
-                }
-
-                .progress-step {
-                    position: relative;
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 5px;
-                    opacity: 0.48;
-                    transition:
-                        opacity 400ms ease,
-                        transform 400ms ease;
-                }
-
-                .progress-step:not(:last-child)::after {
-                    content: "";
-                    position: absolute;
-                    top: 12px;
-                    left: 50%;
-                    width: 100%;
-                    height: 1px;
-                    background: rgba(117, 131, 174, 0.16);
-                    z-index: -1;
-                }
-
-                .progress-step.is-visible {
-                    opacity: 1;
-                    transform: translateY(-1px);
-                }
-
-                .progress-dot {
-                    width: 25px;
-                    height: 25px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border: 1px solid rgba(106, 121, 170, 0.18);
-                    background: rgba(255, 255, 255, 0.85);
-                    color: white;
-                    font-size: 11px;
-                    transition:
-                        background 400ms ease,
-                        border-color 400ms ease,
-                        box-shadow 400ms ease;
-                }
-
-                .progress-step.is-visible .progress-dot {
-                    background: #6d61db;
-                    border-color: #6d61db;
-                    box-shadow:
-                        0 0 0 5px rgba(109, 97, 219, 0.08);
-                }
-
-                .progress-step span {
-                    font-size: 9px;
-                    color: #8490ae;
-                }
-
-                .progress-step.is-visible span {
-                    color: #5e559d;
-                    font-weight: 700;
-                }
-
-                @keyframes iconFloat {
-                    0%,
-                    100% {
-                        transform: translateY(0);
-                    }
-
-                    50% {
-                        transform: translateY(-5px);
-                    }
-                }
-
-                @media (max-width: 1050px) {
-                    .carevr-stage-area {
-                        padding-left: 18px;
-                        padding-right: 18px;
-                    }
-
-                    .stage-strip {
-                        gap: 7px;
-                    }
-
-                    .care-icon {
-                        width: 120px;
-                        height: 120px;
-                    }
-
-                    .stage-title {
-                        font-size: 13px;
-                    }
-
-                    .stage-accent {
-                        font-size: 14px;
-                    }
-                }
-
-                @media (max-width: 760px) {
-                    .carevr-test-header {
-                        height: 68px;
-                        padding: 0 18px;
-                    }
-
-                    .brand img {
-                        width: 43px;
-                        height: 43px;
-                    }
-
-                    .brand strong {
-                        font-size: 18px;
-                    }
-
-                    .brand span {
-                        display: none;
-                    }
-
-                    .secure-label {
-                        font-size: 9px;
-                        letter-spacing: 1.4px;
-                    }
-
-                    .carevr-stage-area {
-                        padding-top: 35px;
-                        padding-bottom: 90px;
-                    }
-
-                    .stage-heading {
-                        margin-bottom: 20px;
-                    }
-
-                    .stage-heading h1 {
-                        font-size: 27px;
-                    }
-
-                    .stage-heading p {
-                        font-size: 12px;
-                    }
-
-                    .stage-strip {
-                        grid-template-columns:
-                            repeat(3, minmax(0, 1fr));
-                        row-gap: 25px;
-                        max-width: 620px;
-                    }
-
-                    .care-icon {
-                        width: 130px;
-                        height: 130px;
-                    }
-
-                    .stage-copy {
-                        min-height: 76px;
-                    }
-
-                    .stage-description {
-                        font-size: 9px;
-                    }
-
-                    .bottom-progress {
-                        height: 70px;
-                        padding: 0 2%;
-                    }
-
-                    .progress-step span {
-                        font-size: 8px;
-                    }
-                }
-
-                @media (max-width: 480px) {
-                    .stage-strip {
-                        grid-template-columns:
-                            repeat(2, minmax(0, 1fr));
-                        max-width: 380px;
-                    }
-
-                    .stage-heading p {
-                        max-width: 290px;
-                        margin-left: auto;
-                        margin-right: auto;
-                    }
-
-                    .care-icon {
-                        width: 135px;
-                        height: 135px;
-                    }
-
-                    .bottom-progress {
-                        display: none;
-                    }
-
-                    .carevr-stage-area {
-                        padding-bottom: 30px;
-                    }
-                }
-
-                @media (prefers-reduced-motion: reduce) {
-                    .stage-card {
-                        opacity: 1;
-                        transform: none;
-                        filter: none;
-                        transition: none;
-                    }
-
-                    .care-icon {
-                        animation: none;
-                    }
-
-                    .progress-step {
-                        transition: none;
-                    }
-                }
-            `}</style>
-
-</main>
+        </main>
     );
 }
 
