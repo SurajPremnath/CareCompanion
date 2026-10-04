@@ -790,8 +790,9 @@ callback: async (
                     ? error.message
                     : "Unable to continue with Google.";
 
-                setError(message);
-                setGoogleLoading(false);
+    setGoogleTransition(false);
+    setError(message);
+    setGoogleLoading(false);
               }
             },
 

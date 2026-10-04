@@ -663,6 +663,7 @@ const access = {
     showSelfToggle={false}
     showFamilyToggle={false}
     showHomeButton={false}
+    showSwitchProfile={false}
     accountMenuOpen={accountMenuOpen}
     onAccountMenuToggle={() =>
         setAccountMenuOpen(

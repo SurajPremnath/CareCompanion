@@ -29,6 +29,7 @@ showFamilyToggle?: boolean;
 
 showHomeButton?: boolean;
 onHomeClick?: () => void;
+showSwitchProfile?: boolean;
 
     accountMenuOpen: boolean;
     onAccountMenuToggle: () => void;
@@ -61,7 +62,7 @@ showFamilyToggle = showCareModeToggle,
 
 showHomeButton = false,
 onHomeClick,
-
+showSwitchProfile = true,
     accountMenuOpen,
     onAccountMenuToggle,
 
@@ -77,7 +78,7 @@ onHomeClick,
 const [switchingProfile, setSwitchingProfile] =
     useState(false);
 
-const [showSwitchProfile, setShowSwitchProfile] =
+const [hasSwitchProfileAccess, setHasSwitchProfileAccess] =
     useState(false);
 
 const [activeAccess, setActiveAccess] = useState<
@@ -98,7 +99,7 @@ useEffect(() => {
 
                 if (!user) {
                     if (!cancelled) {
-                        setShowSwitchProfile(false);
+                        setHasSwitchProfileAccess(false);
                     }
                     return;
                 }
@@ -135,7 +136,7 @@ const hasOriginalInviteeRole =
     );
 
                 if (!cancelled) {
-                    setShowSwitchProfile(
+                    setHasSwitchProfileAccess(
                         hasOriginalInviteeRole
                     );
                 }
@@ -146,7 +147,7 @@ const hasOriginalInviteeRole =
                 );
 
                 if (!cancelled) {
-                    setShowSwitchProfile(false);
+                    setHasSwitchProfileAccess(false);
                 }
             }
         };
@@ -451,7 +452,7 @@ return (
     </button>
 </div>
 
-{showSwitchProfile && (
+{showSwitchProfile && hasSwitchProfileAccess && (
     <div className="carevr-mobile-account-menu-section">
         <div className="carevr-mobile-account-menu-section-title">
             CAREVR FAMILY
