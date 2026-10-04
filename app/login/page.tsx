@@ -39,6 +39,31 @@ import {
 
 import { supabase } from "@/lib/supabase";
 
+type GoogleCredentialResponse = {
+  credential: string;
+};
+
+declare global {
+  interface Window {
+    google: {
+      accounts: {
+        id: {
+          initialize: (options: {
+            client_id: string;
+            callback: (
+              response: GoogleCredentialResponse
+            ) => void | Promise<void>;
+            auto_select?: boolean;
+            cancel_on_tap_outside?: boolean;
+          }) => void;
+
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -385,7 +410,150 @@ const handleGoogleLogin = async () => {
   try {
     setGoogleLoading(true);
 
-    await authService.signInWithGoogle();
+    const googleClientId =
+      "720994182648-0n28fbdvd6t92muirm81gv1adjd4vnhp.apps.googleusercontent.com";
+
+    const loadGoogleIdentityServices =
+      () =>
+        new Promise<void>((resolve, reject) => {
+          if (
+            window.google?.accounts?.id
+          ) {
+            resolve();
+            return;
+          }
+
+          const existingScript =
+            document.querySelector(
+              'script[src="https://accounts.google.com/gsi/client"]'
+            );
+
+          if (existingScript) {
+            existingScript.addEventListener(
+              "load",
+              () => resolve(),
+              { once: true }
+            );
+
+            existingScript.addEventListener(
+              "error",
+              () =>
+                reject(
+                  new Error(
+                    "Unable to load Google authentication."
+                  )
+                ),
+              { once: true }
+            );
+
+            return;
+          }
+
+          const script =
+            document.createElement("script");
+
+          script.src =
+            "https://accounts.google.com/gsi/client";
+
+          script.async = true;
+          script.defer = true;
+
+          script.onload = () => resolve();
+
+          script.onerror = () =>
+            reject(
+              new Error(
+                "Unable to load Google authentication."
+              )
+            );
+
+          document.head.appendChild(script);
+        });
+
+    await loadGoogleIdentityServices();
+
+    await new Promise<void>(
+      (resolve, reject) => {
+        window.google.accounts.id.initialize({
+          client_id: googleClientId,
+
+          callback: async (
+            response: GoogleCredentialResponse
+          ) => {
+            try {
+              const credential =
+                response.credential;
+
+              if (!credential) {
+                throw new Error(
+                  "Unable to identify the selected Google account."
+                );
+              }
+
+              const payload =
+                JSON.parse(
+                  atob(
+                    credential.split(".")[1]
+                  )
+                );
+
+              const selectedGmail =
+                typeof payload.email === "string"
+                  ? payload.email
+                      .trim()
+                      .toLowerCase()
+                  : "";
+
+              if (!selectedGmail) {
+                throw new Error(
+                  "Unable to identify the selected Google account."
+                );
+              }
+
+              const authUserResponse =
+                await fetch(
+                  "/api/auth/verify-user",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type":
+                        "application/json",
+                    },
+                    body: JSON.stringify({
+                      email: selectedGmail,
+                    }),
+                  }
+                );
+
+              const authUserResult =
+                await authUserResponse.json();
+
+              if (
+                !authUserResponse.ok ||
+                authUserResult.exists !== true
+              ) {
+                throw new Error(
+                  "Please complete registration provided in your email or reach out to your Primary."
+                );
+              }
+
+              await authService.signInWithGoogleCredential(
+                credential
+              );
+
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          },
+
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
+        window.google.accounts.id.prompt();
+      }
+    );
   } catch (err) {
     const message =
       err instanceof Error

@@ -229,7 +229,22 @@ async login(
   return data.user;
 }
 
-  /**
+async signInWithGoogleCredential(
+  credential: string
+): Promise<void> {
+  const { error } =
+    await supabase.auth.signInWithIdToken({
+      provider: "google",
+      token: credential,
+    });
+
+  if (error) {
+    throw error;
+  }
+} 
+
+
+ /**
    * Sign in using Google OAuth.
    *
    * CareVR role and access context are determined
