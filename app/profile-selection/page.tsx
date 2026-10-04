@@ -67,6 +67,7 @@ type DigitalHealthProfile = {
     role_status: string | null;
     carevr_access_id: string;
     role: string;
+    is_default_profile: boolean;
 };
 
 const [
@@ -151,7 +152,8 @@ const {
             digital_health_flag,
             role_status,
             carevr_access_id,
-            role
+            role,
+            is_default_profile
         `)
         .eq(
             "user_id",
@@ -626,10 +628,74 @@ return (
 
         <>
 
-            <div className="profile-grid">
+<div className="default-profile-section">
 
-                {digitalHealthProfiles.map(
-                    (profile) => {
+    <div className="default-profile-title">
+        Choose Profile to set default
+    </div>
+
+    <div className="default-profile-options">
+
+        {digitalHealthProfiles.map(
+            (profile) => {
+
+                const defaultProfileLabel =
+                    profile.role === "PRIMARY"
+                        ? "Self"
+                        : profile.role ===
+                            "SECONDARY_FAMILY_MEMBER"
+                            ? "Family"
+                            : profile.role ===
+                                "CARETAKER"
+                                ? "Caretaker"
+                                : "Doctor";
+
+                return (
+                    <label
+                        key={`default-${profile.id}`}
+                        className="default-profile-option"
+                    >
+
+                        <input
+                            type="checkbox"
+                            checked={
+                                profile.is_default_profile
+                            }
+                            onChange={() => {
+                                setDigitalHealthProfiles(
+                                    (currentProfiles) =>
+                                        currentProfiles.map(
+                                            (currentProfile) => ({
+                                                ...currentProfile,
+                                                is_default_profile:
+                                                    currentProfile.id ===
+                                                    profile.id
+                                                        ? !currentProfile.is_default_profile
+                                                        : false,
+                                            })
+                                        )
+                                );
+                            }}
+                            disabled={continuing}
+                        />
+
+                        <span>
+                            {defaultProfileLabel}
+                        </span>
+
+                    </label>
+                );
+            }
+        )}
+
+    </div>
+
+</div>
+
+<div className="profile-grid">
+
+    {digitalHealthProfiles.map(
+        (profile) => {
 
                         const selected =
                             selectedContextId ===
@@ -842,6 +908,50 @@ const profileLabel =
                     font-size: 14px;
                     line-height: 1.55;
                 }
+
+.default-profile-section {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto 28px;
+    text-align: center;
+}
+
+.default-profile-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #15203d;
+    margin-bottom: 14px;
+}
+
+.default-profile-options {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+
+.default-profile-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #15203d;
+    cursor: pointer;
+}
+
+.default-profile-option input {
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: #15203d;
+}
+
+.default-profile-option input:disabled {
+    cursor: not-allowed;
+}
 
                 .profile-grid {
                     display: grid;
