@@ -245,6 +245,11 @@ async signInWithGoogleCredential(
       nonce,
     });
 
+  console.log("[GOOGLE-ENTERING SUPABASE-RESULT]", {
+    success: !error,
+    error: error?.message ?? null,
+  });
+
   console.log("[GOOGLE-SUPABASE-RESULT]", {
     success: !error,
     error: error?.message ?? null,

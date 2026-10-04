@@ -568,6 +568,12 @@ const tokenPayload =
     )
   );
 
+console.log("[GOOGLE-BEFORE-SUPABASE]", {
+  authServiceLoaded: Boolean(authService),
+  methodAvailable:
+    typeof authService.signInWithGoogleCredential === "function",
+});
+
 console.log("[GOOGLE-NONCE-CHECK]", {
   generatedNonce: nonce,
   tokenNonce: tokenPayload.nonce,
