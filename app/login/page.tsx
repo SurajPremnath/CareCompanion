@@ -702,14 +702,21 @@ useEffect(() => {
             nonce: hashedNonce,
             use_fedcm_for_button: true,
 
-            callback: async (
-              response: GoogleCredentialResponse
-            ) => {
-              try {
-                setGoogleLoading(true);
+callback: async (
+  response: GoogleCredentialResponse
+) => {
+  try {
+// ============================================================
+// MOBILE GOOGLE LOGIN FLOW
+// Google Identity Services renderButton()
+// ============================================================
 
-                const credential =
-                  response.credential;
+
+    setGoogleTransition(true);
+    setGoogleLoading(true);
+
+    const credential =
+      response.credential;
 
                 const payload =
                   JSON.parse(
@@ -761,13 +768,8 @@ useEffect(() => {
                   );
                 }
 
-// ============================================================
-// MOBILE GOOGLE LOGIN FLOW
-// Google Identity Services renderButton()
-// ============================================================
 
 
-setGoogleTransition(true);
 
                 const authenticatedUser =
                   await authService.signInWithGoogleCredential(
