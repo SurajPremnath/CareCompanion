@@ -348,29 +348,6 @@ function GoogleAuthComplete() {
           }
 
 
-/*
-          const authenticatedUser =
-            await authService.getCurrentUser();
-
-          if (!authenticatedUser) {
-
-            throw new Error(
-              "Unable to establish your CareVR session. Please return to Login."
-            );
-
-          }
-
-const pinStatusResponse =
-  await fetch(
-    "/api/security/pin-status",
-    {
-      method: "GET",
-      cache: "no-store",
-    }
-  );
-
-*/
-
 const authenticatedUser =
   await authService.getCurrentUser();
 
@@ -378,6 +355,42 @@ if (!authenticatedUser) {
 
   throw new Error(
     "Unable to establish your CareVR session. Please return to Login."
+  );
+
+}
+
+const selectedGmail =
+  authenticatedUser.email?.trim().toLowerCase();
+
+if (!selectedGmail) {
+
+  throw new Error(
+    "Unable to identify the selected Google account. Please return to Login."
+  );
+
+}
+
+const authUserResponse =
+  await fetch("/api/auth/verify-user", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: selectedGmail,
+    }),
+  });
+
+const authUserResult =
+  await authUserResponse.json();
+
+if (
+  !authUserResponse.ok ||
+  authUserResult.exists !== true
+) {
+
+  throw new Error(
+    "Please complete registration provided in your email or reach out to your Primary."
   );
 
 }
