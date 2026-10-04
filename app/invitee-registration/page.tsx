@@ -876,7 +876,11 @@ if (!fullName.trim()) {
                                 onClick={() =>
                                     void handleCreateAccount()
                                 }
-                                disabled={submitting}
+                                disabled={
+    submitting ||
+    !password ||
+    !confirmPassword
+}
                             >
                                 {submitting ? (
                                     <>
