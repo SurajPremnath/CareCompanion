@@ -47,26 +47,41 @@ declare global {
   interface Window {
     google: {
       accounts: {
-        id: {
-initialize: (options: {
-  client_id: string;
-  callback: (
-    response: GoogleCredentialResponse
-  ) => void | Promise<void>;
-  nonce?: string;
-  auto_select?: boolean;
-  cancel_on_tap_outside?: boolean;
-}) => void;
+id: {
+  initialize: (options: {
+    client_id: string;
+    callback: (
+      response: GoogleCredentialResponse
+    ) => void | Promise<void>;
+    nonce?: string;
+    auto_select?: boolean;
+    cancel_on_tap_outside?: boolean;
+    use_fedcm_for_button?: boolean;
+  }) => void;
 
-          prompt: (
-  momentListener?: (notification: {
-    isDisplayed: () => boolean;
-    isNotDisplayed: () => boolean;
-    isSkippedMoment: () => boolean;
-    isDismissedMoment: () => boolean;
-  }) => void
-) => void;
-        };
+  prompt: (
+    momentListener?: (notification: {
+      isDisplayed: () => boolean;
+      isNotDisplayed: () => boolean;
+      isSkippedMoment: () => boolean;
+      isDismissedMoment: () => boolean;
+    }) => void
+  ) => void;
+
+  renderButton: (
+    parent: HTMLElement,
+    options: {
+      type?: "standard" | "icon";
+      theme?: string;
+      size?: string;
+      text?: string;
+      shape?: string;
+      width?: number;
+      logo_alignment?: string;
+      use_fedcm_for_button?: boolean;
+    }
+  ) => void;
+};
       };
     };
   }
@@ -84,6 +99,10 @@ const [loading, setLoading] = useState(false);
 
 const [googleLoading, setGoogleLoading] = useState(false);
 const [error, setError] = useState("");
+
+const googleMobileButtonRef =
+  useRef<HTMLDivElement | null>(null);
+
 
 const [captchaToken, setCaptchaToken] =
     useState<string | null>(null);
@@ -566,6 +585,234 @@ return;
 };
 
 
+useEffect(() => {
+  const isMobile =
+    window.matchMedia(
+      "(max-width: 767px)"
+    ).matches;
+
+  if (!isMobile) {
+    return;
+  }
+
+  const googleClientId =
+    "720994182648-0n28fbdvd6t92muirm81gv1adjd4vnhp.apps.googleusercontent.com";
+
+  const initializeMobileGoogle =
+    async () => {
+      try {
+        if (
+          !window.google?.accounts?.id
+        ) {
+          await new Promise<void>(
+            (resolve, reject) => {
+              const existingScript =
+                document.querySelector(
+                  'script[src="https://accounts.google.com/gsi/client"]'
+                );
+
+              if (existingScript) {
+                existingScript.addEventListener(
+                  "load",
+                  () => resolve(),
+                  { once: true }
+                );
+
+                existingScript.addEventListener(
+                  "error",
+                  () =>
+                    reject(
+                      new Error(
+                        "Unable to load Google authentication."
+                      )
+                    ),
+                  { once: true }
+                );
+
+                return;
+              }
+
+              const script =
+                document.createElement(
+                  "script"
+                );
+
+              script.src =
+                "https://accounts.google.com/gsi/client";
+
+              script.async = true;
+              script.defer = true;
+
+              script.onload = () =>
+                resolve();
+
+              script.onerror = () =>
+                reject(
+                  new Error(
+                    "Unable to load Google authentication."
+                  )
+                );
+
+              document.head.appendChild(
+                script
+              );
+            }
+          );
+        }
+
+        if (
+          !googleMobileButtonRef.current
+        ) {
+          return;
+        }
+
+        const nonce = btoa(
+          String.fromCharCode(
+            ...crypto.getRandomValues(
+              new Uint8Array(32)
+            )
+          )
+        );
+
+        const hashBuffer =
+          await crypto.subtle.digest(
+            "SHA-256",
+            new TextEncoder().encode(
+              nonce
+            )
+          );
+
+        const hashedNonce =
+          Array.from(
+            new Uint8Array(hashBuffer)
+          )
+            .map(
+              (b) =>
+                b
+                  .toString(16)
+                  .padStart(2, "0")
+            )
+            .join("");
+
+        window.google.accounts.id.initialize(
+          {
+            client_id: googleClientId,
+            nonce: hashedNonce,
+            use_fedcm_for_button: true,
+
+            callback: async (
+              response: GoogleCredentialResponse
+            ) => {
+              try {
+                setGoogleLoading(true);
+
+                const credential =
+                  response.credential;
+
+                const payload =
+                  JSON.parse(
+                    atob(
+                      credential.split(".")[1]
+                    )
+                  );
+
+                const selectedGmail =
+                  typeof payload.email ===
+                  "string"
+                    ? payload.email
+                        .trim()
+                        .toLowerCase()
+                    : "";
+
+                if (!selectedGmail) {
+                  throw new Error(
+                    "Unable to identify the selected Google account."
+                  );
+                }
+
+                const authUserResponse =
+                  await fetch(
+                    "/api/auth/verify-user",
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type":
+                          "application/json",
+                      },
+                      body: JSON.stringify({
+                        email:
+                          selectedGmail,
+                      }),
+                    }
+                  );
+
+                const authUserResult =
+                  await authUserResponse.json();
+
+                if (
+                  !authUserResponse.ok ||
+                  authUserResult.exists !==
+                    true
+                ) {
+                  throw new Error(
+                    "Please complete registration provided in your email or reach out to your Primary."
+                  );
+                }
+
+                const authenticatedUser =
+                  await authService.signInWithGoogleCredential(
+                    credential,
+                    nonce
+                  );
+
+                await continueAfterAuthentication(
+                  authenticatedUser
+                );
+              } catch (error) {
+                const message =
+                  error instanceof Error
+                    ? error.message
+                    : "Unable to continue with Google.";
+
+                setError(message);
+                setGoogleLoading(false);
+              }
+            },
+
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          }
+        );
+
+        googleMobileButtonRef.current.innerHTML =
+          "";
+
+        window.google.accounts.id.renderButton(
+          googleMobileButtonRef.current,
+          {
+            type: "standard",
+            theme: "outline",
+            size: "large",
+            text: "continue_with",
+            shape: "rectangular",
+            width: 320,
+            logo_alignment: "left",
+            use_fedcm_for_button: true,
+          }
+        );
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to load Google authentication.";
+
+        setError(message);
+      }
+    };
+
+  void initializeMobileGoogle();
+}, []);
+
 const handleGoogleLogin = async () => {
   setError("");
 
@@ -674,10 +921,6 @@ await new Promise<void>(
         response: GoogleCredentialResponse
       ) => {
         try {
-          alert(
-            "GOOGLE DEBUG 2: Callback received"
-          );
-
           const credential =
             response.credential;
 
@@ -706,11 +949,6 @@ await new Promise<void>(
               "Unable to identify the selected Google account."
             );
           }
-
-          alert(
-            "GOOGLE DEBUG 3: Gmail identified\n" +
-            selectedGmail
-          );
 
           const authUserResponse =
             await fetch(
@@ -755,25 +993,8 @@ await new Promise<void>(
       cancel_on_tap_outside: true,
     });
 
-    alert(
-      "GOOGLE DEBUG 1: Calling prompt()"
-    );
+window.google.accounts.id.prompt();
 
-    window.google.accounts.id.prompt(
-      (notification) => {
-        alert(
-          "GOOGLE DEBUG PROMPT\n" +
-          "displayed=" +
-          notification.isDisplayed() +
-          "\nnotDisplayed=" +
-          notification.isNotDisplayed() +
-          "\nskipped=" +
-          notification.isSkippedMoment() +
-          "\ndismissed=" +
-          notification.isDismissedMoment()
-        );
-      }
-    );
   }
 );
 
@@ -2298,6 +2519,22 @@ return (
           height: 17px;
         }
 
+.mobile-google-button {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .desktop-google-button {
+    display: none;
+  }
+
+  .mobile-google-button {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+}
+
 
         /* =====================================================
            REGISTER
@@ -3034,7 +3271,7 @@ return (
 
     <button
       type="button"
-      className="google-button"
+      className="google-button desktop-google-button"
       onClick={() =>
         void handleGoogleLogin()
       }
@@ -3069,6 +3306,11 @@ return (
       {googleLoading
         ? "Connecting..."
         : "Continue with Google"}
+<div
+  ref={googleMobileButtonRef}
+  className="mobile-google-button"
+/>
+
     </button>
 
   </div>
