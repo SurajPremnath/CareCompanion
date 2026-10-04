@@ -115,6 +115,113 @@ const [registrationCompleted, setRegistrationCompleted] =
 const [registrationResumeRequired, setRegistrationResumeRequired] =
     useState(false);
 
+useEffect(() => {
+    if (registrationContext !== "INVITEE_PRIMARY") {
+        return;
+    }
+
+    const restoreInviteePrimaryRegistration = async () => {
+        try {
+            const storedHandoff =
+                sessionStorage.getItem(
+                    "carevr_invitee_primary_registration"
+                );
+
+            if (!storedHandoff) {
+                return;
+            }
+
+            const parsed = JSON.parse(storedHandoff) as {
+                userId?: unknown;
+                targetRole?: unknown;
+            };
+
+            if (
+                typeof parsed.userId !== "string" ||
+                parsed.targetRole !== "PRIMARY"
+            ) {
+                return;
+            }
+
+            const user =
+                await authService.getCurrentUser();
+
+            if (!user?.id) {
+                return;
+            }
+
+            if (user.id !== parsed.userId) {
+                return;
+            }
+
+            /*
+             * sessionStorage is only a resume marker.
+             *
+             * The current user's active CareVR access remains
+             * the authoritative source for the existing invitee role.
+             */
+            const {
+                data: inviteeAccessRecords,
+                error: inviteeAccessError
+            } = await supabase
+                .from("carevr_access")
+                .select("id, access_type")
+                .eq("user_id", user.id)
+                .eq("access_status", "ACTIVE")
+                .in(
+                    "access_type",
+                    [
+                        "CARETAKER",
+                        "DOCTOR",
+                        "SECONDARY_FAMILY_MEMBER"
+                    ]
+                )
+                .limit(1);
+
+            if (inviteeAccessError) {
+                throw inviteeAccessError;
+            }
+
+            const inviteeAccess =
+                inviteeAccessRecords?.[0];
+
+            if (!inviteeAccess) {
+                return;
+            }
+
+            const restoredHandoff:
+                InviteeToPrimaryHandoff = {
+                    userId: user.id,
+                    sourceRole:
+                        inviteeAccess.access_type as InviteeToPrimaryHandoff["sourceRole"],
+                    targetRole: "PRIMARY",
+                    createdAt:
+                        new Date().toISOString()
+                };
+
+            inviteeToPrimaryHandoff.set(
+                restoredHandoff
+            );
+
+            setInviteePrimaryHandoffState(
+                restoredHandoff
+            );
+
+            setIsPrimaryFamilyMember(true);
+
+        } catch (restoreError) {
+            console.error(
+                "[INVITEE-PRIMARY-RESTORE]",
+                restoreError
+            );
+        }
+    };
+
+    void restoreInviteePrimaryRegistration();
+
+}, [registrationContext]);
+
+
     const validateForm = (): boolean => {
 
         setError("");
@@ -831,19 +938,28 @@ router.replace(secureAccessUrl);
     onError={() => setCaptchaToken(null)}
 />
             </div>
-
-            <button
-                type="button"
-                onClick={() =>
-                    void handleRegister()
-                }
-                disabled={loading}
-                className="create-account-button"
-            >
-                {loading
-                    ? "Creating Account..."
-                    : "Create Account"}
-            </button>
+/*
+* Code for changes to ensure user doesnt click create 
+* account before hand
+*/
+<button
+    type="button"
+    onClick={() =>
+        void handleRegister()
+    }
+    disabled={
+        loading ||
+        !fullName.trim() ||
+        !email.trim() ||
+        !password ||
+        !confirmPassword
+    }
+    className="create-account-button"
+>
+    {loading
+        ? "Creating Account..."
+        : "Create Account"}
+</button>
 
             <button
                 type="button"
