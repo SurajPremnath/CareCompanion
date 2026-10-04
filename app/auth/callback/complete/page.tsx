@@ -393,8 +393,30 @@ const verifyResponse =
     }),
   });
 
-const verifyResult =
-  await verifyResponse.json();
+const verifyText =
+    await verifyResponse.text();
+
+console.log(
+    "[VERIFY-AUTH-USER]",
+    verifyResponse.status,
+    verifyResponse.headers.get("content-type"),
+    verifyText
+);
+
+let verifyResult;
+
+try {
+
+    verifyResult =
+        JSON.parse(verifyText);
+
+} catch {
+
+    throw new Error(
+        `Auth verification returned a non-JSON response (${verifyResponse.status}).`
+    );
+
+}
 
 if (
   !verifyResponse.ok ||
