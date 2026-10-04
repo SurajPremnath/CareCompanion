@@ -136,18 +136,19 @@ private toHtml(
                 const safeUrl =
                     escapeHtml(url);
 
-                return `
+return `
 <a
     href="${safeUrl}"
     style="
         color:#244b7f;
         text-decoration:underline;
         font-weight:600;
+    font-size:16px;
     "
     target="_blank"
     rel="noopener noreferrer"
 >
-    ${safeUrl}
+    Activate CareVR
 </a>
 `;
             }
