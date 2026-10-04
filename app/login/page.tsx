@@ -98,6 +98,8 @@ const [loading, setLoading] = useState(false);
 
 
 const [googleLoading, setGoogleLoading] = useState(false);
+const [googleTransition, setGoogleTransition] =
+  useState(false);
 const [error, setError] = useState("");
 
 const googleMobileButtonRef =
@@ -765,6 +767,8 @@ useEffect(() => {
                     nonce
                   );
 
+setGoogleTransition(true);
+
                 await continueAfterAuthentication(
                   authenticatedUser
                 );
@@ -1004,6 +1008,8 @@ if (!authenticatedUser) {
   );
 }
 
+setGoogleTransition(true);
+
 await continueAfterAuthentication(
   authenticatedUser
 );
@@ -1025,8 +1031,18 @@ return (
     userId={pinVerification.user.id}
     email={pinVerification.user.email ?? ""}
   />
+) : googleTransition ? (
+  <div className="google-transition">
+    <div className="google-transition-title">
+      Connecting to CareVR
+    </div>
+
+    <div className="google-transition-subtitle">
+      Preparing your secure access...
+    </div>
+  </div>
 ) : (
-      <>
+  <>
         <style jsx global>{`
       * {
         box-sizing: border-box;
@@ -1484,6 +1500,27 @@ return (
         width: 19px;
         height: 19px;
       }
+
+.google-transition {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.google-transition-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #15203d;
+}
+
+.google-transition-subtitle {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #737b91;
+}
 
 .register {
   margin: 8px 0 0;
