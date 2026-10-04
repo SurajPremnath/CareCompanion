@@ -938,10 +938,11 @@ router.replace(secureAccessUrl);
     onError={() => setCaptchaToken(null)}
 />
             </div>
-/*
+
+{/*
 * Code for changes to ensure user doesnt click create 
 * account before hand
-*/
+*/}
 <button
     type="button"
     onClick={() =>
