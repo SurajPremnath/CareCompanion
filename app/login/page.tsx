@@ -53,11 +53,9 @@ initialize: (options: {
   callback: (
     response: GoogleCredentialResponse
   ) => void | Promise<void>;
-params?: {
   nonce?: string;
-};
-auto_select?: boolean;
-cancel_on_tap_outside?: boolean;
+  auto_select?: boolean;
+  cancel_on_tap_outside?: boolean;
 }) => void;
 
           prompt: () => void;
