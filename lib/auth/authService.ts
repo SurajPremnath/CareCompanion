@@ -233,12 +233,22 @@ async signInWithGoogleCredential(
   credential: string,
   nonce: string
 ): Promise<void> {
+  console.log("[GOOGLE-SUPABASE-NONCE]", {
+    nonceProvided: Boolean(nonce),
+    nonceLength: nonce.length,
+  });
+
   const { error } =
     await supabase.auth.signInWithIdToken({
       provider: "google",
       token: credential,
       nonce,
     });
+
+  console.log("[GOOGLE-SUPABASE-RESULT]", {
+    success: !error,
+    error: error?.message ?? null,
+  });
 
   if (error) {
     throw error;
