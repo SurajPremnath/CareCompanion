@@ -504,9 +504,7 @@ await new Promise<void>(
   (resolve, reject) => {
 window.google.accounts.id.initialize({
   client_id: googleClientId,
-  params: {
-    nonce: hashedNonce,
-  },
+nonce: hashedNonce,
   callback: async (response: GoogleCredentialResponse) => {
             try {
               const credential =
