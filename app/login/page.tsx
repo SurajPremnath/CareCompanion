@@ -561,10 +561,25 @@ nonce: hashedNonce,
                 );
               }
 
-              await authService.signInWithGoogleCredential(
-                credential,
-                nonce
-              );
+const tokenPayload =
+  JSON.parse(
+    atob(
+      credential.split(".")[1]
+    )
+  );
+
+console.log("[GOOGLE-NONCE-CHECK]", {
+  generatedNonce: nonce,
+  tokenNonce: tokenPayload.nonce,
+  nonceMatches:
+    tokenPayload.nonce === nonce ||
+    tokenPayload.nonce === hashedNonce,
+});
+
+await authService.signInWithGoogleCredential(
+  credential,
+  nonce
+);
 
               resolve();
             } catch (error) {
