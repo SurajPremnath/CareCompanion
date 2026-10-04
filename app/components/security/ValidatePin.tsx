@@ -360,6 +360,24 @@ try {
      * No getAvailableContexts() call is required.
      */
 
+/*
+ * =========================================================
+ * START DASHBOARD HANDOFF ANIMATION
+ * =========================================================
+ *
+ * Start the visual handoff before the asynchronous
+ * CareVR profile/access resolution begins.
+ *
+ * The real authorization handoff below still controls
+ * when the animation is allowed to complete.
+ */
+
+setDashboardHandoffReady(false);
+
+setDashboardAnimationComplete(false);
+
+setShowDashboardHandoff(true);
+
     const {
         data: digitalHealthProfiles,
         error: digitalHealthProfileError,
@@ -567,24 +585,6 @@ const access = {
         joinedAccess.access_status,
 
 };
-
-
-    /*
-     * =========================================================
-     * SINGLE ROLE — START DASHBOARD HANDOFF ANIMATION
-     * =========================================================
-     *
-     * The animation starts before the existing dashboard
-     * authorization handoff so the user sees the transition
-     * while the real authorization work completes.
-     */
-
-    setDashboardHandoffReady(false);
-
-    setDashboardAnimationComplete(false);
-
-    setShowDashboardHandoff(true);
-
 
     /*
      * =========================================================
