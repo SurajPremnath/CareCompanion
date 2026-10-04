@@ -667,18 +667,18 @@ useEffect(() => {
             </div>
 
             <style jsx>{`
-                .carevr-handoff {
-                    position: relative;
-                    width: 100%;
-                    min-height: 100%;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    overflow: hidden;
-                    padding: 40px 24px;
-                    text-align: center;
-                }
+.carevr-handoff {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    padding: 40px 24px;
+    text-align: center;
+}
 
                 .carevr-handoff-orb {
                     position: relative;
