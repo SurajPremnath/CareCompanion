@@ -382,6 +382,31 @@ if (!authenticatedUser) {
 
 }
 
+const verifyResponse =
+  await fetch("/api/auth/verify-user", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: authenticatedUser.email,
+    }),
+  });
+
+const verifyResult =
+  await verifyResponse.json();
+
+if (
+  !verifyResponse.ok ||
+  !verifyResult.exists
+) {
+
+  throw new Error(
+    "Please complete registration provided in your email or reach out to your Primary."
+  );
+
+}
+
 /*
  * Google authentication establishes the Supabase identity.
  * CareVR authorization must be established before allowing
