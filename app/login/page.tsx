@@ -48,14 +48,15 @@ declare global {
     google: {
       accounts: {
         id: {
-          initialize: (options: {
-            client_id: string;
-            callback: (
-              response: GoogleCredentialResponse
-            ) => void | Promise<void>;
-            auto_select?: boolean;
-            cancel_on_tap_outside?: boolean;
-          }) => void;
+initialize: (options: {
+  client_id: string;
+  callback: (
+    response: GoogleCredentialResponse
+  ) => void | Promise<void>;
+  nonce?: string;
+  auto_select?: boolean;
+  cancel_on_tap_outside?: boolean;
+}) => void;
 
           prompt: () => void;
         };
@@ -472,14 +473,37 @@ const handleGoogleLogin = async () => {
 
     await loadGoogleIdentityServices();
 
-    await new Promise<void>(
-      (resolve, reject) => {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
+const nonce = btoa(
+  String.fromCharCode(
+    ...crypto.getRandomValues(new Uint8Array(32))
+  )
+);
 
-          callback: async (
-            response: GoogleCredentialResponse
-          ) => {
+const encodedNonce = new TextEncoder().encode(nonce);
+
+const hashBuffer =
+  await crypto.subtle.digest(
+    "SHA-256",
+    encodedNonce
+  );
+
+const hashArray =
+  Array.from(new Uint8Array(hashBuffer));
+
+const hashedNonce =
+  hashArray
+    .map(
+      (b) =>
+        b.toString(16).padStart(2, "0")
+    )
+    .join("");
+
+await new Promise<void>(
+  (resolve, reject) => {
+    window.google.accounts.id.initialize({
+  client_id: googleClientId,
+  nonce: hashedNonce,
+  callback: async (response: GoogleCredentialResponse) => {
             try {
               const credential =
                 response.credential;
@@ -538,7 +562,8 @@ const handleGoogleLogin = async () => {
               }
 
               await authService.signInWithGoogleCredential(
-                credential
+                credential,
+                nonce
               );
 
               resolve();

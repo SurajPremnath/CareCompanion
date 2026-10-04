@@ -230,18 +230,20 @@ async login(
 }
 
 async signInWithGoogleCredential(
-  credential: string
+  credential: string,
+  nonce: string
 ): Promise<void> {
   const { error } =
     await supabase.auth.signInWithIdToken({
       provider: "google",
       token: credential,
+      nonce,
     });
 
   if (error) {
     throw error;
   }
-} 
+}
 
 
  /**
