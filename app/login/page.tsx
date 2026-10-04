@@ -667,6 +667,7 @@ await new Promise<void>(
         response: GoogleCredentialResponse
       ) => {
         try {
+alert("GOOGLE DEBUG 2: Callback received");
           const credential =
             response.credential;
 
@@ -695,6 +696,11 @@ await new Promise<void>(
               "Unable to identify the selected Google account."
             );
           }
+
+alert(
+  "GOOGLE DEBUG 3: Gmail identified\n" +
+  selectedGmail
+);
 
           const authUserResponse =
             await fetch(
@@ -738,6 +744,8 @@ await new Promise<void>(
       auto_select: false,
       cancel_on_tap_outside: true,
     });
+
+alert("GOOGLE DEBUG 1: Calling prompt()");
 
     window.google.accounts.id.prompt();
   }
