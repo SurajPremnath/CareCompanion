@@ -215,7 +215,19 @@ const inviteeAccess =
             new Date().toISOString(),
     });
 
-    router.replace("/register");
+sessionStorage.setItem(
+    "carevr_invitee_primary_registration",
+    JSON.stringify({
+        userId: user.id,
+        sourceRole:
+            inviteeAccess.access_type,
+        targetRole: "PRIMARY",
+    })
+);
+
+
+
+    router.replace("/register?registrationContext=INVITEE_PRIMARY");
     return;
 }
 

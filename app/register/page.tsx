@@ -1,6 +1,7 @@
 "use client";
 
 import React, {
+    useEffect,
     useRef,
     useState
 } from "react";
@@ -18,7 +19,12 @@ import { supabase } from "@/lib/supabase";
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 import { authService } from "@/lib/auth/authService";
-import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
+
+import {
+    inviteeToPrimaryHandoff,
+    type InviteeToPrimaryHandoff
+} from "@/lib/authorization/inviteeToPrimaryHandoff";
+
 import { provisionPrimaryAccess } from "@/lib/authorization/provisionPrimaryAccess";
 
 import { carevrMessages } from "@/lib/messages/carevrMessages";
@@ -35,8 +41,20 @@ const productInvitationToken =
         "productInvitationToken"
     );
 
-const inviteePrimaryHandoff = inviteeToPrimaryHandoff.get();
-const isInviteeToPrimary = inviteePrimaryHandoff !== null;
+const registrationContext = searchParams.get("registrationContext");
+
+const [
+    inviteePrimaryHandoffState,
+    setInviteePrimaryHandoffState
+] = useState<InviteeToPrimaryHandoff | null>(
+    () => inviteeToPrimaryHandoff.get()
+);
+
+const inviteePrimaryHandoff =
+    inviteePrimaryHandoffState;
+
+const isInviteeToPrimary =
+    inviteePrimaryHandoff !== null;
 
     /*
      * Primary Family Member declaration is the first registration-flow gate.
@@ -1905,3 +1923,5 @@ export default function RegisterPage() {
         </React.Suspense>
     );
 }
+
+
