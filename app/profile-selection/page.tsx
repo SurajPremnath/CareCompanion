@@ -370,6 +370,60 @@ if (!access) {
     );
 }
 
+/*
+ * =========================================================
+ * DEFAULT PROFILE PREFERENCE
+ * =========================================================
+ *
+ * Default profile is a user preference only.
+ * carevr_access remains the authorization source.
+ *
+ * Zero selected  → all profiles false
+ * One selected   → selected profile true, all others false
+ */
+
+const selectedDefaultProfile =
+    digitalHealthProfiles.find(
+        (profile) =>
+            profile.is_default_profile === true
+    );
+
+const { error: clearDefaultProfileError } =
+    await supabase
+        .from("digital_health_profile")
+        .update({
+            is_default_profile: false,
+        })
+        .eq(
+            "user_id",
+            user.id
+        );
+
+if (clearDefaultProfileError) {
+    throw clearDefaultProfileError;
+}
+
+if (selectedDefaultProfile) {
+    const { error: setDefaultProfileError } =
+        await supabase
+            .from("digital_health_profile")
+            .update({
+                is_default_profile: true,
+            })
+            .eq(
+                "id",
+                selectedDefaultProfile.id
+            )
+            .eq(
+                "user_id",
+                user.id
+            );
+
+    if (setDefaultProfileError) {
+        throw setDefaultProfileError;
+    }
+}
+
         /*
          * Start the visual handoff immediately after
          * the user selects the CareVR role/profile.
@@ -730,11 +784,21 @@ const profileLabel =
                                                             ? "profile-card-selected"
                                                             : ""
                                                     }`}
-                                                    onClick={() =>
-                                                        setSelectedContextId(
-                                                            profile.id
-                                                        )
-                                                    }
+onClick={() => {
+    setSelectedContextId(profile.id);
+
+    setDigitalHealthProfiles(
+        (currentProfiles) =>
+            currentProfiles.map(
+                (currentProfile) => ({
+                    ...currentProfile,
+                    is_default_profile:
+                        currentProfile.id ===
+                        profile.id,
+                })
+            )
+    );
+}}
                                                     disabled={
                                                         continuing
                                                     }
