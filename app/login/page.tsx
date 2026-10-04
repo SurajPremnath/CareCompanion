@@ -53,9 +53,11 @@ initialize: (options: {
   callback: (
     response: GoogleCredentialResponse
   ) => void | Promise<void>;
+params?: {
   nonce?: string;
-  auto_select?: boolean;
-  cancel_on_tap_outside?: boolean;
+};
+auto_select?: boolean;
+cancel_on_tap_outside?: boolean;
 }) => void;
 
           prompt: () => void;
@@ -500,9 +502,11 @@ const hashedNonce =
 
 await new Promise<void>(
   (resolve, reject) => {
-    window.google.accounts.id.initialize({
+window.google.accounts.id.initialize({
   client_id: googleClientId,
-  nonce: hashedNonce,
+  params: {
+    nonce: hashedNonce,
+  },
   callback: async (response: GoogleCredentialResponse) => {
             try {
               const credential =
