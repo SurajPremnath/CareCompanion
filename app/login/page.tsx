@@ -761,17 +761,27 @@ useEffect(() => {
                   );
                 }
 
+// ============================================================
+// MOBILE GOOGLE LOGIN FLOW
+// Google Identity Services renderButton()
+// ============================================================
+
+
+setGoogleTransition(true);
+
                 const authenticatedUser =
                   await authService.signInWithGoogleCredential(
                     credential,
                     nonce
                   );
 
-setGoogleTransition(true);
+
+
 
                 await continueAfterAuthentication(
                   authenticatedUser
                 );
+
               } catch (error) {
                 const message =
                   error instanceof Error
@@ -981,6 +991,15 @@ await new Promise<void>(
             );
           }
 
+
+// ============================================================
+// DESKTOP GOOGLE LOGIN FLOW
+// Google Identity Services prompt()
+// ============================================================
+
+setGoogleTransition(true);
+
+
           authenticatedUser =
             await authService.signInWithGoogleCredential(
               credential,
@@ -1002,13 +1021,14 @@ window.google.accounts.id.prompt();
   }
 );
 
+
 if (!authenticatedUser) {
   throw new Error(
     "Unable to authenticate with Google."
   );
 }
 
-setGoogleTransition(true);
+
 
 await continueAfterAuthentication(
   authenticatedUser
