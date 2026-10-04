@@ -347,6 +347,8 @@ function GoogleAuthComplete() {
 
           }
 
+
+/*
           const authenticatedUser =
             await authService.getCurrentUser();
 
@@ -357,6 +359,56 @@ function GoogleAuthComplete() {
             );
 
           }
+
+const pinStatusResponse =
+  await fetch(
+    "/api/security/pin-status",
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+*/
+
+const authenticatedUser =
+  await authService.getCurrentUser();
+
+if (!authenticatedUser) {
+
+  throw new Error(
+    "Unable to establish your CareVR session. Please return to Login."
+  );
+
+}
+
+/*
+ * Google authentication establishes the Supabase identity.
+ * CareVR authorization must be established before allowing
+ * the user to proceed to PIN creation or PIN verification.
+ *
+ * An authenticated Google account by itself does not grant
+ * CareVR access.
+ */
+const {
+  activeAccessRecords,
+} =
+  await carevrContextResolver
+    .getAvailableContexts(
+      authenticatedUser.id
+    );
+
+if (
+  activeAccessRecords.length === 0
+) {
+
+  throw new Error(
+    "CareVR registration is not complete.\n\n" +
+    "Please complete the registration using the link provided in your email, " +
+    "or reach out to your Primary or Linearise AI Labs for assistance."
+  );
+
+}
 
 const pinStatusResponse =
   await fetch(

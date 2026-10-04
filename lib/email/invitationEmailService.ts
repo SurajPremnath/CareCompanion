@@ -140,10 +140,16 @@ return `
 <a
     href="${safeUrl}"
     style="
-        color:#244b7f;
-        text-decoration:underline;
+        display:inline-block;
+        padding:12px 24px;
+        background-color:#244b7f;
+        color:#ffffff;
+        text-decoration:none;
         font-weight:600;
-    font-size:16px;
+        font-size:16px;
+        line-height:1.2;
+        border-radius:6px;
+        text-align:center;
     "
     target="_blank"
     rel="noopener noreferrer"
