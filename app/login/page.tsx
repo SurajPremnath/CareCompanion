@@ -131,6 +131,166 @@ const [pinVerification, setPinVerification] =
   }, []);
 
 
+const continueAfterAuthentication = async (
+  authenticatedUser: Awaited<
+    ReturnType<typeof authService.login>
+  >
+): Promise<void> => {
+  let registrationContext:
+    | "PRODUCT"
+    | "INVITATION"
+    | null = null;
+
+  // Check accepted CareVR invitation first.
+  const {
+    data: invitation,
+    error: invitationError,
+  } = await supabase
+    .from("carevr_invitation")
+    .select("role")
+    .eq(
+      "invited_user_id",
+      authenticatedUser.id
+    )
+    .eq(
+      "status",
+      "ACCEPTED"
+    )
+    .order(
+      "accepted_at",
+      {
+        ascending: false,
+      }
+    )
+    .limit(1)
+    .maybeSingle();
+
+  if (invitationError) {
+    throw new Error(
+      invitationError.message
+    );
+  }
+
+  if (invitation) {
+    const {
+      data: roleContext,
+      error: roleContextError,
+    } = await supabase
+      .from("role_clarification")
+      .select("type")
+      .eq(
+        "email",
+        authenticatedUser.email
+      )
+      .eq(
+        "type",
+        "INVITATION"
+      )
+      .eq(
+        "invited_role",
+        invitation.role
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        }
+      )
+      .limit(1)
+      .maybeSingle();
+
+    if (roleContextError) {
+      throw new Error(
+        roleContextError.message
+      );
+    }
+
+    if (roleContext) {
+      registrationContext =
+        "INVITATION";
+    }
+  }
+
+  // If there is no accepted invitation,
+  // check the existing PRODUCT registration context.
+  if (!registrationContext) {
+    const {
+      data: productContext,
+      error: productContextError,
+    } = await supabase
+      .from("role_clarification")
+      .select("type")
+      .eq(
+        "email",
+        authenticatedUser.email
+      )
+      .eq(
+        "type",
+        "PRODUCT"
+      )
+      .eq(
+        "invited_role",
+        "PRIMARY"
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        }
+      )
+      .limit(1)
+      .maybeSingle();
+
+    if (productContextError) {
+      throw new Error(
+        productContextError.message
+      );
+    }
+
+    if (productContext) {
+      registrationContext =
+        "PRODUCT";
+    }
+  }
+
+  const pinStatusResponse =
+    await fetch(
+      "/api/security/pin-status",
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
+
+  const pinStatus =
+    await pinStatusResponse.json();
+
+  if (!pinStatusResponse.ok) {
+    throw new Error(
+      pinStatus?.error ||
+      "Unable to determine CareVR PIN status."
+    );
+  }
+
+  if (pinStatus.hasPin !== true) {
+    if (!registrationContext) {
+      throw new Error(
+        "CareVR registration context is unavailable."
+      );
+    }
+
+    router.replace(
+      `/secure-access/create-pin?registrationContext=${registrationContext}`
+    );
+
+    return;
+  }
+
+  setPinVerification({
+    user: authenticatedUser,
+  });
+};
+
 
 const handleLogin = async () => {
   setError("");
@@ -379,12 +539,6 @@ setPinVerification({
 });
 
 
-// console.log(
-//   `[LOGIN-PERF] total login-to-pin state transition: ${Math.round(
-//     performance.now() - loginStartedAt
-//   )} ms`
-// );
-
 return;
 
   } catch (err) {
@@ -498,119 +652,117 @@ const hashedNonce =
     )
     .join("");
 
+let authenticatedUser:
+  | Awaited<
+      ReturnType<typeof authService.login>
+    >
+  | null = null;
+
 await new Promise<void>(
   (resolve, reject) => {
-window.google.accounts.id.initialize({
-  client_id: googleClientId,
-nonce: hashedNonce,
-  callback: async (response: GoogleCredentialResponse) => {
-            try {
-              const credential =
-                response.credential;
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      nonce: hashedNonce,
+      callback: async (
+        response: GoogleCredentialResponse
+      ) => {
+        try {
+          const credential =
+            response.credential;
 
-              if (!credential) {
-                throw new Error(
-                  "Unable to identify the selected Google account."
-                );
+          if (!credential) {
+            throw new Error(
+              "Unable to identify the selected Google account."
+            );
+          }
+
+          const payload =
+            JSON.parse(
+              atob(
+                credential.split(".")[1]
+              )
+            );
+
+          const selectedGmail =
+            typeof payload.email === "string"
+              ? payload.email
+                  .trim()
+                  .toLowerCase()
+              : "";
+
+          if (!selectedGmail) {
+            throw new Error(
+              "Unable to identify the selected Google account."
+            );
+          }
+
+          const authUserResponse =
+            await fetch(
+              "/api/auth/verify-user",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+                body: JSON.stringify({
+                  email: selectedGmail,
+                }),
               }
+            );
 
-              const payload =
-                JSON.parse(
-                  atob(
-                    credential.split(".")[1]
-                  )
-                );
+          const authUserResult =
+            await authUserResponse.json();
 
-              const selectedGmail =
-                typeof payload.email === "string"
-                  ? payload.email
-                      .trim()
-                      .toLowerCase()
-                  : "";
+          if (
+            !authUserResponse.ok ||
+            authUserResult.exists !== true
+          ) {
+            throw new Error(
+              "Please complete registration provided in your email or reach out to your Primary."
+            );
+          }
 
-              if (!selectedGmail) {
-                throw new Error(
-                  "Unable to identify the selected Google account."
-                );
-              }
+          authenticatedUser =
+            await authService.signInWithGoogleCredential(
+              credential,
+              nonce
+            );
 
-              const authUserResponse =
-                await fetch(
-                  "/api/auth/verify-user",
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type":
-                        "application/json",
-                    },
-                    body: JSON.stringify({
-                      email: selectedGmail,
-                    }),
-                  }
-                );
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      },
 
-              const authUserResult =
-                await authUserResponse.json();
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
 
-              if (
-                !authUserResponse.ok ||
-                authUserResult.exists !== true
-              ) {
-                throw new Error(
-                  "Please complete registration provided in your email or reach out to your Primary."
-                );
-              }
-
-const tokenPayload =
-  JSON.parse(
-    atob(
-      credential.split(".")[1]
-    )
-  );
-
-console.log("[GOOGLE-BEFORE-SUPABASE]", {
-  authServiceLoaded: Boolean(authService),
-  methodAvailable:
-    typeof authService.signInWithGoogleCredential === "function",
-});
-
-console.log("[GOOGLE-NONCE-CHECK]", {
-  generatedNonce: nonce,
-  tokenNonce: tokenPayload.nonce,
-  nonceMatches:
-    tokenPayload.nonce === nonce ||
-    tokenPayload.nonce === hashedNonce,
-});
-
-await authService.signInWithGoogleCredential(
-  credential,
-  nonce
+    window.google.accounts.id.prompt();
+  }
 );
 
-              resolve();
-            } catch (error) {
-              reject(error);
-            }
-          },
+if (!authenticatedUser) {
+  throw new Error(
+    "Unable to authenticate with Google."
+  );
+}
 
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
+await continueAfterAuthentication(
+  authenticatedUser
+);
 
-        window.google.accounts.id.prompt();
-      }
-    );
-  } catch (err) {
-    const message =
-      err instanceof Error
-        ? err.message
-        : "Unable to continue with Google.";
+} catch (err) {
+  const message =
+    err instanceof Error
+      ? err.message
+      : "Unable to continue with Google.";
 
-    setError(message);
-    setGoogleLoading(false);
-  }
+  setError(message);
+  setGoogleLoading(false);
+}
 };
-
 return (
   <>
 {pinVerification ? (
