@@ -58,7 +58,14 @@ initialize: (options: {
   cancel_on_tap_outside?: boolean;
 }) => void;
 
-          prompt: () => void;
+          prompt: (
+  momentListener?: (notification: {
+    isDisplayed: () => boolean;
+    isNotDisplayed: () => boolean;
+    isSkippedMoment: () => boolean;
+    isDismissedMoment: () => boolean;
+  }) => void
+) => void;
         };
       };
     };
@@ -667,7 +674,10 @@ await new Promise<void>(
         response: GoogleCredentialResponse
       ) => {
         try {
-alert("GOOGLE DEBUG 2: Callback received");
+          alert(
+            "GOOGLE DEBUG 2: Callback received"
+          );
+
           const credential =
             response.credential;
 
@@ -697,10 +707,10 @@ alert("GOOGLE DEBUG 2: Callback received");
             );
           }
 
-alert(
-  "GOOGLE DEBUG 3: Gmail identified\n" +
-  selectedGmail
-);
+          alert(
+            "GOOGLE DEBUG 3: Gmail identified\n" +
+            selectedGmail
+          );
 
           const authUserResponse =
             await fetch(
@@ -745,9 +755,25 @@ alert(
       cancel_on_tap_outside: true,
     });
 
-alert("GOOGLE DEBUG 1: Calling prompt()");
+    alert(
+      "GOOGLE DEBUG 1: Calling prompt()"
+    );
 
-    window.google.accounts.id.prompt();
+    window.google.accounts.id.prompt(
+      (notification) => {
+        alert(
+          "GOOGLE DEBUG PROMPT\n" +
+          "displayed=" +
+          notification.isDisplayed() +
+          "\nnotDisplayed=" +
+          notification.isNotDisplayed() +
+          "\nskipped=" +
+          notification.isSkippedMoment() +
+          "\ndismissed=" +
+          notification.isDismissedMoment()
+        );
+      }
+    );
   }
 );
 
