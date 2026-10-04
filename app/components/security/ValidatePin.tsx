@@ -389,6 +389,7 @@ setShowDashboardHandoff(true);
                 family_id,
                 role_status,
                 role,
+                is_default_profile,
                 carevr_access_id,
                 carevr_access:carevr_access_id (
                     id,
@@ -440,8 +441,56 @@ setShowDashboardHandoff(true);
      * Profile selection must happen before Dashboard handoff.
      */
 
+if (
+    digitalHealthProfiles.length > 1
+) {
+
+    /*
+     * =========================================================
+     * DUAL ROLE — DEFAULT PROFILE
+     * =========================================================
+     *
+     * is_default_profile is only a user preference.
+     * carevr_access remains the authorization source.
+     *
+     * No default → existing Profile Selection flow.
+     * Default inactive/invalid → existing Profile Selection flow.
+     * Valid default → continue directly to Dashboard.
+     */
+
+    const defaultProfile =
+        digitalHealthProfiles.find(
+            (profile) =>
+                profile.is_default_profile === true
+        );
+
+    if (!defaultProfile) {
+
+        setShowDashboardHandoff(false);
+
+        router.replace(
+            "/profile-selection"
+        );
+
+        return;
+    }
+
+    const defaultRole =
+        defaultProfile.role ===
+        "SECONDARY_FAMILY_MEMBER"
+            ? "FAMILY"
+            : defaultProfile.role;
+
+    const defaultJoinedAccess =
+        Array.isArray(
+            defaultProfile.carevr_access
+        )
+            ? defaultProfile.carevr_access[0]
+            : defaultProfile.carevr_access;
+
     if (
-        digitalHealthProfiles.length > 1
+        !defaultRole ||
+        !defaultJoinedAccess
     ) {
 
         setShowDashboardHandoff(false);
@@ -451,8 +500,86 @@ setShowDashboardHandoff(true);
         );
 
         return;
-
     }
+
+    if (
+        defaultJoinedAccess.id !==
+        defaultProfile.carevr_access_id
+    ) {
+
+        setShowDashboardHandoff(false);
+
+        router.replace(
+            "/profile-selection"
+        );
+
+        return;
+    }
+
+    if (
+        defaultJoinedAccess.user_id !==
+        userId
+    ) {
+
+        setShowDashboardHandoff(false);
+
+        router.replace(
+            "/profile-selection"
+        );
+
+        return;
+    }
+
+    if (
+        defaultJoinedAccess.access_status !==
+        "ACTIVE"
+    ) {
+
+        setShowDashboardHandoff(false);
+
+        router.replace(
+            "/profile-selection"
+        );
+
+        return;
+    }
+
+    /*
+     * The selected default profile has passed the
+     * same CareVR access validation required for
+     * normal Dashboard entry.
+     */
+
+    const defaultAccess = {
+        id:
+            defaultJoinedAccess.id,
+
+        userId:
+            defaultJoinedAccess.user_id,
+
+        familyId:
+            defaultJoinedAccess.family_id,
+
+        patientId:
+            null,
+
+        accessType:
+            defaultJoinedAccess.access_type,
+
+        accessStatus:
+            defaultJoinedAccess.access_status,
+    };
+
+    await resolveCareVRDashboardHandoff(
+        userId,
+        defaultRole,
+        defaultAccess
+    );
+
+    setDashboardHandoffReady(true);
+
+    return;
+}
 
 
     /*
