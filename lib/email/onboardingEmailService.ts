@@ -248,7 +248,7 @@ class OnboardingEmailService {
 
 
 const sopPath =
-    `${process.cwd()}/public/documents/CareVR-SOP.pdf`;
+    `${process.cwd()}/public/documents/CareVR SOP.pdf`;
 
 const sopBuffer =
     await readFile(sopPath);
