@@ -1055,15 +1055,26 @@ return (
     email={pinVerification.user.email ?? ""}
   />
 ) : googleTransition ? (
-  <div className="google-transition">
-    <div className="google-transition-title">
-      Connecting to CareVR
-    </div>
-
-    <div className="google-transition-subtitle">
-      Preparing your secure access...
-    </div>
+<div className="google-transition">
+  <div className="google-transition-spinner" aria-hidden="true">
+    <span />
+    <span />
+    <span />
   </div>
+
+  <div className="google-transition-title">
+    Connecting to CareVR
+  </div>
+
+  <div className="google-transition-subtitle">
+    Preparing your secure access
+    <span className="google-transition-dots" aria-hidden="true">
+      <span>.</span>
+      <span>.</span>
+      <span>.</span>
+    </span>
+  </div>
+</div>
 ) : (
   <>
         <style jsx global>{`
@@ -1533,6 +1544,30 @@ return (
   text-align: center;
 }
 
+.google-transition-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-bottom: 22px;
+}
+
+.google-transition-spinner span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7043f5;
+  animation: googleTransitionPulse 1.2s ease-in-out infinite;
+}
+
+.google-transition-spinner span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.google-transition-spinner span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
 .google-transition-title {
   font-size: 22px;
   font-weight: 600;
@@ -1543,6 +1578,45 @@ return (
   margin-top: 8px;
   font-size: 14px;
   color: #737b91;
+}
+
+.google-transition-dots span {
+  display: inline-block;
+  animation: googleTransitionDot 1.2s infinite;
+}
+
+.google-transition-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.google-transition-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes googleTransitionPulse {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes googleTransitionDot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+  }
+
+  30% {
+    opacity: 1;
+  }
 }
 
 .register {
@@ -3396,8 +3470,6 @@ return (
       className="login-right"
       aria-hidden="true"
     />
-
-
 
       </section>
 </main>
