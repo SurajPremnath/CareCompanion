@@ -1063,7 +1063,20 @@ return (
     email={pinVerification.user.email ?? ""}
   />
 ) : googleTransition ? (
-<div className="google-transition">
+  <div
+    className="google-transition"
+    style={{
+      minHeight: "100dvh",
+      width: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center",
+      background: "#f1eaff",
+      padding: "24px",
+    }}
+  >
   <div className="google-transition-spinner" aria-hidden="true">
     <span />
     <span />
