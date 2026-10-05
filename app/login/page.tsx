@@ -1544,12 +1544,16 @@ return (
       }
 
 .google-transition {
-  min-height: 320px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
+  background: #f1eaff;
+  padding: 24px;
 }
 
 .google-transition-spinner {
