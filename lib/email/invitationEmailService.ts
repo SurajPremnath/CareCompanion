@@ -137,7 +137,6 @@ private toHtml(
                     escapeHtml(url);
 
 return `
-<div style="text-align:center;">
     <a
         href="${safeUrl}"
         style="
@@ -157,7 +156,6 @@ return `
     >
         Activate CareVR
     </a>
-</div>
 `;
             }
         );
