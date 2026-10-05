@@ -712,11 +712,19 @@ callback: async (
 // ============================================================
 
 
-    setGoogleTransition(true);
-    setGoogleLoading(true);
+setGoogleTransition(true);
+setGoogleLoading(true);
 
-    const credential =
-      response.credential;
+await new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            resolve();
+        });
+    });
+});
+
+const credential =
+    response.credential;
 
                 const payload =
                   JSON.parse(
