@@ -475,11 +475,19 @@ if (
         return;
     }
 
-    const defaultRole =
-        defaultProfile.role ===
-        "SECONDARY_FAMILY_MEMBER"
+const defaultRole =
+    defaultProfile.role === "PRIMARY"
+        ? "SELF"
+        : defaultProfile.role ===
+            "SECONDARY_FAMILY_MEMBER"
             ? "FAMILY"
-            : defaultProfile.role;
+            : defaultProfile.role ===
+                "CARETAKER"
+                ? "CARETAKER"
+                : defaultProfile.role ===
+                    "DOCTOR"
+                    ? "DOCTOR"
+                    : "";
 
     const defaultJoinedAccess =
         Array.isArray(
