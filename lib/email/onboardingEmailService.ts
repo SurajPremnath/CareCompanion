@@ -1,5 +1,8 @@
 import { Resend } from "resend";
+
+/*
 import { readFile } from "fs/promises";
+*/
 
 export interface SendOnboardingEmailInput {
     to: string;
@@ -243,13 +246,15 @@ class OnboardingEmailService {
 </html>
 `;
 
-
+/*
 const sopPath =
     `${process.cwd()}/public/documents/CareVR-SOP.pdf`;
 
 const sopBuffer =
     await readFile(sopPath);
+*/
 
+/*
 const {
     data,
     error
@@ -275,6 +280,14 @@ const {
 
     });
 
+*/
+
+const { data, error } = await resend.emails.send({
+    from,
+    to: [email],
+    subject,
+    html,
+});
 
         if (error) {
 

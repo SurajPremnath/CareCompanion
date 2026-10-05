@@ -605,12 +605,28 @@ void fetch(
         method: "POST",
     }
 )
-    .catch(
-        () => {
-            // Onboarding email failure must not
-            // affect Dashboard access.
-        }
-    );
+    .then(async (response) => {
+
+        const result =
+            await response
+                .json()
+                .catch(() => null);
+
+        console.error(
+            "[CAREVR][ONBOARDING EMAIL]",
+            response.status,
+            result
+        );
+
+    })
+    .catch((error) => {
+
+        console.error(
+            "[CAREVR][ONBOARDING EMAIL] Request failed.",
+            error
+        );
+
+    });
 
 // ------------------------------------------------------------
 // ANALYTICS — COMMENTED OUT FOR DEMO
