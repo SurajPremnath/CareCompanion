@@ -1074,14 +1074,9 @@ return (
     Connecting to CareVR
   </div>
 
-  <div className="google-transition-subtitle">
-    Preparing your secure access
-    <span className="google-transition-dots" aria-hidden="true">
-      <span>.</span>
-      <span>.</span>
-      <span>.</span>
-    </span>
-  </div>
+<div className="google-transition-subtitle">
+  Preparing your secure access
+</div>
 </div>
 ) : (
   <>
