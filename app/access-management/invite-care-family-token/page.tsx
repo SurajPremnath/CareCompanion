@@ -598,6 +598,9 @@ setInvitationTokenCopied(
     false
 );
 
+setInvitationEmailSent(
+    false
+);
             setSelectedModules(
                 ROLE_CONFIGURATIONS[role]
                     .modules
