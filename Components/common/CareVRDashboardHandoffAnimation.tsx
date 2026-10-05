@@ -628,9 +628,18 @@ useEffect(() => {
     return (
         <section className="carevr-handoff">
             <div className="carevr-handoff-orb">
-                <div className="carevr-handoff-icon">
-                    <StageIcon type={activeStage} />
-                </div>
+<div
+    className="carevr-handoff-icon"
+    style={{
+        opacity: 1,
+        visibility: "visible",
+        display: "flex",
+        transform: "none",
+        animation: "none",
+    }}
+>
+    <StageIcon type={activeStage} />
+</div>
             </div>
 
             <div className="carevr-handoff-tag">
