@@ -566,9 +566,12 @@ router.replace(
                     <button
                         type="button"
                         onClick={handleDecline}
-                        style={
-                            styles.secondaryButton
-                        }
+    disabled={consenting}
+    style={{
+        ...styles.secondaryButton,
+        opacity: consenting ? 0.5 : 1,
+        cursor: consenting ? "not-allowed" : "pointer",
+    }}
                     >
                         Decline & Sign Out
                     </button>
