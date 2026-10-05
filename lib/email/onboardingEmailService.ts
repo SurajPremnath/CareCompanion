@@ -262,7 +262,7 @@ const { data, error } = await resend.emails.send({
     html,
     attachments: [
         {
-            filename: "CareVR-SOP.pdf",
+            filename: "CareVR SOP.pdf",
             content: sopBuffer,
         },
     ],
