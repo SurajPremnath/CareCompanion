@@ -54,7 +54,7 @@ const {
             await supabaseAdmin
                 .from("profiles")
                 .select(
-                    "email, full_name"
+                    "email, full_name, onboarding_email_sent"
                 )
                 .eq(
                     "id",
@@ -77,6 +77,22 @@ const {
                 },
                 {
                     status: 500,
+                }
+            );
+        }
+
+
+        if (
+            profile?.onboarding_email_sent === true
+        ) {
+
+            return NextResponse.json(
+                {
+                    success: true,
+                    alreadySent: true,
+                },
+                {
+                    status: 200,
                 }
             );
         }
@@ -108,6 +124,46 @@ const {
                     profile?.full_name ||
                     undefined,
             });
+
+
+        if (
+            result?.success !== true
+        ) {
+
+            return NextResponse.json(
+                result,
+                {
+                    status: 200,
+                }
+            );
+        }
+
+
+        const {
+            error: markSentError,
+        } =
+            await supabaseAdmin
+                .from("profiles")
+                .update({
+                    onboarding_email_sent: true,
+                })
+                .eq(
+                    "id",
+                    user.id
+                )
+                .eq(
+                    "onboarding_email_sent",
+                    false
+                );
+
+
+        if (markSentError) {
+
+            console.error(
+                "Unable to mark onboarding email as sent.",
+                markSentError
+            );
+        }
 
 
         return NextResponse.json(
