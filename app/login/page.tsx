@@ -1077,42 +1077,58 @@ return (
       padding: "24px",
     }}
   >
-<div
-  aria-hidden="true"
-  style={{
-    display: "flex",
-    gap: "8px",
-    marginBottom: "18px",
-  }}
->
-  <span
-    style={{
-      width: "8px",
-      height: "8px",
-      borderRadius: "50%",
-      background: "#8b6fd8",
-      animation: "googleTransitionPulse 1.2s ease-in-out infinite",
-    }}
-  />
-  <span
-    style={{
-      width: "8px",
-      height: "8px",
-      borderRadius: "50%",
-      background: "#8b6fd8",
-      animation: "googleTransitionPulse 1.2s ease-in-out 0.15s infinite",
-    }}
-  />
-  <span
-    style={{
-      width: "8px",
-      height: "8px",
-      borderRadius: "50%",
-      background: "#8b6fd8",
-      animation: "googleTransitionPulse 1.2s ease-in-out 0.3s infinite",
-    }}
-  />
-</div>
+    <style jsx global>{`
+      @keyframes googleTransitionPulse {
+        0%,
+        60%,
+        100% {
+          opacity: 0.3;
+          transform: scale(0.8);
+        }
+
+        30% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    `}</style>
+
+    <div
+      aria-hidden="true"
+      style={{
+        display: "flex",
+        gap: "8px",
+        marginBottom: "18px",
+      }}
+    >
+      <span
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          background: "#8b6fd8",
+          animation: "googleTransitionPulse 1.2s ease-in-out infinite",
+        }}
+      />
+      <span
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          background: "#8b6fd8",
+          animation: "googleTransitionPulse 1.2s ease-in-out 0.15s infinite",
+        }}
+      />
+      <span
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          background: "#8b6fd8",
+          animation: "googleTransitionPulse 1.2s ease-in-out 0.3s infinite",
+        }}
+      />
+    </div>
 
   <div className="google-transition-title">
     Connecting to CareVR
