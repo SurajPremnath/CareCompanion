@@ -450,6 +450,17 @@ return (
     >
         Reset Password
     </button>
+<button
+    type="button"
+    className="carevr-mobile-account-menu-primary"
+    onClick={() => {
+        router.push("/secure-access/create-pin?mode=recreate");
+    }}
+>
+    Reset PIN
+</button>
+
+
 </div>
 
 {showSwitchProfile && hasSwitchProfileAccess && (
@@ -628,7 +639,7 @@ return (
     justify-content: flex-end;
     gap: 8px;
     flex: 0 0 auto;
-    margin-right: 34px;
+    margin-right: 44px;
 }
 
 .carevr-mobile-home-button {
@@ -825,7 +836,7 @@ return (
     justify-content: flex-end;
     gap: 8px;
     flex: 0 0 auto;
-    margin-right: 34px;
+    margin-right: 44px;
 }
                     .carevr-mobile-mode-option {
                         min-width: 52px;

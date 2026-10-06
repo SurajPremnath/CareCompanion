@@ -603,8 +603,16 @@ const consentAccepted =
         "consentAccepted"
     ) === "true";
 
+const isRecreateMode =
+    searchParams.get(
+        "mode"
+    ) === "recreate";
+
 const [pin, setPin] = useState("");
 const [confirmPin, setConfirmPin] = useState("");
+const [currentPin, setCurrentPin] = useState("");
+
+
 const [showPin, setShowPin] = useState(false);
 const [showConfirmPin, setShowConfirmPin] = useState(false);
 const [error, setError] = useState("");
@@ -1058,6 +1066,96 @@ return;
     };
 
 
+    const handleRecreatePin = async () => {
+    setError("");
+
+    if (currentPin.length !== 6) {
+        setError(
+            "Please enter your current 6-digit PIN."
+        );
+        return;
+    }
+
+    if (pin.length !== 6) {
+        setError(
+            "Please enter a new 6-digit PIN."
+        );
+        return;
+    }
+
+    if (confirmPin.length !== 6) {
+        setError(
+            "Please confirm your new 6-digit PIN."
+        );
+        return;
+    }
+
+    if (pin !== confirmPin) {
+        setError(
+            "The new PINs do not match."
+        );
+        return;
+    }
+
+    if (currentPin === pin) {
+        setError(
+            "Your new PIN must be different from your current PIN."
+        );
+        return;
+    }
+
+    if (saving) {
+        return;
+    }
+
+    setSaving(true);
+
+    try {
+        const response =
+            await fetch(
+                "/api/security/recreate-pin",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+                    body: JSON.stringify({
+                        currentPin,
+                        newPin: pin,
+                    }),
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result?.error ||
+                "Unable to reset your PIN."
+            );
+        }
+
+        /*
+         * PIN reset is complete.
+         * End the authenticated session so the user
+         * must explicitly authenticate again using
+         * the new PIN.
+         */
+        await authService.logout();
+
+        router.replace("/login");
+    } catch (err) {
+        setError(
+            err instanceof Error
+                ? err.message
+                : "Unable to reset your PIN."
+        );
+    } finally {
+        setSaving(false);
+    }
+};
     const handleSave = async () => {
         setError("");
 
@@ -1321,9 +1419,227 @@ if (showDashboardHandoff) {
     }}
 />
 
+
+{isRecreateMode ? (
+    <div className="create-pin-shell">
+        <section
+            className="create-pin-card"
+            aria-labelledby="recreate-pin-title"
+        >
+            <div
+                className="security-icon"
+                aria-hidden="true"
+            >
+                <svg
+                    width="30"
+                    height="30"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <rect
+                        x="3"
+                        y="11"
+                        width="18"
+                        height="10"
+                        rx="2"
+                    />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    <circle
+                        cx="12"
+                        cy="16"
+                        r="1"
+                    />
+                </svg>
+            </div>
+
+            <div className="eyebrow">
+                ACCOUNT SECURITY
+            </div>
+
+            <h1 id="recreate-pin-title">
+                Reset Your CareVR PIN
+            </h1>
+
+            <p className="intro">
+                Enter your current PIN and create a
+                new 6-digit PIN to keep your CareVR
+                account secure.
+            </p>
+
+            <div className="form">
+
+                <div className="field">
+                    <label htmlFor="current-carevr-pin">
+                        Current PIN
+                    </label>
+
+                    <div className="pin-input-wrapper">
+                        <input
+                            id="current-carevr-pin"
+                            type="password"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            autoComplete="current-password"
+                            maxLength={6}
+                            value={currentPin}
+                            onChange={(event) =>
+                                handlePinChange(
+                                    event.target.value,
+                                    setCurrentPin
+                                )
+                            }
+                            disabled={saving}
+                            aria-label="Current 6-digit CareVR PIN"
+                        />
+                    </div>
+                </div>
+
+                <div className="field">
+                    <label htmlFor="new-carevr-pin">
+                        New PIN
+                    </label>
+
+                    <div className="pin-input-wrapper">
+                        <input
+                            id="new-carevr-pin"
+                            type={
+                                showPin
+                                    ? "text"
+                                    : "password"
+                            }
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            autoComplete="new-password"
+                            maxLength={6}
+                            value={pin}
+                            onChange={(event) =>
+                                handlePinChange(
+                                    event.target.value,
+                                    setPin
+                                )
+                            }
+                            disabled={saving}
+                            aria-label="New 6-digit CareVR PIN"
+                        />
+
+                        <button
+                            type="button"
+                            className="pin-visibility-button"
+                            onClick={() =>
+                                setShowPin(
+                                    (current) =>
+                                        !current
+                                )
+                            }
+                            disabled={saving}
+                            aria-label={
+                                showPin
+                                    ? "Hide PIN"
+                                    : "Show PIN"
+                            }
+                            title={
+                                showPin
+                                    ? "Hide PIN"
+                                    : "Show PIN"
+                            }
+                        >
+                            {showPin ? "Hide" : "Show"}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="field">
+                    <label htmlFor="confirm-new-carevr-pin">
+                        Confirm New PIN
+                    </label>
+
+                    <div className="pin-input-wrapper">
+                        <input
+                            id="confirm-new-carevr-pin"
+                            type={
+                                showConfirmPin
+                                    ? "text"
+                                    : "password"
+                            }
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            autoComplete="new-password"
+                            maxLength={6}
+                            value={confirmPin}
+                            onChange={(event) =>
+                                handlePinChange(
+                                    event.target.value,
+                                    setConfirmPin
+                                )
+                            }
+                            disabled={saving}
+                            aria-label="Confirm new 6-digit CareVR PIN"
+                        />
+
+                        <button
+                            type="button"
+                            className="pin-visibility-button"
+                            onClick={() =>
+                                setShowConfirmPin(
+                                    (current) =>
+                                        !current
+                                )
+                            }
+                            disabled={saving}
+                            aria-label={
+                                showConfirmPin
+                                    ? "Hide PIN"
+                                    : "Show PIN"
+                            }
+                            title={
+                                showConfirmPin
+                                    ? "Hide PIN"
+                                    : "Show PIN"
+                            }
+                        >
+                            {showConfirmPin
+                                ? "Hide"
+                                : "Show"}
+                        </button>
+                    </div>
+                </div>
+
+                {error && (
+                    <div
+                        className="error"
+                        role="alert"
+                    >
+                        {error}
+                    </div>
+                )}
+
+                <button
+                    type="button"
+                    className="primary-button"
+                    onClick={
+                        handleRecreatePin
+                    }
+                    disabled={saving}
+                >
+                    {saving
+                        ? "Resetting PIN..."
+                        : "Reset PIN"}
+                </button>
+
+            </div>
+        </section>
+    </div>
+) : (
+<>
             {/* ============================
                 MAIN CONTENT
             ============================ */}
+    
+
 
             <div className="create-pin-shell">
 
@@ -1625,6 +1941,8 @@ if (showDashboardHandoff) {
                 </section>
 
             </div>
+    </>
+)}
 
             <footer className="page-footer">
 
@@ -1989,7 +2307,6 @@ if (showDashboardHandoff) {
                 markup is rendered through the consentAccepted
                 conditional return.
             */}
-            
 
         </main>
     );
