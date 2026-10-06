@@ -79,6 +79,91 @@ async acceptConsent(
     const userId =
         await authService.getCurrentUserId();
 
+const existingConsent =
+    await consentRepository.getCurrentUserConsent();
+
+if (existingConsent) {
+
+    const {
+        error: consentUpdateError,
+    } = await supabase
+        .from("user_consents")
+        .update({
+
+            consent_version:
+                CURRENT_CONSENT_VERSION,
+
+            privacy_policy_version:
+                CURRENT_PRIVACY_POLICY_VERSION,
+
+            terms_version:
+                CURRENT_TERMS_VERSION,
+
+            medical_disclaimer_version:
+                CURRENT_MEDICAL_DISCLAIMER_VERSION,
+
+            ai_disclaimer_version:
+                CURRENT_AI_DISCLAIMER_VERSION,
+
+            privacy_panel:
+                consentState.privacyPanel,
+
+            family_panel:
+                consentState.familyPanel,
+
+            tracking_panel:
+                consentState.trackingPanel,
+
+            security_panel:
+                consentState.securityPanel,
+
+            medical_panel:
+                consentState.medicalPanel,
+
+            legal_data_protection_panel:
+                consentState.legalDataProtectionPanel,
+
+            storage_processing_panel:
+                consentState.storageProcessingPanel,
+
+            retention_deletion_panel:
+                consentState.retentionDeletionPanel,
+
+            voluntary_processing_agreement:
+                consentState.voluntaryProcessingAgreement,
+
+            terms_medical_agreement:
+                consentState.termsMedicalAgreement,
+
+            privacy_policy_acknowledgement:
+                consentState.privacyPolicyAcknowledgement,
+
+            language:
+                DEFAULT_CONSENT_LANGUAGE,
+
+            accepted:
+                true,
+
+            accepted_at:
+                new Date().toISOString(),
+
+            updated_at:
+                new Date().toISOString(),
+
+        })
+        .eq(
+            "id",
+            existingConsent.id
+        );
+
+    if (consentUpdateError) {
+
+        throw consentUpdateError;
+
+    }
+
+} else {
+
     await consentRepository.create({
 
         userId,
@@ -139,6 +224,8 @@ async acceptConsent(
         acceptedAt: new Date(),
 
     });
+
+}
 
     const authorizationHandoff =
         carevrAuthorizationHandoff.get();
