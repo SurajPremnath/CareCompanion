@@ -126,6 +126,18 @@ const [
 ] =
     useState(false);
 
+const [
+    invitationAlreadyExists,
+    setInvitationAlreadyExists,
+] =
+    useState(false);
+
+const [
+    recreatingInvitation,
+    setRecreatingInvitation,
+] =
+    useState(false);
+
     const [
         activationLink,
         setActivationLink,
@@ -408,21 +420,18 @@ if (!response.ok) {
             ? result.error
             : "";
 
-    if (
-        errorMessage.includes(
-            "ux_carevr_product_invitations_email"
-        ) ||
-        errorMessage.includes(
-            "duplicate key value violates unique constraint"
-        )
-    ) {
+if (
+    errorMessage.includes(
+        "ux_carevr_product_invitations_email"
+    )
+) {
 
-        throw new Error(
-            "An invitation already exists for this email address. " +
-            "The person may already have a CareVR invitation or account."
-        );
+    setEmail(normalizedEmail);
+    setInvitationAlreadyExists(true);
 
-    }
+    return;
+
+}
 
     throw new Error(
         errorMessage ||
@@ -507,6 +516,141 @@ const activationUrl =
 
         }
 
+
+    };
+
+
+const handleRecreateInvitation =
+    async () => {
+
+        const normalizedEmail =
+            email.trim().toLowerCase();
+
+        if (
+            !normalizedEmail ||
+            recreatingInvitation
+        ) {
+            return;
+        }
+
+        setRecreatingInvitation(true);
+
+        try {
+
+            const {
+                data: {
+                    session,
+                },
+            } =
+                await supabase.auth.getSession();
+
+            if (!session?.access_token) {
+
+                throw new Error(
+                    "Your session has expired. Please sign in again."
+                );
+
+            }
+
+            const response =
+                await fetch(
+                    "/api/access-management/access-to-carevr/invitations/recreate",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                            Authorization:
+                                `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({
+                            email:
+                                normalizedEmail,
+                        }),
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (!response.ok) {
+
+                throw new Error(
+                    typeof result.error === "string"
+                        ? result.error
+                        : "Unable to recreate the invitation."
+                );
+
+            }
+
+            const token =
+                result.activationToken;
+
+            if (
+                typeof token !== "string" ||
+                !token
+            ) {
+
+                throw new Error(
+                    "Activation token was not returned."
+                );
+
+            }
+
+            const activationUrl =
+                `https://carevr.in/register?productInvitationToken=${encodeURIComponent(
+                    token
+                )}`;
+
+            const template =
+                productInvitationTemplate.create({
+                    inviteeEmail:
+                        normalizedEmail,
+                    activationUrl,
+                    expiresAt:
+                        result.expiresAt
+                            ? new Date(
+                                  result.expiresAt
+                              ).toLocaleDateString()
+                            : "7 days",
+                });
+
+            setActivationLink(
+                activationUrl
+            );
+
+            setInvitationTemplateSubject(
+                template.subject
+            );
+
+            setInvitationTemplateBody(
+                template.body
+            );
+
+            setInvitationAlreadyExists(false);
+            setCreated(true);
+            setEmailSent(false);
+
+        }
+        catch (error) {
+
+            console.error(
+                "Unable to recreate CareVR invitation.",
+                error
+            );
+
+            alert(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to recreate invitation."
+            );
+
+        }
+        finally {
+
+            setRecreatingInvitation(false);
+
+        }
 
     };
 
@@ -811,6 +955,44 @@ const handleSendToEmail =
                         </p>
 
                     </div>
+
+{invitationAlreadyExists && !created && (
+
+    <div className="access-carevr-existing-invitation">
+
+        <strong>
+            Invitation already exists
+        </strong>
+
+        <p>
+            An active invitation already exists for{" "}
+            <strong>{email}</strong>.
+        </p>
+
+        <p>
+            Would you like to recreate the invitation
+            for <strong>{email}</strong>?
+            A new secure invitation link will be generated.
+        </p>
+
+        <button
+            type="button"
+            className="access-carevr-primary-button"
+            onClick={
+                handleRecreateInvitation
+            }
+            disabled={
+                recreatingInvitation
+            }
+        >
+            {recreatingInvitation
+                ? "Recreating..."
+                : "Recreate Invitation"}
+        </button>
+
+    </div>
+
+)}
 
 
                     {created && (
@@ -1256,6 +1438,33 @@ const handleSendToEmail =
                     font-size: 13px;
                     line-height: 1.5;
                 }
+
+.access-carevr-existing-invitation {
+    padding: 18px;
+    margin-bottom: 22px;
+    border: 1px solid #ddd6fe;
+    border-radius: 10px;
+    background: #f5f3ff;
+}
+
+.access-carevr-existing-invitation > strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #5b21b6;
+    font-size: 15px;
+}
+
+.access-carevr-existing-invitation p {
+    margin: 6px 0 0;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.access-carevr-existing-invitation p strong {
+    color: #172033;
+}
+
 
                 .access-carevr-template-section {
                     margin-top: 4px;
