@@ -2888,7 +2888,53 @@ onChange={event => {
     font-weight: 500;
 }
 
-                .invitee-email-input-wrap {
+.invitation-already-exists {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 14px;
+    border: 1px solid #d9e6f4;
+    border-radius: 13px;
+    background: #f4f9ff;
+}
+
+.invitation-already-exists strong {
+    color: #244d82;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.invitation-already-exists p {
+    margin: 0;
+    color: #6e819d;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.invitation-already-exists button {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 4px;
+    border: 0;
+    border-radius: 11px;
+    background: #2878d5;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.invitation-already-exists button:hover:not(:disabled) {
+    background: #216cc4;
+}
+
+.invitation-already-exists button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.invitee-email-input-wrap {
                     display: flex;
                     align-items: center;
                     gap: 9px;
