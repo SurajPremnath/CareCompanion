@@ -752,16 +752,115 @@ if (!authorizationHandoff) {
 if (registrationContext !== "PRODUCT") {
 
     const {
-        error: permissionsError,
+        data: existingPermissions,
+        error: existingPermissionsError,
     } = await supabase
         .from("carevr_module_permissions")
-        .insert(
-            permissions
+        .select(
+            "module, permission, status"
+        )
+        .eq(
+            "carevr_access_id",
+            carevrAccessId
         );
 
-    if (permissionsError) {
+    if (existingPermissionsError) {
 
-        throw permissionsError;
+        throw existingPermissionsError;
+
+    }
+
+    const expectedPermissions =
+        permissions
+            .map(
+                (permission) => ({
+                    module:
+                        permission.module,
+                    permission:
+                        permission.permission,
+                    status:
+                        permission.status,
+                })
+            )
+            .sort(
+                (a, b) =>
+                    `${a.module}|${a.permission}|${a.status}`
+                        .localeCompare(
+                            `${b.module}|${b.permission}|${b.status}`
+                        )
+            );
+
+    const actualPermissions =
+        (existingPermissions ?? [])
+            .map(
+                (permission) => ({
+                    module:
+                        permission.module,
+                    permission:
+                        permission.permission,
+                    status:
+                        permission.status,
+                })
+            )
+            .sort(
+                (a, b) =>
+                    `${a.module}|${a.permission}|${a.status}`
+                        .localeCompare(
+                            `${b.module}|${b.permission}|${b.status}`
+                        )
+                );
+
+    const permissionsMatch =
+        expectedPermissions.length ===
+            actualPermissions.length &&
+        expectedPermissions.every(
+            (expected, index) =>
+                expected.module ===
+                    actualPermissions[index].module &&
+                expected.permission ===
+                    actualPermissions[index].permission &&
+                expected.status ===
+                    actualPermissions[index].status
+        );
+
+    if (!permissionsMatch) {
+
+        if (
+            existingPermissions &&
+            existingPermissions.length > 0
+        ) {
+
+            const {
+                error: deletePermissionsError,
+            } = await supabase
+                .from("carevr_module_permissions")
+                .delete()
+                .eq(
+                    "carevr_access_id",
+                    carevrAccessId
+                );
+
+            if (deletePermissionsError) {
+
+                throw deletePermissionsError;
+
+            }
+
+        }
+
+        const {
+            error: permissionsError,
+        } = await supabase
+            .from("carevr_module_permissions")
+            .insert(
+                permissions
+            );
+
+        if (permissionsError) {
+
+            throw permissionsError;
+
+        }
 
     }
 
