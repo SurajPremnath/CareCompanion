@@ -79,67 +79,6 @@ async acceptConsent(
     const userId =
         await authService.getCurrentUserId();
 
-    await consentRepository.create({
-
-        userId,
-
-        consentVersion:
-            CURRENT_CONSENT_VERSION,
-
-        privacyPolicyVersion:
-            CURRENT_PRIVACY_POLICY_VERSION,
-
-        termsVersion:
-            CURRENT_TERMS_VERSION,
-
-        medicalDisclaimerVersion:
-            CURRENT_MEDICAL_DISCLAIMER_VERSION,
-
-        aiDisclaimerVersion:
-            CURRENT_AI_DISCLAIMER_VERSION,
-
-        privacyPanel:
-            consentState.privacyPanel,
-
-        familyPanel:
-            consentState.familyPanel,
-
-        trackingPanel:
-            consentState.trackingPanel,
-
-        securityPanel:
-            consentState.securityPanel,
-
-        medicalPanel:
-            consentState.medicalPanel,
-
-        legalDataProtectionPanel:
-            consentState.legalDataProtectionPanel,
-
-        storageProcessingPanel:
-            consentState.storageProcessingPanel,
-
-        retentionDeletionPanel:
-            consentState.retentionDeletionPanel,
-
-        voluntaryProcessingAgreement:
-            consentState.voluntaryProcessingAgreement,
-
-        termsMedicalAgreement:
-            consentState.termsMedicalAgreement,
-
-        privacyPolicyAcknowledgement:
-            consentState.privacyPolicyAcknowledgement,
-
-        language:
-            DEFAULT_CONSENT_LANGUAGE,
-
-        accepted: true,
-
-        acceptedAt: new Date(),
-
-    });
-
     const authorizationHandoff =
         carevrAuthorizationHandoff.get();
 
@@ -187,6 +126,77 @@ async acceptConsent(
         );
 
     }
+
+
+    await consentRepository.create(
+
+        {
+
+            userId,
+
+            consentVersion:
+                CURRENT_CONSENT_VERSION,
+
+            privacyPolicyVersion:
+                CURRENT_PRIVACY_POLICY_VERSION,
+
+            termsVersion:
+                CURRENT_TERMS_VERSION,
+
+            medicalDisclaimerVersion:
+                CURRENT_MEDICAL_DISCLAIMER_VERSION,
+
+            aiDisclaimerVersion:
+                CURRENT_AI_DISCLAIMER_VERSION,
+
+            privacyPanel:
+                consentState.privacyPanel,
+
+            familyPanel:
+                consentState.familyPanel,
+
+            trackingPanel:
+                consentState.trackingPanel,
+
+            securityPanel:
+                consentState.securityPanel,
+
+            medicalPanel:
+                consentState.medicalPanel,
+
+            legalDataProtectionPanel:
+                consentState.legalDataProtectionPanel,
+
+            storageProcessingPanel:
+                consentState.storageProcessingPanel,
+
+            retentionDeletionPanel:
+                consentState.retentionDeletionPanel,
+
+            voluntaryProcessingAgreement:
+                consentState.voluntaryProcessingAgreement,
+
+            termsMedicalAgreement:
+                consentState.termsMedicalAgreement,
+
+            privacyPolicyAcknowledgement:
+                consentState.privacyPolicyAcknowledgement,
+
+            language:
+                DEFAULT_CONSENT_LANGUAGE,
+
+            accepted:
+                true,
+
+            acceptedAt:
+                new Date(),
+
+        },
+
+        authorizationHandoff.familyId ?? null
+
+    );
+
 
     const {
         data: governance,
@@ -336,11 +346,11 @@ async acceptConsent(
         carevrAccessId =
             carevrAccess.id;
 
-    digitalHealthProfileRole =
-        authorizationHandoff.carevrRole;
-
+        digitalHealthProfileRole =
+            authorizationHandoff.carevrRole;
 
     }
+
 
     const permissions =
         governanceModules.map(
@@ -363,45 +373,47 @@ async acceptConsent(
             })
         );
 
-if (registrationContext !== "PRODUCT") {
 
-    const {
-        error: permissionsError,
-    } = await supabase
-        .from("carevr_module_permissions")
-        .insert(
-            permissions
-        );
+    if (registrationContext !== "PRODUCT") {
 
-    if (permissionsError) {
+        const {
+            error: permissionsError,
+        } = await supabase
+            .from("carevr_module_permissions")
+            .insert(
+                permissions
+            );
 
-        throw permissionsError;
+        if (permissionsError) {
+
+            throw permissionsError;
+
+        }
 
     }
 
-}
 
-const {
-    error: digitalHealthProfileError,
-} = await supabase
-    .from("digital_health_profile")
-    .update({
-        carevr_access_id:
-            carevrAccessId,
+    const {
+        error: digitalHealthProfileError,
+    } = await supabase
+        .from("digital_health_profile")
+        .update({
+            carevr_access_id:
+                carevrAccessId,
 
-        role:
-            digitalHealthProfileRole,
-    })
-    .eq(
-        "user_id",
-        userId
-    );
+            role:
+                digitalHealthProfileRole,
+        })
+        .eq(
+            "user_id",
+            userId
+        );
 
-if (digitalHealthProfileError) {
+    if (digitalHealthProfileError) {
 
-    throw digitalHealthProfileError;
+        throw digitalHealthProfileError;
 
-}
+    }
 
 
     /*
@@ -415,6 +427,7 @@ if (digitalHealthProfileError) {
      * The Primary/self path has no invitation and is
      * therefore intentionally left unchanged.
      */
+
     if (
         authorizationHandoff.carevrRole !==
         "PRIMARY"
@@ -501,12 +514,13 @@ if (digitalHealthProfileError) {
 
 }
 
-    async hasAcceptedCurrentConsent(): Promise<boolean> {
 
-        return await consentRepository
-            .hasAcceptedCurrentConsent();
+async hasAcceptedCurrentConsent(): Promise<boolean> {
 
-    }
+    return await consentRepository
+        .hasAcceptedCurrentConsent();
+
+}
 
 }
 

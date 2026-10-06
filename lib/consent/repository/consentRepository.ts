@@ -42,13 +42,15 @@ CURRENT_CONSENT_VERSION
 
 }
 
+
 async create(
     consent: Omit<
         Consent,
         "id" |
         "createdAt" |
         "updatedAt"
-    >
+    >,
+    familyId: string | null
 ): Promise<Consent> {
 
     const payload =
@@ -56,12 +58,89 @@ async create(
             consent
         );
 
+    let existingQuery =
+        supabase
+            .from("user_consents")
+            .select("id")
+            .eq(
+                "user_id",
+                consent.userId
+            );
+
+    if (familyId) {
+
+        existingQuery =
+            existingQuery.eq(
+                "family_id",
+                familyId
+            );
+
+    } else {
+
+        existingQuery =
+            existingQuery.is(
+                "family_id",
+                null
+            );
+
+    }
+
+    const {
+        data: existingConsent,
+        error: existingConsentError,
+    } =
+        await existingQuery
+            .maybeSingle();
+
+    if (existingConsentError) {
+
+        throw existingConsentError;
+
+    }
+
+
+    if (existingConsent) {
+
+        const {
+            data,
+            error,
+        } = await supabase
+            .from("user_consents")
+            .update({
+                ...payload,
+                family_id:
+                    familyId,
+            })
+            .eq(
+                "id",
+                existingConsent.id
+            )
+            .select()
+            .single();
+
+        if (error) {
+
+            throw error;
+
+        }
+
+        return ConsentMapper.toDomain(
+            data as ConsentRow
+        );
+
+    }
+
+
     const {
         data,
         error,
     } = await supabase
         .from("user_consents")
-        .insert(payload)
+        .insert({
+            ...payload,
+            family_id:
+                familyId,
+        })
         .select()
         .single();
 
@@ -77,6 +156,7 @@ async create(
 
 }
 
+
 async getCurrentUserConsent(): Promise<Consent | null> {
 
     const userId =
@@ -88,15 +168,18 @@ async getCurrentUserConsent(): Promise<Consent | null> {
     } = await supabase
         .from("user_consents")
         .select("*")
-        .eq("user_id", userId)
+        .eq(
+            "user_id",
+            userId
+        )
         .order(
-    "accepted_at",
-    {
-        ascending: false,
-    }
-)
-.limit(1)
-.maybeSingle();
+            "accepted_at",
+            {
+                ascending: false,
+            }
+        )
+        .limit(1)
+        .maybeSingle();
 
     if (error) {
 
