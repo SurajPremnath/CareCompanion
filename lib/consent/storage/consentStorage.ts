@@ -253,16 +253,95 @@ if (existingConsent) {
 
 }
 
-    const authorizationHandoff =
-        carevrAuthorizationHandoff.get();
+const existingAuthorizationHandoff =
+    carevrAuthorizationHandoff.get();
 
-    if (!authorizationHandoff) {
+let authorizationHandoff =
+    existingAuthorizationHandoff;
+
+if (!authorizationHandoff) {
+
+    const {
+        data: digitalHealthProfile,
+        error: digitalHealthProfileError,
+    } = await supabase
+        .from("digital_health_profile")
+        .select(
+            "family_id, role, invitation_status, consent_status, carevr_access_id"
+        )
+        .eq(
+            "user_id",
+            userId
+        )
+        .eq(
+            "invitation_status",
+            "ACCEPTED"
+        )
+        .limit(1)
+        .maybeSingle();
+
+    if (digitalHealthProfileError) {
+
+        throw digitalHealthProfileError;
+
+    }
+
+    if (!digitalHealthProfile) {
 
         throw new Error(
-            "CareVR authorization handoff is missing."
+            "Digital health profile is missing."
         );
 
     }
+
+    const carevrRole =
+        digitalHealthProfile.role ===
+        "DOCTOR"
+            ? "DOCTOR"
+            : digitalHealthProfile.role ===
+                "CARETAKER"
+                ? "CARETAKER"
+                : digitalHealthProfile.role ===
+                    "SECONDARY_FAMILY_MEMBER"
+                    ? "SECONDARY_FAMILY_MEMBER"
+                    : "PRIMARY";
+
+    authorizationHandoff = {
+
+        userId:
+
+            userId,
+
+        carevrRole,
+
+        familyId:
+
+            digitalHealthProfile.family_id ??
+            null,
+
+        patientId:
+
+            null,
+
+        consentStage:
+
+            "POST_LOGIN",
+
+        governanceId:
+
+            null,
+
+        governanceVersion:
+
+            null,
+
+    };
+
+    carevrAuthorizationHandoff.set(
+        authorizationHandoff
+    );
+
+}
 
     if (authorizationHandoff.userId !== userId) {
 
