@@ -596,9 +596,10 @@ return (
 
     .carevr-mobile-header-actions {
         order: 3;
-        width: 100%;
+        width: auto;
         justify-content: flex-end;
         margin-top: 4px;
+        margin-right: 26px;
     }
 
     .carevr-mobile-mode-toggle {
@@ -606,7 +607,6 @@ return (
         transform: none;
     }
 }
-
 
 
 .carevr-mobile-page-title h1 {

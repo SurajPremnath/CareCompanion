@@ -684,6 +684,10 @@ useEffect(() => {
 */
 
 useEffect(() => {
+    if (isRecreateMode) {
+        return;
+    }
+
     let cancelled = false;
 
     const loadProfileName = async () => {
@@ -932,9 +936,14 @@ authenticatedUserRef.current = {
 
 }, [
     registrationContext,
+    isRecreateMode,
 ]);
 
 useEffect(() => {
+    if (isRecreateMode) {
+        return;
+    }
+
     if (!consentAccepted) {
         return;
     }
@@ -1051,7 +1060,10 @@ return;
     return () => {
         cancelled = true;
     };
-}, [consentAccepted]);
+}, [
+    consentAccepted,
+    isRecreateMode,
+]);
 
 
     const handlePinChange = (
