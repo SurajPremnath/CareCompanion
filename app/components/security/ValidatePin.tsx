@@ -336,77 +336,57 @@ try {
 
 
 
-        setAttemptsRemaining(null);
-        setPin("");
-
-
-
-    /*
-     * =========================================================
-     * DIGITAL HEALTH PROFILE + CAREVR ACCESS
-     * =========================================================
-     *
-     * digital_health_profile is now the routing source.
-     *
-     * Each profile already contains carevr_access_id, so the
-     * profile and its corresponding CareVR access are retrieved
-     * together in a single query.
-     *
-     * Result:
-     *
-     *   1 record → SINGLE
-     *   2 records → DUAL
-     *
-     * No getAvailableContexts() call is required.
-     */
+setAttemptsRemaining(null);
+setPin("");
 
 /*
  * =========================================================
- * START DASHBOARD HANDOFF ANIMATION
+ * DIGITAL HEALTH PROFILE + CAREVR ACCESS
  * =========================================================
- *
- * Start the visual handoff before the asynchronous
- * CareVR profile/access resolution begins.
- *
- * The real authorization handoff below still controls
- * when the animation is allowed to complete.
  */
 
-setDashboardHandoffReady(false);
+/*
+ * Query the Digital Health Profile first.
+ *
+ * Do not filter by digital_health_flag here.
+ * A profile with consent pending legitimately has:
+ *
+ *     invitation_status = ACCEPTED
+ *     consent_status    = PENDING
+ *     digital_health_flag = false
+ *
+ * That profile must still be found so the user can
+ * resume the Consent flow.
+ */
 
-setDashboardAnimationComplete(false);
-
-setShowDashboardHandoff(true);
-
-    const {
-        data: digitalHealthProfiles,
-        error: digitalHealthProfileError,
-    } =
-        await supabase
-            .from("digital_health_profile")
-            .select(`
+const {
+    data: digitalHealthProfiles,
+    error: digitalHealthProfileError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .select(`
+            id,
+            family_id,
+            invitation_status,
+            consent_status,
+            digital_health_flag,
+            role_status,
+            role,
+            is_default_profile,
+            carevr_access_id,
+            carevr_access:carevr_access_id (
                 id,
+                user_id,
                 family_id,
-                role_status,
-                role,
-                is_default_profile,
-                carevr_access_id,
-                carevr_access:carevr_access_id (
-                    id,
-                    user_id,
-                    family_id,
-                    access_type,
-                    access_status
-                )
-            `)
-            .eq(
-                "user_id",
-                userId
+                access_type,
+                access_status
             )
-            .eq(
-                "digital_health_flag",
-                true
-            );
+        `)
+        .eq(
+            "user_id",
+            userId
+        );
 
 
     if (
@@ -418,16 +398,90 @@ setShowDashboardHandoff(true);
     }
 
 
-    if (
-        !digitalHealthProfiles ||
-        digitalHealthProfiles.length === 0
-    ) {
+if (
+    !digitalHealthProfiles ||
+    digitalHealthProfiles.length === 0
+) {
 
-        throw new Error(
-            "CareVR digital health profile could not be found."
-        );
+    throw new Error(
+        "CareVR digital health profile could not be found."
+    );
 
-    }
+}
+
+
+/*
+ * =========================================================
+ * DIGITAL HEALTH PROFILE LIFECYCLE CHECK
+ * =========================================================
+ *
+ * Digital Health Profile is checked before Dashboard
+ * handoff begins.
+ *
+ * The number of records determines SINGLE / DUAL.
+ * Lifecycle state determines whether the user may proceed.
+ */
+
+
+/*
+ * =========================================================
+ * INVITATION STATUS
+ * =========================================================
+ */
+
+const invitationPendingProfile =
+    digitalHealthProfiles.find(
+        (profile) =>
+            profile.invitation_status !== "ACCEPTED"
+    );
+
+if (invitationPendingProfile) {
+
+    throw new Error(
+        "Your CareVR invitation has not been accepted."
+    );
+}
+
+/*
+ * =========================================================
+ * DIGITAL HEALTH FLAG
+ * =========================================================
+ *
+ * Consent is accepted at this point.
+ * digital_health_flag should therefore be TRUE.
+ *
+ * A FALSE value represents an inconsistent lifecycle state
+ * and must not proceed to Dashboard.
+ */
+
+const incompleteDigitalHealthProfile =
+    digitalHealthProfiles.find(
+        (profile) =>
+            profile.digital_health_flag !== true
+    );
+
+if (incompleteDigitalHealthProfile) {
+
+    throw new Error(
+        "Your CareVR profile is not ready for Dashboard access."
+    );
+}
+
+
+/*
+ * =========================================================
+ * START DASHBOARD HANDOFF ANIMATION
+ * =========================================================
+ *
+ * Invitation, Consent and Digital Health lifecycle checks
+ * have now passed.
+ */
+
+setDashboardHandoffReady(false);
+
+setDashboardAnimationComplete(false);
+
+setShowDashboardHandoff(true);
 
 
     /*

@@ -538,6 +538,22 @@ router.replace(
 
                 </div>
 
+
+{!allSectionsReviewed && (
+    <p
+        style={{
+            fontWeight: 700,
+            marginTop: "18px",
+            marginBottom: "18px",
+            textAlign: "center",
+        }}
+    >
+        PLEASE READ THROUGH ALL 8 SECTIONS ABOVE BEFORE TRYING
+        TO CHECK THE CHECKBOXES. ONCE DONE THE CHECKBOXES WILL
+        BE ACTIVE FOR YOU TO CHOOSE AND PROCEED.
+    </p>
+)}
+
                 <div style={styles.buttonContainer}>
 
                     <button
