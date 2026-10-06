@@ -3203,18 +3203,14 @@ if (
 
 @media (max-width: 640px) {
 
-    .record-health-page {
-        height: 100dvh;
-        min-height: 100dvh;
-        overflow: hidden;
-    }
+.record-health-page {
+    min-height: 100dvh;
+}
 
-    .record-health-shell {
-        position: relative;
-        height: 100dvh;
-        min-height: 100dvh;
-        overflow: hidden;
-    }
+.record-health-shell {
+    position: relative;
+    min-height: 100dvh;
+}
 
     .record-health-content {
         width: 100%;
