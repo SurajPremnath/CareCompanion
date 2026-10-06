@@ -725,6 +725,10 @@ const registrationContext =
 
 useEffect(() => {
 
+    if (isRecreateMode) {
+        return;
+    }
+
     let cancelled = false;
 
     const loadCareVRContext = async () => {
