@@ -479,6 +479,12 @@ if (consentPendingProfile) {
                     ? "SECONDARY_FAMILY_MEMBER"
                     : "PRIMARY";
 
+const registrationContext =
+    carevrRole === "PRIMARY"
+        ? "PRODUCT"
+        : "INVITATION";
+
+
     carevrAuthorizationHandoff.set({
 
         userId:
@@ -504,9 +510,11 @@ if (consentPendingProfile) {
 
     });
 
-    router.replace(
-        "/consent"
-    );
+router.replace(
+    `/consent?registrationContext=${encodeURIComponent(
+        registrationContext
+    )}`
+);
 
     return;
 }
