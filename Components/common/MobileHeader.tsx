@@ -626,8 +626,8 @@ return (
 
 .carevr-mobile-logo {
     display: block;
-    width: 140px;
-    height: 50px;
+    width: 170px;
+    height: 70px;
     object-fit: contain;
     object-position: left center;
     flex: 0 0 auto;
@@ -825,8 +825,8 @@ return (
 
 @media (max-width: 420px) {
     .carevr-mobile-logo {
-        width: 130px;
-        height: 46px;
+        width: 170px;
+        height: 70px;
         max-width: 130px;
     }
 

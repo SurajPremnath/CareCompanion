@@ -1960,21 +1960,7 @@ if (showDashboardHandoff) {
     </>
 )}
 
-            <footer className="page-footer">
-
-                <div className="footer-tagline">
-                    Care Today. A Healthier Tomorrow.
-                </div>
-
-                <div className="footer-values">
-                    <span>SIMPLE</span>
-                    <span>|</span>
-                    <span>SECURE</span>
-                    <span>|</span>
-                    <span>TOGETHER</span>
-                </div>
-
-            </footer>
+<CareVRFooter />
 
 
             <style jsx>{`
