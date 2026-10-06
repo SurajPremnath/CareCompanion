@@ -456,7 +456,57 @@ if (consentPendingProfile) {
 
     setDashboardAnimationComplete(false);
 
-    router.replace("/consent");
+    /*
+     * Re-establish the authorization handoff
+     * before returning the user to Consent.
+     *
+     * The original Create PIN flow establishes
+     * this handoff before entering Consent.
+     *
+     * Returning users reach Consent from Validate PIN,
+     * so the handoff must be reconstructed here.
+     */
+
+    const carevrRole =
+        consentPendingProfile.role ===
+        "DOCTOR"
+            ? "DOCTOR"
+            : consentPendingProfile.role ===
+                "CARETAKER"
+                ? "CARETAKER"
+                : consentPendingProfile.role ===
+                    "SECONDARY_FAMILY_MEMBER"
+                    ? "SECONDARY_FAMILY_MEMBER"
+                    : "PRIMARY";
+
+    carevrAuthorizationHandoff.set({
+
+        userId:
+            userId,
+
+        carevrRole,
+
+        familyId:
+            consentPendingProfile.family_id ??
+            null,
+
+        patientId:
+            null,
+
+        consentStage:
+            "POST_LOGIN",
+
+        governanceId:
+            null,
+
+        governanceVersion:
+            null,
+
+    });
+
+    router.replace(
+        "/consent"
+    );
 
     return;
 }

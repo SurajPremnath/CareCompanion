@@ -76,8 +76,119 @@ async acceptConsent(
 
     }
 
-    const userId =
-        await authService.getCurrentUserId();
+const userId =
+    await authService.getCurrentUserId();
+
+
+const {
+    data: existingConsent,
+    error: existingConsentError,
+} = await supabase
+    .from("user_consents")
+    .select("id")
+    .eq(
+        "user_id",
+        userId
+    )
+    .order(
+        "accepted_at",
+        {
+            ascending: false,
+        }
+    )
+    .limit(1)
+    .maybeSingle();
+
+
+if (existingConsentError) {
+
+    throw existingConsentError;
+
+}
+
+
+if (existingConsent) {
+
+    const {
+        error: consentUpdateError,
+    } = await supabase
+        .from("user_consents")
+        .update({
+
+            consent_version:
+                CURRENT_CONSENT_VERSION,
+
+            privacy_policy_version:
+                CURRENT_PRIVACY_POLICY_VERSION,
+
+            terms_version:
+                CURRENT_TERMS_VERSION,
+
+            medical_disclaimer_version:
+                CURRENT_MEDICAL_DISCLAIMER_VERSION,
+
+            ai_disclaimer_version:
+                CURRENT_AI_DISCLAIMER_VERSION,
+
+            privacy_panel:
+                consentState.privacyPanel,
+
+            family_panel:
+                consentState.familyPanel,
+
+            tracking_panel:
+                consentState.trackingPanel,
+
+            security_panel:
+                consentState.securityPanel,
+
+            medical_panel:
+                consentState.medicalPanel,
+
+            legal_data_protection_panel:
+                consentState.legalDataProtectionPanel,
+
+            storage_processing_panel:
+                consentState.storageProcessingPanel,
+
+            retention_deletion_panel:
+                consentState.retentionDeletionPanel,
+
+            voluntary_processing_agreement:
+                consentState.voluntaryProcessingAgreement,
+
+            terms_medical_agreement:
+                consentState.termsMedicalAgreement,
+
+            privacy_policy_acknowledgement:
+                consentState.privacyPolicyAcknowledgement,
+
+            language:
+                DEFAULT_CONSENT_LANGUAGE,
+
+            accepted:
+                true,
+
+            accepted_at:
+                new Date().toISOString(),
+
+            updated_at:
+                new Date().toISOString(),
+
+        })
+        .eq(
+            "id",
+            existingConsent.id
+        );
+
+
+    if (consentUpdateError) {
+
+        throw consentUpdateError;
+
+    }
+
+} else {
 
     await consentRepository.create({
 
@@ -139,6 +250,8 @@ async acceptConsent(
         acceptedAt: new Date(),
 
     });
+
+}
 
     const authorizationHandoff =
         carevrAuthorizationHandoff.get();
@@ -299,45 +412,239 @@ async acceptConsent(
 
     } else {
 
-        const {
-            data: carevrAccess,
-            error: carevrAccessError,
-        } = await supabase
-            .from("carevr_access")
-            .insert({
-                user_id:
-                    authorizationHandoff.userId,
+        let carevrAccess:
+            {
+                id: string;
+                access_status: string | null;
+            } | null = null;
 
-                family_id:
-                    authorizationHandoff.familyId,
 
-                patient_id:
-                    authorizationHandoff.patientId,
+        let carevrAccessError:
+            Error | null = null;
 
-                access_type:
-                    authorizationHandoff.carevrRole,
 
-                access_status:
-                    "ACTIVE",
+        if (
+            authorizationHandoff.familyId !==
+            null
+        ) {
 
-                granted_by:
-                    userId,
+            const {
+                data: existingCarevrAccess,
+                error: existingCarevrAccessError,
+            } = await supabase
+                .from("carevr_access")
+                .select(
+                    "id, access_status"
+                )
+                .eq(
+                    "user_id",
+                    authorizationHandoff.userId
+                )
+                .eq(
+                    "family_id",
+                    authorizationHandoff.familyId
+                )
+                .eq(
+                    "access_type",
+                    authorizationHandoff.carevrRole
+                )
+                .maybeSingle();
 
-            })
-            .select("id")
-            .single();
 
-        if (carevrAccessError) {
+            if (
+                existingCarevrAccessError
+            ) {
 
-            throw carevrAccessError;
+                throw existingCarevrAccessError;
+
+            }
+
+
+            if (
+                existingCarevrAccess
+            ) {
+
+                carevrAccess =
+                    existingCarevrAccess;
+
+
+                if (
+                    existingCarevrAccess.access_status !==
+                    "ACTIVE"
+                ) {
+
+                    const {
+                        data: updatedCarevrAccess,
+                        error: updateCarevrAccessError,
+                    } = await supabase
+                        .from("carevr_access")
+                        .update({
+                            access_status:
+                                "ACTIVE",
+                        })
+                        .eq(
+                            "id",
+                            existingCarevrAccess.id
+                        )
+                        .select(
+                            "id, access_status"
+                        )
+                        .single();
+
+
+                    if (
+                        updateCarevrAccessError
+                    ) {
+
+                        throw updateCarevrAccessError;
+
+                    }
+
+
+                    carevrAccess =
+                        updatedCarevrAccess;
+
+                }
+
+            }
+
+        } else {
+
+            const {
+                data: existingCarevrAccess,
+                error: existingCarevrAccessError,
+            } = await supabase
+                .from("carevr_access")
+                .select(
+                    "id, access_status"
+                )
+                .eq(
+                    "user_id",
+                    authorizationHandoff.userId
+                )
+                .is(
+                    "family_id",
+                    null
+                )
+                .eq(
+                    "access_type",
+                    authorizationHandoff.carevrRole
+                )
+                .maybeSingle();
+
+
+            if (
+                existingCarevrAccessError
+            ) {
+
+                throw existingCarevrAccessError;
+
+            }
+
+
+            if (
+                existingCarevrAccess
+            ) {
+
+                carevrAccess =
+                    existingCarevrAccess;
+
+
+                if (
+                    existingCarevrAccess.access_status !==
+                    "ACTIVE"
+                ) {
+
+                    const {
+                        data: updatedCarevrAccess,
+                        error: updateCarevrAccessError,
+                    } = await supabase
+                        .from("carevr_access")
+                        .update({
+                            access_status:
+                                "ACTIVE",
+                        })
+                        .eq(
+                            "id",
+                            existingCarevrAccess.id
+                        )
+                        .select(
+                            "id, access_status"
+                        )
+                        .single();
+
+
+                    if (
+                        updateCarevrAccessError
+                    ) {
+
+                        throw updateCarevrAccessError;
+
+                    }
+
+
+                    carevrAccess =
+                        updatedCarevrAccess;
+
+                }
+
+            }
 
         }
+
+
+        if (!carevrAccess) {
+
+            const {
+                data: insertedCarevrAccess,
+                error: insertedCarevrAccessError,
+            } = await supabase
+                .from("carevr_access")
+                .insert({
+                    user_id:
+                        authorizationHandoff.userId,
+
+                    family_id:
+                        authorizationHandoff.familyId,
+
+                    patient_id:
+                        authorizationHandoff.patientId,
+
+                    access_type:
+                        authorizationHandoff.carevrRole,
+
+                    access_status:
+                        "ACTIVE",
+
+                    granted_by:
+                        userId,
+
+                })
+                .select("id, access_status")
+                .single();
+
+
+            if (
+                insertedCarevrAccessError
+            ) {
+
+                throw insertedCarevrAccessError;
+
+            }
+
+
+            carevrAccess =
+                insertedCarevrAccess;
+
+        }
+
 
         carevrAccessId =
             carevrAccess.id;
 
-    digitalHealthProfileRole =
-        authorizationHandoff.carevrRole;
+
+        digitalHealthProfileRole =
+            authorizationHandoff.carevrRole;
 
 
     }
