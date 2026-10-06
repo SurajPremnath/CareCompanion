@@ -57,51 +57,6 @@ async create(
         );
 
     const {
-        data: existingConsent,
-        error: existingConsentError,
-    } = await supabase
-        .from("user_consents")
-        .select("id")
-        .eq(
-            "user_id",
-            consent.userId
-        )
-        .maybeSingle();
-
-    if (existingConsentError) {
-
-        throw existingConsentError;
-
-    }
-
-    if (existingConsent) {
-
-        const {
-            data,
-            error,
-        } = await supabase
-            .from("user_consents")
-            .update(payload)
-            .eq(
-                "id",
-                existingConsent.id
-            )
-            .select()
-            .single();
-
-        if (error) {
-
-            throw error;
-
-        }
-
-        return ConsentMapper.toDomain(
-            data as ConsentRow
-        );
-
-    }
-
-    const {
         data,
         error,
     } = await supabase
