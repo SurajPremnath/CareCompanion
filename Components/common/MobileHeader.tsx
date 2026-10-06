@@ -830,6 +830,9 @@ return (
         max-width: 130px;
     }
 
+/*
+Left shift of initial buttons
+*/
 .carevr-mobile-header-actions {
     display: flex;
     align-items: center;
