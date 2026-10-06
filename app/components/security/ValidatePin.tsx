@@ -409,20 +409,6 @@ if (
 
 }
 
-
-/*
- * =========================================================
- * DIGITAL HEALTH PROFILE LIFECYCLE CHECK
- * =========================================================
- *
- * Digital Health Profile is checked before Dashboard
- * handoff begins.
- *
- * The number of records determines SINGLE / DUAL.
- * Lifecycle state determines whether the user may proceed.
- */
-
-
 /*
  * =========================================================
  * INVITATION STATUS
@@ -442,29 +428,37 @@ if (invitationPendingProfile) {
     );
 }
 
+
 /*
  * =========================================================
- * DIGITAL HEALTH FLAG
+ * DIGITAL HEALTH PROFILE LIFECYCLE CHECK
  * =========================================================
  *
- * Consent is accepted at this point.
- * digital_health_flag should therefore be TRUE.
+ * Digital Health Profile is checked before Dashboard
+ * handoff begins.
  *
- * A FALSE value represents an inconsistent lifecycle state
- * and must not proceed to Dashboard.
+ * The number of records determines SINGLE / DUAL.
+ * Lifecycle state determines whether the user may proceed.
  */
 
-const incompleteDigitalHealthProfile =
+
+const consentPendingProfile =
     digitalHealthProfiles.find(
         (profile) =>
-            profile.digital_health_flag !== true
+            profile.consent_status !== "ACCEPTED"
     );
 
-if (incompleteDigitalHealthProfile) {
+if (consentPendingProfile) {
 
-    throw new Error(
-        "Your CareVR profile is not ready for Dashboard access."
-    );
+    setShowDashboardHandoff(false);
+
+    setDashboardHandoffReady(false);
+
+    setDashboardAnimationComplete(false);
+
+    router.replace("/consent");
+
+    return;
 }
 
 
