@@ -1631,7 +1631,7 @@ if (showDashboardHandoff) {
 
                 <button
                     type="button"
-                    className="primary-button"
+                    className="create-button"
                     onClick={
                         handleRecreatePin
                     }
