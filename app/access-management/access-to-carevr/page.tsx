@@ -1080,11 +1080,12 @@ const handleSendToEmail =
     onClick={
         handleCreateInvitation
     }
-    disabled={
-        !email.trim() ||
-        created ||
-        creatingInvitation
-    }
+disabled={
+    !email.trim() ||
+    created ||
+    creatingInvitation ||
+    invitationAlreadyExists
+}
 >
     {creatingInvitation
         ? "Creating..."
