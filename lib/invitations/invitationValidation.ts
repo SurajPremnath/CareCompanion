@@ -23,12 +23,12 @@ export interface InvitationValidationData {
   userId: string;
   governanceId: string;
   governanceVersion: string;
-permittedModules: Array<{
-  id: string;
-  module: string;
-  requestedPermission: "VIEW" | "CONTRIBUTE" | "ADMIN";
-  permittedPermission: "VIEW" | "CONTRIBUTE" | "ADMIN";
-}>;
+  permittedModules: Array<{
+    id: string;
+    module: string;
+    requestedPermission: "VIEW" | "CONTRIBUTE" | "ADMIN";
+    permittedPermission: "VIEW" | "CONTRIBUTE" | "ADMIN";
+  }>;
   invitationAttemptNumber: number;
 }
 
@@ -300,35 +300,35 @@ if (latestInvitation) {
       latestInvitation.expires_at
     );
 
-  if (
+if (
     latestInvitation.status === "ACCEPTED"
-  ) {
+) {
     return {
-      success: false,
-      code:
-        "INVITATION_ALREADY_ACCEPTED",
-      message:
-        "This person has already accepted an invitation for this role."
+        success: false,
+        code:
+            "INVITATION_ALREADY_ACCEPTED",
+        message:
+            "This person has already accepted an invitation for this role."
     };
-  }
-
-  if (
-    latestInvitation.status === "PENDING" &&
-    expiresAt > now
-  ) {
-    return {
-      success: false,
-      code:
-        "INVITATION_ALREADY_ACTIVE",
-      message:
-        `An invitation for this person and role is already active. ` +
-        `The existing invitation was created on ${new Date(
-          latestInvitation.created_at
-        ).toLocaleString()}.`
-    };
-  }
 }
 
+if (
+    latestInvitation.status === "PENDING" &&
+    expiresAt > now
+) {
+    return {
+        success: false,
+        code:
+            "INVITATION_ALREADY_ACTIVE",
+        message:
+            `An invitation for this person and role is already active. ` +
+            `The existing invitation was created on ${new Date(
+                latestInvitation.created_at
+            ).toLocaleString()}.`
+    };
+}
+
+}
     // ----------------------------------------------------------
     // 11. Determine next invitation attempt number.
     // ----------------------------------------------------------

@@ -52,6 +52,10 @@ import {
 } from "./actions";
 
 import {
+    regenerateInvitationToken
+} from "../regenerate-invitation-token/regenerate-invitation-actions";
+
+import {
     type InvitationRole,
 } from "@/lib/invitations/invitationValidation";
 
@@ -301,6 +305,24 @@ const [
     setInvitationError,
 ] =
     useState<string | null>(null);
+
+const [
+    invitationAlreadyExists,
+    setInvitationAlreadyExists
+] =
+    useState(false);
+
+const [
+    existingInvitationId,
+    setExistingInvitationId
+] =
+    useState<string | null>(null);
+
+const [
+    recreatingInvitation,
+    setRecreatingInvitation
+] =
+    useState(false);
 
 
     const [
@@ -601,11 +623,24 @@ setInvitationTokenCopied(
 setInvitationEmailSent(
     false
 );
-            setSelectedModules(
-                ROLE_CONFIGURATIONS[role]
-                    .modules
-                    .map(module => module.id)
-            );
+
+setInvitationAlreadyExists(
+    false
+);
+
+setExistingInvitationId(
+    null
+);
+
+setRecreatingInvitation(
+    false
+);
+
+setSelectedModules(
+    ROLE_CONFIGURATIONS[role]
+        .modules
+        .map(module => module.id)
+);
 
         };
 
@@ -679,11 +714,14 @@ setInvitationToken(
                 return;
             }
 
-            setInvitationError(null);
-            setInvitationCreated(false);
+setInvitationError(null);
+setInvitationCreated(false);
 
-            const normalizedInviteeEmail =
-                inviteeEmail.trim().toLowerCase();
+setInvitationAlreadyExists(false);
+setExistingInvitationId(null);
+
+const normalizedInviteeEmail =
+    inviteeEmail.trim().toLowerCase();
 
             const normalizedPrimaryEmail =
                 user?.email.trim().toLowerCase() ?? "";
@@ -719,9 +757,27 @@ const result = await createTokenInvitation({
 });
 
 if (!result.success) {
+    if (
+        result.code === "INVITATION_ALREADY_EXISTS" &&
+        result.existingInvitationId
+    ) {
+        setInvitationError(null);
+
+        setInvitationAlreadyExists(
+            true
+        );
+
+        setExistingInvitationId(
+            result.existingInvitationId
+        );
+
+        return;
+    }
+
     setInvitationError(
         result.message
     );
+
     return;
 }
 
@@ -815,6 +871,89 @@ const handleCopyInvitationToken =
 
             setInvitationError(
                 "Unable to copy the invitation token. Please copy it manually."
+            );
+        }
+    };
+
+const handleRecreateInvitation =
+    async () => {
+
+        if (
+            recreatingInvitation ||
+            !existingInvitationId
+        ) {
+            return;
+        }
+
+        setRecreatingInvitation(
+            true
+        );
+
+        setInvitationError(
+            null
+        );
+
+        try {
+
+            const result =
+                await regenerateInvitationToken(
+                    existingInvitationId
+                );
+
+            setInvitationAlreadyExists(
+                false
+            );
+
+            setExistingInvitationId(
+                null
+            );
+
+            setInvitationToken(
+                result.invitationToken
+            );
+
+            setInvitationTemplateSubject(
+                result.templateSubject
+            );
+
+            setInvitationTemplateBody(
+                result.templateBody
+            );
+
+            setInvitationTokenCopied(
+                false
+            );
+
+            setInvitationTemplateCopied(
+                false
+            );
+
+            setInvitationValidated(
+                true
+            );
+
+            setInvitationCreated(
+                false
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                "Unable to recreate invitation.",
+                error
+            );
+
+            setInvitationError(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to recreate the invitation. Please try again."
+            );
+        }
+        finally {
+
+            setRecreatingInvitation(
+                false
             );
         }
     };
@@ -1533,18 +1672,54 @@ const handleFinalizeInvitation =
                                             id="invitee-email"
                                             type="email"
                                             value={inviteeEmail}
-                                            onChange={event => {
-                                                setInviteeEmail(event.target.value);
-                                                setInvitationError(null);
-                                                setInvitationValidated(false);
-setInvitationToken(null);
-setInvitationTokenCopied(false);
-                                                setInvitationCreated(false);
-                                            }}
+onChange={event => {
+    setInviteeEmail(event.target.value);
+    setInvitationError(null);
+    setInvitationValidated(false);
+    setInvitationToken(null);
+    setInvitationTokenCopied(false);
+
+    setInvitationCreated(false);
+
+    setInvitationAlreadyExists(false);
+    setExistingInvitationId(null);
+    setRecreatingInvitation(false);
+}}
                                             placeholder="Enter the person&apos;s email address"
                                             autoComplete="email"
                                         />
                                     </div>
+
+    {invitationAlreadyExists && (
+        <div
+            className="invitation-already-exists"
+            role="alert"
+        >
+            <strong>
+                Invitation already exists
+            </strong>
+
+            <p>
+                An active invitation already exists for{" "}
+                <strong>{inviteeEmail}</strong>.
+            </p>
+
+            <p>
+                Would you like to recreate the invitation
+                for this person?
+            </p>
+
+            <button
+                type="button"
+                onClick={handleRecreateInvitation}
+                disabled={recreatingInvitation}
+            >
+                {recreatingInvitation
+                    ? "Recreating Invitation..."
+                    : "Recreate Invitation"}
+            </button>
+        </div>
+    )}
 
     {invitationError && (
         <div
@@ -1637,7 +1812,8 @@ setInvitationTokenCopied(false);
                                         disabled={
                                             selectedModules.length === 0 ||
                                             !inviteeEmail.trim() ||
-                                            creatingInvitation
+                                            creatingInvitation ||
+                                            invitationAlreadyExists
                                         }
                                         onClick={handleCreateInvitation}
                                     >

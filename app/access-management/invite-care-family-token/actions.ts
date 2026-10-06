@@ -123,6 +123,7 @@ export interface CreateTokenInvitationFailure {
     success: false;
     code: string;
     message: string;
+    existingInvitationId?: string;
 }
 
 export async function createTokenInvitation(
@@ -166,6 +167,98 @@ if (
     !validationResult.success ||
     !validationResult.data
 ) {
+    if (
+        validationResult.code ===
+        "INVITATION_ALREADY_ACTIVE"
+    ) {
+        const {
+            data: userData,
+            error: userError
+        } =
+            await serverSupabase.auth.getUser();
+
+        if (
+            userError ||
+            !userData.user
+        ) {
+            throw new Error(
+                "Authentication is required."
+            );
+        }
+
+        const {
+            data: membership,
+            error: membershipError
+        } =
+            await serverSupabase
+                .from("family_memberships")
+                .select("family_id")
+                .eq(
+                    "user_id",
+                    userData.user.id
+                )
+                .eq(
+                    "status",
+                    "ACTIVE"
+                )
+                .maybeSingle();
+
+        if (membershipError) {
+            throw membershipError;
+        }
+
+        const email =
+            input.email
+                .trim()
+                .toLowerCase();
+
+        const {
+            data: existingInvitation,
+            error: existingInvitationError
+        } =
+            await serverSupabase
+                .from("carevr_invitation")
+                .select("id")
+                .eq(
+                    "family_id",
+                    membership?.family_id ?? ""
+                )
+                .eq(
+                    "invited_email",
+                    email
+                )
+                .eq(
+                    "role",
+                    input.role
+                )
+                .eq(
+                    "status",
+                    "PENDING"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: false,
+                    }
+                )
+                .limit(1)
+                .maybeSingle();
+
+        if (existingInvitationError) {
+            throw existingInvitationError;
+        }
+
+        return {
+            success: false,
+            code:
+                "INVITATION_ALREADY_EXISTS",
+            message:
+                "This email address already has an active CareVR invitation.",
+            existingInvitationId:
+                existingInvitation?.id
+        };
+    }
+
     return {
         success: false,
         code:
@@ -250,11 +343,59 @@ if (
     error.message ===
     "An invitation for this email address is already active or has already been accepted."
 ) {
+    const {
+        data: existingInvitation,
+        error: existingInvitationError
+    } =
+        await serverSupabase
+            .from("carevr_invitation")
+            .select(
+                "id, invitation_attempt_number"
+            )
+            .eq(
+                "invited_email",
+                email
+            )
+            .eq(
+                "invited_by",
+                validation.userId
+            )
+            .eq(
+                "role",
+                input.role
+            )
+            .eq(
+                "status",
+                "PENDING"
+            )
+            .order(
+                "created_at",
+                {
+                    ascending: false,
+                }
+            )
+            .limit(1)
+            .maybeSingle();
+
+    if (existingInvitationError) {
+        console.error(
+            "Unable to load the existing invitation.",
+            existingInvitationError
+        );
+
+        throw new Error(
+            existingInvitationError.message ||
+            "Unable to load the existing invitation."
+        );
+    }
+
     return {
         success: false,
-	code: "INVITATION_ALREADY_EXISTS",
+        code: "INVITATION_ALREADY_EXISTS",
         message:
-            "This email address already has an active or accepted CareVR invitation. Please reach out to the Primary family member for further details."
+            "This email address already has an active CareVR invitation.",
+        existingInvitationId:
+            existingInvitation?.id
     };
 }
 
