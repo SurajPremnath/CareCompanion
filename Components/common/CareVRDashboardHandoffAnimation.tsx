@@ -92,7 +92,7 @@ function PreparingIcon() {
                 cx="90"
                 cy="90"
                 r="76"
-                fill="url(#handoffPrepSky)"
+                fill="#e9dcff"
                 opacity="0.72"
             />
 
