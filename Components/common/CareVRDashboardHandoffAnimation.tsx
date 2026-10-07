@@ -92,7 +92,7 @@ function PreparingIcon() {
                 cx="90"
                 cy="90"
                 r="76"
-                fill="#e9dcff"
+                fill="url(#handoffPrepSky)"
                 opacity="0.72"
             />
 
@@ -727,11 +727,13 @@ useEffect(() => {
                     animation: handoffIconIn 520ms ease-out;
                 }
 
-                .care-icon {
-                    width: 180px;
-                    height: 180px;
-                    display: block;
-                }
+.care-icon {
+    width: 180px;
+    height: 180px;
+    display: block;
+    outline: 3px solid red;
+    background: rgba(255, 0, 0, 0.08);
+}
 
                 .carevr-handoff-tag {
                     font-size: 11px;
