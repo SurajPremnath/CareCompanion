@@ -13,6 +13,10 @@ import {
   authService,
 } from "@/lib/auth/authService";
 
+import {
+    profileRepository,
+} from "@/lib/repositories/profileRepository";
+
 import MobileHeader from "@/Components/common/MobileHeader";
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
@@ -27,6 +31,9 @@ export default function ResetPasswordPage() {
 
 const [accountMenuOpen, setAccountMenuOpen] =
   useState(false);
+
+const [userName, setUserName] =
+  useState("");
 
 const [isExpiredMode, setIsExpiredMode] =
   useState(false);
@@ -66,6 +73,50 @@ const [isExpiredMode, setIsExpiredMode] =
 
   const [success, setSuccess] =
     useState("");
+
+//----------------------------------------------------------
+// Load Profile Name for CareVR Header
+//----------------------------------------------------------
+
+useEffect(() => {
+
+  let cancelled = false;
+
+  const loadProfileName = async () => {
+
+    try {
+
+      const profile =
+        await profileRepository
+          .getCurrentProfile();
+
+      if (cancelled) {
+        return;
+      }
+
+      setUserName(
+        profile?.fullName?.trim() || ""
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Unable to load profile name for password page header.",
+        error
+      );
+
+    }
+
+  };
+
+  void loadProfileName();
+
+  return () => {
+    cancelled = true;
+  };
+
+}, []);
+
 
   //----------------------------------------------------------
   // Validate Recovery Session
@@ -262,7 +313,7 @@ if (checking) {
       <MobileHeader
         careMode="SELF"
         onCareModeChange={() => {}}
-        userName=""
+        userName={userName}
         showCareModeToggle={false}
         showSelfToggle={false}
         showFamilyToggle={false}
@@ -375,7 +426,7 @@ return (
     <MobileHeader
       careMode="SELF"
       onCareModeChange={() => {}}
-      userName=""
+      userName={userName}
       showCareModeToggle={false}
       showSelfToggle={false}
       showFamilyToggle={false}
