@@ -38,6 +38,10 @@ const [userName, setUserName] =
 const [isExpiredMode, setIsExpiredMode] =
   useState(false);
 
+const [currentPassword, setCurrentPassword] =
+  useState("");
+
+
   const [password, setPassword] =
     useState("");
 
@@ -47,17 +51,15 @@ const [isExpiredMode, setIsExpiredMode] =
   ] =
     useState("");
 
-  const [
-    showPassword,
-    setShowPassword,
-  ] =
-    useState(false);
 
-  const [
-    showConfirmPassword,
-    setShowConfirmPassword,
-  ] =
-    useState(false);
+const [showCurrentPassword, setShowCurrentPassword] =
+  useState(false);
+
+const [showPassword, setShowPassword] =
+  useState(false);
+
+const [showConfirmPassword, setShowConfirmPassword] =
+  useState(false);
 
   const [checking, setChecking] =
     useState(true);
@@ -266,10 +268,11 @@ useEffect(() => {
 try {
   setLoading(true);
 
-  await authService
-    .updatePassword(
-      password
-    );
+await authService
+  .updatePassword(
+    currentPassword,
+    password
+  );
 
   setSuccess(
     isExpiredMode
@@ -503,6 +506,65 @@ return (
             </button>
           </>
 
+        )}
+
+        {isExpiredMode && (
+          <>
+            <label style={labelStyle}>
+              Current Password
+            </label>
+
+            <div style={passwordWrapperStyle}>
+
+              <input
+                type={
+                  showCurrentPassword
+                    ? "text"
+                    : "password"
+                }
+                value={currentPassword}
+                onChange={(event) =>
+                  setCurrentPassword(
+                    event.target.value
+                  )
+                }
+                placeholder="Enter current password"
+                autoComplete="current-password"
+                disabled={
+                  loading ||
+                  Boolean(success)
+                }
+                style={{
+                  ...inputStyle,
+                  paddingRight: "55px",
+                }}
+              />
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowCurrentPassword(
+                    !showCurrentPassword
+                  )
+                }
+                disabled={loading}
+                style={eyeButtonStyle}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display: "inline-block",
+                    lineHeight: 1,
+                  }}
+                >
+                  {showCurrentPassword
+                    ? "◉"
+                    : "◌"}
+                </span>
+              </button>
+
+            </div>
+          </>
         )}
 
         <label style={labelStyle}>

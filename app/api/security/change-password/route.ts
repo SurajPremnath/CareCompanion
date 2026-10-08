@@ -32,24 +32,60 @@ export async function POST(
       );
     }
 
-    const body =
-      await request.json();
+const body =
+  await request.json();
 
-    const newPassword =
-      typeof body?.newPassword ===
-      "string"
-        ? body.newPassword
-        : "";
+const currentPassword =
+  typeof body?.currentPassword ===
+  "string"
+    ? body.currentPassword
+    : "";
 
-    if (!newPassword) {
-      return NextResponse.json(
-        {
-          error:
-            "New password is required.",
-        },
-        { status: 400 }
-      );
-    }
+const newPassword =
+  typeof body?.newPassword ===
+  "string"
+    ? body.newPassword
+    : "";
+
+if (!currentPassword) {
+  return NextResponse.json(
+    {
+      error:
+        "Current password is required.",
+    },
+    { status: 400 }
+  );
+}
+
+if (!newPassword) {
+  return NextResponse.json(
+    {
+      error:
+        "New password is required.",
+    },
+    { status: 400 }
+  );
+}
+
+const {
+  error: currentPasswordError,
+} =
+  await supabase.auth.signInWithPassword({
+    email: user.email ?? "",
+    password: currentPassword,
+  });
+
+if (
+  currentPasswordError
+) {
+  return NextResponse.json(
+    {
+      error:
+        "Current password is incorrect.",
+    },
+    { status: 401 }
+  );
+}
 
     if (newPassword.length < 6) {
       return NextResponse.json(

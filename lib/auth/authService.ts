@@ -445,6 +445,7 @@ async requestPasswordReset(
    * password recovery session.
    */
 async updatePassword(
+  currentPassword: string,
   newPassword: string
 ): Promise<void> {
 
@@ -460,6 +461,7 @@ async updatePassword(
         },
 
         body: JSON.stringify({
+          currentPassword,
           newPassword,
         }),
       }
