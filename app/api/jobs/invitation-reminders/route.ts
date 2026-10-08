@@ -4,6 +4,10 @@ import {
     reminderService,
 } from "@/lib/invitations/reminderService";
 
+import {
+    passwordReminderService,
+} from "@/lib/security/passwordReminderService";
+
 
 export const dynamic = "force-dynamic";
 
@@ -42,22 +46,32 @@ const cronSecret =
         }
 
 
-        const results =
-            await reminderService
-                .processPendingInvitations();
+const invitationResults =
+    await reminderService
+        .processPendingInvitations();
 
+const passwordResults =
+    await passwordReminderService
+        .processPendingPasswordReminders();
 
-        return NextResponse.json(
-            {
-                success: true,
-                processed:
-                    results.length,
-                results,
-            },
-            {
-                status: 200,
-            }
-        );
+return NextResponse.json(
+    {
+        success: true,
+
+        invitationProcessed:
+            invitationResults.length,
+
+        passwordProcessed:
+            passwordResults.length,
+
+        invitationResults,
+
+        passwordResults,
+    },
+    {
+        status: 200,
+    }
+);
 
     } catch (error) {
 
