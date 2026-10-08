@@ -362,6 +362,32 @@ const authenticatedUser =
     verifiedCaptchaToken
   );
 
+const passwordStatusResponse =
+  await fetch(
+    "/api/security/password-status",
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+const passwordStatus =
+  await passwordStatusResponse.json();
+
+if (!passwordStatusResponse.ok) {
+  throw new Error(
+    passwordStatus.error ||
+      "Unable to determine password status."
+  );
+}
+
+if (passwordStatus.isExpired === true) {
+  router.replace(
+    "/reset-password?mode=expired"
+  );
+  return;
+}
+
 
 // ------------------------------------------------------------
 // CAREVR REGISTRATION CONTEXT
