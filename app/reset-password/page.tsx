@@ -13,7 +13,8 @@ import {
   authService,
 } from "@/lib/auth/authService";
 
-import AppBrand from "@/app/components/AppBrand";
+import MobileHeader from "@/Components/common/MobileHeader";
+import CareVRFooter from "@/Components/common/CareVRFooter";
 
 //------------------------------------------------------------
 // Reset Password Page
@@ -23,6 +24,9 @@ export default function ResetPasswordPage() {
 
   const router =
     useRouter();
+
+const [accountMenuOpen, setAccountMenuOpen] =
+  useState(false);
 
 const [isExpiredMode, setIsExpiredMode] =
   useState(false);
@@ -257,7 +261,31 @@ setSuccess(
 
         <div style={cardStyle}>
 
-          <AppBrand />
+<MobileHeader
+  careMode="SELF"
+  onCareModeChange={() => {}}
+  userName=""
+  showCareModeToggle={false}
+  showSelfToggle={false}
+  showFamilyToggle={false}
+  showHomeButton={false}
+  showSwitchProfile={false}
+  accountMenuOpen={accountMenuOpen}
+  onAccountMenuToggle={() =>
+    setAccountMenuOpen(
+      (current: boolean) => !current
+    )
+  }
+  consentGranted={false}
+  canAddPatient={false}
+  onAddPatient={() => {}}
+  onCareVRJourney={() => {}}
+  onHelp={() => {}}
+  onLogout={async () => {
+    await authService.logout();
+    router.replace("/login");
+  }}
+/>
 
           <p style={statusStyle}>
             Verifying password reset link...
@@ -283,7 +311,6 @@ setSuccess(
 
         <div style={cardStyle}>
 
-          <AppBrand />
 
           <h1 style={titleStyle}>
             Reset Link Invalid
@@ -337,7 +364,6 @@ setSuccess(
 
       <div style={cardStyle}>
 
-        <AppBrand />
 
 <h1 style={titleStyle}>
   {isExpiredMode
@@ -532,9 +558,7 @@ setSuccess(
             : "Update Password"}
         </button>
 
-        <div style={footerStyle}>
-          Created by Linearise AI Labs
-        </div>
+<CareVRFooter />
 
       </div>
 
@@ -712,15 +736,5 @@ const successStyle:
     marginBottom: "20px",
     border:
       "1px solid #bbf7d0",
-
-  };
-
-const footerStyle:
-  React.CSSProperties = {
-
-    marginTop: "28px",
-    textAlign: "center",
-    color: "#6b7280",
-    fontSize: "12px",
 
   };
