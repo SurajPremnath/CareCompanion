@@ -49,39 +49,44 @@ export async function isPasswordReused(
   newPassword: string
 ): Promise<boolean> {
 
-const serverSupabase =
-  await createSupabaseServerClient();
+  const serverSupabase =
+    await createSupabaseServerClient();
 
-const {
-  data: { user },
-  error: userError,
-} =
-  await serverSupabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } =
+    await serverSupabase.auth.getUser();
 
-if (userError || !user) {
-  throw new Error(
-    "Authentication is required."
-  );
-}
+  if (userError || !user) {
+    throw new Error(
+      "Authentication is required."
+    );
+  }
 
-if (user.id !== userId) {
-  throw new Error(
-    "Unauthorized password history access."
-  );
-}
+  if (user.id !== userId) {
+    throw new Error(
+      "Unauthorized password history access."
+    );
+  }
 
   const {
     data,
     error,
   } =
-
-await supabaseAdmin
-  .from("carevr_password_history")
+    await supabaseAdmin
+      .from("carevr_password_history")
       .select(
         "password_hash,salt"
       )
       .eq("user_id", userId)
-      .maybeSingle();
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        }
+      )
+      .limit(3);
 
   if (error) {
     throw new Error(
@@ -89,39 +94,49 @@ await supabaseAdmin
     );
   }
 
-  if (!data) {
+  if (!data || data.length === 0) {
     return false;
   }
 
-  const candidateHash =
-    await hashPassword(
-      newPassword,
-      data.salt
-    );
+  for (const record of data) {
 
-  const storedHash =
-    Buffer.from(
-      data.password_hash,
-      "base64"
-    );
+    const candidateHash =
+      await hashPassword(
+        newPassword,
+        record.salt
+      );
 
-  const candidateHashBuffer =
-    Buffer.from(
-      candidateHash,
-      "base64"
-    );
+    const storedHash =
+      Buffer.from(
+        record.password_hash,
+        "base64"
+      );
 
-  if (
-    storedHash.length !==
-    candidateHashBuffer.length
-  ) {
-    return false;
+    const candidateHashBuffer =
+      Buffer.from(
+        candidateHash,
+        "base64"
+      );
+
+    if (
+      storedHash.length !==
+      candidateHashBuffer.length
+    ) {
+      continue;
+    }
+
+    if (
+      timingSafeEqual(
+        storedHash,
+        candidateHashBuffer
+      )
+    ) {
+      return true;
+    }
+
   }
 
-  return timingSafeEqual(
-    storedHash,
-    candidateHashBuffer
-  );
+  return false;
 }
 
 export async function recordPasswordHistory(
@@ -129,26 +144,26 @@ export async function recordPasswordHistory(
   password: string
 ): Promise<void> {
 
-const serverSupabase =
-  await createSupabaseServerClient();
+  const serverSupabase =
+    await createSupabaseServerClient();
 
-const {
-  data: { user },
-  error: userError,
-} =
-  await serverSupabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } =
+    await serverSupabase.auth.getUser();
 
-if (userError || !user) {
-  throw new Error(
-    "Authentication is required."
-  );
-}
+  if (userError || !user) {
+    throw new Error(
+      "Authentication is required."
+    );
+  }
 
-if (user.id !== userId) {
-  throw new Error(
-    "Unauthorized password history access."
-  );
-}
+  if (user.id !== userId) {
+    throw new Error(
+      "Unauthorized password history access."
+    );
+  }
 
   const salt =
     generateSalt();
@@ -162,27 +177,74 @@ if (user.id !== userId) {
   const {
     error,
   } =
-
-await supabaseAdmin
-  .from("carevr_password_history")
-      .upsert(
-        {
-          user_id: userId,
-          password_hash:
-            passwordHash,
-          salt,
-          created_at:
-            new Date().toISOString(),
-        },
-        {
-          onConflict:
-            "user_id",
-        }
-      );
+    await supabaseAdmin
+      .from("carevr_password_history")
+      .insert({
+        user_id: userId,
+        password_hash:
+          passwordHash,
+        salt,
+        created_at:
+          new Date().toISOString(),
+      });
 
   if (error) {
     throw new Error(
       "Unable to record password history."
     );
+  }
+
+  const {
+    data: historyRecords,
+    error: historyError,
+  } =
+    await supabaseAdmin
+      .from("carevr_password_history")
+      .select(
+        "id,created_at"
+      )
+      .eq("user_id", userId)
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        }
+      );
+
+  if (historyError) {
+    throw new Error(
+      "Unable to maintain password history."
+    );
+  }
+
+  if (
+    historyRecords &&
+    historyRecords.length > 3
+  ) {
+
+    const recordsToDelete =
+      historyRecords.slice(3);
+
+    const idsToDelete =
+      recordsToDelete.map(
+        (record) => record.id
+      );
+
+    const {
+      error: deleteError,
+    } =
+      await supabaseAdmin
+        .from("carevr_password_history")
+        .delete()
+        .in(
+          "id",
+          idsToDelete
+        );
+
+    if (deleteError) {
+      throw new Error(
+        "Unable to maintain password history."
+      );
+    }
   }
 }

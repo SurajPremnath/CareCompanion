@@ -87,7 +87,34 @@ if (
   );
 }
 
-    if (newPassword.length < 6) {
+const {
+  data: profile,
+  error: profileLookupError,
+} =
+  await supabase
+    .from("profiles")
+    .select(
+      "temporary_password_expires_at"
+    )
+    .eq("id", user.id)
+    .single();
+
+if (profileLookupError || !profile) {
+  return NextResponse.json(
+    {
+      error:
+        "Unable to verify password lifecycle.",
+    },
+    { status: 500 }
+  );
+}
+
+const isTemporaryPassword =
+  Boolean(
+    profile.temporary_password_expires_at
+  );
+
+if (newPassword.length < 6) {
       return NextResponse.json(
         {
           error:
@@ -103,15 +130,15 @@ if (
         newPassword
       );
 
-    if (reused) {
-      return NextResponse.json(
-        {
-          error:
-            "Your new password must be different from your previous password.",
-        },
-        { status: 409 }
-      );
-    }
+if (reused) {
+  return NextResponse.json(
+    {
+        error:
+  "Your new password cannot be the same as any of your last 3 passwords."
+    },
+    { status: 409 }
+  );
+}
 
     const {
       error: updateError,
@@ -130,10 +157,12 @@ if (
       );
     }
 
-    await recordPasswordHistory(
-      user.id,
-      newPassword
-    );
+if (!isTemporaryPassword) {
+  await recordPasswordHistory(
+    user.id,
+    currentPassword
+  );
+}
 
     const now =
       new Date();
