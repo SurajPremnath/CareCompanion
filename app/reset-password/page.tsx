@@ -271,32 +271,38 @@ try {
       password
     );
 
-setSuccess(
-  isExpiredMode
-    ? "Your password has been changed successfully."
-    : "Your password has been updated successfully."
-);
+  setSuccess(
+    isExpiredMode
+      ? "Your password has been changed successfully."
+      : "Your password has been updated successfully."
+  );
 
   setPassword("");
   setConfirmPassword("");
 }
-      catch (err) {
+catch (err) {
+  console.error(
+    "Password Update Error:",
+    err
+  );
 
-        console.error(
-          "Password Update Error:",
-          err
-        );
+  const message =
+    err instanceof Error
+      ? err.message
+      : "";
 
-        setError(
-          "Unable to update your password. The reset link may have expired. Please request a new one."
-        );
-
-      }
-      finally {
-
-        setLoading(false);
-
-      }
+  setError(
+    message ||
+      (
+        isExpiredMode
+          ? "Unable to change your password. Please try again."
+          : "Unable to update your password. The reset link may have expired. Please request a new one."
+      )
+  );
+}
+finally {
+  setLoading(false);
+}
 
     };
 
