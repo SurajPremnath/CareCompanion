@@ -508,7 +508,7 @@ return (
 
         )}
 
-        {isExpiredMode && (
+
           <>
             <label style={labelStyle}>
               Current Password
@@ -558,14 +558,14 @@ return (
                   }}
                 >
                   {showCurrentPassword
-                    ? "◉"
-                    : "◌"}
+  ? "🙈"
+  : "👁"}
                 </span>
               </button>
 
             </div>
           </>
-        )}
+
 
         <label style={labelStyle}>
           New Password
