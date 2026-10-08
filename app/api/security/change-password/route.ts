@@ -75,9 +75,16 @@ const {
     password: currentPassword,
   });
 
-if (
-  currentPasswordError
-) {
+if (currentPasswordError) {
+  console.error(
+    "Current password verification failed:",
+    {
+      message: currentPasswordError.message,
+      status: currentPasswordError.status,
+      code: currentPasswordError.code,
+    }
+  );
+
   return NextResponse.json(
     {
       error:
