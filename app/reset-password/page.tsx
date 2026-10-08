@@ -249,43 +249,45 @@ setSuccess(
 
     };
 
-  //----------------------------------------------------------
-  // Checking State
-  //----------------------------------------------------------
+//----------------------------------------------------------
+// Checking State
+//----------------------------------------------------------
 
-  if (checking) {
+if (checking) {
 
-    return (
+  return (
 
-      <main style={containerStyle}>
+    <main className="reset-password-page">
+
+      <MobileHeader
+        careMode="SELF"
+        onCareModeChange={() => {}}
+        userName=""
+        showCareModeToggle={false}
+        showSelfToggle={false}
+        showFamilyToggle={false}
+        showHomeButton={false}
+        showSwitchProfile={false}
+        accountMenuOpen={accountMenuOpen}
+        onAccountMenuToggle={() =>
+          setAccountMenuOpen(
+            (current: boolean) => !current
+          )
+        }
+        consentGranted={false}
+        canAddPatient={false}
+        onAddPatient={() => {}}
+        onCareVRJourney={() => {}}
+        onHelp={() => {}}
+        onLogout={async () => {
+          await authService.logout();
+          router.replace("/login");
+        }}
+      />
+
+      <div className="reset-password-shell">
 
         <div style={cardStyle}>
-
-<MobileHeader
-  careMode="SELF"
-  onCareModeChange={() => {}}
-  userName=""
-  showCareModeToggle={false}
-  showSelfToggle={false}
-  showFamilyToggle={false}
-  showHomeButton={false}
-  showSwitchProfile={false}
-  accountMenuOpen={accountMenuOpen}
-  onAccountMenuToggle={() =>
-    setAccountMenuOpen(
-      (current: boolean) => !current
-    )
-  }
-  consentGranted={false}
-  canAddPatient={false}
-  onAddPatient={() => {}}
-  onCareVRJourney={() => {}}
-  onHelp={() => {}}
-  onLogout={async () => {
-    await authService.logout();
-    router.replace("/login");
-  }}
-/>
 
           <p style={statusStyle}>
             Verifying password reset link...
@@ -293,11 +295,15 @@ setSuccess(
 
         </div>
 
-      </main>
+      </div>
 
-    );
+      <CareVRFooter />
 
-  }
+    </main>
+
+  );
+
+}
 
   //----------------------------------------------------------
   // Invalid Session State
@@ -354,28 +360,63 @@ setSuccess(
 
   }
 
-  //----------------------------------------------------------
-  // Reset Form
-  //----------------------------------------------------------
+//----------------------------------------------------------
+// Reset Form
+//----------------------------------------------------------
 
-  return (
+return (
 
-    <main style={containerStyle}>
+  <main className="reset-password-page">
+
+    {/* ============================
+        CAREVR HEADER
+    ============================ */}
+
+    <MobileHeader
+      careMode="SELF"
+      onCareModeChange={() => {}}
+      userName=""
+      showCareModeToggle={false}
+      showSelfToggle={false}
+      showFamilyToggle={false}
+      showHomeButton={false}
+      showSwitchProfile={false}
+      accountMenuOpen={accountMenuOpen}
+      onAccountMenuToggle={() =>
+        setAccountMenuOpen(
+          (current: boolean) => !current
+        )
+      }
+      consentGranted={false}
+      canAddPatient={false}
+      onAddPatient={() => {}}
+      onCareVRJourney={() => {}}
+      onHelp={() => {}}
+      onLogout={async () => {
+        await authService.logout();
+        router.replace("/login");
+      }}
+    />
+
+    {/* ============================
+        PASSWORD CONTENT
+    ============================ */}
+
+    <div className="reset-password-shell">
 
       <div style={cardStyle}>
 
+        <h1 style={titleStyle}>
+          {isExpiredMode
+            ? "Change Password"
+            : "Reset Password"}
+        </h1>
 
-<h1 style={titleStyle}>
-  {isExpiredMode
-    ? "Change Password"
-    : "Reset Password"}
-</h1>
-
-<p style={subtitleStyle}>
-  {isExpiredMode
-    ? "Your password has expired. Please create a new password to continue using CareVR."
-    : "Enter and confirm your new password."}
-</p>
+        <p style={subtitleStyle}>
+          {isExpiredMode
+            ? "Your password has expired. Please create a new password to continue using CareVR."
+            : "Enter and confirm your new password."}
+        </p>
 
         {error && (
 
@@ -385,27 +426,27 @@ setSuccess(
 
         )}
 
-{success && (
+        {success && (
 
-  <>
-    <div style={successStyle}>
-      {success}
-    </div>
+          <>
+            <div style={successStyle}>
+              {success}
+            </div>
 
-    <button
-      type="button"
-      onClick={() =>
-        router.replace(
-          "/login"
-        )
-      }
-      style={primaryButtonStyle}
-    >
-      Back to Login
-    </button>
-  </>
+            <button
+              type="button"
+              onClick={() =>
+                router.replace(
+                  "/login"
+                )
+              }
+              style={primaryButtonStyle}
+            >
+              Back to Login
+            </button>
+          </>
 
-)}
+        )}
 
         <label style={labelStyle}>
           New Password
@@ -447,17 +488,17 @@ setSuccess(
             disabled={loading}
             style={eyeButtonStyle}
           >
-<span
-  aria-hidden="true"
-  style={{
-    display: "inline-block",
-    lineHeight: 1,
-  }}
->
-  {showPassword
-    ? "🙈"
-    : "👁"}
-</span>
+            <span
+              aria-hidden="true"
+              style={{
+                display: "inline-block",
+                lineHeight: 1,
+              }}
+            >
+              {showPassword
+                ? "🙈"
+                : "👁"}
+            </span>
           </button>
 
         </div>
@@ -515,17 +556,17 @@ setSuccess(
             disabled={loading}
             style={eyeButtonStyle}
           >
-<span
-  aria-hidden="true"
-  style={{
-    display: "inline-block",
-    lineHeight: 1,
-  }}
->
-  {showPassword
-    ? "🙈"
-    : "👁"}
-</span>
+            <span
+              aria-hidden="true"
+              style={{
+                display: "inline-block",
+                lineHeight: 1,
+              }}
+            >
+              {showConfirmPassword
+                ? "🙈"
+                : "👁"}
+            </span>
           </button>
 
         </div>
@@ -558,13 +599,42 @@ setSuccess(
             : "Update Password"}
         </button>
 
-<CareVRFooter />
-
       </div>
 
-    </main>
+    </div>
 
-  );
+    {/* ============================
+        CAREVR FOOTER
+    ============================ */}
+
+    <CareVRFooter />
+
+    {/* ============================
+        PAGE LAYOUT
+    ============================ */}
+
+    <style jsx>{`
+
+      .reset-password-page {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        background: #f8fafc;
+      }
+
+      .reset-password-shell {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 24px;
+      }
+
+    `}</style>
+
+  </main>
+
+);
 
 }
 
