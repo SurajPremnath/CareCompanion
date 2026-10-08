@@ -24,6 +24,9 @@ export default function ResetPasswordPage() {
   const router =
     useRouter();
 
+const [isExpiredMode, setIsExpiredMode] =
+  useState(false);
+
   const [password, setPassword] =
     useState("");
 
@@ -67,6 +70,12 @@ export default function ResetPasswordPage() {
 useEffect(() => {
 
   let mounted = true;
+
+  setIsExpiredMode(
+    new URLSearchParams(
+      window.location.search
+    ).get("mode") === "expired"
+  );
 
   const validateSession =
     async () => {
@@ -207,9 +216,11 @@ try {
       password
     );
 
-  setSuccess(
-    "Your password has been updated successfully."
-  );
+setSuccess(
+  isExpiredMode
+    ? "Your password has been changed successfully."
+    : "Your password has been updated successfully."
+);
 
   setPassword("");
   setConfirmPassword("");
@@ -278,9 +289,11 @@ try {
             Reset Link Invalid
           </h1>
 
-          <div style={errorStyle}>
-            This password reset link is invalid or has expired. Please request a new reset link.
-          </div>
+<div style={errorStyle}>
+  {isExpiredMode
+    ? "Your password change session is invalid. Please return to login and try again."
+    : "This password reset link is invalid or has expired. Please request a new reset link."}
+</div>
 
           <button
             type="button"
@@ -326,13 +339,17 @@ try {
 
         <AppBrand />
 
-        <h1 style={titleStyle}>
-          Reset Password
-        </h1>
+<h1 style={titleStyle}>
+  {isExpiredMode
+    ? "Change Password"
+    : "Reset Password"}
+</h1>
 
-        <p style={subtitleStyle}>
-          Enter and confirm your new password.
-        </p>
+<p style={subtitleStyle}>
+  {isExpiredMode
+    ? "Your password has expired. Please create a new password to continue using CareVR."
+    : "Enter and confirm your new password."}
+</p>
 
         {error && (
 
