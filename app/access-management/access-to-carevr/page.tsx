@@ -462,7 +462,7 @@ if (
 const activationUrl =
     `https://carevr.in/register?productInvitationToken=${encodeURIComponent(
         token
-    )}`;
+    )}&registrationContext=PRODUCT`;
 
 
 
@@ -597,10 +597,10 @@ const handleRecreateInvitation =
 
             }
 
-            const activationUrl =
-                `https://carevr.in/register?productInvitationToken=${encodeURIComponent(
-                    token
-                )}`;
+const activationUrl =
+    `https://carevr.in/register?productInvitationToken=${encodeURIComponent(
+        token
+    )}&registrationContext=PRODUCT`;
 
             const template =
                 productInvitationTemplate.create({

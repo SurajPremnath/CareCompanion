@@ -36,19 +36,13 @@ try {
 
     }
 
-    if (!email) {
-
-        return NextResponse.json(
-            {
-                status:
-                    "NO_INVITATION",
-            },
-            {
-                status: 200,
-            }
-        );
-
-    }
+    /*
+     * Email may be omitted when the registration page first
+     * loads and needs to resolve the invitation email.
+     *
+     * If an email is supplied during registration submission,
+     * it will still be checked against the invitation record.
+     */
 
     /*
      * ------------------------------------------------------
@@ -323,10 +317,12 @@ try {
                 .trim()
                 .toLowerCase()
             : "";
-
     if (
-        invitationEmail !==
-        email
+        !invitationEmail ||
+        (
+            email &&
+            invitationEmail !== email
+        )
     ) {
 
         return NextResponse.json(
@@ -388,6 +384,8 @@ return NextResponse.json(
             invitation.id,
         tokenId:
             tokenRecord.id,
+        email:
+            invitationEmail,
     },
     {
         status: 200,

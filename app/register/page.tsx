@@ -86,6 +86,9 @@ const [
 
     const [email, setEmail] = useState("");
 
+    const [isPrimaryInvitationEmailLocked, setIsPrimaryInvitationEmailLocked] =
+        useState(false);
+
     const [password, setPassword] = useState("");
 
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -220,6 +223,77 @@ useEffect(() => {
     void restoreInviteePrimaryRegistration();
 
 }, [registrationContext]);
+
+useEffect(() => {
+    if (
+        registrationContext !== "PRODUCT" ||
+        !productInvitationToken
+    ) {
+        return;
+    }
+
+    let cancelled = false;
+
+    // Lock the email field immediately while the invitation is validated.
+    setIsPrimaryInvitationEmailLocked(true);
+    setError("");
+
+    const loadPrimaryInvitationEmail = async () => {
+        try {
+            const response = await fetch(
+                "/api/access-management/access-to-carevr/primary-validation",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        token: productInvitationToken,
+                    }),
+                }
+            );
+
+            const result = await response.json();
+
+            if (
+                !response.ok ||
+                result.status !== "VALID"
+            ) {
+                throw new Error(
+                    "Unable to validate the CareVR invitation."
+                );
+            }
+
+            if (
+                typeof result.email !== "string" ||
+                !result.email.trim()
+            ) {
+                throw new Error(
+                    "The invitation email could not be retrieved."
+                );
+            }
+
+            if (!cancelled) {
+                setEmail(result.email.trim());
+                setIsPrimaryInvitationEmailLocked(true);
+            }
+        } catch (loadError) {
+            if (!cancelled) {
+                setError(
+                    loadError instanceof Error
+                        ? loadError.message
+                        : "Unable to load the invitation email."
+                );
+            }
+        }
+    };
+
+    void loadPrimaryInvitationEmail();
+
+    return () => {
+        cancelled = true;
+    };
+}, [registrationContext, productInvitationToken]);
 
 
     const validateForm = (): boolean => {
@@ -805,16 +879,19 @@ router.replace(secureAccessUrl);
             </label>
 
             <input
-                id="fullName"
-                type="text"
-                value={fullName}
+                id="email"
+                type="email"
+                value={email}
                 onChange={(e) =>
-                    setFullName(e.target.value)
+                    setEmail(e.target.value)
                 }
-                placeholder="Enter your full name"
+                placeholder="Enter your email"
                 className="form-input"
-                disabled={loading}
-                autoComplete="name"
+                disabled={
+                    loading ||
+                    isPrimaryInvitationEmailLocked
+                }
+                autoComplete="email"
             />
 
             <label
