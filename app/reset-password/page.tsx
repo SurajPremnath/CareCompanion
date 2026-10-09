@@ -22,6 +22,9 @@ export default function ResetPasswordPage() {
 
 const [userName, setUserName] = useState("");
 
+const [accountMenuOpen, setAccountMenuOpen] =
+  useState(false);
+
   const [password, setPassword] =
     useState("");
 
@@ -300,8 +303,10 @@ if (mode === "expired") {
       showFamilyToggle={false}
       showHomeButton={true}
       onHomeClick={() => router.replace("/login")}
-      accountMenuOpen={false}
-      onAccountMenuToggle={() => {}}
+      accountMenuOpen={accountMenuOpen}
+      onAccountMenuToggle={() =>
+  setAccountMenuOpen((previous) => !previous)
+}
       consentGranted={false}
       canAddPatient={false}
       onAddPatient={() => {}}
