@@ -881,17 +881,14 @@ router.replace(secureAccessUrl);
             <input
                 id="email"
                 type="email"
-                value={email}
+                value={fullName}
                 onChange={(e) =>
-                    setEmail(e.target.value)
+                    setFullName(e.target.value)
                 }
-                placeholder="Enter your email"
+                placeholder="Enter your full name"
                 className="form-input"
-                disabled={
-                    loading ||
-                    isPrimaryInvitationEmailLocked
-                }
-                autoComplete="email"
+                disabled={loading}
+                autoComplete="name"
             />
 
             <label
