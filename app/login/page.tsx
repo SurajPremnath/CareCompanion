@@ -96,7 +96,6 @@ const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 const [loading, setLoading] = useState(false);
 
-
 const [googleLoading, setGoogleLoading] = useState(false);
 const [googleTransition, setGoogleTransition] =
   useState(false);
@@ -167,8 +166,52 @@ const continueAfterAuthentication = async (
   let registrationContext:
     | "PRODUCT"
     | "INVITATION"
+    | "DUAL"
     | null = null;
 
+const normalizedLoginEmail =
+  authenticatedUser.email?.trim().toLowerCase();
+
+if (!normalizedLoginEmail) {
+  throw new Error(
+    "Unable to determine the authenticated user's email."
+  );
+}
+
+const {
+  data: roleContexts,
+  error: roleContextsError,
+} = await supabase
+  .from("role_clarification")
+  .select("type, invited_role")
+  .eq("email", normalizedLoginEmail);
+
+if (roleContextsError) {
+  throw new Error(roleContextsError.message);
+}
+
+const contexts = roleContexts ?? [];
+
+const productContexts = contexts.filter(
+  (context) =>
+
+    context.type === "PRODUCT" &&
+    context.invited_role === "PRIMARY"
+);
+
+const invitationContexts = contexts.filter(
+  (context) => context.type === "INVITATION"
+);
+
+
+if (
+  contexts.length === 2 &&
+  productContexts.length === 1 &&
+  invitationContexts.length === 1
+) {
+  registrationContext = "DUAL";
+} else {
+  // Preserve the existing invitation-context validation.
   // Check accepted CareVR invitation first.
   const {
     data: invitation,
@@ -200,44 +243,17 @@ const continueAfterAuthentication = async (
   }
 
   if (invitation) {
-    const {
-      data: roleContext,
-      error: roleContextError,
-    } = await supabase
-      .from("role_clarification")
-      .select("type")
-      .eq(
-        "email",
-        authenticatedUser.email
-      )
-      .eq(
-        "type",
-        "INVITATION"
-      )
-      .eq(
-        "invited_role",
-        invitation.role
-      )
-      .order(
-        "created_at",
-        {
-          ascending: false,
-        }
-      )
-      .limit(1)
-      .maybeSingle();
-
-    if (roleContextError) {
-      throw new Error(
-        roleContextError.message
+    const matchingInvitationContext =
+      invitationContexts.find(
+        (context) =>
+          context.invited_role === invitation.role
       );
-    }
 
-    if (roleContext) {
-      registrationContext =
-        "INVITATION";
+    if (matchingInvitationContext) {
+      registrationContext = "INVITATION";
     }
   }
+
 
   // If there is no accepted invitation,
   // check the existing PRODUCT registration context.
@@ -250,7 +266,7 @@ const continueAfterAuthentication = async (
       .select("type")
       .eq(
         "email",
-        authenticatedUser.email
+        normalizedLoginEmail
       )
       .eq(
         "type",
@@ -276,48 +292,53 @@ const continueAfterAuthentication = async (
     }
 
     if (productContext) {
-      registrationContext =
-        "PRODUCT";
+      registrationContext = "PRODUCT";
     }
   }
+}
 
-  const pinStatusResponse =
-    await fetch(
-      "/api/security/pin-status",
-      {
-        method: "GET",
-        cache: "no-store",
-      }
-    );
+// ------------------------------------------------------------
+// PIN STATUS
+// ------------------------------------------------------------
 
-  const pinStatus =
-    await pinStatusResponse.json();
+const pinStatusResponse =
+  await fetch(
+    "/api/security/pin-status",
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
 
-  if (!pinStatusResponse.ok) {
-    throw new Error(
-      pinStatus?.error ||
+const pinStatus =
+  await pinStatusResponse.json();
+
+if (!pinStatusResponse.ok) {
+  throw new Error(
+    pinStatus?.error ||
       "Unable to determine CareVR PIN status."
+  );
+}
+
+if (pinStatus.hasPin !== true) {
+  if (!registrationContext) {
+    throw new Error(
+      "CareVR registration context is unavailable."
     );
   }
 
-  if (pinStatus.hasPin !== true) {
-    if (!registrationContext) {
-      throw new Error(
-        "CareVR registration context is unavailable."
-      );
-    }
+  router.replace(
+    `/secure-access/create-pin?registrationContext=${registrationContext}`
+  );
 
-    router.replace(
-      `/secure-access/create-pin?registrationContext=${registrationContext}`
-    );
+  return;
+}
 
-    return;
-  }
-
-  setPinVerification({
-    user: authenticatedUser,
-  });
+setPinVerification({
+  user: authenticatedUser,
+});
 };
+
 
 
 const handleLogin = async () => {
@@ -389,94 +410,91 @@ if (passwordStatus.isExpired === true) {
 }
 
 
-// ------------------------------------------------------------
-// CAREVR REGISTRATION CONTEXT
-//
-// Determine whether this user entered CareVR as:
-// PRODUCT    → PRIMARY
-// INVITATION → SECONDARY / CARETAKER / DOCTOR
-//
-// The invitation role is authoritative from
-// carevr_invitation. role_clarification only confirms that
-// the corresponding registration context exists.
-// ------------------------------------------------------------
+      // ------------------------------------------------------------
+      // CAREVR REGISTRATION CONTEXT
+      // ------------------------------------------------------------
 
-let registrationContext:
-  | "PRODUCT"
-  | "INVITATION"
-  | null = null;
+      let registrationContext:
+        | "PRODUCT"
+        | "INVITATION"
+        | "DUAL"
+        | null = null;
 
+      const normalizedLoginEmail =
+        authenticatedUser.email?.trim().toLowerCase();
 
-// Check accepted CareVR invitation first.
-// The role comes from the authoritative invitation record.
-const {
-  data: invitation,
-  error: invitationError,
-} = await supabase
-  .from("carevr_invitation")
-  .select("role")
-  .eq(
-    "invited_user_id",
-    authenticatedUser.id
-  )
-  .eq(
-    "status",
-    "ACCEPTED"
-  )
-  .order(
-    "accepted_at",
-    {
-      ascending: false,
-    }
-  )
-  .limit(1)
-  .maybeSingle();
-
-if (invitationError) {
-  throw new Error(
-    invitationError.message
-  );
-}
-
-if (invitation) {
-  const {
-    data: roleContext,
-    error: roleContextError,
-  } = await supabase
-    .from("role_clarification")
-    .select("type")
-    .eq(
-      "email",
-      authenticatedUser.email
-    )
-    .eq(
-      "type",
-      "INVITATION"
-    )
-    .eq(
-      "invited_role",
-      invitation.role
-    )
-    .order(
-      "created_at",
-      {
-        ascending: false,
+      if (!normalizedLoginEmail) {
+        throw new Error(
+          "Unable to determine the authenticated user's email."
+        );
       }
-    )
-    .limit(1)
-    .maybeSingle();
 
-  if (roleContextError) {
-    throw new Error(
-      roleContextError.message
-    );
-  }
+      const {
+        data: roleContexts,
+        error: roleContextsError,
+      } = await supabase
+        .from("role_clarification")
+        .select("type, invited_role")
+        .eq("email", normalizedLoginEmail);
 
-  if (roleContext) {
-    registrationContext =
-      "INVITATION";
-  }
-}
+      if (roleContextsError) {
+        throw new Error(roleContextsError.message);
+      }
+
+      const contexts = roleContexts ?? [];
+
+      const productContexts = contexts.filter(
+        (context) =>
+          context.type === "PRODUCT" &&
+          context.invited_role === "PRIMARY"
+      );
+
+      const invitationContexts = contexts.filter(
+        (context) => context.type === "INVITATION"
+      );
+
+      if (
+        contexts.length === 2 &&
+        productContexts.length === 1 &&
+        invitationContexts.length === 1
+      ) {
+        registrationContext = "DUAL";
+      } else {
+        const {
+          data: invitation,
+          error: invitationError,
+        } = await supabase
+          .from("carevr_invitation")
+          .select("role")
+          .eq("invited_user_id", authenticatedUser.id)
+          .eq("status", "ACCEPTED")
+          .order("accepted_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (invitationError) {
+          throw new Error(invitationError.message);
+        }
+
+        if (invitation) {
+          const matchingInvitationContext =
+            invitationContexts.find(
+              (context) =>
+                context.invited_role === invitation.role
+            );
+
+          if (matchingInvitationContext) {
+            registrationContext = "INVITATION";
+          }
+        }
+
+        if (
+          !registrationContext &&
+          productContexts.length > 0
+        ) {
+          registrationContext = "PRODUCT";
+        }
+      }
 
 // If there is no accepted invitation, check the
 // existing PRODUCT registration context for Primary.
