@@ -64,6 +64,15 @@ const [patients, setPatients] =
 const [doctorOptions, setDoctorOptions] =
   useState<DoctorsNoteDoctorOption[]>([]);
 
+const [doctorSuggestions, setDoctorSuggestions] =
+  useState<DoctorsNoteDoctorOption[]>([]);
+
+const [hospitalSuggestions, setHospitalSuggestions] =
+  useState<string[]>([]);
+
+const [specialitySuggestions, setSpecialitySuggestions] =
+  useState<string[]>([]);
+
 const [selectedDoctorId, setSelectedDoctorId] =
   useState("");
 
@@ -96,6 +105,28 @@ const selectedDoctor = useMemo(
     ) ?? null,
   [doctorOptions, selectedDoctorId],
 );
+
+const matchedDoctorForSave = useMemo(() => {
+  const normalizedName = doctorName.trim().toLowerCase();
+
+  if (!normalizedName) {
+    return null;
+  }
+
+  return (
+    doctorSuggestions.find(
+      (doctor) =>
+        doctor.doctorName.trim().toLowerCase() ===
+        normalizedName,
+    ) ??
+    doctorOptions.find(
+      (doctor) =>
+        doctor.doctorName.trim().toLowerCase() ===
+        normalizedName,
+    ) ??
+    null
+  );
+}, [doctorSuggestions, doctorOptions, doctorName]);
 
 const calculateAge = (dateOfBirth: string | null) => {
   if (!dateOfBirth) {
@@ -264,11 +295,14 @@ void loadPatientsFromDHP();
 
 // ADD THE NEW EFFECT HERE
 useEffect(() => {
-  if (!selectedPatient) {
-    setDoctorOptions([]);
-    setSelectedDoctorId("");
-    return;
-  }
+if (!selectedPatient) {
+  setDoctorOptions([]);
+  setDoctorSuggestions([]);
+  setHospitalSuggestions([]);
+  setSpecialitySuggestions([]);
+  setSelectedDoctorId("");
+  return;
+}
 
   let cancelled = false;
 
@@ -301,24 +335,47 @@ useEffect(() => {
         return;
       }
 
-      const options =
-        result.data as DoctorsNoteDoctorOption[];
+const options =
+  result.data as DoctorsNoteDoctorOption[];
 
-      setDoctorOptions(options);
+setDoctorOptions(options);
 
-      setSelectedDoctorId(
-        options[0]?.providerId ?? "",
-      );
+const suggestions = result.suggestions;
+
+setDoctorSuggestions(
+  Array.isArray(suggestions?.doctors)
+    ? suggestions.doctors as DoctorsNoteDoctorOption[]
+    : [],
+);
+
+setHospitalSuggestions(
+  Array.isArray(suggestions?.hospitals)
+    ? suggestions.hospitals as string[]
+    : [],
+);
+
+setSpecialitySuggestions(
+  Array.isArray(suggestions?.specialities)
+    ? suggestions.specialities as string[]
+    : [],
+);
+
+setSelectedDoctorId(
+  options[0]?.providerId ?? "",
+);
     } catch (error) {
       console.error(
         "Doctors Notes doctor options retrieval failed:",
         error,
       );
 
-      if (!cancelled) {
-        setDoctorOptions([]);
-        setSelectedDoctorId("");
-      }
+if (!cancelled) {
+  setDoctorOptions([]);
+  setDoctorSuggestions([]);
+  setHospitalSuggestions([]);
+  setSpecialitySuggestions([]);
+  setSelectedDoctorId("");
+}
     }
   }
 
@@ -404,12 +461,12 @@ const handleSave = async () => {
     return;
   }
 
-  if (!selectedDoctor) {
-    setSaveError(
-      "Please select a doctor."
-    );
-    return;
-  }
+if (!doctorName.trim()) {
+  setSaveError(
+    "Please enter or select a doctor name."
+  );
+  return;
+}
 
   if (!note.trim()) {
     setSaveError(
@@ -450,18 +507,19 @@ const handleSave = async () => {
 body: JSON.stringify({
   patientId: selectedPatient,
   providerId:
-    selectedDoctor &&
-    doctorName.trim() === selectedDoctor.doctorName
-      ? selectedDoctor.providerId
+    matchedDoctorForSave &&
+    doctorName.trim().toLowerCase() ===
+      matchedDoctorForSave.doctorName.trim().toLowerCase()
+      ? matchedDoctorForSave.providerId
       : null,
   doctorName:
     doctorName.trim() || null,
   doctorProfileId: null,
   facilityId:
-    selectedDoctor &&
-    facilityName.trim() ===
-      (selectedDoctor.facilityName ?? "")
-      ? selectedDoctor.facilityId
+    matchedDoctorForSave &&
+    facilityName.trim().toLowerCase() ===
+      (matchedDoctorForSave.facilityName ?? "").trim().toLowerCase()
+      ? matchedDoctorForSave.facilityId
       : null,
   facilityName:
     facilityName.trim() || null,
@@ -616,36 +674,81 @@ loggingOut={loggingOut}
     <span>Doctor</span>
     <input
       type="text"
+      list="doctors-note-doctor-suggestions"
       value={doctorName}
-      onChange={(event) =>
-        setDoctorName(event.target.value)
-      }
-      placeholder="Enter doctor name"
+      onChange={(event) => {
+        const value = event.target.value;
+        setDoctorName(value);
+
+        const matchedDoctor = doctorSuggestions.find(
+          (doctor) =>
+            doctor.doctorName.trim().toLowerCase() ===
+            value.trim().toLowerCase(),
+        );
+
+        if (matchedDoctor) {
+          setSelectedDoctorId(matchedDoctor.providerId);
+
+          if (matchedDoctor.facilityName) {
+            setFacilityName(matchedDoctor.facilityName);
+          }
+
+          if (matchedDoctor.specialisation) {
+            setSpecialisation(matchedDoctor.specialisation);
+          }
+        } else {
+          setSelectedDoctorId("");
+        }
+      }}
+      placeholder="Search or enter doctor name"
+      autoComplete="off"
     />
+    <datalist id="doctors-note-doctor-suggestions">
+      {doctorSuggestions.map((doctor) => (
+        <option
+          key={doctor.providerId}
+          value={doctor.doctorName}
+        />
+      ))}
+    </datalist>
   </label>
 
   <label>
     <span>Hospital</span>
     <input
       type="text"
+      list="doctors-note-hospital-suggestions"
       value={facilityName}
       onChange={(event) =>
         setFacilityName(event.target.value)
       }
-      placeholder="Enter hospital name"
+      placeholder="Search or enter hospital name"
+      autoComplete="off"
     />
+    <datalist id="doctors-note-hospital-suggestions">
+      {hospitalSuggestions.map((hospital) => (
+        <option key={hospital} value={hospital} />
+      ))}
+    </datalist>
   </label>
 
   <label>
     <span>Specialisation</span>
     <input
       type="text"
+      list="doctors-note-speciality-suggestions"
       value={specialisation}
       onChange={(event) =>
         setSpecialisation(event.target.value)
       }
-      placeholder="Enter specialisation"
+      placeholder="Search or enter speciality"
+      autoComplete="off"
     />
+    <datalist id="doctors-note-speciality-suggestions">
+      {specialitySuggestions.map((speciality) => (
+        <option key={speciality} value={speciality} />
+      ))}
+    </datalist>
   </label>
 </div>
           )}
@@ -712,12 +815,12 @@ loggingOut={loggingOut}
     type="button"
     className="primary-button"
     onClick={handleSave}
-    disabled={
-      saving ||
-      !selectedPatient ||
-      !selectedDoctor ||
-      !note.trim()
-    }
+disabled={
+  saving ||
+  !selectedPatient ||
+  !doctorName.trim() ||
+  !note.trim()
+}
   >
     {saving
       ? "Saving..."
