@@ -1,19 +1,15 @@
 "use client";
 
-import React, {
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
+import MobileHeader from "@/Components/common/MobileHeader";
+import CareVRFooter from "@/Components/common/CareVRFooter";
+
+import { authService } from "@/lib/auth/authService";
 import {
-  useRouter,
-} from "next/navigation";
-
-import {
-  authService,
-} from "@/lib/auth/authService";
-
-import AppBrand from "@/app/components/AppBrand";
+    profileRepository,
+} from "@/lib/repositories/profileRepository";
 
 //------------------------------------------------------------
 // Reset Password Page
@@ -23,6 +19,8 @@ export default function ResetPasswordPage() {
 
   const router =
     useRouter();
+
+const [userName, setUserName] = useState("");
 
   const [password, setPassword] =
     useState("");
@@ -156,6 +154,35 @@ useEffect(() => {
 
 }, []);
 
+
+useEffect(() => {
+    let cancelled = false;
+
+    const loadProfileName = async () => {
+        try {
+            const profile =
+                await profileRepository.getCurrentProfile();
+
+            if (cancelled) {
+                return;
+            }
+
+            setUserName(profile?.fullName?.trim() || "");
+        } catch (error) {
+            console.error(
+                "Unable to load profile name for Reset Password header.",
+                error
+            );
+        }
+    };
+
+    void loadProfileName();
+
+    return () => {
+        cancelled = true;
+    };
+}, []);
+
   //----------------------------------------------------------
   // Update Password
   //----------------------------------------------------------
@@ -260,29 +287,53 @@ if (mode === "expired") {
     };
 
   //----------------------------------------------------------
+  // Shared CareVR Header
+  //----------------------------------------------------------
+
+  const renderHeader = () => (
+    <MobileHeader
+      careMode="SELF"
+      onCareModeChange={() => {}}
+      userName={userName}
+      showCareModeToggle={false}
+      showSelfToggle={false}
+      showFamilyToggle={false}
+      showHomeButton={true}
+      onHomeClick={() => router.replace("/login")}
+      accountMenuOpen={false}
+      onAccountMenuToggle={() => {}}
+      consentGranted={false}
+      canAddPatient={false}
+      onAddPatient={() => {}}
+      onCareVRJourney={() => {}}
+      onHelp={() => {}}
+      onLogout={async () => {
+        await authService.logout();
+        router.replace("/login");
+      }}
+    />
+  );
+
+  //----------------------------------------------------------
   // Checking State
   //----------------------------------------------------------
 
   if (checking) {
-
     return (
+      <main style={pageStyle}>
+        {renderHeader()}
 
-      <main style={containerStyle}>
-
-        <div style={cardStyle}>
-
-          <AppBrand />
-
-          <p style={statusStyle}>
-            Verifying password reset link...
-          </p>
-
+        <div style={shellStyle}>
+          <div style={cardStyle}>
+            <p style={statusStyle}>
+              Verifying password reset link...
+            </p>
+          </div>
         </div>
 
+        <CareVRFooter />
       </main>
-
     );
-
   }
 
   //----------------------------------------------------------
@@ -290,264 +341,176 @@ if (mode === "expired") {
   //----------------------------------------------------------
 
   if (!validSession) {
-
     return (
+      <main style={pageStyle}>
+        {renderHeader()}
 
-      <main style={containerStyle}>
+        <div style={shellStyle}>
+          <div style={cardStyle}>
+            <h1 style={titleStyle}>
+              Reset Link Invalid
+            </h1>
 
-        <div style={cardStyle}>
+            <div style={errorStyle}>
+              This password reset link is invalid or has expired.
+              Please request a new reset link.
+            </div>
 
-          <AppBrand />
+            <button
+              type="button"
+              onClick={() => router.replace("/forgot-password")}
+              style={primaryButtonStyle}
+            >
+              Request New Reset Link
+            </button>
 
-          <h1 style={titleStyle}>
-            Reset Link Invalid
-          </h1>
-
-          <div style={errorStyle}>
-            This password reset link is invalid or has expired. Please request a new reset link.
+            <button
+              type="button"
+              onClick={() => router.replace("/login")}
+              style={secondaryButtonStyle}
+            >
+              Back to Login
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() =>
-              router.replace(
-                "/forgot-password"
-              )
-            }
-            style={primaryButtonStyle}
-          >
-            Request New Reset Link
-          </button>
-
-          <button
-            type="button"
-            onClick={() =>
-              router.replace(
-                "/login"
-              )
-            }
-            style={secondaryButtonStyle}
-          >
-            Back to Login
-          </button>
-
         </div>
 
+        <CareVRFooter />
       </main>
-
     );
-
   }
 
   //----------------------------------------------------------
-  // Reset Form
+  // Reset Form / Successful Password Change
   //----------------------------------------------------------
 
   return (
+    <main style={pageStyle}>
+      {renderHeader()}
 
-    <main style={containerStyle}>
+      <div style={shellStyle}>
+        <div style={cardStyle}>
+          <h1 style={titleStyle}>
+            {success ? "Password Updated" : "Reset Password"}
+          </h1>
 
-      <div style={cardStyle}>
+          {error && (
+            <div style={errorStyle}>
+              {error}
+            </div>
+          )}
 
-        <AppBrand />
+          {success ? (
+            <>
+              <div style={successStyle}>
+                {success}
+              </div>
 
-        <h1 style={titleStyle}>
-          Reset Password
-        </h1>
+              <button
+                type="button"
+                onClick={() => router.replace("/login")}
+                style={primaryButtonStyle}
+              >
+                Back to Login
+              </button>
+            </>
+          ) : (
+            <>
+              <p style={subtitleStyle}>
+                Enter and confirm your new password.
+              </p>
 
-        <p style={subtitleStyle}>
-          Enter and confirm your new password.
-        </p>
+              <label style={labelStyle}>
+                New Password
+              </label>
 
-        {error && (
+              <div style={passwordWrapperStyle}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Enter new password"
+                  autoComplete="new-password"
+                  disabled={loading}
+                  style={{
+                    ...inputStyle,
+                    paddingRight: "55px",
+                  }}
+                />
 
-          <div style={errorStyle}>
-            {error}
-          </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                  style={eyeButtonStyle}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  <span aria-hidden="true">
+                    {showPassword ? "🙈" : "👁"}
+                  </span>
+                </button>
+              </div>
 
-        )}
+              <label style={labelStyle}>
+                Confirm New Password
+              </label>
 
-{success && (
+              <div style={passwordWrapperStyle}>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !loading) {
+                      void handleUpdatePassword();
+                    }
+                  }}
+                  placeholder="Re-enter new password"
+                  autoComplete="new-password"
+                  disabled={loading}
+                  style={{
+                    ...inputStyle,
+                    paddingRight: "55px",
+                  }}
+                />
 
-  <>
-    <div style={successStyle}>
-      {success}
-    </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
+                  disabled={loading}
+                  style={eyeButtonStyle}
+                  aria-label={
+                    showConfirmPassword
+                      ? "Hide confirm password"
+                      : "Show confirm password"
+                  }
+                >
+                  <span aria-hidden="true">
+                    {showConfirmPassword ? "🙈" : "👁"}
+                  </span>
+                </button>
+              </div>
 
-    <button
-      type="button"
-      onClick={() =>
-        router.replace(
-          "/login"
-        )
-      }
-      style={primaryButtonStyle}
-    >
-      Back to Login
-    </button>
-  </>
-
-)}
-
-        <label style={labelStyle}>
-          New Password
-        </label>
-
-        <div style={passwordWrapperStyle}>
-
-          <input
-            type={
-              showPassword
-                ? "text"
-                : "password"
-            }
-            value={password}
-            onChange={(event) =>
-              setPassword(
-                event.target.value
-              )
-            }
-            placeholder="Enter new password"
-            autoComplete="new-password"
-            disabled={
-              loading ||
-              Boolean(success)
-            }
-            style={{
-              ...inputStyle,
-              paddingRight: "55px",
-            }}
-          />
-
-          <button
-            type="button"
-            onClick={() =>
-              setShowPassword(
-                !showPassword
-              )
-            }
-            disabled={loading}
-            style={eyeButtonStyle}
-          >
-<span
-  aria-hidden="true"
-  style={{
-    display: "inline-block",
-    lineHeight: 1,
-  }}
->
-  {showPassword
-    ? "🙈"
-    : "👁"}
-</span>
-          </button>
-
+              <button
+                type="button"
+                onClick={() => void handleUpdatePassword()}
+                disabled={loading}
+                style={{
+                  ...primaryButtonStyle,
+                  opacity: loading ? 0.7 : 1,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}
+              >
+                {loading ? "Updating Password..." : "Update Password"}
+              </button>
+            </>
+          )}
         </div>
-
-        <label style={labelStyle}>
-          Confirm New Password
-        </label>
-
-        <div style={passwordWrapperStyle}>
-
-          <input
-            type={
-              showConfirmPassword
-                ? "text"
-                : "password"
-            }
-            value={confirmPassword}
-            onChange={(event) =>
-              setConfirmPassword(
-                event.target.value
-              )
-            }
-            onKeyDown={(event) => {
-
-              if (
-                event.key === "Enter" &&
-                !loading &&
-                !success
-              ) {
-
-                void handleUpdatePassword();
-
-              }
-
-            }}
-            placeholder="Re-enter new password"
-            autoComplete="new-password"
-            disabled={
-              loading ||
-              Boolean(success)
-            }
-            style={{
-              ...inputStyle,
-              paddingRight: "55px",
-            }}
-          />
-
-          <button
-            type="button"
-            onClick={() =>
-              setShowConfirmPassword(
-                !showConfirmPassword
-              )
-            }
-            disabled={loading}
-            style={eyeButtonStyle}
-          >
-<span
-  aria-hidden="true"
-  style={{
-    display: "inline-block",
-    lineHeight: 1,
-  }}
->
-  {showPassword
-    ? "🙈"
-    : "👁"}
-</span>
-          </button>
-
-        </div>
-
-        <button
-          type="button"
-          onClick={() =>
-            void handleUpdatePassword()
-          }
-          disabled={
-            loading ||
-            Boolean(success)
-          }
-          style={{
-            ...primaryButtonStyle,
-            opacity:
-              loading ||
-              success
-                ? 0.7
-                : 1,
-            cursor:
-              loading ||
-              success
-                ? "not-allowed"
-                : "pointer",
-          }}
-        >
-          {loading
-            ? "Updating Password..."
-            : "Update Password"}
-        </button>
-
-        <div style={footerStyle}>
-          Created by Linearise AI Labs
-        </div>
-
       </div>
 
+      <CareVRFooter />
     </main>
-
   );
 
 }
@@ -555,20 +518,6 @@ if (mode === "expired") {
 //------------------------------------------------------------
 // Styles
 //------------------------------------------------------------
-
-const containerStyle:
-  React.CSSProperties = {
-
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "#f8fafc",
-    padding: "24px",
-    fontFamily:
-      "Inter, Arial, sans-serif",
-
-  };
 
 const cardStyle:
   React.CSSProperties = {
@@ -584,6 +533,24 @@ const cardStyle:
       "0 4px 12px rgba(0,0,0,0.08)",
 
   };
+
+const pageStyle: React.CSSProperties = {
+    minHeight: "100dvh",
+    display: "flex",
+    flexDirection: "column",
+    background: "#f8fafc",
+    fontFamily: "Inter, Arial, sans-serif",
+};
+
+const shellStyle: React.CSSProperties = {
+    flex: 1,
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    boxSizing: "border-box",
+    padding: "24px",
+};
 
 const titleStyle:
   React.CSSProperties = {
@@ -720,15 +687,5 @@ const successStyle:
     marginBottom: "20px",
     border:
       "1px solid #bbf7d0",
-
-  };
-
-const footerStyle:
-  React.CSSProperties = {
-
-    marginTop: "28px",
-    textAlign: "center",
-    color: "#6b7280",
-    fontSize: "12px",
 
   };

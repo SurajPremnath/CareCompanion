@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     } = await supabase
       .from("profiles")
       .select(
-        "temporary_password_expires_at, permanent_password_expires_at"
+        "temporary_password_expires_at, permanent_password_expires_at, full_name"
       )
       .eq("id", user.id)
       .single();
@@ -194,10 +194,11 @@ export async function POST(request: Request) {
     // Email failure must not undo the password change.
     if (user.email) {
       try {
-        await passwordChangeEmailService.send({
-          to: user.email,
-          changedAt: now.toISOString(),
-        });
+await passwordChangeEmailService.send({
+  to: user.email,
+  name: profile.full_name?.trim() || "CareVR User",
+  changedAt: now.toISOString(),
+});
       } catch (notificationError) {
         console.error(
           "Password changed successfully, but the security notification could not be sent.",

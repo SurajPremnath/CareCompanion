@@ -26,8 +26,25 @@ export async function POST() {
             );
         }
 
+        const {
+            data: profile,
+            error: profileError,
+        } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", user.id)
+            .single();
+
+        if (profileError || !profile) {
+            return NextResponse.json(
+                { error: "Unable to retrieve your profile name." },
+                { status: 500 }
+            );
+        }
+
         await passwordChangeEmailService.send({
             to: user.email,
+            name: profile.full_name?.trim() || "CareVR User",
             changedAt: new Date().toISOString(),
         });
 

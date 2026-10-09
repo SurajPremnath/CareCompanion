@@ -2,6 +2,7 @@ import { Resend } from "resend";
 
 export interface SendPasswordChangeEmailInput {
     to: string;
+    name: string;
     changedAt: string;
 }
 
@@ -67,13 +68,19 @@ class PasswordChangeEmailService {
         const subject =
             "Your CareVR password has been changed";
 
-        const body = `Your CareVR account password was changed successfully.
+const body = `Dear ${input.name},
+
+Your CareVR account password was changed successfully.
 
 Date and time: ${changedAtDisplay}
 
 If you made this change, no further action is required.
 
 If you did not change your password, please contact CareVR support immediately so that your account security can be reviewed.
+
+CareVR Support
+Linearise AI Labs
+Email: lineariseailabs@gmail.com
 
 For your security, this email does not contain your password.`;
 
