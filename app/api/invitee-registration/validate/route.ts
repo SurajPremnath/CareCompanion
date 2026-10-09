@@ -137,34 +137,74 @@ export async function POST(
             );
         }
 
+
+        const normalizedEmail =
+            data.invited_email.trim().toLowerCase();
+
+        const {
+            data: roleContexts,
+            error: roleContextsError,
+        } = await supabaseAdmin
+            .from("role_clarification")
+            .select("type, invited_role")
+            .eq("email", normalizedEmail);
+
+        if (roleContextsError) {
+            console.error(
+                "Unable to determine invitation registration context.",
+                roleContextsError
+            );
+
+            return NextResponse.json(
+                {
+                    valid: false,
+                    message:
+                        "Unable to validate the invitation registration context.",
+                },
+                {
+                    status: 500,
+                }
+            );
+        }
+
+        const contexts = roleContexts ?? [];
+
+        const productContexts = contexts.filter(
+            (context) =>
+                context.type === "PRODUCT" &&
+                context.invited_role === "PRIMARY"
+        );
+
+        const invitationContexts = contexts.filter(
+            (context) => context.type === "INVITATION"
+        );
+
+        const isDual =
+            contexts.length === 2 &&
+            productContexts.length === 1 &&
+            invitationContexts.length === 1;
+
         return NextResponse.json(
             {
                 valid: true,
+                registrationMode: isDual
+                    ? "DUAL"
+                    : "SINGLE",
 
                 invitation: {
-                    id:
-                        data.id,
-
-                    email:
-                        data.invited_email,
-
-                    role:
-                        data.role,
-
-                    familyId:
-                        data.family_id,
-
-                    governanceId:
-                        data.governance_id,
-
-                    expiresAt:
-                        data.expires_at,
+                    id: data.id,
+                    email: data.invited_email,
+                    role: data.role,
+                    familyId: data.family_id,
+                    governanceId: data.governance_id,
+                    expiresAt: data.expires_at,
                 },
             },
             {
                 status: 200,
             }
         );
+
 
     }
     catch (error) {

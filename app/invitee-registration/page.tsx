@@ -17,6 +17,8 @@ import { Turnstile } from "@marsidev/react-turnstile";
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
+import { supabase } from "@/lib/supabase";
+
 type Invitation = {
     id: string;
     email: string;
@@ -87,6 +89,9 @@ function InviteeRegistrationContent() {
 
     const [invitation, setInvitation] =
         useState<Invitation | null>(null);
+
+const [registrationMode, setRegistrationMode] =
+    useState<"SINGLE" | "DUAL">("SINGLE");
 
     const [password, setPassword] =
         useState("");
@@ -170,11 +175,14 @@ useEffect(() => {
                     );
                 }
 
-                if (!cancelled) {
-                    setInvitation(
-                        result.invitation
-                    );
-                }
+if (!cancelled) {
+    setInvitation(result.invitation);
+    setRegistrationMode(
+        result.registrationMode === "DUAL"
+            ? "DUAL"
+            : "SINGLE"
+    );
+}
             } catch (err) {
                 if (!cancelled) {
                     setError(
@@ -214,25 +222,27 @@ useEffect(() => {
             return;
         }
 
-        if (!password) {
-            setError(
-                "Please enter a password."
-            );
-            return;
-        }
+if (registrationMode === "SINGLE") {
+    if (!password) {
+        setError(
+            "Please enter a password."
+        );
+        return;
+    }
 
-        if (password.length < 8) {
-            setError(
-                "Password must contain at least 8 characters."
-            );
-            return;
-        }
+    if (password.length < 8) {
+        setError(
+            "Password must contain at least 8 characters."
+        );
+        return;
+    }
 
-if (password !== confirmPassword) {
-    setError(
-        "Passwords do not match."
-    );
-    return;
+    if (password !== confirmPassword) {
+        setError(
+            "Passwords do not match."
+        );
+        return;
+    }
 }
 
 if (!fullName.trim()) {
@@ -252,22 +262,44 @@ if (!fullName.trim()) {
         setSubmitting(true);
 
         try {
-            const response = await fetch(
-                "/api/invitee-registration/create-account",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                    },
-                    body: JSON.stringify({
-                        token,
-                        password,
-                        confirmPassword,
-                        fullName,
-                    }),
-                }
-            );
+
+let endpoint =
+    "/api/invitee-registration/create-account";
+
+const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+};
+
+if (registrationMode === "DUAL") {
+    const {
+        data: { session },
+        error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+        throw new Error(
+            "Please sign in to the existing CareVR account associated with this invitation."
+        );
+    }
+
+    endpoint =
+        "/api/invitee-registration/accept-existing";
+
+    headers.Authorization =
+        `Bearer ${session.access_token}`;
+}
+
+const response = await fetch(endpoint, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+        token,
+        password,
+        confirmPassword,
+        fullName,
+    }),
+});
+
 
             const result =
                 await response.json();
@@ -668,175 +700,179 @@ if (!fullName.trim()) {
 
                         <div className="form">
 
-                            <label
-                                htmlFor="password"
-                                className="field-label"
-                            >
-                                Password
-                            </label>
+                            {registrationMode === "SINGLE" && (
+                                <>
+                                    <label
+                                        htmlFor="password"
+                                        className="field-label"
+                                    >
+                                        Password
+                                    </label>
 
-                            <div className="password-field">
+                                    <div className="password-field">
 
-                                <input
-                                    id="password"
-                                    type={
-                                        showPassword
-                                            ? "text"
-                                            : "password"
-                                    }
-                                    value={password}
-                                    onChange={(event) =>
-                                        setPassword(
-                                            event.target.value
-                                        )
-                                    }
-                                    placeholder="Create a password"
-                                    autoComplete="new-password"
-                                    disabled={submitting}
-                                    className="form-input"
-                                />
+                                        <input
+                                            id="password"
+                                            type={
+                                                showPassword
+                                                    ? "text"
+                                                    : "password"
+                                            }
+                                            value={password}
+                                            onChange={(event) =>
+                                                setPassword(
+                                                    event.target.value
+                                                )
+                                            }
+                                            placeholder="Create a password"
+                                            autoComplete="new-password"
+                                            disabled={submitting}
+                                            className="form-input"
+                                        />
 
-                                <button
-                                    type="button"
-                                    className="eye-button"
-                                    onClick={() =>
-                                        setShowPassword(
-                                            (value) =>
-                                                !value
-                                        )
-                                    }
-                                    disabled={submitting}
-                                    aria-label={
-                                        showPassword
-                                            ? "Hide password"
-                                            : "Show password"
-                                    }
-                                >
-                                    {showPassword ? (
-                                        <svg
-                                            width="20"
-                                            height="20"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
+                                        <button
+                                            type="button"
+                                            className="eye-button"
+                                            onClick={() =>
+                                                setShowPassword(
+                                                    (value) =>
+                                                        !value
+                                                )
+                                            }
+                                            disabled={submitting}
+                                            aria-label={
+                                                showPassword
+                                                    ? "Hide password"
+                                                    : "Show password"
+                                            }
                                         >
-                                            <path d="M3 3l18 18" />
-                                            <path d="M10.6 10.7a2 2 0 0 0 2.7 2.7" />
-                                            <path d="M9.9 4.3A10.8 10.8 0 0 1 12 4c5.2 0 8.5 4 9.5 6-.4.8-1.2 2-2.5 3.2" />
-                                            <path d="M6.2 6.2C4.6 7.4 3.5 8.8 2.5 10c1 2 4.3 6 9.5 6 1 0 1.9-.2 2.7-.5" />
-                                        </svg>
-                                    ) : (
-                                        <svg
-                                            width="20"
-                                            height="20"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
+                                            {showPassword ? (
+                                                <svg
+                                                    width="20"
+                                                    height="20"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.8"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <path d="M3 3l18 18" />
+                                                    <path d="M10.6 10.7a2 2 0 0 0 2.7 2.7" />
+                                                    <path d="M9.9 4.3A10.8 10.8 0 0 1 12 4c5.2 0 8.5 4 9.5 6-.4.8-1.2 2-2.5 3.2" />
+                                                    <path d="M6.2 6.2C4.6 7.4 3.5 8.8 2.5 10c1 2 4.3 6 9.5 6 1 0 1.9-.2 2.7-.5" />
+                                                </svg>
+                                            ) : (
+                                                <svg
+                                                    width="20"
+                                                    height="20"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.8"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                                                    <circle
+                                                        cx="12"
+                                                        cy="12"
+                                                        r="2.5"
+                                                    />
+                                                </svg>
+                                            )}
+                                        </button>
+
+                                    </div>
+
+                                    <p className="field-hint">
+                                        Minimum 8 characters.
+                                    </p>
+
+                                    <label
+                                        htmlFor="confirm-password"
+                                        className="field-label"
+                                    >
+                                        Confirm Password
+                                    </label>
+
+                                    <div className="password-field">
+
+                                        <input
+                                            id="confirm-password"
+                                            type={
+                                                showConfirmPassword
+                                                    ? "text"
+                                                    : "password"
+                                            }
+                                            value={confirmPassword}
+                                            onChange={(event) =>
+                                                setConfirmPassword(
+                                                    event.target.value
+                                                )
+                                            }
+                                            placeholder="Re-enter your password"
+                                            autoComplete="new-password"
+                                            disabled={submitting}
+                                            className="form-input"
+                                        />
+
+                                        <button
+                                            type="button"
+                                            className="eye-button"
+                                            onClick={() =>
+                                                setShowConfirmPassword(
+                                                    (value) =>
+                                                        !value
+                                                )
+                                            }
+                                            disabled={submitting}
+                                            aria-label={
+                                                showConfirmPassword
+                                                    ? "Hide password"
+                                                    : "Show password"
+                                            }
                                         >
-                                            <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-                                            <circle
-                                                cx="12"
-                                                cy="12"
-                                                r="2.5"
-                                            />
-                                        </svg>
-                                    )}
-                                </button>
+                                            {showConfirmPassword ? (
+                                                <svg
+                                                    width="20"
+                                                    height="20"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.8"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <path d="M3 3l18 18" />
+                                                    <path d="M10.6 10.7a2 2 0 0 0 2.7 2.7" />
+                                                    <path d="M9.9 4.3A10.8 10.8 0 0 1 12 4c5.2 0 8.5 4 9.5 6-.4.8-1.2 2-2.5 3.2" />
+                                                    <path d="M6.2 6.2C4.6 7.4 3.5 8.8 2.5 10c1 2 4.3 6 9.5 6 1 0 1.9-.2 2.7-.5" />
+                                                </svg>
+                                            ) : (
+                                                <svg
+                                                    width="20"
+                                                    height="20"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.8"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                                                    <circle
+                                                        cx="12"
+                                                        cy="12"
+                                                        r="2.5"
+                                                    />
+                                                </svg>
+                                            )}
+                                        </button>
 
-                            </div>
-
-                            <p className="field-hint">
-                                Minimum 8 characters.
-                            </p>
-
-                            <label
-                                htmlFor="confirm-password"
-                                className="field-label"
-                            >
-                                Confirm Password
-                            </label>
-
-                            <div className="password-field">
-
-                                <input
-                                    id="confirm-password"
-                                    type={
-                                        showConfirmPassword
-                                            ? "text"
-                                            : "password"
-                                    }
-                                    value={confirmPassword}
-                                    onChange={(event) =>
-                                        setConfirmPassword(
-                                            event.target.value
-                                        )
-                                    }
-                                    placeholder="Re-enter your password"
-                                    autoComplete="new-password"
-                                    disabled={submitting}
-                                    className="form-input"
-                                />
-
-                                <button
-                                    type="button"
-                                    className="eye-button"
-                                    onClick={() =>
-                                        setShowConfirmPassword(
-                                            (value) =>
-                                                !value
-                                        )
-                                    }
-                                    disabled={submitting}
-                                    aria-label={
-                                        showConfirmPassword
-                                            ? "Hide password"
-                                            : "Show password"
-                                    }
-                                >
-                                    {showConfirmPassword ? (
-                                        <svg
-                                            width="20"
-                                            height="20"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        >
-                                            <path d="M3 3l18 18" />
-                                            <path d="M10.6 10.7a2 2 0 0 0 2.7 2.7" />
-                                            <path d="M9.9 4.3A10.8 10.8 0 0 1 12 4c5.2 0 8.5 4 9.5 6-.4.8-1.2 2-2.5 3.2" />
-                                            <path d="M6.2 6.2C4.6 7.4 3.5 8.8 2.5 10c1 2 4.3 6 9.5 6 1 0 1.9-.2 2.7-.5" />
-                                        </svg>
-                                    ) : (
-                                        <svg
-                                            width="20"
-                                            height="20"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        >
-                                            <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-                                            <circle
-                                                cx="12"
-                                                cy="12"
-                                                r="2.5"
-                                            />
-                                        </svg>
-                                    )}
-                                </button>
-
-                            </div>
+                                    </div>
+                                </>
+                            )}
 
                             <div className="captcha-section">
 
@@ -877,19 +913,33 @@ if (!fullName.trim()) {
                                     void handleCreateAccount()
                                 }
                                 disabled={
-    submitting ||
-    !password ||
-    !confirmPassword
-}
+                                    submitting ||
+                                    (
+                                        registrationMode === "SINGLE" &&
+                                        (
+                                            !password ||
+                                            !confirmPassword
+                                        )
+                                    )
+                                }
                             >
                                 {submitting ? (
                                     <>
                                         <span className="button-spinner" />
-                                        Creating Account...
+                                        {registrationMode === "SINGLE"
+                                            ? "Creating Account..."
+                                            : "Please wait..."}
+                                    </>
+                                ) : registrationMode === "SINGLE" ? (
+                                    <>
+                                        Create Account
+                                        <span className="button-arrow">
+                                            →
+                                        </span>
                                     </>
                                 ) : (
                                     <>
-                                        Create Account
+                                        Accept and Continue
                                         <span className="button-arrow">
                                             →
                                         </span>
