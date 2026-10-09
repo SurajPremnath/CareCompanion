@@ -444,40 +444,20 @@ async requestPasswordReset(
    * Updates password for the active
    * password recovery session.
    */
-async updatePassword(
-  currentPassword: string,
-  newPassword: string
-): Promise<void> {
+  async updatePassword(
+    newPassword: string
+  ): Promise<void> {
 
-  const response =
-    await fetch(
-      "/api/security/change-password",
-      {
-        method: "POST",
+    const { error } =
+      await supabase.auth.updateUser({
+        password: newPassword,
+      });
 
-        headers: {
-          "Content-Type":
-            "application/json",
-        },
+    if (error) {
+      throw error;
+    }
 
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
-      }
-    );
-
-  const result =
-    await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      result?.error ||
-        "Unable to change your password."
-    );
   }
-
-}
 
   /**
    * Listen for auth changes.

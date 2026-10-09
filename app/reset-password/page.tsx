@@ -13,12 +13,7 @@ import {
   authService,
 } from "@/lib/auth/authService";
 
-import {
-    profileRepository,
-} from "@/lib/repositories/profileRepository";
-
-import MobileHeader from "@/Components/common/MobileHeader";
-import CareVRFooter from "@/Components/common/CareVRFooter";
+import AppBrand from "@/app/components/AppBrand";
 
 //------------------------------------------------------------
 // Reset Password Page
@@ -29,19 +24,6 @@ export default function ResetPasswordPage() {
   const router =
     useRouter();
 
-const [accountMenuOpen, setAccountMenuOpen] =
-  useState(false);
-
-const [userName, setUserName] =
-  useState("");
-
-const [isExpiredMode, setIsExpiredMode] =
-  useState(false);
-
-const [currentPassword, setCurrentPassword] =
-  useState("");
-
-
   const [password, setPassword] =
     useState("");
 
@@ -51,15 +33,17 @@ const [currentPassword, setCurrentPassword] =
   ] =
     useState("");
 
+  const [
+    showPassword,
+    setShowPassword,
+  ] =
+    useState(false);
 
-const [showCurrentPassword, setShowCurrentPassword] =
-  useState(false);
-
-const [showPassword, setShowPassword] =
-  useState(false);
-
-const [showConfirmPassword, setShowConfirmPassword] =
-  useState(false);
+  const [
+    showConfirmPassword,
+    setShowConfirmPassword,
+  ] =
+    useState(false);
 
   const [checking, setChecking] =
     useState(true);
@@ -76,50 +60,6 @@ const [showConfirmPassword, setShowConfirmPassword] =
   const [success, setSuccess] =
     useState("");
 
-//----------------------------------------------------------
-// Load Profile Name for CareVR Header
-//----------------------------------------------------------
-
-useEffect(() => {
-
-  let cancelled = false;
-
-  const loadProfileName = async () => {
-
-    try {
-
-      const profile =
-        await profileRepository
-          .getCurrentProfile();
-
-      if (cancelled) {
-        return;
-      }
-
-      setUserName(
-        profile?.fullName?.trim() || ""
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Unable to load profile name for password page header.",
-        error
-      );
-
-    }
-
-  };
-
-  void loadProfileName();
-
-  return () => {
-    cancelled = true;
-  };
-
-}, []);
-
-
   //----------------------------------------------------------
   // Validate Recovery Session
   //----------------------------------------------------------
@@ -127,12 +67,6 @@ useEffect(() => {
 useEffect(() => {
 
   let mounted = true;
-
-  setIsExpiredMode(
-    new URLSearchParams(
-      window.location.search
-    ).get("mode") === "expired"
-  );
 
   const validateSession =
     async () => {
@@ -268,86 +202,51 @@ useEffect(() => {
 try {
   setLoading(true);
 
-await authService
-  .updatePassword(
-    currentPassword,
-    password
-  );
+  await authService
+    .updatePassword(
+      password
+    );
 
   setSuccess(
-    isExpiredMode
-      ? "Your password has been changed successfully."
-      : "Your password has been updated successfully."
+    "Your password has been updated successfully."
   );
 
   setPassword("");
   setConfirmPassword("");
 }
-catch (err) {
-  console.error(
-    "Password Update Error:",
-    err
-  );
+      catch (err) {
 
-  const message =
-    err instanceof Error
-      ? err.message
-      : "";
+        console.error(
+          "Password Update Error:",
+          err
+        );
 
-  setError(
-    message ||
-      (
-        isExpiredMode
-          ? "Unable to change your password. Please try again."
-          : "Unable to update your password. The reset link may have expired. Please request a new one."
-      )
-  );
-}
-finally {
-  setLoading(false);
-}
+        setError(
+          "Unable to update your password. The reset link may have expired. Please request a new one."
+        );
+
+      }
+      finally {
+
+        setLoading(false);
+
+      }
 
     };
 
-//----------------------------------------------------------
-// Checking State
-//----------------------------------------------------------
+  //----------------------------------------------------------
+  // Checking State
+  //----------------------------------------------------------
 
-if (checking) {
+  if (checking) {
 
-  return (
+    return (
 
-    <main className="reset-password-page">
-
-      <MobileHeader
-        careMode="SELF"
-        onCareModeChange={() => {}}
-        userName={userName}
-        showCareModeToggle={false}
-        showSelfToggle={false}
-        showFamilyToggle={false}
-        showHomeButton={false}
-        showSwitchProfile={false}
-        accountMenuOpen={accountMenuOpen}
-        onAccountMenuToggle={() =>
-          setAccountMenuOpen(
-            (current: boolean) => !current
-          )
-        }
-        consentGranted={false}
-        canAddPatient={false}
-        onAddPatient={() => {}}
-        onCareVRJourney={() => {}}
-        onHelp={() => {}}
-        onLogout={async () => {
-          await authService.logout();
-          router.replace("/login");
-        }}
-      />
-
-      <div className="reset-password-shell">
+      <main style={containerStyle}>
 
         <div style={cardStyle}>
+
+          <AppBrand />
 
           <p style={statusStyle}>
             Verifying password reset link...
@@ -355,15 +254,11 @@ if (checking) {
 
         </div>
 
-      </div>
+      </main>
 
-      <CareVRFooter />
+    );
 
-    </main>
-
-  );
-
-}
+  }
 
   //----------------------------------------------------------
   // Invalid Session State
@@ -377,16 +272,15 @@ if (checking) {
 
         <div style={cardStyle}>
 
+          <AppBrand />
 
           <h1 style={titleStyle}>
             Reset Link Invalid
           </h1>
 
-<div style={errorStyle}>
-  {isExpiredMode
-    ? "Your password change session is invalid. Please return to login and try again."
-    : "This password reset link is invalid or has expired. Please request a new reset link."}
-</div>
+          <div style={errorStyle}>
+            This password reset link is invalid or has expired. Please request a new reset link.
+          </div>
 
           <button
             type="button"
@@ -420,62 +314,24 @@ if (checking) {
 
   }
 
-//----------------------------------------------------------
-// Reset Form
-//----------------------------------------------------------
+  //----------------------------------------------------------
+  // Reset Form
+  //----------------------------------------------------------
 
-return (
+  return (
 
-  <main className="reset-password-page">
-
-    {/* ============================
-        CAREVR HEADER
-    ============================ */}
-
-    <MobileHeader
-      careMode="SELF"
-      onCareModeChange={() => {}}
-      userName={userName}
-      showCareModeToggle={false}
-      showSelfToggle={false}
-      showFamilyToggle={false}
-      showHomeButton={false}
-      showSwitchProfile={false}
-      accountMenuOpen={accountMenuOpen}
-      onAccountMenuToggle={() =>
-        setAccountMenuOpen(
-          (current: boolean) => !current
-        )
-      }
-      consentGranted={false}
-      canAddPatient={false}
-      onAddPatient={() => {}}
-      onCareVRJourney={() => {}}
-      onHelp={() => {}}
-      onLogout={async () => {
-        await authService.logout();
-        router.replace("/login");
-      }}
-    />
-
-    {/* ============================
-        PASSWORD CONTENT
-    ============================ */}
-
-    <div className="reset-password-shell">
+    <main style={containerStyle}>
 
       <div style={cardStyle}>
 
+        <AppBrand />
+
         <h1 style={titleStyle}>
-          {isExpiredMode
-            ? "Change Password"
-            : "Reset Password"}
+          Reset Password
         </h1>
 
         <p style={subtitleStyle}>
-          {isExpiredMode
-            ? "Your password has expired. Please create a new password to continue using CareVR."
-            : "Enter and confirm your new password."}
+          Enter and confirm your new password.
         </p>
 
         {error && (
@@ -486,86 +342,27 @@ return (
 
         )}
 
-        {success && (
+{success && (
 
-          <>
-            <div style={successStyle}>
-              {success}
-            </div>
+  <>
+    <div style={successStyle}>
+      {success}
+    </div>
 
-            <button
-              type="button"
-              onClick={() =>
-                router.replace(
-                  "/login"
-                )
-              }
-              style={primaryButtonStyle}
-            >
-              Back to Login
-            </button>
-          </>
+    <button
+      type="button"
+      onClick={() =>
+        router.replace(
+          "/login"
+        )
+      }
+      style={primaryButtonStyle}
+    >
+      Back to Login
+    </button>
+  </>
 
-        )}
-
-
-          <>
-            <label style={labelStyle}>
-              Current Password
-            </label>
-
-            <div style={passwordWrapperStyle}>
-
-              <input
-                type={
-                  showCurrentPassword
-                    ? "text"
-                    : "password"
-                }
-                value={currentPassword}
-                onChange={(event) =>
-                  setCurrentPassword(
-                    event.target.value
-                  )
-                }
-                placeholder="Enter current password"
-                autoComplete="current-password"
-                disabled={
-                  loading ||
-                  Boolean(success)
-                }
-                style={{
-                  ...inputStyle,
-                  paddingRight: "55px",
-                }}
-              />
-
-              <button
-                type="button"
-                onClick={() =>
-                  setShowCurrentPassword(
-                    !showCurrentPassword
-                  )
-                }
-                disabled={loading}
-                style={eyeButtonStyle}
-              >
-                <span
-                  aria-hidden="true"
-                  style={{
-                    display: "inline-block",
-                    lineHeight: 1,
-                  }}
-                >
-                  {showCurrentPassword
-  ? "🙈"
-  : "👁"}
-                </span>
-              </button>
-
-            </div>
-          </>
-
+)}
 
         <label style={labelStyle}>
           New Password
@@ -607,17 +404,17 @@ return (
             disabled={loading}
             style={eyeButtonStyle}
           >
-            <span
-              aria-hidden="true"
-              style={{
-                display: "inline-block",
-                lineHeight: 1,
-              }}
-            >
-              {showPassword
-                ? "🙈"
-                : "👁"}
-            </span>
+<span
+  aria-hidden="true"
+  style={{
+    display: "inline-block",
+    lineHeight: 1,
+  }}
+>
+  {showPassword
+    ? "🙈"
+    : "👁"}
+</span>
           </button>
 
         </div>
@@ -675,17 +472,17 @@ return (
             disabled={loading}
             style={eyeButtonStyle}
           >
-            <span
-              aria-hidden="true"
-              style={{
-                display: "inline-block",
-                lineHeight: 1,
-              }}
-            >
-              {showConfirmPassword
-                ? "🙈"
-                : "👁"}
-            </span>
+<span
+  aria-hidden="true"
+  style={{
+    display: "inline-block",
+    lineHeight: 1,
+  }}
+>
+  {showPassword
+    ? "🙈"
+    : "👁"}
+</span>
           </button>
 
         </div>
@@ -718,42 +515,15 @@ return (
             : "Update Password"}
         </button>
 
+        <div style={footerStyle}>
+          Created by Linearise AI Labs
+        </div>
+
       </div>
 
-    </div>
+    </main>
 
-    {/* ============================
-        CAREVR FOOTER
-    ============================ */}
-
-    <CareVRFooter />
-
-    {/* ============================
-        PAGE LAYOUT
-    ============================ */}
-
-    <style jsx>{`
-
-      .reset-password-page {
-        min-height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        background: #f8fafc;
-      }
-
-      .reset-password-shell {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 24px;
-      }
-
-    `}</style>
-
-  </main>
-
-);
+  );
 
 }
 
@@ -925,5 +695,15 @@ const successStyle:
     marginBottom: "20px",
     border:
       "1px solid #bbf7d0",
+
+  };
+
+const footerStyle:
+  React.CSSProperties = {
+
+    marginTop: "28px",
+    textAlign: "center",
+    color: "#6b7280",
+    fontSize: "12px",
 
   };

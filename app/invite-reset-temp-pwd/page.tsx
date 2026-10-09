@@ -236,10 +236,9 @@ await authService.login(
              * Replace the temporary password with
              * the permanent password.
              */
-await authService.updatePassword(
-  oldPassword,
-  newPassword
-);
+            await authService.updatePassword(
+                newPassword
+            );
 
             /*
              * Complete the invitation lifecycle.

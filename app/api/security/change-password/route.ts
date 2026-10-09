@@ -47,6 +47,22 @@ const newPassword =
     ? body.newPassword
     : "";
 
+const captchaToken =
+  typeof body?.captchaToken ===
+  "string"
+    ? body.captchaToken
+    : "";
+
+if (!captchaToken) {
+  return NextResponse.json(
+    {
+      error:
+        "Security verification is required.",
+    },
+    { status: 400 }
+  );
+}
+
 if (!currentPassword) {
   return NextResponse.json(
     {
@@ -73,6 +89,9 @@ const {
   await supabase.auth.signInWithPassword({
     email: user.email ?? "",
     password: currentPassword,
+    options: {
+      captchaToken,
+    },
   });
 
 if (currentPasswordError) {
