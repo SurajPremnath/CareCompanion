@@ -442,22 +442,45 @@ async requestPasswordReset(
 
   /**
    * Updates password for the active
-   * password recovery session.
+   * password recovery or invitation session.
    */
-  async updatePassword(
-    newPassword: string
-  ): Promise<void> {
+async updatePassword(
+  newPassword: string
+): Promise<void> {
 
-    const { error } =
-      await supabase.auth.updateUser({
-        password: newPassword,
-      });
+  // 1. Update the actual password in Supabase Auth.
+  const { error } =
+    await supabase.auth.updateUser({
+      password: newPassword,
+    });
 
-    if (error) {
-      throw error;
-    }
-
+  if (error) {
+    throw error;
   }
+
+  // 2. Notify the user after a successful password change.
+  try {
+    const response = await fetch(
+      "/api/security/password-change-notification",
+      {
+        method: "POST",
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      console.error(
+        "Password changed successfully, but the security notification could not be sent."
+      );
+    }
+  } catch (notificationError) {
+    console.error(
+      "Password changed successfully, but the security notification request failed.",
+      notificationError
+    );
+  }
+}
+
 
   /**
    * Listen for auth changes.

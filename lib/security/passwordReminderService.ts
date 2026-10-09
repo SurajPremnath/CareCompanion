@@ -6,7 +6,8 @@ import {
 type PasswordReminderType =
     | "DAY_7"
     | "DAY_3"
-    | "DAY_1";
+    | "DAY_1"
+    | "DAY_0";
 
 interface PasswordExpiryProfile {
     id: string;
@@ -68,21 +69,27 @@ class PasswordReminderService {
                 continue;
             }
 
-            const emailResult =
-                await passwordReminderEmailService.send({
-                    to:
-                        profile.email,
 
-                    daysRemaining:
-                        reminderType === "DAY_7"
-                            ? 7
-                            : reminderType === "DAY_3"
-                                ? 3
-                                : 1,
+        const emailResult =
+            await passwordReminderEmailService.send({
+                to:
+                    profile.email,
 
-                    expiresAt:
-                        profile.permanent_password_expires_at,
-                });
+                daysRemaining:
+
+                    reminderType === "DAY_7"
+                        ? 7
+                        : reminderType === "DAY_3"
+                            ? 3
+                            : reminderType === "DAY_1"
+                                ? 1
+                                : 0,
+
+                expiresAt:
+                    profile.permanent_password_expires_at,
+            });
+
+
 
             await this.recordReminder(
                 profile,
@@ -140,9 +147,14 @@ class PasswordReminderService {
                     "is",
                     null
                 )
-                .gt(
+                .gte(
                     "permanent_password_expires_at",
-                    new Date().toISOString()
+                    new Date(
+                        new Date().toLocaleDateString(
+                            "en-CA",
+                            { timeZone: CAREVR_TIME_ZONE }
+                        ) + "T00:00:00+05:30"
+                    ).toISOString()
                 );
 
         if (error) {
@@ -226,6 +238,11 @@ private getDueReminderType(
         daysUntilExpiry === 1
     ) {
         return "DAY_1";
+    }
+    if (
+        daysUntilExpiry === 0
+    ) {
+        return "DAY_0";
     }
 
     return null;

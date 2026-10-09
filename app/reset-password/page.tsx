@@ -202,10 +202,35 @@ useEffect(() => {
 try {
   setLoading(true);
 
-  await authService
-    .updatePassword(
-      password
+const mode =
+  new URLSearchParams(window.location.search)
+    .get("mode");
+
+if (mode === "expired") {
+  const response = await fetch(
+    "/api/security/change-password",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        newPassword: password,
+      }),
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result?.error ??
+        "Unable to update your password."
     );
+  }
+} else {
+  await authService.updatePassword(password);
+}
 
   setSuccess(
     "Your password has been updated successfully."

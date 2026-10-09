@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 export interface SendPasswordReminderEmailInput {
     to: string;
-    daysRemaining: 7 | 3 | 1;
+    daysRemaining: 7 | 3 | 1| 0;
     expiresAt: string;
 }
 
@@ -44,10 +44,11 @@ class PasswordReminderEmailService {
         if (
             input.daysRemaining !== 7 &&
             input.daysRemaining !== 3 &&
-            input.daysRemaining !== 1
+            input.daysRemaining !== 1 &&
+            input.daysRemaining !== 0
         ) {
             throw new Error(
-                "Password reminder must be sent 7, 3, or 1 day before expiry."
+                "Password reminder must be sent 7, 3, 1 day before expiry, or on expiry day."
             );
         }
 
@@ -93,19 +94,27 @@ class PasswordReminderEmailService {
                 }
             );
 
-        const subject =
-            input.daysRemaining === 1
-                ? "Your CareVR password expires tomorrow"
-                : `Your CareVR password expires in ${input.daysRemaining} days`;
+const subject =
+    input.daysRemaining === 0
+        ? "Your CareVR password expires today"
+        : input.daysRemaining === 1
+            ? "Your CareVR password expires tomorrow"
+            : `Your CareVR password expires in ${input.daysRemaining} days`;
 
-        const body =
-            input.daysRemaining === 1
-                ? `Your CareVR password will expire tomorrow, ${expiryDisplay}.
+const body =
+    input.daysRemaining === 0
+        ? `Your CareVR password expires today, ${expiryDisplay}.
+
+Please change your password today to continue using CareVR without interruption.
+
+If you have already changed your password, no further action is required.`
+        : input.daysRemaining === 1
+            ? `Your CareVR password will expire tomorrow, ${expiryDisplay}.
 
 Please change your password before it expires to continue using CareVR without interruption.
 
 If you have already changed your password, no further action is required.`
-                : `Your CareVR password will expire in ${input.daysRemaining} days, on ${expiryDisplay}.
+            : `Your CareVR password will expire in ${input.daysRemaining} days, on ${expiryDisplay}.
 
 Please change your password before it expires to continue using CareVR without interruption.
 
