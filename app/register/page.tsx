@@ -879,8 +879,8 @@ router.replace(secureAccessUrl);
             </label>
 
             <input
-                id="email"
-                type="email"
+                id="fullName"
+                type="text"
                 value={fullName}
                 onChange={(e) =>
                     setFullName(e.target.value)
@@ -906,10 +906,18 @@ router.replace(secureAccessUrl);
                     setEmail(e.target.value)
                 }
                 placeholder="Enter your email"
-                className="form-input"
-                disabled={loading}
+                className={`form-input ${
+                    isPrimaryInvitationEmailLocked
+                        ? "primary-invitation-email-locked"
+                        : ""
+                }`}
+                disabled={
+                    loading ||
+                    isPrimaryInvitationEmailLocked
+                }
                 autoComplete="email"
             />
+
 
             <label
                 className="field-label"
@@ -1612,6 +1620,21 @@ onClick={async () => {
                         0 8px 24px
                         rgba(63, 44, 120, 0.05);
                 }
+
+                .primary-invitation-email-locked {
+                    background: #f1f3f5 !important;
+                    color: #667085 !important;
+                    border-color: #d0d5dd !important;
+                    cursor: not-allowed !important;
+                    opacity: 1;
+                }
+
+                .primary-invitation-email-locked:focus {
+                    outline: none;
+                    box-shadow: none;
+                    border-color: #d0d5dd !important;
+                }
+
 
                 .important-label {
                     margin-bottom: 5px;
