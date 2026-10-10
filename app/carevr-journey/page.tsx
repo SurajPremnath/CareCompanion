@@ -82,16 +82,32 @@ const [active,setActive] = useState(0);
 
 <div className="mx-auto max-w-6xl mb-3">
 
-    <button
-        type="button"
-        onClick={() => router.push("/dashboard")}
-        className="
-            text-blue-700
-            hover:text-blue-900
-            font-medium
-            transition-colors
-        "
-    >
+<button
+    type="button"
+    onClick={() => router.push("/dashboard")}
+    className="
+        inline-flex
+        items-center
+        gap-2
+        rounded-lg
+        border
+        border-blue-700
+        bg-blue-600
+        px-4
+        py-2
+        text-sm
+        font-semibold
+        !text-white
+        shadow-sm
+        transition-colors
+        hover:bg-blue-700
+        hover:border-blue-800
+        focus-visible:outline-none
+        focus-visible:ring-2
+        focus-visible:ring-blue-500
+        focus-visible:ring-offset-2
+    "
+>
         ← Dashboard
     </button>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, {
+  useEffect,
   useState,
 } from "react";
 
@@ -12,6 +13,11 @@ import {
   authService,
 } from "@/lib/auth/authService";
 
+import {
+  profileRepository,
+} from "@/lib/repositories/profileRepository";
+
+import MobileHeader from "@/Components/common/MobileHeader";
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
 import { Turnstile } from "@marsidev/react-turnstile";
@@ -27,6 +33,37 @@ export default function ForgotPasswordPage() {
   const router =
     useRouter();
 
+const [userName, setUserName] = useState("");
+const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
+const renderHeader = () => (
+  <MobileHeader
+    careMode="SELF"
+    onCareModeChange={() => {}}
+    userName={userName}
+    showCareModeToggle={false}
+    showSelfToggle={false}
+    showFamilyToggle={false}
+    showHomeButton={true}
+    onHomeClick={() => router.replace("/dashboard")}
+    accountMenuOpen={accountMenuOpen}
+    onAccountMenuToggle={() =>
+      setAccountMenuOpen((previous) => !previous)
+    }
+    consentGranted={false}
+    canAddPatient={false}
+    onAddPatient={() => {}}
+    onCareVRJourney={() => {}}
+    onHelp={() => {}}
+    onLogout={async () => {
+      await authService.logout();
+      router.replace("/login");
+    }}
+  />
+);
+
+
+
   const [email, setEmail] =
     useState("");
 
@@ -41,6 +78,37 @@ export default function ForgotPasswordPage() {
 
 const [captchaToken, setCaptchaToken] =
   useState<string | null>(null);
+
+const isValidEmail =
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+useEffect(() => {
+  let cancelled = false;
+
+  const loadProfileName = async () => {
+    try {
+      const profile =
+        await profileRepository.getCurrentProfile();
+
+      if (cancelled) {
+        return;
+      }
+
+      setUserName(profile?.fullName?.trim() || "");
+    } catch (error) {
+      console.error(
+        "Unable to load profile name for Forgot Password header.",
+        error
+      );
+    }
+  };
+
+  void loadProfileName();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
 
   //----------------------------------------------------------
   // Send Reset Link
@@ -117,16 +185,9 @@ try {
 return (
   <main style={containerStyle}>
 
-    <div style={pageContentStyle}>
+ {renderHeader()}
 
-      {/* CAREVR BRAND */}
-      <div style={brandStyle}>
-        <img
-          src="/images/CareVR%20v1.0.png"
-          alt="CareVR"
-          style={logoStyle}
-        />
-      </div>
+    <div style={pageContentStyle}>
 
       {/* FORGOT PASSWORD CONTENT */}
       <div style={contentStyle}>
@@ -208,22 +269,19 @@ return (
 
 <button
   type="button"
-  onClick={() =>
-    void handleSubmit()
-  }
-  disabled={loading}
+  onClick={() => void handleSubmit()}
+  disabled={loading || !isValidEmail}
   style={{
     ...primaryButtonStyle,
-    opacity: loading ? 0.7 : 1,
-    cursor: loading
-      ? "not-allowed"
-      : "pointer",
+    opacity: loading || !isValidEmail ? 0.5 : 1,
+    cursor:
+      loading || !isValidEmail
+        ? "not-allowed"
+        : "pointer",
   }}
 >
-            {loading
-              ? "Sending..."
-              : "Send Reset Link"}
-          </button>
+  {loading ? "Sending..." : "Send Reset Link"}
+</button>
 
           <button
             type="button"
@@ -513,12 +571,6 @@ const footerWrapperStyle: React.CSSProperties = {
   justifyContent: "center",
 };
 
-const brandStyle: React.CSSProperties = {
-  width: "100%",
-  display: "flex",
-  justifyContent: "center",
-  marginBottom: "10px",
-};
 
 const contentStyle: React.CSSProperties = {
   width: "100%",

@@ -1,5 +1,7 @@
 "use client";
 
+import { AppAlert } from "@/lib/utils/appAlert";
+
 type PersonSelectorPatient = {
     id: string;
     userId: string | null;
@@ -211,15 +213,23 @@ onChange({
         Select family member
     </label>
 
-    <button
-        type="button"
-        style={addPatientButton}
-        onClick={() => {
-            window.location.href = "/add-patient";
-        }}
-    >
-        ➕ Add New Patient
-    </button>
+<button
+    type="button"
+    style={addPatientButton}
+    disabled={disabled}
+    onClick={() => {
+        if (patients.length >= 2) {
+            AppAlert.error(
+                "Patient limit reached. You have already added the maximum of 2 patients. You cannot add another patient."
+            );
+            return;
+        }
+
+        window.location.href = "/add-patient";
+    }}
+>
+    ➕ Add New Patient
+</button>
 
 </div>
 

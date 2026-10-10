@@ -5,11 +5,16 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { authService } from "@/lib/auth/authService";
+
+
 /*
 import { hasPrimaryAccess } from "@/lib/carevr/hasPrimaryAccess";
 */
 import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 import { supabase } from "@/lib/supabase";
+import { patientStorage } from "@/lib/storage/patientStorage";
+import { AppAlert } from "@/lib/utils/appAlert";
+
 
 export type MobileCareMode = "FAMILY" | "SELF";
 
@@ -422,129 +427,194 @@ return (
                     </button>
 
                     {accountMenuOpen && (
-                        <div
-                            className="carevr-mobile-account-menu"
-                            role="menu"
-                        >
-<div className="carevr-mobile-account-menu-section">
-    <div className="carevr-mobile-account-menu-section-title">
-        ACCOUNT & SECURITY
-    </div>
 
-    <button
-        type="button"
-        className="carevr-mobile-account-menu-primary"
-        onClick={() => {
-            router.push("/forgot-password");
-        }}
-    >
-        Forgot Password
-    </button>
+<div className="carevr-mobile-account-menu">
+    <details className="carevr-mobile-account-menu-group">
+        <summary className="carevr-mobile-account-menu-trigger">
+            <span className="carevr-mobile-account-menu-copy">
+                <span className="carevr-mobile-account-menu-heading">
+                    Account &amp; Security
+                </span>
+                <span className="carevr-mobile-account-menu-description">
+                    Password and PIN settings
+                </span>
+            </span>
+            <span
+                className="carevr-mobile-account-menu-chevron"
+                aria-hidden="true"
+            >
+                ⌄
+            </span>
+        </summary>
 
-    <button
-        type="button"
-        className="carevr-mobile-account-menu-primary"
-        onClick={() => {
-            router.push("/reset-password");
-        }}
-    >
-        Reset Password
-    </button>
+        <div className="carevr-mobile-account-menu-content">
+            <button
+                type="button"
+                className="carevr-mobile-account-menu-primary"
+                onClick={() => router.push("/forgot-password")}
+            >
+                Forgot Password
+            </button>
+
+            <button
+                type="button"
+                className="carevr-mobile-account-menu-primary"
+                onClick={() => router.push("/reset-password")}
+            >
+                Reset Password
+            </button>
+
+            <button
+                type="button"
+                className="carevr-mobile-account-menu-primary"
+                onClick={() =>
+                    router.push("/secure-access/create-pin?mode=recreate")
+                }
+            >
+                Reset PIN
+            </button>
+        </div>
+    </details>
+
+    <details className="carevr-mobile-account-menu-group">
+        <summary className="carevr-mobile-account-menu-trigger">
+            <span className="carevr-mobile-account-menu-copy">
+                <span className="carevr-mobile-account-menu-heading">
+                    Care Management
+                </span>
+                <span className="carevr-mobile-account-menu-description">
+                    Patients, journey and profiles
+                </span>
+            </span>
+            <span
+                className="carevr-mobile-account-menu-chevron"
+                aria-hidden="true"
+            >
+                ⌄
+            </span>
+        </summary>
+
+        <div className="carevr-mobile-account-menu-content">
+            {showSwitchProfile && hasSwitchProfileAccess && (
+                <button
+                    type="button"
+                    className="carevr-mobile-account-menu-primary"
+                    disabled={switchingProfile || loggingOut}
+                    onClick={handleSwitchProfile}
+                >
+                    {loggingOut
+                        ? "Switching profile…"
+                        : "Switch Profile"}
+                </button>
+            )}
+
+{(canAddPatient ||
+    activeAccess.some(
+        (access) => access.access_type === "PRIMARY"
+    )) && (
 <button
     type="button"
     className="carevr-mobile-account-menu-primary"
-    onClick={() => {
-        router.push("/secure-access/create-pin?mode=recreate");
+    disabled={!consentGranted}
+    onClick={async () => {
+        try {
+            const result = await patientStorage.getPatients();
+
+            if (!result.success) {
+                AppAlert.error(
+                    result.error ??
+                        "Unable to verify the patient limit. Please try again."
+                );
+                return;
+            }
+
+            const activePatientCount =
+                result.data?.length ?? 0;
+
+            if (activePatientCount >= 2) {
+                AppAlert.error(
+                    "Patient limit reached. You have already added the maximum of 2 patients. You cannot add another patient."
+                );
+                return;
+            }
+
+            router.push("/add-patient");
+        } catch {
+            AppAlert.error(
+                "Unable to verify the patient limit. Please try again."
+            );
+        }
     }}
 >
-    Reset PIN
+    Add Patient
 </button>
-
-
-</div>
-
-{showSwitchProfile && hasSwitchProfileAccess && (
-    <div className="carevr-mobile-account-menu-section">
-        <div className="carevr-mobile-account-menu-section-title">
-            CAREVR FAMILY
-        </div>
-
-        <button
-            type="button"
-            className="carevr-mobile-account-menu-primary"
-            disabled={switchingProfile || loggingOut}
-            onClick={handleSwitchProfile}
-        >
-            {loggingOut
-                ? "Switching profile…"
-                : "Switch Profile"}
-        </button>
-    </div>
 )}
 
-{canAddPatient && (
+            <button
+                type="button"
+                className="carevr-mobile-account-menu-primary"
+                onClick={() => router.push("/carevr-journey")}
+            >
+                CareVR Journey
+            </button>
+        </div>
+    </details>
+
+    <details className="carevr-mobile-account-menu-group">
+        <summary className="carevr-mobile-account-menu-trigger">
+            <span className="carevr-mobile-account-menu-copy">
+                <span className="carevr-mobile-account-menu-heading">
+                    Help &amp; Support
+                </span>
+                <span className="carevr-mobile-account-menu-description">
+                    Help centre and contact options
+                </span>
+            </span>
+            <span
+                className="carevr-mobile-account-menu-chevron"
+                aria-hidden="true"
+            >
+                ⌄
+            </span>
+        </summary>
+
+        <div className="carevr-mobile-account-menu-content">
+            <button
+                type="button"
+                className="carevr-mobile-account-menu-primary"
+                onClick={() => router.push("/help")}
+            >
+                Help
+            </button>
+
+            <a
+                href="mailto:lineariseailabs@gmail.com"
+                className="carevr-mobile-account-menu-primary carevr-mobile-account-menu-link"
+            >
+                Contact Support
+            </a>
+        </div>
+    </details>
+
+    {/*
+     * Language selection is temporarily hidden during
+     * the CareVR soft launch.
+     *
+     * Localization infrastructure remains active.
+     *
+     * Keep the language selector hidden during soft launch.
+     */}
+
     <button
         type="button"
-        className="carevr-mobile-account-menu-primary"
-        disabled={!consentGranted}
-        onClick={() => {
-            router.push("/add-patient");
-        }}
+        className="carevr-mobile-account-menu-logout"
+        disabled={loggingOut}
+        onClick={onLogout}
     >
-        Add Patient
+        {loggingOut ? "Logging out…" : "Log out"}
     </button>
-)}
+</div>
 
-                            <button
-                                type="button"
-                                className="carevr-mobile-account-menu-primary"
-                                onClick={() => {
-                                    router.push("/carevr-journey");
-                                }}
-                            >
-                                CareVR Journey
-                            </button>
-
-                            <button
-                                type="button"
-                                className="carevr-mobile-account-menu-primary"
-                                onClick={() => {
-                                    router.push("/help");
-                                }}
-                            >
-                                Help
-                            </button>
-
-{/*
- * Language selection is temporarily hidden during
- * the CareVR soft launch.
- *
- * Localization infrastructure remains active.
- 
-// {languageSelector && (
-//     <div className="carevr-mobile-account-menu-language">
-//         <span>
-//             Language
-//         </span>
-//
-//         <div>
-//             {languageSelector}
-//         </div>
-//     </div>
-// 
-*/}
-
-                            <button
-                                type="button"
-                                className="carevr-mobile-account-menu-logout"
-                                disabled={loggingOut}
-                                onClick={onLogout}
-                            >
-                                {loggingOut
-                                    ? "Logging out…"
-                                    : "Log out"}
-                            </button>
-                        </div>
                     )}
                 </div>
             </div>
@@ -731,76 +801,149 @@ return (
                     box-shadow: 0 2px 7px rgba(40, 31, 90, 0.12);
                 }
 
-                .carevr-mobile-account-menu {
-                    position: absolute;
-                    top: calc(100% + 7px);
-                    right: 0;
-                    z-index: 100;
-                    width: 178px;
-                    padding: 6px;
-                    box-sizing: border-box;
-                    background: #ffffff;
-                    border: 1px solid #e8eaf1;
-                    border-radius: 12px;
-                    box-shadow:
-                        0 10px 30px rgba(40, 31, 90, 0.14);
-                }
 
-.carevr-mobile-account-menu-section-title {
-    padding: 5px 8px 7px;
-    color: #111827;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+.carevr-mobile-account-menu {
+    position: absolute;
+    top: calc(100% + 7px);
+    right: 0;
+    z-index: 100;
+    width: 244px;
+    max-width: calc(100vw - 24px);
+    padding: 8px;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid #e8eaf1;
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(40, 31, 90, 0.16);
 }
 
-.carevr-mobile-account-menu-section {
-    padding-bottom: 4px;
+
+
+.carevr-mobile-account-menu-group {
+    border-bottom: 1px solid #edf0f5;
 }
 
-.carevr-mobile-account-menu-section-title {
-    padding: 5px 10px 7px;
-    color: #111827;
+.carevr-mobile-account-menu-group:last-of-type {
+    border-bottom: none;
+}
+
+.carevr-mobile-account-menu-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 58px;
+    padding: 9px 8px;
+    border-radius: 10px;
+    list-style: none;
+    cursor: pointer;
+    transition: background 160ms ease;
+}
+
+.carevr-mobile-account-menu-trigger::-webkit-details-marker {
+    display: none;
+}
+
+.carevr-mobile-account-menu-trigger::marker {
+    content: "";
+}
+
+.carevr-mobile-account-menu-trigger:hover {
+    background: #f7f9fd;
+}
+
+.carevr-mobile-account-menu-trigger:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+}
+
+.carevr-mobile-account-menu-copy {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.carevr-mobile-account-menu-heading {
+    color: #172033;
     font-size: 12px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
+    font-weight: 750;
+    line-height: 1.35;
+}
+
+.carevr-mobile-account-menu-description {
+    color: #697386;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.carevr-mobile-account-menu-chevron {
+    flex: 0 0 auto;
+    color: #697386;
+    font-size: 19px;
+    line-height: 1;
+    transition: transform 180ms ease;
+}
+
+.carevr-mobile-account-menu-group[open]
+.carevr-mobile-account-menu-chevron {
+    transform: rotate(180deg);
+}
+
+.carevr-mobile-account-menu-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 0 4px 10px 10px;
 }
 
 .carevr-mobile-account-menu-primary,
 .carevr-mobile-account-menu-logout {
+    display: flex;
+    align-items: center;
     width: 100%;
-    min-height: 34px;
-    border: 0;
-    border-radius: 8px;
-    padding: 7px 10px;
+    min-height: 36px;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    padding: 8px 10px;
     font-family: inherit;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 650;
+    line-height: 1.35;
+    text-align: left;
     cursor: pointer;
+    transition: background 160ms ease, border-color 160ms ease;
 }
 
-                .carevr-mobile-account-menu-primary {
-                    background: #2563eb;
-                    color: #ffffff;
-                    text-align: center;
-                    box-shadow:
-                        0 3px 8px rgba(37, 99, 235, 0.16);
-                }
+.carevr-mobile-account-menu-primary {
+    background: #f5f7fc;
+    color: #243b67;
+    box-shadow: none;
+}
 
-                .carevr-mobile-account-menu-primary + .carevr-mobile-account-menu-primary {
-                    margin-top: 4px;
-                }
+.carevr-mobile-account-menu-primary:hover {
+    background: #eaf0ff;
+    border-color: #dce5ff;
+}
 
-                .carevr-mobile-account-menu-primary:hover {
-                    background: #1d4ed8;
-                }
+.carevr-mobile-account-menu-primary:focus-visible,
+.carevr-mobile-account-menu-logout:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
 
-                .carevr-mobile-account-menu-primary:disabled {
-                    opacity: 0.55;
-                    cursor: not-allowed;
-                }
+.carevr-mobile-account-menu-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.carevr-mobile-account-menu-link {
+    text-decoration: none;
+}
+
 
 .carevr-mobile-account-menu-language {
     display: flex;

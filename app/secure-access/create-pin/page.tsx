@@ -612,12 +612,14 @@ const [pin, setPin] = useState("");
 const [confirmPin, setConfirmPin] = useState("");
 const [currentPin, setCurrentPin] = useState("");
 
-
+const [showCurrentPin, setShowCurrentPin] = useState(false);
 const [showPin, setShowPin] = useState(false);
 const [showConfirmPin, setShowConfirmPin] = useState(false);
+
 const [error, setError] = useState("");
 const [saving, setSaving] = useState(false);
 const [userName, setUserName] = useState("");
+const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
 const pinInputRef = useRef<HTMLInputElement>(null);
 
@@ -717,6 +719,41 @@ useEffect(() => {
         cancelled = true;
     };
 }, []);
+
+useEffect(() => {
+    if (!isRecreateMode) {
+        return;
+    }
+
+    let cancelled = false;
+
+    const loadResetPinHeaderName = async () => {
+        try {
+            const profile =
+                await profileRepository
+                    .getCurrentProfile();
+
+            if (cancelled) {
+                return;
+            }
+
+            setUserName(
+                profile?.fullName?.trim() || ""
+            );
+        } catch (error) {
+            console.error(
+                "Unable to load profile name for Reset PIN header.",
+                error
+            );
+        }
+    };
+
+    void loadResetPinHeaderName();
+
+    return () => {
+        cancelled = true;
+    };
+}, [isRecreateMode]);
 
 const registrationContext =
     searchParams.get(
@@ -1416,11 +1453,15 @@ if (showDashboardHandoff) {
 
     showHomeButton={true}
     onHomeClick={() =>
-        router.replace("/login")
+        router.replace("/dashboard")
     }
 
-    accountMenuOpen={false}
-    onAccountMenuToggle={() => {}}
+    accountMenuOpen={isRecreateMode && accountMenuOpen}
+onAccountMenuToggle={() => {
+    if (isRecreateMode) {
+        setAccountMenuOpen((previous) => !previous);
+    }
+}}
 
     consentGranted={false}
     canAddPatient={false}
@@ -1493,25 +1534,57 @@ if (showDashboardHandoff) {
                         Current PIN
                     </label>
 
-                    <div className="pin-input-wrapper">
-                        <input
-                            id="current-carevr-pin"
-                            type="password"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            autoComplete="current-password"
-                            maxLength={6}
-                            value={currentPin}
-                            onChange={(event) =>
-                                handlePinChange(
-                                    event.target.value,
-                                    setCurrentPin
-                                )
-                            }
-                            disabled={saving}
-                            aria-label="Current 6-digit CareVR PIN"
-                        />
-                    </div>
+
+<div className="pin-input-wrapper">
+    <input
+        id="current-carevr-pin"
+        type={showCurrentPin ? "text" : "password"}
+        inputMode="numeric"
+        pattern="[0-9]*"
+        autoComplete="current-password"
+        maxLength={6}
+        value={currentPin}
+        onChange={(event) =>
+            handlePinChange(
+                event.target.value,
+                setCurrentPin
+            )
+        }
+        disabled={saving}
+        aria-label="Current 6-digit CareVR PIN"
+    />
+
+    <button
+        type="button"
+        className="pin-visibility-button"
+        onClick={() =>
+            setShowCurrentPin((current) => !current)
+        }
+        disabled={saving}
+        aria-label={showCurrentPin ? "Hide current PIN" : "Show current PIN"}
+        title={showCurrentPin ? "Hide current PIN" : "Show current PIN"}
+    >
+        {showCurrentPin ? (
+            <svg width="19" height="19" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="1.8"
+                strokeLinecap="round" strokeLinejoin="round"
+                aria-hidden="true">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+                <circle cx="12" cy="12" r="2.5" />
+                <path d="M4 4l16 16" />
+            </svg>
+        ) : (
+            <svg width="19" height="19" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="1.8"
+                strokeLinecap="round" strokeLinejoin="round"
+                aria-hidden="true">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+                <circle cx="12" cy="12" r="2.5" />
+            </svg>
+        )}
+    </button>
+</div>
+
                 </div>
 
                 <div className="field">
@@ -1542,29 +1615,35 @@ if (showDashboardHandoff) {
                             aria-label="New 6-digit CareVR PIN"
                         />
 
-                        <button
-                            type="button"
-                            className="pin-visibility-button"
-                            onClick={() =>
-                                setShowPin(
-                                    (current) =>
-                                        !current
-                                )
-                            }
-                            disabled={saving}
-                            aria-label={
-                                showPin
-                                    ? "Hide PIN"
-                                    : "Show PIN"
-                            }
-                            title={
-                                showPin
-                                    ? "Hide PIN"
-                                    : "Show PIN"
-                            }
-                        >
-                            {showPin ? "Hide" : "Show"}
-                        </button>
+<button
+    type="button"
+    className="pin-visibility-button"
+    onClick={() =>
+        setShowPin((current) => !current)
+    }
+    disabled={saving}
+    aria-label={showPin ? "Hide PIN" : "Show PIN"}
+    title={showPin ? "Hide PIN" : "Show PIN"}
+>
+    {showPin ? (
+        <svg width="19" height="19" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="1.8"
+            strokeLinecap="round" strokeLinejoin="round"
+            aria-hidden="true">
+            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+            <circle cx="12" cy="12" r="2.5" />
+            <path d="M4 4l16 16" />
+        </svg>
+    ) : (
+        <svg width="19" height="19" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="1.8"
+            strokeLinecap="round" strokeLinejoin="round"
+            aria-hidden="true">
+            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+            <circle cx="12" cy="12" r="2.5" />
+        </svg>
+    )}
+</button>
                     </div>
                 </div>
 
@@ -1596,31 +1675,35 @@ if (showDashboardHandoff) {
                             aria-label="Confirm new 6-digit CareVR PIN"
                         />
 
-                        <button
-                            type="button"
-                            className="pin-visibility-button"
-                            onClick={() =>
-                                setShowConfirmPin(
-                                    (current) =>
-                                        !current
-                                )
-                            }
-                            disabled={saving}
-                            aria-label={
-                                showConfirmPin
-                                    ? "Hide PIN"
-                                    : "Show PIN"
-                            }
-                            title={
-                                showConfirmPin
-                                    ? "Hide PIN"
-                                    : "Show PIN"
-                            }
-                        >
-                            {showConfirmPin
-                                ? "Hide"
-                                : "Show"}
-                        </button>
+<button
+    type="button"
+    className="pin-visibility-button"
+    onClick={() =>
+        setShowConfirmPin((current) => !current)
+    }
+    disabled={saving}
+    aria-label={showConfirmPin ? "Hide confirmed PIN" : "Show confirmed PIN"}
+    title={showConfirmPin ? "Hide confirmed PIN" : "Show confirmed PIN"}
+>
+    {showConfirmPin ? (
+        <svg width="19" height="19" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="1.8"
+            strokeLinecap="round" strokeLinejoin="round"
+            aria-hidden="true">
+            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+            <circle cx="12" cy="12" r="2.5" />
+            <path d="M4 4l16 16" />
+        </svg>
+    ) : (
+        <svg width="19" height="19" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="1.8"
+            strokeLinecap="round" strokeLinejoin="round"
+            aria-hidden="true">
+            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+            <circle cx="12" cy="12" r="2.5" />
+        </svg>
+    )}
+</button>
                     </div>
                 </div>
 
@@ -1639,7 +1722,12 @@ if (showDashboardHandoff) {
                     onClick={
                         handleRecreatePin
                     }
-                    disabled={saving}
+    disabled={
+        saving ||
+        !currentPin.trim() ||
+        !pin.trim() ||
+        !confirmPin.trim()
+    }
                 >
                     {saving
                         ? "Resetting PIN..."

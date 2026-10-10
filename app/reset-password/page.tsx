@@ -497,16 +497,30 @@ if (mode === "expired") {
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => void handleUpdatePassword()}
-                disabled={loading}
-                style={{
-                  ...primaryButtonStyle,
-                  opacity: loading ? 0.7 : 1,
-                  cursor: loading ? "not-allowed" : "pointer",
-                }}
-              >
+<button
+  type="button"
+  onClick={() => void handleUpdatePassword()}
+  disabled={
+    loading ||
+    !password.trim() ||
+    !confirmPassword.trim()
+  }
+  style={{
+    ...primaryButtonStyle,
+    opacity:
+      loading ||
+      !password.trim() ||
+      !confirmPassword.trim()
+        ? 0.5
+        : 1,
+    cursor:
+      loading ||
+      !password.trim() ||
+      !confirmPassword.trim()
+        ? "not-allowed"
+        : "pointer",
+  }}
+>
                 {loading ? "Updating Password..." : "Update Password"}
               </button>
             </>
