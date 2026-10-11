@@ -98,25 +98,33 @@ catch (error) {
       };
 
     }
-    catch (error) {
 
-      console.error(
-        "Error saving daily care:",
-        error
-      );
+catch (error) {
+  console.error("Error saving daily care:", error);
 
-      return {
+  const errorMessage =
+    error instanceof Error ? error.message : String(error ?? "");
 
-        success: false,
+  if (
+    errorMessage.includes("chk_daily_care_temperature") ||
+    (
+      errorMessage.includes('relation "daily_care"') &&
+      errorMessage.toLowerCase().includes("temperature")
+    )
+  ) {
+    return {
+      success: false,
+      error:
+        "We couldn't save this temperature reading. Please check the temperature and selected unit, then try again."
+    };
+  }
 
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unable to save Daily Care."
+  return {
+    success: false,
+    error: "Unable to save Daily Care. Please check your entries and try again."
+  };
+}
 
-      };
-
-    }
 
   }
 

@@ -36,11 +36,7 @@ export class DailyCareRepository {
 
 
 if (error) {
-
-  console.error("Supabase Insert Error:", error);
-
-  throw new Error(error.message);
-
+  throw error;
 }
 
     return DailyCareMapper.toDomain(

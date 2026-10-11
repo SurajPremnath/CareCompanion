@@ -27,6 +27,7 @@ export interface ClinicalStoryItem {
     }[];
 }
 
+
 export interface DrawOptions {
 
     page: PDFPage;
@@ -45,7 +46,20 @@ export interface DrawOptions {
 
     clinicalStory: ClinicalStoryItem[];
 
+    treatments?: {
+        id: string;
+        doctorNoteId: string | null;
+        medication: string;
+        dosage: string;
+        duration: string;
+        displayOrder: number;
+        createdAt: string;
+        careMode: "SELF" | "FAMILY";
+        patientId: string | null;
+    }[];
+
 }
+
 
 export class ExecutiveSummaryContent {
 
@@ -249,6 +263,8 @@ static drawClinicalStoryItem(
 
     return y;
 }
+
+
 private static renderTreatmentInformation(
     options: DrawOptions,
     y: number
@@ -259,7 +275,8 @@ private static renderTreatmentInformation(
         x,
         width,
         boldFont,
-        regularFont
+        regularFont,
+        treatments = []
     } = options;
 
     page.drawText(
@@ -272,20 +289,176 @@ private static renderTreatmentInformation(
         }
     );
 
-    y -= 24;
+    y -= 28;
 
-    page.drawText(
-        "Rahika 200 mg is prescribed twice daily as part of the current treatment regimen. The tablets started from 17 Jul 2026.",
-        {
-            x,
-            y,
-            size: 10,
-            font: regularFont,
-            maxWidth: width,
-            lineHeight: 14
+    if (treatments.length === 0) {
+        page.drawText(
+            "No treatment information recorded for this period.",
+            {
+                x,
+                y,
+                size: 10,
+                font: regularFont,
+                maxWidth: width,
+                lineHeight: 14
+            }
+        );
+
+        return y - 28;
+    }
+
+    const sortedTreatments = [...treatments].sort(
+        (a, b) => {
+            const dateDifference =
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime();
+
+            if (dateDifference !== 0) {
+                return dateDifference;
+            }
+
+            return a.displayOrder - b.displayOrder;
         }
     );
 
-    return y - 40;
+    const dateWidth = width * 0.21;
+    const medicationWidth = width * 0.34;
+    const dosageWidth = width * 0.22;
+    const durationWidth =
+        width - dateWidth - medicationWidth - dosageWidth;
+
+    const dateX = x;
+    const medicationX = x + dateWidth;
+    const dosageX = medicationX + medicationWidth;
+    const durationX = dosageX + dosageWidth;
+
+    const headerHeight = 24;
+    const rowHeight = 30;
+
+    page.drawRectangle({
+        x,
+        y: y - headerHeight + 5,
+        width,
+        height: headerHeight,
+        borderWidth: 0.5,
+        borderColor: rgb(0.84, 0.88, 0.92),
+        color: rgb(0.94, 0.97, 0.99)
+    });
+
+    const headerY = y - 11;
+
+    const headers = [
+        {
+            label: "Date",
+            x: dateX,
+            width: dateWidth
+        },
+        {
+            label: "Medication",
+            x: medicationX,
+            width: medicationWidth
+        },
+        {
+            label: "Dosage",
+            x: dosageX,
+            width: dosageWidth
+        },
+        {
+            label: "Duration",
+            x: durationX,
+            width: durationWidth
+        }
+    ];
+
+    for (const header of headers) {
+        page.drawText(
+            header.label,
+            {
+                x: header.x + 5,
+                y: headerY,
+                size: 8,
+                font: boldFont,
+                maxWidth: header.width - 10
+            }
+        );
+    }
+
+    y -= headerHeight;
+
+    for (const treatment of sortedTreatments) {
+        const treatmentDate = new Date(treatment.createdAt);
+
+        const dateLabel =
+            Number.isNaN(treatmentDate.getTime())
+                ? "Date unavailable"
+                : treatmentDate.toLocaleDateString(
+                    "en-GB",
+                    {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        timeZone: "UTC"
+                    }
+                );
+
+        const cells = [
+            {
+                value: dateLabel,
+                x: dateX,
+                width: dateWidth
+            },
+            {
+                value: treatment.medication || "",
+                x: medicationX,
+                width: medicationWidth
+            },
+            {
+                value: treatment.dosage || "",
+                x: dosageX,
+                width: dosageWidth
+            },
+            {
+                value: treatment.duration || "",
+                x: durationX,
+                width: durationWidth
+            }
+        ];
+
+        const rowTop = y;
+
+        for (const cell of cells) {
+            if (cell.value) {
+                page.drawText(
+                    cell.value,
+                    {
+                        x: cell.x + 5,
+                        y: rowTop - 16,
+                        size: 8,
+                        font: regularFont,
+                        maxWidth: cell.width - 10,
+                        lineHeight: 10
+                    }
+                );
+            }
+        }
+
+        y -= rowHeight;
+
+        page.drawLine({
+            start: {
+                x,
+                y: y + 5
+            },
+            end: {
+                x: x + width,
+                y: y + 5
+            },
+            thickness: 0.4,
+            color: rgb(0.88, 0.90, 0.93)
+        });
+    }
+
+    return y - 12;
 }
+
 }

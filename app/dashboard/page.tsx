@@ -612,11 +612,13 @@ void fetch(
                 .json()
                 .catch(() => null);
 
-        console.error(
-            "[CAREVR][ONBOARDING EMAIL]",
-            response.status,
-            result
-        );
+        if (!response.ok) {
+            console.error(
+                "[CAREVR][ONBOARDING EMAIL] Request failed.",
+                response.status,
+                result
+            );
+        }
 
     })
     .catch((error) => {

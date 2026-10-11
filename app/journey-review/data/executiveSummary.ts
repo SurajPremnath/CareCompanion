@@ -313,7 +313,23 @@ const selectedVitalValues = {
             )
 };
 
-const fallbackVitals = {
+
+
+const fallbackBloodPressureRecord =
+    selectedVitalValues.systolic.length === 0 ||
+    selectedVitalValues.diastolic.length === 0
+        ? (
+            previousRecords.find(
+                record =>
+                    record.systolic !== null &&
+                    record.systolic !== undefined &&
+                    record.diastolic !== null &&
+                    record.diastolic !== undefined
+            ) ?? null
+        )
+        : null;
+
+const fallbackVitalRecords = {
     temperature:
         selectedVitalValues.temperature.length === 0
             ? (
@@ -321,7 +337,7 @@ const fallbackVitals = {
                     record =>
                         record.temperature !== null &&
                         record.temperature !== undefined
-                )?.temperature ?? null
+                ) ?? null
             )
             : null,
 
@@ -332,7 +348,7 @@ const fallbackVitals = {
                     record =>
                         record.pulse !== null &&
                         record.pulse !== undefined
-                )?.pulse ?? null
+                ) ?? null
             )
             : null,
 
@@ -343,31 +359,13 @@ const fallbackVitals = {
                     record =>
                         record.spo2 !== null &&
                         record.spo2 !== undefined
-                )?.spo2 ?? null
+                ) ?? null
             )
             : null,
 
-    systolic:
-        selectedVitalValues.systolic.length === 0
-            ? (
-                previousRecords.find(
-                    record =>
-                        record.systolic !== null &&
-                        record.systolic !== undefined
-                )?.systolic ?? null
-            )
-            : null,
+    systolic: fallbackBloodPressureRecord,
 
-    diastolic:
-        selectedVitalValues.diastolic.length === 0
-            ? (
-                previousRecords.find(
-                    record =>
-                        record.diastolic !== null &&
-                        record.diastolic !== undefined
-                )?.diastolic ?? null
-            )
-            : null,
+    diastolic: fallbackBloodPressureRecord,
 
     weight:
         selectedVitalValues.weight.length === 0
@@ -376,10 +374,52 @@ const fallbackVitals = {
                     record =>
                         record.weight_kg !== null &&
                         record.weight_kg !== undefined
-                )?.weight_kg ?? null
+                ) ?? null
             )
             : null
 };
+
+const fallbackVitals = {
+    temperature:
+        fallbackVitalRecords.temperature?.temperature ?? null,
+
+    pulse:
+        fallbackVitalRecords.pulse?.pulse ?? null,
+
+    spo2:
+        fallbackVitalRecords.spo2?.spo2 ?? null,
+
+    systolic:
+        fallbackVitalRecords.systolic?.systolic ?? null,
+
+    diastolic:
+        fallbackVitalRecords.diastolic?.diastolic ?? null,
+
+    weight:
+        fallbackVitalRecords.weight?.weight_kg ?? null
+};
+
+const fallbackVitalDates = {
+    temperature:
+        fallbackVitalRecords.temperature?.recorded_at ?? null,
+
+    pulse:
+        fallbackVitalRecords.pulse?.recorded_at ?? null,
+
+    spo2:
+        fallbackVitalRecords.spo2?.recorded_at ?? null,
+
+    systolic:
+        fallbackVitalRecords.systolic?.recorded_at ?? null,
+
+    diastolic:
+        fallbackVitalRecords.diastolic?.recorded_at ?? null,
+
+    weight:
+        fallbackVitalRecords.weight?.recorded_at ?? null
+};
+
+
 
 const fallbackVitalNotes: string[] = [];
 
@@ -588,6 +628,7 @@ const assessmentRecords =
             assessmentRecords.length,
 
 
+
 vitalSummary: {
 
     temperature: calculateRange(
@@ -618,9 +659,12 @@ vitalSummary: {
 
 fallbackVitals,
 
+fallbackVitalDates,
+
 fallbackVitalNotes,
 
 recordedEvents: {
+
 
     bloodCoughCount:
         records.filter(record =>

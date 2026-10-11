@@ -523,30 +523,43 @@ t("medication.pleaseRecordatleastOneObservation")
         }
 
 
+
         if (hasTemperature) {
-
-            const temperature =
-
-                Number(
-                    formData.temperature
-                );
-
+            const rawTemperature = formData.temperature.trim();
+            const temperature = Number(rawTemperature);
+            const unit = formData.temperatureUnit;
 
             if (
-                Number.isNaN(
-                    temperature
-                )
+                rawTemperature === "" ||
+                !Number.isFinite(temperature)
             ) {
-
                 AppAlert.warning(
                     t("dailyCare.invalidTemperature")
                 );
-
                 return false;
-
             }
 
+            const minimumTemperature = unit === "F" ? 96 : 35.6;
+            const highTemperature = unit === "F" ? 103 : 39.4;
+
+            if (temperature < minimumTemperature) {
+                AppAlert.warning(
+                    `The temperature entered is unusually low (${temperature}°${unit}). Please verify the reading and unit before saving.`
+                );
+                return false;
+            }
+
+            if (temperature > highTemperature) {
+                const confirmed = AppAlert.confirm(
+                    `The temperature entered is high (${temperature}°${unit}). Please verify the reading. Do you want to save it anyway?`
+                );
+
+                if (!confirmed) {
+                    return false;
+                }
+            }
         }
+
 
 
         if (

@@ -243,6 +243,7 @@ static drawPatientStatus(
             ]?.answer
         );
 
+
 const vitals =
     this.parseVitals(answer);
 
@@ -256,12 +257,45 @@ const fallbackVitals: {
 } =
     summary?.fallbackVitals ?? {};
 
+const fallbackVitalDates: {
+    temperature?: string | null;
+    pulse?: string | null;
+    spo2?: string | null;
+    systolic?: string | null;
+    diastolic?: string | null;
+    weight?: string | null;
+} =
+    summary?.fallbackVitalDates ?? {};
 
+const formatFallbackDate = (
+    value: string | null | undefined
+): string | null => {
+    if (!value) {
+        return null;
+    }
+
+    const parsedDate = new Date(value);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return null;
+    }
+
+    return parsedDate.toLocaleDateString(
+        "en-GB",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            timeZone: "UTC"
+        }
+    );
+};
 
 const applyFallback = (
     data: any,
     fallbackValue: number | null | undefined,
-    suffix: string
+    suffix: string,
+    fallbackDate: string | null | undefined
 ) => {
     const currentValue =
         String(
@@ -272,10 +306,10 @@ const applyFallback = (
     const hasRecordedValue =
         currentValue !== "" &&
         currentValue !== "-" &&
-        currentValue !== "—" &&
-        currentValue !== "–" &&
         currentValue !== "â€”" &&
-        currentValue !== "â€“";
+        currentValue !== "â€“" &&
+        currentValue !== "Ã¢â‚¬â€" &&
+        currentValue !== "Ã¢â‚¬â€œ";
 
     if (hasRecordedValue) {
         return data;
@@ -295,7 +329,8 @@ const applyFallback = (
         current: formatted,
         min: formatted,
         max: formatted,
-        fallback: true
+        fallback: true,
+        fallbackDate: formatFallbackDate(fallbackDate)
     };
 };
 
@@ -303,229 +338,195 @@ vitals.temperature =
     applyFallback(
         vitals.temperature,
         fallbackVitals.temperature,
-        "°F"
+        "°F",
+        fallbackVitalDates.temperature
     );
 
 vitals.pulse =
     applyFallback(
         vitals.pulse,
         fallbackVitals.pulse,
-        " bpm"
+        " bpm",
+        fallbackVitalDates.pulse
     );
 
 vitals.spo2 =
     applyFallback(
         vitals.spo2,
         fallbackVitals.spo2,
-        "%"
+        "%",
+        fallbackVitalDates.spo2
     );
 
+if (
+    !vitals.bloodPressure &&
+    fallbackVitals.systolic !== null &&
+    fallbackVitals.systolic !== undefined &&
+    fallbackVitals.diastolic !== null &&
+    fallbackVitals.diastolic !== undefined
+) {
+    const formatted =
+        `${fallbackVitals.systolic}/${fallbackVitals.diastolic} mmHg`;
 
-    if (
-        !vitals.bloodPressure &&
-        (
-            fallbackVitals.systolic !== null &&
-            fallbackVitals.systolic !== undefined &&
-            fallbackVitals.diastolic !== null &&
-            fallbackVitals.diastolic !== undefined
+    vitals.bloodPressure = {
+        current: formatted,
+        min: formatted,
+        max: formatted,
+        fallback: true,
+        fallbackDate: formatFallbackDate(
+            fallbackVitalDates.systolic
         )
-    ) {
-        const formatted =
-            `${fallbackVitals.systolic}/${fallbackVitals.diastolic} mmHg`;
+    };
+}
 
-        vitals.bloodPressure = {
-            current: formatted,
-            min: formatted,
-            max: formatted,
-            fallback: true
-        };
+const cards = [
+    [
+        "Blood Pressure",
+        vitals.bloodPressure
+    ],
+    [
+        "Pulse",
+        vitals.pulse
+    ],
+    [
+        "SpO2",
+        vitals.spo2
+    ],
+    [
+        "Temperature",
+        vitals.temperature
+    ]
+] as const;
+
+const gap = 7;
+const cardHeight = 88;
+
+const cardWidth =
+    (width - gap * (cards.length - 1)) /
+    cards.length;
+
+for (
+    let i = 0;
+    i < cards.length;
+    i++
+) {
+
+const [label, data] = cards[i] ?? ["Vital", undefined];
+const cardX = x + i * (cardWidth + gap);
+
+const value = (
+    data !== null &&
+    typeof data === "object"
+)
+    ? {
+        current: data.current ?? "—",
+        min: data.min ?? "—",
+        max: data.max ?? "—",
+        fallback: data.fallback === true,
+        fallbackDate: data.fallbackDate ?? null
     }
+    : {
+        current: "—",
+        min: "—",
+        max: "—",
+        fallback: false,
+        fallbackDate: null
+    };
 
-    const cards = [
-        [
-            "Blood Pressure",
-            vitals.bloodPressure
-        ],
-        [
-            "Pulse",
-            vitals.pulse
-        ],
-        [
-            "SpO2",
-            vitals.spo2
-        ],
-        [
-            "Temperature",
-            vitals.temperature
-        ]
-    ] as const;
-
-    const gap = 7;
-
-    const cardWidth =
-        (width - gap * 3) / 4;
-
-    const cardHeight = 88;
-
-    for (
-        let i = 0;
-        i < cards.length;
-        i++
-    ) {
-        const [
-            label,
-            data
-        ] = cards[i];
-
-        const cardX =
-            x +
-            i *
-                (cardWidth + gap);
-
-        const value =
-            data ?? {
-                current: "—",
-                min: "—",
-                max: "—",
-                fallback: false
-            };
-
-        page.drawRectangle({
-            x: cardX,
-            y:
-                currentY -
-                cardHeight,
-            width: cardWidth,
-            height: cardHeight,
-            borderWidth: 0.8,
-            borderColor:
-                rgb(
-                    0.86,
-                    0.89,
-                    0.93
-                ),
-            color:
-                rgb(
-                    1,
-                    1,
-                    1
-                )
-        });
-
-        page.drawText(
-            label,
-            {
-                x:
-                    cardX + 8,
-                y:
-                    currentY - 16,
-                font:
-                    boldFont,
-                size: 8.5,
-                color:
-                    rgb(
-                        0.40,
-                        0.45,
-                        0.52
-                    )
-            }
-        );
-
-        page.drawText(
-            value.fallback
-                ? "Latest*"
-                : "Current",
-            {
-                x:
-                    cardX + 8,
-                y:
-                    currentY - 31,
-                font:
-                    regularFont,
-                size: 7.5,
-                color:
-                    rgb(
-                        0.55,
-                        0.59,
-                        0.65
-                    )
-            }
-        );
-
-        page.drawText(
-            this.safePdfText(
-                value.current
+    page.drawRectangle({
+        x: cardX,
+        y:
+            currentY -
+            cardHeight,
+        width: cardWidth,
+        height: cardHeight,
+        borderWidth: 0.8,
+        borderColor:
+            rgb(
+                0.86,
+                0.89,
+                0.93
             ),
-            {
-                x:
-                    cardX + 8,
-                y:
-                    currentY - 48,
-                font:
-                    boldFont,
-                size: 12,
-                color:
-                    rgb(
-                        0.09,
-                        0.13,
-                        0.20
-                    )
-            }
-        );
+        color:
+            rgb(
+                1,
+                1,
+                1
+            )
+    });
 
-        page.drawLine({
-            start: {
-                x:
-                    cardX + 8,
-                y:
-                    currentY - 56
-            },
-            end: {
-                x:
-                    cardX +
-                    cardWidth -
-                    8,
-                y:
-                    currentY - 56
-            },
-            thickness: 0.5,
+    page.drawText(
+        label,
+        {
+            x:
+                cardX + 8,
+            y:
+                currentY - 16,
+            font:
+                boldFont,
+            size: 8.5,
             color:
                 rgb(
-                    0.90,
-                    0.92,
-                    0.94
+                    0.40,
+                    0.45,
+                    0.52
                 )
-        });
+        }
+    );
 
+    page.drawText(
+        value.fallback
+            ? "Last recorded"
+            : "Current",
+        {
+            x:
+                cardX + 8,
+            y:
+                currentY - 31,
+            font:
+                regularFont,
+            size: 7.5,
+            color:
+                rgb(
+                    0.55,
+                    0.59,
+                    0.65
+                )
+        }
+    );
+
+    page.drawText(
+        this.safePdfText(
+            value.current
+        ),
+        {
+            x:
+                cardX + 8,
+            y:
+                currentY - 48,
+            font:
+                boldFont,
+            size: 12,
+            color:
+                rgb(
+                    0.09,
+                    0.13,
+                    0.20
+                )
+        }
+    );
+
+    if (value.fallback && value.fallbackDate) {
         page.drawText(
-            `Min  ${this.safePdfText(value.min)}`,
+            `Recorded: ${value.fallbackDate}`,
             {
                 x:
                     cardX + 8,
                 y:
-                    currentY - 70,
+                    currentY - 57,
                 font:
                     regularFont,
-                size: 7.5,
-                color:
-                    rgb(
-                        0.42,
-                        0.47,
-                        0.53
-                    )
-            }
-        );
-
-        page.drawText(
-            `Max  ${this.safePdfText(value.max)}`,
-            {
-                x:
-                    cardX + 8,
-                y:
-                    currentY - 82,
-                font:
-                    regularFont,
-                size: 7.5,
+                size: 6.5,
                 color:
                     rgb(
                         0.42,
@@ -535,6 +536,71 @@ vitals.spo2 =
             }
         );
     }
+
+    page.drawLine({
+        start: {
+            x:
+                cardX + 8,
+            y:
+                currentY - 61
+        },
+        end: {
+            x:
+                cardX +
+                cardWidth -
+                8,
+            y:
+                currentY - 61
+        },
+        thickness: 0.5,
+        color:
+            rgb(
+                0.90,
+                0.92,
+                0.94
+            )
+    });
+
+    page.drawText(
+        `Min  ${this.safePdfText(value.min)}`,
+        {
+            x:
+                cardX + 8,
+            y:
+                currentY - 72,
+            font:
+                regularFont,
+            size: 7,
+            color:
+                rgb(
+                    0.42,
+                    0.47,
+                    0.53
+                )
+        }
+    );
+
+    page.drawText(
+        `Max  ${this.safePdfText(value.max)}`,
+        {
+            x:
+                cardX + 8,
+            y:
+                currentY - 82,
+            font:
+                regularFont,
+            size: 7,
+            color:
+                rgb(
+                    0.42,
+                    0.47,
+                    0.53
+                )
+        }
+    );
+    }
+
+
 
     currentY -=
         cardHeight + 13;
@@ -573,28 +639,209 @@ vitals.spo2 =
     return currentY - 8;
 }
 
-    static drawClinicalPlan(
-        options: ExecutiveSummarySectionOptions,
-        section: ExecutiveSummarySection | undefined
-    ): number {
-        const { page, x, y, width, boldFont, regularFont } = options;
-        let currentY = this.drawHeading(page, x, y, width, "5", "Latest Clinical Plan", "What was the latest documented clinical plan?", boldFont, regularFont);
-        const period = section?.periods?.[section.periods.length - 1];
-        const answer = this.cleanText(period?.answer) || "No clinical plan was recorded.";
-        const lines = answer.split("\n").map(line => line.replace(/^[•●▪\-]+\s*/, "").trim()).filter(Boolean);
-        const wrapped = (lines.length ? lines : [answer]).map(line => this.wrapText(this.safePdfText(line), 92));
-        const totalLines = wrapped.reduce((sum, line) => sum + line.split("\n").length, 0);
-        const height = Math.max(76, 28 + totalLines * 12);
+static drawClinicalPlan(
+    options: ExecutiveSummarySectionOptions,
+    section: ExecutiveSummarySection | undefined
+): number {
+    const { page, x, y, width, boldFont, regularFont } = options;
 
-        page.drawRectangle({ x, y: currentY - height, width, height, borderWidth: 0.7, borderColor: rgb(0.88, 0.91, 0.94), color: rgb(0.985, 0.99, 0.995) });
-        let lineY = currentY - 18;
-        for (const line of wrapped) {
-            page.drawCircle({ x: x + 8, y: lineY + 3, size: 2.5, color: rgb(0.09, 0.41, 0.67) });
-            page.drawText(line, { x: x + 18, y: lineY, font: regularFont, size: 8.5, lineHeight: 12, maxWidth: width - 28, color: rgb(0.28, 0.34, 0.41) });
-            lineY -= line.split("\n").length * 12;
+    let currentY = this.drawHeading(
+        page,
+        x,
+        y,
+        width,
+        "5",
+        "Latest Clinical Plan",
+        "Documented doctor notes for the selected period",
+        boldFont,
+        regularFont
+    );
+
+    const period =
+        section?.periods?.[section.periods.length - 1];
+
+    const answer = this.cleanText(period?.answer);
+
+    const emptyMessages = new Set([
+        "No doctor notes were recorded during this period.",
+        "No clinical plan was recorded."
+    ]);
+
+    const rawLines = answer
+        .split("\n")
+        .map(line => line.trim())
+        .filter(Boolean);
+
+    const noteEntries: { date: string; note: string }[] = [];
+
+    let currentDate = "";
+    let currentNoteLines: string[] = [];
+
+    const flushNote = () => {
+        const noteText = currentNoteLines.join("\n").trim();
+
+        if (currentDate && noteText) {
+            noteEntries.push({
+                date: currentDate,
+                note: noteText
+            });
         }
+
+        currentDate = "";
+        currentNoteLines = [];
+    };
+
+    for (const line of rawLines) {
+        if (/^Doctor notes$/i.test(line)) {
+            continue;
+        }
+
+        if (emptyMessages.has(line)) {
+            continue;
+        }
+
+const dateMatch = line.match(
+    /^(\d{2}\s+[A-Za-z]{3,4}\s+\d{4},?\s+\d{1,2}:\d{2}(?:\s*[ap]m)?)\s+(?:[—–-]\s*)?Doctor note$/i
+);
+
+        if (dateMatch) {
+            flushNote();
+            currentDate = dateMatch[1].trim();
+            continue;
+        }
+
+        if (currentDate) {
+            currentNoteLines.push(line);
+        }
+    }
+
+    flushNote();
+
+    if (noteEntries.length === 0) {
+        const message =
+            answer && !emptyMessages.has(answer)
+                ? answer
+                : "No doctor notes were recorded during this period.";
+
+const safeMessage = this.safePdfText(message);
+const messageLines = this.wrapText(safeMessage, 92);
+const lineCount = messageLines.split("\n").length;
+const height = Math.max(48, 24 + lineCount * 12);
+
+page.drawRectangle({
+    x,
+    y: currentY - height,
+    width,
+    height,
+    borderWidth: 0.7,
+    borderColor: rgb(0.88, 0.91, 0.94),
+    color: rgb(0.985, 0.99, 0.995)
+});
+
+let messageY = currentY - 20;
+
+for (const line of messageLines.split("\n")) {
+    page.drawText(line, {
+        x: x + 10,
+        y: messageY,
+        font: regularFont,
+        size: 8.5,
+        lineHeight: 12,
+        maxWidth: width - 20,
+        color: rgb(0.28, 0.34, 0.41)
+    });
+
+    messageY -= 12;
+}
+
         return currentY - height - 8;
     }
+
+    const dateWidth = width * 0.27;
+    const noteWidth = width - dateWidth;
+    const headerHeight = 24;
+
+    page.drawRectangle({
+        x,
+        y: currentY - headerHeight + 5,
+        width,
+        height: headerHeight,
+        borderWidth: 0.5,
+        borderColor: rgb(0.84, 0.88, 0.92),
+        color: rgb(0.94, 0.97, 0.99)
+    });
+
+    page.drawText("Date & Time", {
+        x: x + 5,
+        y: currentY - 11,
+        size: 8,
+        font: boldFont,
+        maxWidth: dateWidth - 10
+    });
+
+    page.drawText("Doctor's Notes", {
+        x: x + dateWidth + 5,
+        y: currentY - 11,
+        size: 8,
+        font: boldFont,
+        maxWidth: noteWidth - 10
+    });
+
+    currentY -= headerHeight;
+
+    const sortedEntries = [...noteEntries].sort(
+        (a, b) =>
+            new Date(b.date).getTime() -
+            new Date(a.date).getTime()
+    );
+
+    for (const entry of sortedEntries) {
+        const dateText = this.safePdfText(entry.date);
+        const noteText = this.safePdfText(entry.note);
+
+const wrappedDate = this.wrapText(dateText, 24);
+const wrappedNote = this.wrapText(noteText, 68);
+
+const dateLineCount = wrappedDate.split("\n").length;
+const noteLineCount = wrappedNote.split("\n").length;
+
+        const rowHeight = Math.max(
+            30,
+            14 + Math.max(dateLineCount, noteLineCount) * 11
+        );
+
+page.drawText(wrappedDate, {
+    x: x + 5,
+    y: currentY - 16,
+    font: regularFont,
+    size: 8,
+    lineHeight: 11,
+    maxWidth: dateWidth - 10,
+    color: rgb(0.28, 0.34, 0.41)
+});
+
+page.drawText(wrappedNote, {
+    x: x + dateWidth + 5,
+    y: currentY - 16,
+    font: regularFont,
+    size: 8,
+    lineHeight: 11,
+    maxWidth: noteWidth - 10,
+    color: rgb(0.28, 0.34, 0.41)
+});
+
+        currentY -= rowHeight;
+
+        page.drawLine({
+            start: { x, y: currentY + 5 },
+            end: { x: x + width, y: currentY + 5 },
+            thickness: 0.4,
+            color: rgb(0.88, 0.90, 0.93)
+        });
+    }
+
+    return currentY - 12;
+}
 
     private static drawHeading(page: PDFPage, x: number, y: number, width: number, number: string, title: string, subtitle: string, boldFont: PDFFont, regularFont: PDFFont): number {
         page.drawRectangle({ x, y: y - 44, width, height: 44, borderWidth: 0.7, borderColor: rgb(0.86, 0.90, 0.94), color: rgb(0.97, 0.985, 0.995) });

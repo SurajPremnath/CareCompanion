@@ -75,6 +75,7 @@ clinicalTimeline: ClinicalTimelineEvent[];
 
     };
 
+
     fallbackVitals?: {
         temperature?: number | null;
         pulse?: number | null;
@@ -84,7 +85,17 @@ clinicalTimeline: ClinicalTimelineEvent[];
         weight?: number | null;
     };
 
+    fallbackVitalDates?: {
+        temperature?: string | null;
+        pulse?: string | null;
+        spo2?: string | null;
+        systolic?: string | null;
+        diastolic?: string | null;
+        weight?: string | null;
+    };
+
     fallbackVitalNotes?: string[];
+
 
     recordedEvents: {
 

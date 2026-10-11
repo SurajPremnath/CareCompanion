@@ -126,6 +126,7 @@ if (!patientIsInScope) {
             patientRow as Record<string, unknown>,
         );
 
+
     const {
         data: doctorRows,
         error: doctorError,
@@ -134,6 +135,8 @@ if (!patientIsInScope) {
             .from("patient_doctors")
             .select(
                 `
+                id,
+                updated_at,
                 provider_id,
                 facility_id,
                 healthcare_providers (
@@ -147,14 +150,11 @@ if (!patientIsInScope) {
                 )
                 `,
             )
-            .eq(
-                "patient_id",
-                patientId,
-            )
-            .eq(
-                "is_active",
-                true,
-            );
+            .eq("patient_id", patientId)
+            .eq("is_active", true)
+            .order("updated_at", { ascending: false })
+            .order("id", { ascending: false });
+
 
     if (doctorError) {
         throw doctorError;

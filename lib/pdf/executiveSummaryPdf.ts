@@ -24,6 +24,18 @@ export interface ExecutiveSummaryReport {
     summary: ExecutiveSummaryViewModel;
 
     clinicalStory: any[];
+
+    treatments?: {
+        id: string;
+        doctorNoteId: string | null;
+        medication: string;
+        dosage: string;
+        duration: string;
+        displayOrder: number;
+        createdAt: string;
+        careMode: "SELF" | "FAMILY";
+        patientId: string | null;
+    }[];
 }
 
 export class ExecutiveSummaryPdf {
@@ -124,7 +136,8 @@ export class ExecutiveSummaryPdf {
                 regularFont,
                 boldFont,
                 summary: report.summary,
-                clinicalStory: report.clinicalStory
+                clinicalStory: report.clinicalStory,
+                treatments: report.treatments
             },
             currentY
         );

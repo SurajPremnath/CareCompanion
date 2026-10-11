@@ -57,87 +57,66 @@ export async function GET(
         }
 
 
+
         //--------------------------------------------------
         // Read request parameters
         //--------------------------------------------------
 
-        const url =
-            new URL(request.url);
+        const url = new URL(request.url);
 
-        const patientId =
-            url.searchParams.get(
-                "patientId",
-            );
-
-        const startDate =
-            url.searchParams.get(
-                "startDate",
-            );
-
-        const endDate =
-            url.searchParams.get(
-                "endDate",
-            );
-
+        const careMode = url.searchParams.get("careMode");
+        const requestedPatientId = url.searchParams.get("patientId");
+        const patientId = url.searchParams.get("patientId");
+        const startDate = url.searchParams.get("startDate");
+        const endDate = url.searchParams.get("endDate");
 
         //--------------------------------------------------
         // Validate parameters
         //--------------------------------------------------
 
-        if (!patientId) {
-
+        if (careMode !== "SELF" && careMode !== "FAMILY") {
             return NextResponse.json(
-                {
-                    error:
-                        "Patient is required.",
-                },
-                {
-                    status: 400,
-                },
+                { error: "Invalid care mode." },
+                { status: 400 },
             );
         }
 
-        if (!startDate) {
-
+        if (careMode === "SELF" && patientId) {
             return NextResponse.json(
-                {
-                    error:
-                        "Start date is required.",
-                },
-                {
-                    status: 400,
-                },
+                { error: "SELF mode must not include a patient." },
+                { status: 400 },
             );
         }
 
-        if (!endDate) {
-
+        if (careMode === "FAMILY" && !patientId) {
             return NextResponse.json(
-                {
-                    error:
-                        "End date is required.",
-                },
-                {
-                    status: 400,
-                },
+                { error: "A patient is required in FAMILY mode." },
+                { status: 400 },
+            );
+        }
+
+        if (!startDate || !endDate) {
+            return NextResponse.json(
+                { error: "Start date and end date are required." },
+                { status: 400 },
             );
         }
 
 
         //--------------------------------------------------
-        // Retrieve protected Doctors Notes.
-        //
-        // Repository → persistence service → Supabase RLS
-        // → decrypt after authorized retrieval.
+        // Retrieve authorized notes and treatments.
+        // Supabase RLS remains enforced; decryption is server-side.
         //--------------------------------------------------
 
-        const doctorsNotes =
-            await doctorsNotesRepository.getForPeriod(
-                patientId,
-                startDate,
-                endDate,
-            );
-
+        const {
+            doctorsNotes,
+            treatments,
+        } = await doctorsNotesRepository.getNotesAndTreatmentsForPeriod(
+            careMode,
+            patientId,
+            startDate,
+            endDate,
+        );
 
         //--------------------------------------------------
         // Return application-level note data.
@@ -146,6 +125,7 @@ export async function GET(
         return NextResponse.json(
             {
                 doctorsNotes,
+                treatments,
             },
             {
                 status: 200,

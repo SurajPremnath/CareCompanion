@@ -3,7 +3,9 @@ import "server-only";
 import {
   createProtectedDoctorsNote,
   getProtectedDoctorsNotes,
+  getProtectedDoctorsNotesAndTreatments
 } from "@/lib/security/dataProtection/doctorsNotesPersistenceService";
+
 import {
   DoctorsNote,
   CreateDoctorsNoteRequest,
@@ -28,6 +30,21 @@ export class DoctorsNotesRepository {
       endDate
     );
   }
+
+  async getNotesAndTreatmentsForPeriod(
+    careMode: "SELF" | "FAMILY",
+    patientId: string | null,
+    startDate: string,
+    endDate: string
+  ) {
+    return getProtectedDoctorsNotesAndTreatments(
+      careMode,
+      patientId,
+      startDate,
+      endDate
+    );
+  }
+
 }
 
 export const doctorsNotesRepository =

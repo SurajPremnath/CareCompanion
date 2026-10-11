@@ -256,52 +256,100 @@ const latestPrescription =
     prescriptionHistory[0] ?? null;
 
 
+
 let retrievedDoctorsNotes: any[] = [];
+let retrievedTreatments: any[] = [];
 
-if (patientId) {
+const doctorsNotesResponse = await fetch(
+    `/api/reports/executive-summary/doctors-notes?careMode=${encodeURIComponent(
+        careMode,
+    )}&patientId=${encodeURIComponent(
+        patientId ?? "",
+    )}&startDate=${encodeURIComponent(
+        startDate,
+    )}&endDate=${encodeURIComponent(
+        endDate,
+    )}`,
+    {
+        method: "GET",
+        cache: "no-store",
+    },
+);
 
-    const doctorsNotesResponse =
-        await fetch(
-            `/api/reports/executive-summary/doctors-notes?patientId=${encodeURIComponent(
-                patientId,
-            )}&startDate=${encodeURIComponent(
-                startDate,
-            )}&endDate=${encodeURIComponent(
-                endDate,
-            )}`,
-            {
-                method: "GET",
-                cache: "no-store",
-            },
-        );
+if (!doctorsNotesResponse.ok) {
+    const errorBody = await doctorsNotesResponse
+        .json()
+        .catch(() => null);
 
-    if (!doctorsNotesResponse.ok) {
-
-        const errorBody =
-            await doctorsNotesResponse
-                .json()
-                .catch(() => null);
-
-        throw new Error(
-            errorBody?.error ??
-                "Unable to load Doctors Notes.",
-        );
-    }
-
-    const doctorsNotesResult =
-        await doctorsNotesResponse.json();
-
-    retrievedDoctorsNotes =
-        Array.isArray(
-            doctorsNotesResult?.doctorsNotes,
-        )
-            ? doctorsNotesResult.doctorsNotes
-            : [];
-
-    setDoctorsNotes(
-        retrievedDoctorsNotes,
+    throw new Error(
+        errorBody?.error ??
+            "Unable to load Doctors Notes and Treatment Information.",
     );
 }
+
+const doctorsNotesResult =
+    await doctorsNotesResponse.json();
+
+retrievedDoctorsNotes = Array.isArray(
+    doctorsNotesResult?.doctorsNotes,
+)
+    ? doctorsNotesResult.doctorsNotes
+    : [];
+
+const treatmentRecords: any[] = Array.isArray(
+    doctorsNotesResult?.treatments,
+)
+    ? doctorsNotesResult.treatments
+    : [];
+
+const seenTreatmentEntries = new Set<string>();
+
+retrievedTreatments = treatmentRecords.filter(
+    (treatment) => {
+        const medication =
+            typeof treatment?.medication === "string"
+                ? treatment.medication.trim().toLowerCase()
+                : "";
+
+        const dosage =
+            typeof treatment?.dosage === "string"
+                ? treatment.dosage.trim().toLowerCase()
+                : "";
+
+        const duration =
+            typeof treatment?.duration === "string"
+                ? treatment.duration.trim().toLowerCase()
+                : "";
+
+        const createdAt =
+            typeof treatment?.createdAt === "string"
+                ? treatment.createdAt.trim()
+                : "";
+
+        // Do not discard incomplete records without enough
+        // information to identify a duplicate safely.
+        if (!medication) {
+            return true;
+        }
+
+        const treatmentKey = JSON.stringify([
+            medication,
+            dosage,
+            duration,
+        ]);
+
+        if (seenTreatmentEntries.has(treatmentKey)) {
+            return false;
+        }
+
+        seenTreatmentEntries.add(treatmentKey);
+        return true;
+    },
+);
+
+
+
+setDoctorsNotes(retrievedDoctorsNotes);
 
             setProgress(20);
 
@@ -326,7 +374,10 @@ const summary =
     );
 
 if (
-    summary.totalDailyCareRecords === 0
+    summary.totalDailyCareRecords === 0 &&
+    retrievedDoctorsNotes.length === 0 &&
+    retrievedTreatments.length === 0 &&
+    prescriptionHistory.length === 0
 ) {
     onNoData?.();
     return;
@@ -544,9 +595,16 @@ filteredTimeline.forEach(
 );
 
 const groupedTimeline = [
-    bucket
+    {
+        ...bucket,
+        recordCount:
+            bucket.recordCount > 0
+                ? bucket.recordCount
+                : retrievedDoctorsNotes.length > 0
+                    ? 1
+                    : 0,
+    },
 ];
-
 
 const story =
     buildClinicalStory(
@@ -654,6 +712,7 @@ const contextResponse =
 
 }
 
+
 const bytes =
     await executiveSummaryPdf.generate({
 
@@ -671,7 +730,11 @@ const bytes =
 
         clinicalStory:
             story,
+
+        treatments:
+            retrievedTreatments,
     });
+
 
             const pdfBytes =
                 new Uint8Array(bytes);
