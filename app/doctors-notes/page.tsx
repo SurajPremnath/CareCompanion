@@ -88,6 +88,25 @@ const [specialisation, setSpecialisation] =
 const [note, setNote] =
   useState("");
 
+const [treatments, setTreatments] = useState<
+  Array<{
+    id: number;
+    medication: string;
+    dosage: string;
+    duration: string;
+  }>
+>([
+  {
+    id: 1,
+    medication: "",
+    dosage: "",
+    duration: "",
+  },
+]);
+
+const [nextTreatmentId, setNextTreatmentId] = useState(2);
+const [showTreatmentHelp, setShowTreatmentHelp] = useState(false);
+
 const [saving, setSaving] =
   useState(false);
 
@@ -434,7 +453,38 @@ const handleLogout = async () => {
 };
 
 
+const handleTreatmentChange = (
+  id: number,
+  field: "medication" | "dosage" | "duration",
+  value: string
+) => {
+  setTreatments((current) =>
+    current.map((treatment) =>
+      treatment.id === id
+        ? { ...treatment, [field]: value }
+        : treatment
+    )
+  );
+};
 
+const handleAddTreatment = () => {
+  setTreatments((current) => [
+    ...current,
+    {
+      id: nextTreatmentId,
+      medication: "",
+      dosage: "",
+      duration: "",
+    },
+  ]);
+  setNextTreatmentId((current) => current + 1);
+};
+
+const handleRemoveTreatment = (id: number) => {
+  setTreatments((current) =>
+    current.filter((treatment) => treatment.id !== id)
+  );
+};
 
 const now = new Date();
 
@@ -454,83 +504,98 @@ const handleSave = async () => {
   setSaveError("");
   setSaveSuccess("");
 
-  if (!selectedPatient) {
+  const hasNote = note.trim().length > 0;
+
+  const completedTreatments = treatments
+    .filter(
+      (treatment) =>
+        treatment.medication.trim().length > 0
+    )
+    .map((treatment) => ({
+      medication: treatment.medication.trim(),
+      dosage: treatment.dosage.trim(),
+      duration: treatment.duration.trim(),
+    }));
+
+  const hasTreatments = completedTreatments.length > 0;
+
+  if (!hasNote && !hasTreatments) {
     setSaveError(
-      "Please select a patient."
+      "Please enter a doctor's note or at least one treatment."
     );
     return;
   }
 
-if (!doctorName.trim()) {
-  setSaveError(
-    "Please enter or select a doctor name."
-  );
-  return;
-}
-
-  if (!note.trim()) {
-    setSaveError(
-      "Please enter the doctor's note."
-    );
+  if (careMode === "FAMILY" && !selectedPatient) {
+    setSaveError("Please select a patient.");
     return;
   }
 
-  if (!selectedDate || !selectedTime) {
-    setSaveError(
-      "Please select the date and time."
-    );
+  if (hasNote && !doctorName.trim()) {
+    setSaveError("Please enter or select a doctor name.");
     return;
   }
 
-  const noteDateTime = new Date(
-    `${selectedDate}T${selectedTime}`
-  );
+  let noteDateTime: Date | null = null;
 
-  if (Number.isNaN(noteDateTime.getTime())) {
-    setSaveError(
-      "The selected date and time are invalid."
+  if (hasNote) {
+    if (!selectedDate || !selectedTime) {
+      setSaveError("Please select the date and time.");
+      return;
+    }
+
+    noteDateTime = new Date(
+      `${selectedDate}T${selectedTime}`
     );
-    return;
+
+    if (Number.isNaN(noteDateTime.getTime())) {
+      setSaveError(
+        "The selected date and time are invalid."
+      );
+      return;
+    }
   }
 
   setSaving(true);
 
   try {
-    const response = await fetch(
-      "/api/doctors-notes",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json",
-        },
-body: JSON.stringify({
-  patientId: selectedPatient,
-  providerId:
-    matchedDoctorForSave &&
-    doctorName.trim().toLowerCase() ===
-      matchedDoctorForSave.doctorName.trim().toLowerCase()
-      ? matchedDoctorForSave.providerId
-      : null,
-  doctorName:
-    doctorName.trim() || null,
-  doctorProfileId: null,
-  facilityId:
-    matchedDoctorForSave &&
-    facilityName.trim().toLowerCase() ===
-      (matchedDoctorForSave.facilityName ?? "").trim().toLowerCase()
-      ? matchedDoctorForSave.facilityId
-      : null,
-  facilityName:
-    facilityName.trim() || null,
-  specialisation:
-    specialisation.trim() || null,
-  noteAt:
-    noteDateTime.toISOString(),
-  note,
-}),
-      }
-    );
+
+const response = await fetch(
+  "/api/doctors-notes",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      careMode,
+      patientId:
+        careMode === "FAMILY" ? selectedPatient : null,
+      providerId:
+        hasNote &&
+        matchedDoctorForSave &&
+        doctorName.trim().toLowerCase() ===
+          matchedDoctorForSave.doctorName.trim().toLowerCase()
+          ? matchedDoctorForSave.providerId
+          : null,
+      doctorName: hasNote ? doctorName.trim() : null,
+      doctorProfileId: null,
+      facilityId:
+        hasNote &&
+        matchedDoctorForSave &&
+        facilityName.trim().toLowerCase() ===
+          (matchedDoctorForSave.facilityName ?? "").trim().toLowerCase()
+          ? matchedDoctorForSave.facilityId
+          : null,
+      facilityName: hasNote ? facilityName.trim() || null : null,
+      specialisation: hasNote ? specialisation.trim() || null : null,
+      noteAt: noteDateTime?.toISOString() ?? null,
+      note: hasNote ? note.trim() : null,
+      treatments: completedTreatments,
+    }),
+  }
+);
+
 
     const result =
       await response.json();
@@ -782,6 +847,177 @@ loggingOut={loggingOut}
   </div>
 </section>
 
+
+<section className="card treatment-section">
+  <div className="section-heading treatment-heading">
+    <div>
+      <h2>Treatment Information</h2>
+      <p>
+        Record the treatment or medication as prescribed.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      className="treatment-help-button"
+      onClick={() => setShowTreatmentHelp(true)}
+      aria-haspopup="dialog"
+    >
+      <span aria-hidden="true">ⓘ</span> Help &amp; Example
+    </button>
+  </div>
+
+  <div className="treatment-column-headings">
+    <span>Treatment / Medication</span>
+    <span>Dosage</span>
+    <span>Duration</span>
+    <span aria-hidden="true" />
+  </div>
+
+  <div className="treatment-rows">
+    {treatments.map((treatment, index) => (
+      <div className="treatment-row" key={treatment.id}>
+        <label>
+          <span className="mobile-field-label">
+            Treatment / Medication
+          </span>
+          <input
+            type="text"
+            value={treatment.medication}
+            onChange={(event) =>
+              handleTreatmentChange(
+                treatment.id,
+                "medication",
+                event.target.value
+              )
+            }
+            maxLength={150}
+            placeholder="Enter name"
+            aria-label={`Treatment or medication ${index + 1}`}
+          />
+        </label>
+
+        <label>
+          <span className="mobile-field-label">Dosage</span>
+          <input
+            type="text"
+            value={treatment.dosage}
+            onChange={(event) =>
+              handleTreatmentChange(
+                treatment.id,
+                "dosage",
+                event.target.value
+              )
+            }
+            maxLength={100}
+            placeholder="Enter dosage"
+            aria-label={`Dosage ${index + 1}`}
+          />
+        </label>
+
+        <label>
+          <span className="mobile-field-label">Duration</span>
+          <input
+            type="text"
+            value={treatment.duration}
+            onChange={(event) =>
+              handleTreatmentChange(
+                treatment.id,
+                "duration",
+                event.target.value
+              )
+            }
+            maxLength={100}
+            placeholder="Enter duration"
+            aria-label={`Duration ${index + 1}`}
+          />
+        </label>
+
+        <button
+          type="button"
+          className="remove-treatment-button"
+          onClick={() => handleRemoveTreatment(treatment.id)}
+          disabled={treatments.length === 1}
+          aria-label={`Remove treatment ${index + 1}`}
+          title="Remove treatment"
+        >
+          ×
+        </button>
+      </div>
+    ))}
+  </div>
+
+  <button
+    type="button"
+    className="add-treatment-button"
+    onClick={handleAddTreatment}
+    disabled={treatments.length >= 20}
+  >
+    + Add another treatment
+  </button>
+
+  {showTreatmentHelp && (
+    <div
+      className="treatment-help-overlay"
+      onClick={() => setShowTreatmentHelp(false)}
+    >
+      <section
+        className="treatment-help-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="treatment-help-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="treatment-help-title-row">
+          <h3 id="treatment-help-title">Help &amp; Example</h3>
+          <button
+            type="button"
+            className="treatment-help-close"
+            onClick={() => setShowTreatmentHelp(false)}
+            aria-label="Close help"
+          >
+            ×
+          </button>
+        </div>
+
+        <p>
+          Enter the information provided by the treating doctor.
+          Add each medication or treatment on a separate row.
+        </p>
+
+        <div className="treatment-example">
+          <div>
+            <strong>Treatment / Medication</strong>
+            <span>Enter the name as prescribed.</span>
+          </div>
+          <div>
+            <strong>Dosage</strong>
+            <span>Enter the prescribed amount and frequency, if known.</span>
+          </div>
+          <div>
+            <strong>Duration</strong>
+            <span>Enter the prescribed period or ongoing duration.</span>
+          </div>
+        </div>
+
+        <p className="treatment-help-note">
+          Example format only — not medical advice. Do not guess
+          a medicine, dosage, or duration. Leave unknown details blank.
+        </p>
+
+        <button
+          type="button"
+          className="primary-button"
+          onClick={() => setShowTreatmentHelp(false)}
+        >
+          Got it
+        </button>
+      </section>
+    </div>
+  )}
+</section>
+
+
         <section className="card note-section">
           <div className="section-heading note-heading">
             <div>
@@ -817,9 +1053,20 @@ loggingOut={loggingOut}
     onClick={handleSave}
 disabled={
   saving ||
-  !selectedPatient ||
-  !doctorName.trim() ||
-  !note.trim()
+  (
+    !note.trim() &&
+    !treatments.some(
+      (treatment) => treatment.medication.trim().length > 0
+    )
+  ) ||
+  (
+    careMode === "FAMILY" &&
+    !selectedPatient
+  ) ||
+  (
+    note.trim().length > 0 &&
+    !doctorName.trim()
+  )
 }
   >
     {saving
@@ -1227,6 +1474,215 @@ input {
           color: #fff;
           box-shadow: 0 7px 16px rgba(83, 48, 191, 0.2);
         }
+
+
+.treatment-section {
+  margin-top: 18px;
+  padding: clamp(20px, 3vw, 28px);
+}
+
+.treatment-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.treatment-help-button,
+.add-treatment-button {
+  border: 1px solid rgba(109, 40, 217, 0.25);
+  border-radius: 10px;
+  background: #faf8ff;
+  color: #5b35c5;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.treatment-help-button {
+  padding: 9px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.treatment-column-headings,
+.treatment-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr)
+    minmax(0, 1fr) 34px;
+  gap: 10px;
+  align-items: start;
+}
+
+.treatment-column-headings {
+  margin-bottom: 9px;
+  color: #626b82;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.treatment-row {
+  margin-bottom: 12px;
+}
+
+.treatment-row label {
+  min-width: 0;
+}
+
+.mobile-field-label {
+  display: none;
+}
+
+.treatment-row input {
+  min-width: 0;
+}
+
+.remove-treatment-button {
+  width: 34px;
+  height: 44px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  color: #b42318;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.remove-treatment-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.add-treatment-button {
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+.add-treatment-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.treatment-help-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(20, 25, 50, 0.45);
+}
+
+.treatment-help-dialog {
+  width: min(100%, 480px);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+  border: 1px solid #e8e5f2;
+  border-radius: 20px;
+  background: #fff;
+  color: #27345f;
+  box-shadow: 0 20px 60px rgba(20, 25, 50, 0.2);
+}
+
+.treatment-help-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.treatment-help-title-row h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.treatment-help-close {
+  border: 0;
+  background: transparent;
+  color: #626b82;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.treatment-help-dialog p {
+  color: #626b82;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.treatment-example {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8f6ff;
+}
+
+.treatment-example div {
+  display: grid;
+  gap: 4px;
+}
+
+.treatment-example strong {
+  font-size: 13px;
+}
+
+.treatment-example span {
+  color: #626b82;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.treatment-help-note {
+  font-size: 12px !important;
+}
+
+.treatment-help-dialog .primary-button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+@media (max-width: 700px) {
+  .treatment-section {
+    padding: 18px;
+  }
+
+  .treatment-column-headings {
+    display: none;
+  }
+
+  .treatment-row {
+    grid-template-columns: minmax(0, 1fr) 34px;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid #e8e5f2;
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .treatment-row label {
+    grid-column: 1;
+  }
+
+  .treatment-row label + label {
+    margin-top: 2px;
+  }
+
+  .mobile-field-label {
+    display: inline;
+  }
+
+  .treatment-row .remove-treatment-button {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .treatment-help-button {
+    white-space: normal;
+  }
+}
+
 
 @media (max-width: 700px) {
     .page-content {
