@@ -610,6 +610,20 @@ const response = await fetch(
 AppAlert.success("Doctors Note saved successfully.");
 
     setNote("");
+
+setTreatments([
+  {
+    id: nextTreatmentId,
+    medication: "",
+    dosage: "",
+    duration: "",
+  },
+]);
+
+setNextTreatmentId((current) => current + 1);
+setSaveError("");
+setSaveSuccess("");
+
   } catch (error) {
     console.error(
       "Doctors Note save failed:",
@@ -1468,12 +1482,27 @@ input {
           color: #555f79;
         }
 
-        .primary-button {
-          border: 1px solid #6240ce;
-          background: linear-gradient(135deg, #6f4bd7, #5330bf);
-          color: #fff;
-          box-shadow: 0 7px 16px rgba(83, 48, 191, 0.2);
-        }
+.primary-button {
+  border: 1px solid #6240ce;
+  background: linear-gradient(135deg, #6f4bd7, #5330bf);
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(83, 48, 191, 0.2);
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.primary-button:disabled {
+  border-color: #d1d5db;
+  background: #e5e7eb;
+  color: #6b7280;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
 
 
 .treatment-section {
