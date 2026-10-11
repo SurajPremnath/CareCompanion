@@ -115,6 +115,7 @@ interface ExecutiveSummaryPdfGeneratorProps {
         | "CARETAKER"
         | "DOCTOR"
         | null;
+    careMode: "SELF" | "FAMILY";
     startDate: string;
     endDate: string;
     onComplete?: () => void;
@@ -151,6 +152,7 @@ export default function ExecutiveSummaryPdfGenerator({
     patientName,
     accessId,
     selectedRole,
+    careMode,
     startDate,
     endDate,
     onComplete,
@@ -319,7 +321,8 @@ const summary =
     await buildExecutiveSummary(
         patientId,
         startDate,
-        endDate
+        endDate,
+        careMode
     );
 
 if (

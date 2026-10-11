@@ -2651,6 +2651,7 @@ setReportExecutionType(
                         {reportExecutionType === "EXECUTIVE_SUMMARY" && (
 
 <ExecutiveSummaryPdfGenerator
+    careMode={careMode}
     patientId={
         careMode === "SELF"
             ? null

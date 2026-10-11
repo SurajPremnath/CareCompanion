@@ -10,7 +10,8 @@ import type {
 export async function buildExecutiveSummary(
     patientId: string | null,
     startDate: string,
-    endDate: string
+    endDate: string,
+    careMode?: "SELF" | "FAMILY"
 ): Promise<ExecutiveSummaryViewModel> {
 
 
@@ -28,7 +29,7 @@ let dailyCare: {
 
 let dailyCareError: unknown = null;
 
-if (patientId) {
+if (careMode === "FAMILY") {
 
     const result =
         await supabase
@@ -150,21 +151,37 @@ await supabase
         }
     );
 
-const {
-    data: dailyCareSymptoms,
-    error: dailyCareSymptomsError
-} =
-await supabase
-    .from("daily_care_symptoms")
-    .select(
-        `
-        symptom_key
-        `
-    )
-    .eq(
-        "patient_id",
-        patientId
-    );
+let dailyCareSymptoms:
+    { symptom_key: string | null }[] = [];
+
+let dailyCareSymptomsError: unknown = null;
+
+if (careMode === "SELF") {
+    const {
+        data,
+        error
+    } = await supabase
+        .from("self_daily_care_symptoms")
+        .select("symptom_key")
+        .eq(
+            "patient_id",
+            (await supabase.auth.getUser()).data.user?.id ?? ""
+        );
+
+    dailyCareSymptoms = data ?? [];
+    dailyCareSymptomsError = error;
+} else {
+    const {
+        data,
+        error
+    } = await supabase
+        .from("daily_care_symptoms")
+        .select("symptom_key")
+        .eq("patient_id", patientId);
+
+    dailyCareSymptoms = data ?? [];
+    dailyCareSymptomsError = error;
+}
 
 
 const records =
@@ -180,7 +197,7 @@ let previousRecords: {
     recorded_at: string;
 }[] = [];
 
-if (patientId) {
+if (careMode === "FAMILY") {
     const {
         data: previousDailyCare,
         error: previousDailyCareError
