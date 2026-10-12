@@ -587,12 +587,13 @@ return (
                 Help
             </button>
 
-            <a
-                href="mailto:lineariseailabs@gmail.com"
-                className="carevr-mobile-account-menu-primary carevr-mobile-account-menu-link"
-            >
-                Contact Support
-            </a>
+<button
+    type="button"
+    className="carevr-mobile-account-menu-primary"
+    onClick={() => router.push("/contact-support")}
+>
+    Contact Support
+</button>
         </div>
     </details>
 
