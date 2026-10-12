@@ -27,6 +27,14 @@ import {
     patientStorage,
 } from "@/lib/storage/patientStorage";
 
+import {
+    selfDailyCareRepository,
+} from "@/lib/repositories/SelfDailyCareRepository";
+
+import {
+    dailyCareRepository,
+} from "@/lib/repositories/DailyCareRepository";
+
 
 const REPORT_PERIOD_DAYS = 21;
 
@@ -209,13 +217,48 @@ useEffect(() => {
 
         try {
 
-const user =
-    await authService.getCurrentUser();
+const user = await authService.getCurrentUser();
 
-if (!user) {
-    throw new Error(
-        "Unable to identify current user."
-    );
+if (!user) throw new Error("Unable to identify current user.");
+
+// Check health record count before starting report generation.
+let recordsInPeriod = 0;
+
+if (careMode === "SELF") {
+    const records =
+        await selfDailyCareRepository.getByUserId(user.id);
+
+    recordsInPeriod = records.filter(record => {
+        const recordedDate = record.recordedAt.slice(0, 10);
+
+        return (
+            recordedDate >= startDate &&
+            recordedDate <= endDate
+        );
+    }).length;
+} else {
+    if (!patientId) {
+        throw new Error(
+            "A patient must be selected for FAMILY mode."
+        );
+    }
+
+    const records =
+        await dailyCareRepository.getByPatientId(patientId);
+
+    recordsInPeriod = records.filter(record => {
+        const recordedDate = record.recordedAt.slice(0, 10);
+
+        return (
+            recordedDate >= startDate &&
+            recordedDate <= endDate
+        );
+    }).length;
+}
+
+if (recordsInPeriod === 0) {
+    onNoData?.();
+    return;
 }
 
 let selectedPatient = null;

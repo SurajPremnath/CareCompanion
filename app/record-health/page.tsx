@@ -2674,12 +2674,15 @@ setReportExecutionType(
     onComplete={() => {
         setReportExecutionType(null);
     }}
-    onNoData={() => {
-        setReportExecutionType(null);
-        setReportNoDataMessage(
-            "No data available for the selected period."
-        );
-    }}
+
+onNoData={() => {
+    setReportExecutionType(null);
+    setReportNoDataMessage(
+        careMode === "SELF"
+            ? "No health records found for the selected period. Please record your health first."
+            : "No health records found for the selected patient and period. Please record health data first."
+    );
+}}
 />
 
                         )}
