@@ -29,6 +29,10 @@ import CareVRFooter from "@/Components/common/CareVRFooter";
 
 import LanguageSelector from "@/Components/language/LanguageSelector";
 
+import {
+    getRegenerableInvitations,
+} from "./regenerate-invitation/actions";
+
 
 //------------------------------------------------------------
 // Access Management
@@ -68,6 +72,11 @@ export default function AccessManagementPage() {
         setLoading,
     ] =
         useState(true);
+
+const [
+    hasEligibleRegenerationInvitation,
+    setHasEligibleRegenerationInvitation,
+] = useState(false);
 
     const [
         consentGranted,
@@ -140,6 +149,31 @@ export default function AccessManagementPage() {
 
                     return;
                 }
+
+let hasEligibleInvitation = false;
+
+try {
+    const invitationResults = await Promise.all([
+        getRegenerableInvitations("SECONDARY_FAMILY_MEMBER"),
+        getRegenerableInvitations("CARETAKER"),
+        getRegenerableInvitations("DOCTOR"),
+    ]);
+
+    hasEligibleInvitation = invitationResults.some(
+        result => result.invitations.length > 0
+    );
+} catch (invitationLookupError) {
+    console.error(
+        "Unable to check invitation regeneration eligibility.",
+        invitationLookupError
+    );
+}
+
+if (!cancelled) {
+    setHasEligibleRegenerationInvitation(
+        hasEligibleInvitation
+    );
+}
 
 
                 if (!cancelled) {
@@ -601,15 +635,26 @@ setUser({
                         </button>
 
 
-                        <button
-                            type="button"
-                            className="access-management-option access-management-option-orange"
-                            onClick={() =>
-                                router.push(
-                                    "/access-management/regenerate-invitation-token"
-                                )
-                            }
-                        >
+<button
+    type="button"
+    className="access-management-option access-management-option-orange"
+    disabled={!hasEligibleRegenerationInvitation}
+    style={{
+        opacity: hasEligibleRegenerationInvitation ? 1 : 0.55,
+        cursor: hasEligibleRegenerationInvitation
+            ? "pointer"
+            : "not-allowed",
+    }}
+    onClick={() => {
+        if (!hasEligibleRegenerationInvitation) {
+            return;
+        }
+
+        router.push(
+            "/access-management/regenerate-invitation-token"
+        );
+    }}
+>
 
                             <span className="access-management-option-icon">
 

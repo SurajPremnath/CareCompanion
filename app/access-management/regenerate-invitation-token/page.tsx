@@ -72,10 +72,14 @@ type PrimaryInvitation = {
 
 type PrimaryRegenerationResult = {
     success: true;
+    emailSent: false;
     invitationId: string;
     email: string;
     expiresAt: string;
     activationToken: string;
+    activationUrl: string;
+    emailSubject: string;
+    emailBody: string;
 };
 
 
@@ -176,6 +180,10 @@ const [
     useState<PrimaryRegenerationResult | null>(null);
 
 
+const [primaryEmailSending, setPrimaryEmailSending] = useState(false);
+const [primaryEmailSent, setPrimaryEmailSent] = useState(false);
+const [primaryEmailSendAttempted, setPrimaryEmailSendAttempted] = useState(false);
+
     const [
         loadingInvitations,
         setLoadingInvitations,
@@ -250,14 +258,19 @@ const [
                 }
 
 
-                const profile =
-                    await profileRepository
-                        .getCurrentProfile();
+const profile = await profileRepository.getCurrentProfile();
+const consent = await consentStorage.hasAcceptedCurrentConsent();
 
+const { data: familyProfile, error: familyProfileError } =
+    await supabase
+        .from("profiles")
+        .select("family_member_type")
+        .eq("id", authUser.id)
+        .single();
 
-                const consent =
-                    await consentStorage
-                        .hasAcceptedCurrentConsent();
+if (familyProfileError) {
+    throw familyProfileError;
+}
 
 
                 if (!profile) {
@@ -278,13 +291,10 @@ const [
                         consent
                     );
 
-                    setUser({
-                        fullName:
-                            profile.fullName,
-
-                        email:
-                            authUser.email ?? "",
-                    });
+setUser({
+    fullName: profile.fullName,
+    email: authUser.email ?? ""
+});
 
                 }
 
@@ -384,6 +394,9 @@ const handleRoleChange =
         setTemplateCopied(false);
         setTokenCopied(false);
         setError(null);
+        setPrimaryEmailSending(false);
+        setPrimaryEmailSent(false);
+        setPrimaryEmailSendAttempted(false);
 
         if (!role) {
             return;
@@ -587,6 +600,77 @@ const handleRegenerate =
     };
 
 
+    //--------------------------------------------------------
+    // Send Invitation Email Handler
+    //--------------------------------------------------------
+
+
+const handleSendPrimaryEmail = async () => {
+    if (
+        !primaryResult ||
+        primaryEmailSending ||
+        primaryEmailSent
+    ) {
+        return;
+    }
+
+    setPrimaryEmailSending(true);
+    setPrimaryEmailSendAttempted(true);
+    setError(null);
+
+    try {
+        const {
+            data: { session },
+            error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError || !session?.access_token) {
+            throw new Error(
+                "Your session could not be verified. Please log in again."
+            );
+        }
+
+        const response = await fetch(
+            "/api/access-management/access-to-carevr/invitations/regenerate-primary/send-email",
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    invitationId: primaryResult.invitationId,
+                    activationToken: primaryResult.activationToken,
+                }),
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || result.success !== true) {
+            throw new Error(
+                result.error ??
+                    "Unable to send the invitation email. Please try again."
+            );
+        }
+
+        setPrimaryEmailSent(true);
+    } catch (sendError) {
+        console.error(
+            "Unable to send regenerated Primary invitation email.",
+            sendError
+        );
+
+        setError(
+            sendError instanceof Error
+                ? sendError.message
+                : "Unable to send the invitation email. Please try again."
+        );
+    } finally {
+        setPrimaryEmailSending(false);
+    }
+};
+
 
     //--------------------------------------------------------
     // Registration link
@@ -600,11 +684,7 @@ const invitationLink =
         : "";
 
 const primaryInvitationLink =
-    primaryResult
-        ? `${window.location.origin}/register?productInvitationToken=${encodeURIComponent(
-            primaryResult.activationToken
-        )}`
-        : "";
+    primaryResult?.activationUrl ?? "";
 
 
     //--------------------------------------------------------
@@ -924,7 +1004,6 @@ const primaryInvitationLink =
                                     <option value="DOCTOR">
                                         Doctor
                                     </option>
-
                                 </select>
 
                             </div>
@@ -1055,10 +1134,20 @@ const primaryInvitationLink =
                                 type="button"
                                 className="regenerate-button"
 disabled={
+    !selectedRole ||
     !selectedInvitationId ||
+    loadingInvitations ||
     (
-        selectedRole !== "PRIMARY" &&
-        selectedAttemptNumber !== 1
+        selectedRole === "PRIMARY"
+            ? !primaryInvitations.some(
+                  invitation =>
+                      invitation.id === selectedInvitationId
+              )
+            : !invitedEmails.some(
+                  invitation =>
+                      invitation.id === selectedInvitationId &&
+                      invitation.attemptNumber === 1
+              )
     ) ||
     regenerating ||
     Boolean(regenerationResult) ||
@@ -1228,26 +1317,83 @@ disabled={
                                         </div>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        className="copy-template-button"
-                                        onClick={async () => {
-                                            try {
-                                                await navigator.clipboard.writeText(
-                                                    primaryInvitationLink
-                                                );
-                                                setTokenCopied(true);
-                                            } catch {
-                                                setError(
-                                                    "Unable to copy the registration link. Please select and copy it manually."
-                                                );
-                                            }
-                                        }}
-                                    >
-                                        {tokenCopied
-                                            ? "Registration Link Copied"
-                                            : "Copy Registration Link"}
-                                    </button>
+
+<button
+    type="button"
+    className="copy-template-button"
+    disabled={primaryEmailSent}
+    onClick={async () => {
+        try {
+            await navigator.clipboard.writeText(
+                primaryInvitationLink
+            );
+            setTokenCopied(true);
+        } catch {
+            setError(
+                "Unable to copy the registration link. Please select and copy it manually."
+            );
+        }
+    }}
+>
+    {tokenCopied
+        ? "Registration Link Copied"
+        : "Copy Registration Link"}
+</button>
+
+<div className="regenerate-template">
+    <div className="regenerate-template-header">
+        Invitation Email Template
+    </div>
+    <pre>{`Subject: ${primaryResult.emailSubject}\n\n${primaryResult.emailBody}`}</pre>
+</div>
+
+<button
+    type="button"
+    className="copy-template-button"
+    disabled={primaryEmailSendAttempted}
+    onClick={async () => {
+        try {
+            await navigator.clipboard.writeText(
+                `Subject: ${primaryResult.emailSubject}\n\n${primaryResult.emailBody}`
+            );
+            setTemplateCopied(true);
+        } catch {
+            setError(
+                "Unable to copy the invitation template."
+            );
+        }
+    }}
+>
+    {templateCopied
+        ? "Template Copied"
+        : "Copy Template"}
+</button>
+
+<button
+    type="button"
+    className="regenerate-button"
+    disabled={
+        primaryEmailSending ||
+        primaryEmailSent
+    }
+    onClick={handleSendPrimaryEmail}
+>
+    {primaryEmailSending
+        ? "Sending Invitation Email..."
+        : primaryEmailSent
+            ? "Invitation Email Sent"
+            : "Send Invitation Email"}
+</button>
+
+{primaryEmailSent && (
+    <div
+        className="regenerate-success"
+        role="status"
+    >
+        Invitation email accepted by Resend. The recipient may take additional time to receive it.
+    </div>
+)}
+
 
                                     <div className="regenerate-result-detail">
                                         <span>Invitation Expires</span>
@@ -1661,9 +1807,35 @@ disabled={
                     background: #f3faf5;
                 }
 
-                .copy-template-button:active {
-                    background: #eaf6ee;
-                }
+
+.copy-template-button:active {
+    background: #eaf6ee;
+}
+
+.copy-template-button:disabled {
+    background: #edf1f5;
+    border-color: #d7dee7;
+    color: #8995a5;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.copy-template-button:disabled:hover,
+.copy-template-button:disabled:active {
+    background: #edf1f5;
+}
+
+.regenerate-success {
+    margin-top: 10px;
+    padding: 11px 13px;
+    border: 1px solid #cfe4d5;
+    border-radius: 10px;
+    background: #f3faf5;
+    color: #285d38;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
 
                 @media (max-width: 520px) {
 

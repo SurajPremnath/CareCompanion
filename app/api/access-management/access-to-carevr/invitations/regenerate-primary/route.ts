@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { productInvitationToken } from "@/lib/invitations/productInvitationToken";
+import { productInvitationTemplate } from "@/lib/invitations/productInvitationTemplate";
+
 
 const FOUNDER_EMAIL = "premnath.suraj@gmail.com";
 const INVITATION_VALIDITY_DAYS = 7;
@@ -232,13 +234,38 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        return NextResponse.json({
-            success: true,
-            invitationId: invitation.id,
-            email: invitation.email,
-            expiresAt,
-            activationToken: token,
-        });
+const activationUrl =
+    `https://carevr.in/register?productInvitationToken=${encodeURIComponent(token)}`;
+
+const emailContent = productInvitationTemplate.create({
+    inviteeEmail: invitation.email,
+    activationUrl,
+    expiresAt: new Date(expiresAt).toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "Asia/Kolkata",
+    }),
+});
+
+const emailSubject =
+    "Your CareVR Invitation Has Been Renewed";
+
+const emailBody = emailContent.body.replace(
+    "You have been invited to access the CareVR application.",
+    "Your CareVR invitation has been renewed. Please use the updated secure activation link below. Any previously issued activation link is no longer valid."
+);
+
+return NextResponse.json({
+    success: true,
+    emailSent: false,
+    invitationId: invitation.id,
+    email: invitation.email,
+    expiresAt,
+    activationToken: token,
+    activationUrl,
+    emailSubject,
+    emailBody,
+});
     } catch (error) {
         console.error(
             "Unable to regenerate Primary product invitation.",

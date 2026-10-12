@@ -98,34 +98,6 @@ export async function getRegenerableInvitations(
     }
 
     const {
-        data: profile,
-        error: profileError
-    } =
-        await serverSupabase
-            .from("profiles")
-            .select(
-                "id, family_member_type"
-            )
-            .eq(
-                "id",
-                user.id
-            )
-            .single();
-
-    if (profileError) {
-        throw profileError;
-    }
-
-    if (
-        profile.family_member_type !==
-        "PRIMARY"
-    ) {
-        throw new Error(
-            "Only the Primary family member can regenerate an invitation."
-        );
-    }
-
-    const {
         data: membership,
         error: membershipError
     } =
