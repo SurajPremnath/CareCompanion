@@ -2426,20 +2426,47 @@ else if (
              * ==================================================
              */
 
-            const vitalChanges =
-                vitalMatch?.[1]
-                    ? vitalMatch[1]
-                        .split("\n")
-                        .map(
-                            (
-                                value: string
-                            ) =>
-                                cleanValue(
-                                    value
-                                )
+const vitalChanges =
+    vitalMatch?.[1]
+        ? vitalMatch[1]
+            .split("\n")
+            .map((value: string) => cleanValue(value))
+            .filter(Boolean)
+            .flatMap((value: string) => {
+                if (
+                    !/blood pressure observations/i.test(value)
+                ) {
+                    return [value];
+                }
+
+                const heading = "Blood Pressure Observations";
+                const headingIndex = value.search(
+                    /blood pressure observations/i
+                );
+
+                const content = value
+                    .slice(headingIndex + heading.length)
+                    .trim()
+                    .replace(/^\s*[-–—]\s*/, "");
+
+                const observations = content
+                    .split(
+                        /\s+-\s+(?=\d{1,2}\s+[A-Za-z]{3}\s*—?\s*BP\b)/i
+                    )
+                    .map((line: string) => line.trim())
+                    .filter(Boolean);
+
+                return [
+                    heading,
+                    ...observations.map((line: string) =>
+                        line.replace(
+                            /^(\d{1,2}\s+[A-Za-z]{3})\s*[-–—]\s*/,
+                            "$1 — "
                         )
-                        .filter(Boolean)
-                    : [];
+                    )
+                ];
+            })
+        : [];
 
 
             /*

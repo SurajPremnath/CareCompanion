@@ -197,7 +197,7 @@ export default function ContactSupportPage() {
                         review your request and respond by email.
                     </p>
                     <div className="support-trust">
-                        <span aria-hidden="true">â™¢</span>
+                        <span aria-hidden="true"></span>
                         Your privacy and security matter to us.
                     </div>
                 </section>
@@ -290,7 +290,7 @@ export default function ContactSupportPage() {
                         </div>
 
                         <div className="support-privacy">
-                            <strong>ðŸ”’ Protect your personal information</strong>
+                            <strong>Protect your personal information</strong>
                             <p>
                                 Never include your password, PIN or OTP.
                                 Please avoid sharing unnecessary sensitive
