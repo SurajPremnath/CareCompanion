@@ -4,6 +4,8 @@ import {
     rgb
 } from "pdf-lib";
 
+import type { ClinicalTimelineEvent } from "@/app/journey-review/components/types";
+
 export interface ExecutiveSummarySection {
     id?: string;
     icon?: string;
@@ -19,6 +21,7 @@ export interface ExecutiveSummarySectionOptions {
     width: number;
     boldFont: PDFFont;
     regularFont: PDFFont;
+    clinicalTimeline?: ClinicalTimelineEvent[];
 }
 
 export class ExecutiveSummarySectionRenderer {
@@ -159,8 +162,16 @@ static drawHealthEvents(
         options: ExecutiveSummarySectionOptions,
         section: ExecutiveSummarySection | undefined
     ): number {
-        const { page, x, y, width, boldFont, regularFont } = options;
-        let currentY = this.drawHeading(page, x, y, width, "2", "Health Changes", "What changed during this period?", boldFont, regularFont);
+const {
+    page,
+    x,
+    y,
+    width,
+    boldFont,
+    regularFont,
+    clinicalTimeline = [],
+} = options;
+let currentY = this.drawHeading(page, x, y, width, "2", "Health Changes", "What changed during this period?", boldFont, regularFont);
         const columnWidth = width / 3;
 
         for (const period of section?.periods ?? []) {
@@ -203,11 +214,141 @@ const values = [
                 page.drawText(wrapped[i], { x: columnX + 10, y: currentY - 52, font: regularFont, size: 8, lineHeight: 11, maxWidth: columnWidth - 20, color: rgb(0.28, 0.34, 0.41) });
             }
 
+
             currentY -= height + 7;
+        }
+
+        // Date-wise recorded vitals table
+        const timeline = [...clinicalTimeline]
+            .filter(event => {
+                const v = event.vitals;
+
+                return (
+                    v.systolic != null ||
+                    v.diastolic != null ||
+                    v.pulse != null ||
+                    v.spo2 != null ||
+                    v.temperature != null ||
+                    v.weight != null
+                );
+            })
+            .sort((a, b) => a.date.localeCompare(b.date));
+
+        if (timeline.length > 0) {
+            currentY -= 8;
+
+            page.drawText("Date-wise Vital Readings", {
+                x,
+                y: currentY,
+                font: boldFont,
+                size: 11,
+                color: rgb(0.09, 0.13, 0.20),
+            });
+
+            currentY -= 18;
+
+            const columns = [
+                { label: "Date", width: width * 0.22 },
+                { label: "BP (mmHg)", width: width * 0.19 },
+                { label: "Pulse", width: width * 0.14 },
+                { label: "SpO2", width: width * 0.13 },
+                { label: "Temp", width: width * 0.17 },
+                { label: "Weight", width: width * 0.15 },
+            ];
+
+            const headerHeight = 22;
+            const rowHeight = 20;
+
+            page.drawRectangle({
+                x,
+                y: currentY - headerHeight + 5,
+                width,
+                height: headerHeight,
+                borderWidth: 0.5,
+                borderColor: rgb(0.84, 0.88, 0.92),
+                color: rgb(0.94, 0.97, 0.99),
+            });
+
+            let columnX = x;
+
+            for (const column of columns) {
+                page.drawText(column.label, {
+                    x: columnX + 3,
+                    y: currentY - 10,
+                    font: boldFont,
+                    size: 7,
+                    maxWidth: column.width - 6,
+                    color: rgb(0.09, 0.13, 0.20),
+                });
+
+                columnX += column.width;
+            }
+
+            currentY -= headerHeight;
+
+            for (const event of timeline) {
+                const v = event.vitals;
+
+                const parsedDate = new Date(event.date);
+
+                const dateLabel = Number.isNaN(parsedDate.getTime())
+                    ? event.date.slice(0, 10)
+                    : parsedDate.toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        timeZone: "UTC",
+                    });
+
+                const cells = [
+                    dateLabel,
+                    v.systolic != null && v.diastolic != null
+                        ? `${v.systolic}/${v.diastolic}`
+                        : "—",
+                    v.pulse != null ? String(v.pulse) : "—",
+                    v.spo2 != null ? String(v.spo2) : "—",
+                    v.temperature != null
+                        ? String(v.temperature)
+                        : "—",
+                    v.weight != null ? String(v.weight) : "—",
+                ];
+
+                columnX = x;
+
+                for (let i = 0; i < columns.length; i++) {
+                    const column = columns[i];
+
+                    page.drawText(
+                        this.safePdfText(cells[i]),
+                        {
+                            x: columnX + 3,
+                            y: currentY - 12,
+                            font: regularFont,
+                            size: 7,
+                            maxWidth: column.width - 6,
+                            color: rgb(0.28, 0.34, 0.41),
+                        }
+                    );
+
+                    columnX += column.width;
+                }
+
+                currentY -= rowHeight;
+
+                page.drawLine({
+                    start: { x, y: currentY + 5 },
+                    end: { x: x + width, y: currentY + 5 },
+                    thickness: 0.4,
+                    color: rgb(0.88, 0.90, 0.93),
+                });
+            }
+
+            currentY -= 8;
         }
 
         return currentY;
     }
+
 
 static drawPatientStatus(
     options: ExecutiveSummarySectionOptions,

@@ -1,6 +1,7 @@
 import {
     PDFDocument,
-    StandardFonts
+    StandardFonts,
+    rgb
 } from "pdf-lib";
 
 import { PdfAssets } from "./PdfAssets";
@@ -16,20 +17,25 @@ import {
     TrendMetric
 } from "./PdfSection";
 
+
+export interface TrendReportDailyReading {
+    date: string;
+    temperature: number | null;
+    pulse: number | null;
+    spo2: number | null;
+    systolic: number | null;
+    diastolic: number | null;
+    weightKg: number | null;
+}
+
 export interface TrendReportInfo {
-
     patientName?: string;
-
     age?: string;
-
     sex?: string;
-
     doctorName?: string;
-
     hospitalName?: string;
-
     reportPeriod?: string;
-
+     dailyReadings?: TrendReportDailyReading[];
 }
 
 export class TrendReportPdf {
@@ -172,22 +178,199 @@ currentY =
 
         }
 
+        // =====================================================
+        // Date-wise Clinical Readings — final PDF section
+        // =====================================================
 
-// Footer will be drawn after all pages are created.
+        const dailyReadings = report.dailyReadings ?? [];
 
-PdfFooter.draw({
+        if (dailyReadings.length > 0) {
+            const tableLeft = content.left;
+            const tableWidth = content.width;
+            const columnWidths = [75, 65, 55, 60, 165, 95];
 
-    pdf,
+            const headers = [
+                "Date",
+                "Temp (F)",
+                "Pulse",
+                "SpO2 (%)",
+                "Blood Pressure",
+                "Weight (kg)"
+            ];
 
-    regularFont
+            let rowY = currentY - 28;
 
-});
+            const drawColumnHeader = () => {
+                page.drawRectangle({
+                    x: tableLeft,
+                    y: rowY - 6,
+                    width: tableWidth,
+                    height: 22,
+                    color: rgb(0.94, 0.96, 0.98)
+                });
 
-return await pdf.save();
+                let x = tableLeft;
 
+                headers.forEach((header, index) => {
+                    PdfDrawing.text(page, {
+                        text: header,
+                        x: x + 4,
+                        y: rowY,
+                        size: 7,
+                        font: boldFont,
+                        color: rgb(0.12, 0.16, 0.22)
+                    });
+
+                    x += columnWidths[index];
+                });
+
+                PdfDrawing.divider(page, {
+                    x: tableLeft,
+                    y: rowY - 8,
+                    width: tableWidth,
+                    color: rgb(0.82, 0.85, 0.89)
+                });
+
+                rowY -= 25;
+            };
+
+            const startContinuationPage = () => {
+                page = pdf.addPage([
+                    PdfTheme.page.width,
+                    PdfTheme.page.height
+                ]);
+
+                currentY = PdfHeader.draw({
+                    page,
+                    boldFont,
+                    regularFont,
+                    logoImage,
+                    reportTitle: "Clinical Trends Report",
+                    patientName: report.patientName,
+                    age: report.age,
+                    sex: report.sex,
+                    doctorName: report.doctorName,
+                    hospitalName: report.hospitalName,
+                    reportPeriod: report.reportPeriod,
+                    generatedOn: new Date()
+                });
+
+                content = PdfContent.begin(
+                    page,
+                    currentY
+                );
+
+                rowY = currentY - 28;
+                drawColumnHeader();
+            };
+
+            // Keep the table title and column headings together.
+            // If there is insufficient space, start a clean page
+            // before drawing either heading.
+            if (rowY < 100) {
+                page = pdf.addPage([
+                    PdfTheme.page.width,
+                    PdfTheme.page.height
+                ]);
+
+                currentY = PdfHeader.draw({
+                    page,
+                    boldFont,
+                    regularFont,
+                    logoImage,
+                    reportTitle: "Clinical Trends Report",
+                    patientName: report.patientName,
+                    age: report.age,
+                    sex: report.sex,
+                    doctorName: report.doctorName,
+                    hospitalName: report.hospitalName,
+                    reportPeriod: report.reportPeriod,
+                    generatedOn: new Date()
+                });
+
+                content = PdfContent.begin(
+                    page,
+                    currentY
+                );
+
+                rowY = currentY - 28;
+            }
+
+            PdfDrawing.text(page, {
+                text: "Date-wise Clinical Readings",
+                x: tableLeft,
+                y: rowY,
+                size: 14,
+                font: boldFont,
+                color: rgb(0.10, 0.13, 0.18)
+            });
+
+            rowY -= 25;
+            drawColumnHeader();
+
+            for (const reading of dailyReadings) {
+                if (rowY < 55) {
+                    startContinuationPage();
+                }
+
+                const bloodPressure =
+                    reading.systolic == null &&
+                    reading.diastolic == null
+                        ? "-"
+                        : `${reading.systolic ?? "-"}/${reading.diastolic ?? "-"}`;
+
+                const values = [
+                    reading.date,
+                    reading.temperature == null
+                        ? "-"
+                        : String(reading.temperature),
+                    reading.pulse == null
+                        ? "-"
+                        : String(reading.pulse),
+                    reading.spo2 == null
+                        ? "-"
+                        : String(reading.spo2),
+                    bloodPressure,
+                    reading.weightKg == null
+                        ? "-"
+                        : String(reading.weightKg)
+                ];
+
+                let x = tableLeft;
+
+                values.forEach((value, index) => {
+                    PdfDrawing.text(page, {
+                        text: value,
+                        x: x + 4,
+                        y: rowY,
+                        size: 8,
+                        font: regularFont,
+                        color: rgb(0.16, 0.19, 0.24)
+                    });
+
+                    x += columnWidths[index];
+                });
+
+                PdfDrawing.divider(page, {
+                    x: tableLeft,
+                    y: rowY - 7,
+                    width: tableWidth,
+                    thickness: 0.5,
+                    color: rgb(0.89, 0.91, 0.94)
+                });
+
+                rowY -= 20;
+            }
+        }
+
+        // Footer will be drawn after all pages are created.
+        PdfFooter.draw({
+            pdf,
+            regularFont
+        });
+
+        return await pdf.save();
     }
-
 }
 
-export const trendReportPdf =
-    new TrendReportPdf();
+export const trendReportPdf = new TrendReportPdf();

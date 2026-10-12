@@ -12,9 +12,10 @@ import {
 
 import {
     buildClinicalTrends,
-    ClinicalTrendSummary
+    buildClinicalTrendDailyReadings,
+    ClinicalTrendSummary,
+    ClinicalTrendDailyReading
 } from "../data/clinicalTrends";
-
 
 import {
     useEffect,
@@ -819,6 +820,9 @@ const [generateRequested, setGenerateRequested] =
 const [trends,setTrends] =
     useState<ClinicalTrendSummary[]>([]);
 
+const [dailyReadings, setDailyReadings] =
+    useState<ClinicalTrendDailyReading[]>([]);
+
 const [selectedInsight, setSelectedInsight] =
     useState<string | null>(null);
 
@@ -889,24 +893,24 @@ const pdfBytes =
             })
         ),
 
-        {
+{
+    patientName:
+        patient.name,
 
-            patientName:
-                patient.name,
+    age:
+        patient.age?.toString(),
 
-            age:
-                patient.age?.toString(),
+    sex:
+        patient.gender,
 
-            sex:
-                patient.gender,
+    doctorName:
+        patient.doctor,
 
-            doctorName:
-                patient.doctor,
+    hospitalName:
+        patient.hospital,
 
-            hospitalName:
-                patient.hospital,
-
-        }
+    dailyReadings,
+}
 
     );
 
@@ -991,19 +995,22 @@ useEffect(() => {
 
         try {
 
-const data =
-    await buildClinicalTrends(
+const [data, readings] = await Promise.all([
+    buildClinicalTrends(
         patient.id,
         startDate,
         endDate
-    );
-
+    ),
+    buildClinicalTrendDailyReadings(
+        patient.id,
+        startDate,
+        endDate
+    ),
+]);
 
 if (!cancelled) {
-
-
     setTrends(data);
-
+    setDailyReadings(readings);
 }
 
         } catch (error) {
@@ -1892,6 +1899,61 @@ ml-8
 
                     })}
 
+                </div>
+
+                {/* Date-wise clinical readings */}
+                <div className="mt-8 overflow-x-auto">
+                    <h3 className="mb-4 text-lg font-bold text-slate-900">
+                        Date-wise Clinical Readings
+                    </h3>
+
+                    {dailyReadings.length === 0 ? (
+                        <p className="text-sm text-slate-500">
+                            No recorded readings available for the selected period.
+                        </p>
+                    ) : (
+                        <table className="w-full min-w-[760px] border-collapse text-sm">
+                            <thead>
+                                <tr className="border-b border-slate-200 bg-slate-50 text-left">
+                                    <th className="px-3 py-3 font-semibold">Date</th>
+                                    <th className="px-3 py-3 font-semibold">Temperature (°F)</th>
+                                    <th className="px-3 py-3 font-semibold">Pulse (bpm)</th>
+                                    <th className="px-3 py-3 font-semibold">SpO₂ (%)</th>
+                                    <th className="px-3 py-3 font-semibold">Blood Pressure (mmHg)</th>
+                                    <th className="px-3 py-3 font-semibold">Weight (kg)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {dailyReadings.map((reading, index) => (
+                                    <tr
+                                        key={`${reading.date}-${index}`}
+                                        className="border-b border-slate-100"
+                                    >
+                                        <td className="whitespace-nowrap px-3 py-3">
+                                            {reading.date}
+                                        </td>
+                                        <td className="px-3 py-3">
+                                            {reading.temperature ?? "—"}
+                                        </td>
+                                        <td className="px-3 py-3">
+                                            {reading.pulse ?? "—"}
+                                        </td>
+                                        <td className="px-3 py-3">
+                                            {reading.spo2 ?? "—"}
+                                        </td>
+                                        <td className="px-3 py-3">
+                                            {reading.systolic != null || reading.diastolic != null
+                                                ? `${reading.systolic ?? "—"}/${reading.diastolic ?? "—"}`
+                                                : "—"}
+                                        </td>
+                                        <td className="px-3 py-3">
+                                            {reading.weightKg ?? "—"}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
 
             </div>

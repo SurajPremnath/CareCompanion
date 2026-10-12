@@ -104,10 +104,18 @@ export class ExecutiveSummaryPdf {
         width = second.width;
         currentY = second.y;
 
-        currentY = ExecutiveSummarySectionRenderer.drawHealthChanges(
-            { page, x, y: currentY, width, boldFont, regularFont },
-            report.clinicalStory?.[1]
-        );
+currentY = ExecutiveSummarySectionRenderer.drawHealthChanges(
+    {
+        page,
+        x,
+        y: currentY,
+        width,
+        boldFont,
+        regularFont,
+        clinicalTimeline: report.summary.clinicalTimeline,
+    },
+    report.clinicalStory?.[1]
+);
 
         const third = addPage();
         page = third.page;

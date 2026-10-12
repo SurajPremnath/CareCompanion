@@ -713,48 +713,40 @@ function generateHealthChanges(
         );
 
 
-    const bloodPressureText =
-        bloodPressureItems
-            .map(
-                change =>
-                    `• ${change}`
-            )
-            .join("\n");
+
+const bloodPressureText =
+    bloodPressureItems.join("\n");
 
 
-    const otherVitalText =
-        otherVitalItems
-            .map(
-                change =>
-                    `• ${change}`
-            )
-            .join("\n");
+const otherVitalText =
+    otherVitalItems.join("\n");
 
 
-    let vitalChangesText =
-        "Vital changes";
+let vitalChangesText =
+    "Vital changes";
 
 
-    if (
-        bloodPressureItems.length > 0
-    ) {
+if (
+    bloodPressureItems.length > 0
+) {
 
-        vitalChangesText +=
-            "\nBlood Pressure Observations\n" +
-            bloodPressureText;
+    vitalChangesText +=
+        "\nBlood Pressure Observations\n" +
+        bloodPressureText;
 
-    }
+}
 
 
-    if (
-        otherVitalItems.length > 0
-    ) {
+if (
+    otherVitalItems.length > 0
+) {
 
-        vitalChangesText +=
-            "\n" +
-            otherVitalText;
+    vitalChangesText +=
+        "\n" +
+        otherVitalText;
 
-    }
+}
+
 
 
     sections.push(

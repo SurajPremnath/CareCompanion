@@ -367,6 +367,77 @@ weight.history
 
 }
 
+
+export interface ClinicalTrendDailyReading {
+    date: string;
+    temperature: number | null;
+    pulse: number | null;
+    spo2: number | null;
+    systolic: number | null;
+    diastolic: number | null;
+    weightKg: number | null;
+}
+
+export async function buildClinicalTrendDailyReadings(
+    patientId: string | null,
+    startDate: string,
+    endDate: string
+): Promise<ClinicalTrendDailyReading[]> {
+    if (patientId) {
+        const { data, error } = await supabase
+            .from("daily_care")
+            .select(`
+                recorded_at,
+                temperature,
+                pulse,
+                spo2,
+                systolic,
+                diastolic,
+                weight_kg
+            `)
+            .eq("patient_id", patientId)
+            .gte("recorded_at", `${startDate} 00:00:00`)
+            .lte("recorded_at", `${endDate} 23:59:59`)
+            .order("recorded_at", { ascending: true });
+
+        if (error) {
+            throw error;
+        }
+
+        return (data ?? []).map(record => ({
+            date: String(record.recorded_at).slice(0, 10),
+            temperature: record.temperature ?? null,
+            pulse: record.pulse ?? null,
+            spo2: record.spo2 ?? null,
+            systolic: record.systolic ?? null,
+            diastolic: record.diastolic ?? null,
+            weightKg: record.weight_kg ?? null,
+        }));
+    }
+
+    const selfRecords =
+        await selfDailyCareRepository.getByUserId();
+
+    return selfRecords
+        .filter(record => {
+            const date = record.recordedAt.slice(0, 10);
+            return date >= startDate && date <= endDate;
+        })
+        .sort((a, b) =>
+            a.recordedAt.localeCompare(b.recordedAt)
+        )
+        .map(record => ({
+            date: record.recordedAt.slice(0, 10),
+            temperature: record.temperature ?? null,
+            pulse: record.pulse ?? null,
+            spo2: record.spo2 ?? null,
+            systolic: record.systolic ?? null,
+            diastolic: record.diastolic ?? null,
+            weightKg: record.weightKg ?? null,
+        }));
+}
+
+
 export interface ClinicalTrendGraphPoint {
     date: string;
     value: number;

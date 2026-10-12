@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import {
     buildClinicalTrends,
     ClinicalTrendSummary,
+    buildClinicalTrendDailyReadings,
 } from "../data/clinicalTrends";
 
 import {
@@ -241,12 +242,18 @@ async function startGeneration() {
         "Loading clinical data..."
     );
 
-    const data =
-        await buildClinicalTrends(
-            patientId!,
-            startDate,
-            endDate
-        );
+const [data, dailyReadings] = await Promise.all([
+    buildClinicalTrends(
+        patientId!,
+        startDate,
+        endDate
+    ),
+    buildClinicalTrendDailyReadings(
+        patientId!,
+        startDate,
+        endDate
+    ),
+]);
 
     if (data.length === 0) {
         onNoData?.();
@@ -308,31 +315,33 @@ async function startGeneration() {
     const pdfBytes =
         await trendReportPdf.generate(
             pdfTrends,
-            {
 
-                patientName:
-                    patientName || "Patient",
+{
+    patientName:
+        patientName || "Patient",
 
-                age:
-                    reportAge,
+    age:
+        reportAge,
 
-                sex:
-                    reportSex,
+    sex:
+        reportSex,
 
-                doctorName:
-                    reportDoctorName,
+    doctorName:
+        reportDoctorName,
 
-                hospitalName:
-                    reportHospitalName,
+    hospitalName:
+        reportHospitalName,
 
-                reportPeriod:
-                    `${formatReportDate(
-                        startDate
-                    )} - ${formatReportDate(
-                        endDate
-                    )}`
+    reportPeriod:
+        `${formatReportDate(
+            startDate
+        )} - ${formatReportDate(
+            endDate
+        )}`,
 
-            }
+    dailyReadings:
+        dailyReadings
+}
         );
 
     const pdfData =

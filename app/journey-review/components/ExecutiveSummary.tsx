@@ -2319,6 +2319,7 @@ else if (
 
 ) : item.id === "Q2" ? (
 
+
     <div className="text-sm text-slate-700">
         {(() => {
 
@@ -2428,45 +2429,40 @@ else if (
 
 const vitalChanges =
     vitalMatch?.[1]
-        ? vitalMatch[1]
-            .split("\n")
-            .map((value: string) => cleanValue(value))
-            .filter(Boolean)
-            .flatMap((value: string) => {
-                if (
-                    !/blood pressure observations/i.test(value)
-                ) {
-                    return [value];
-                }
-
-                const heading = "Blood Pressure Observations";
-                const headingIndex = value.search(
-                    /blood pressure observations/i
-                );
-
-                const content = value
-                    .slice(headingIndex + heading.length)
-                    .trim()
-                    .replace(/^\s*[-–—]\s*/, "");
-
-                const observations = content
-                    .split(
-                        /\s+-\s+(?=\d{1,2}\s+[A-Za-z]{3}\s*—?\s*BP\b)/i
+        ? (() => {
+            const vitalText =
+                vitalMatch[1]
+                    .replace(/\r\n/g, "\n")
+                    .replace(
+                        /Blood Pressure Observations/gi,
+                        "\nBlood Pressure Observations\n"
                     )
-                    .map((line: string) => line.trim())
-                    .filter(Boolean);
-
-                return [
-                    heading,
-                    ...observations.map((line: string) =>
-                        line.replace(
-                            /^(\d{1,2}\s+[A-Za-z]{3})\s*[-–—]\s*/,
-                            "$1 — "
-                        )
+                    .replace(
+                        /(\d{1,2}\s+[A-Za-z]{3,}\s*[-–—]?\s*BP\s+\d+\/\d+(?:\s*mmHg)?)/gi,
+                        "\n$1\n"
                     )
-                ];
-            })
+                    .replace(
+                        /(Elevated pulse:\s*\d+\s*bpm)/gi,
+                        "\n$1\n"
+                    )
+                    .replace(
+                        /(\d{1,2}\s+[A-Za-z]{3,}\s*[-–—]?\s*BP\s+\d+\/\d+)\s*-\s*(?=\d{1,2}\s+[A-Za-z]{3,})/gi,
+                        "$1\n"
+                    );
+
+            return vitalText
+                .split(/\n+/)
+                .map((value: string) =>
+                    cleanValue(value)
+                        .replace(/^[•●▪\-]\s*/, "")
+                        .trim()
+                )
+                .filter(Boolean);
+        })()
         : [];
+
+
+
 
 
             /*
@@ -2658,11 +2654,11 @@ const vitalChanges =
                 point
             );
 
-        const isBloodPressure =
-            isVital &&
-            /BP\s+\d+\/\d+\s*mmHg/i.test(
-                point
-            );
+const isBloodPressure =
+    isVital &&
+    /BP\s+\d+\/\d+(?:\s*mmHg)?/i.test(
+        point
+    );
 
         const isPulse =
             isVital &&
@@ -2713,16 +2709,14 @@ const vitalChanges =
 
                 )}
 
-                <span>
-
-                    {isBloodPressure ? (
-
-                        <>
-                            {
-                                point.split(
-                                    /(\d+\/\d+\s*mmHg)/
-                                )[0]
-                            }
+<span className="block">
+    {isBloodPressure ? (
+        <>
+            {
+                point.split(
+                    /(\d+\/\d+\s*mmHg)/
+                )[0]
+            }
 
                             <strong
                                 className="
@@ -2833,6 +2827,175 @@ const vitalChanges =
             );
 
         })()}
+
+        {/* DATE-WISE VITALS TABLE */}
+        {(() => {
+            const matchingWeek =
+                JOURNEY_WEEKS.find(
+                    week =>
+                        week.label === period.weekLabel
+                );
+
+            const vitalRows = (
+                summary.clinicalTimeline ?? []
+            )
+                .filter(event => {
+                    if (!matchingWeek || !event.date) {
+                        return false;
+                    }
+
+                    // Compare calendar dates without timezone shifts.
+                    const eventDate =
+                        String(event.date).slice(0, 10);
+
+                    if (
+                        eventDate < matchingWeek.start ||
+                        eventDate > matchingWeek.end
+                    ) {
+                        return false;
+                    }
+
+                    const vitals = event.vitals ?? {};
+
+                    return Object.values(vitals).some(
+                        value =>
+                            value !== null &&
+                            value !== undefined
+                    );
+                })
+                .sort(
+                    (a, b) =>
+                        String(a.date).localeCompare(
+                            String(b.date)
+                        )
+                );
+
+            if (vitalRows.length === 0) {
+                return null;
+            }
+
+            const formatValue = (
+                value: number | null | undefined,
+                suffix = ""
+            ) =>
+                value !== null && value !== undefined
+                    ? `${value}${suffix}`
+                    : "—";
+
+            return (
+                <div className="mt-5">
+                    <h4 className="mb-3 text-sm font-bold text-slate-800">
+                        Vitals by Date
+                    </h4>
+
+                    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                        <table className="w-full min-w-[680px] border-collapse text-left text-xs">
+                            <thead className="bg-slate-50">
+                                <tr>
+                                    <th className="px-3 py-3 font-semibold text-slate-600">
+                                        Date
+                                    </th>
+                                    <th className="px-3 py-3 font-semibold text-slate-600">
+                                        Blood Pressure
+                                    </th>
+                                    <th className="px-3 py-3 font-semibold text-slate-600">
+                                        Pulse
+                                    </th>
+                                    <th className="px-3 py-3 font-semibold text-slate-600">
+                                        SpO₂
+                                    </th>
+                                    <th className="px-3 py-3 font-semibold text-slate-600">
+                                        Temperature
+                                    </th>
+                                    <th className="px-3 py-3 font-semibold text-slate-600">
+                                        Weight
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody className="divide-y divide-slate-100">
+                                {vitalRows.map((event, index) => {
+                                    const vitals =
+                                        event.vitals ?? {};
+
+                                    const systolic =
+                                        vitals.systolic;
+
+                                    const diastolic =
+                                        vitals.diastolic;
+
+                                    const hasBloodPressure =
+                                        systolic != null ||
+                                        diastolic != null;
+
+                                    const dateOnly =
+                                        String(event.date).slice(
+                                            0,
+                                            10
+                                        );
+
+                                    const displayDate =
+                                        new Date(
+                                            `${dateOnly}T00:00:00`
+                                        ).toLocaleDateString(
+                                            "en-GB",
+                                            {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric"
+                                            }
+                                        );
+
+                                    return (
+                                        <tr
+                                            key={`${event.date}-${index}`}
+                                            className="text-slate-700"
+                                        >
+                                            <td className="whitespace-nowrap px-3 py-3 font-medium">
+                                                {displayDate}
+                                            </td>
+
+                                            <td className="whitespace-nowrap px-3 py-3">
+                                                {hasBloodPressure
+                                                    ? `${systolic ?? "—"}/${diastolic ?? "—"} mmHg`
+                                                    : "—"}
+                                            </td>
+
+                                            <td className="whitespace-nowrap px-3 py-3">
+                                                {formatValue(
+                                                    vitals.pulse,
+                                                    " bpm"
+                                                )}
+                                            </td>
+
+                                            <td className="whitespace-nowrap px-3 py-3">
+                                                {formatValue(
+                                                    vitals.spo2,
+                                                    "%"
+                                                )}
+                                            </td>
+
+                                            <td className="whitespace-nowrap px-3 py-3">
+                                                {formatValue(
+                                                    vitals.temperature
+                                                )}
+                                            </td>
+
+                                            <td className="whitespace-nowrap px-3 py-3">
+                                                {formatValue(
+                                                    vitals.weight
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        })()}
+
     </div>
 
 ) : (
