@@ -1,7 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import AppHeader from "@/app/components/AppHeader";
+import { useEffect, useState } from "react";
+import MobileHeader from "@/Components/common/MobileHeader";
+import CareVRFooter from "@/Components/common/CareVRFooter";
+import { authService } from "@/lib/auth/authService";
+import { profileRepository } from "@/lib/repositories/profileRepository";
 
 import ReportNavigation from "@/app/components/common/ReportNavigation";
 
@@ -19,6 +23,46 @@ import {
 
 export default function AssessmentReportsPage() {
   const router = useRouter();
+
+const [userName, setUserName] = useState("");
+const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+const [loggingOut, setLoggingOut] = useState(false);
+
+useEffect(() => {
+  let active = true;
+
+  const loadProfile = async () => {
+    try {
+      const profile = await profileRepository.getCurrentProfile();
+
+      if (active) {
+        setUserName(profile?.fullName ?? "");
+      }
+    } catch (error) {
+      console.error("Failed to load assessment report header profile:", error);
+    }
+  };
+
+  void loadProfile();
+
+  return () => {
+    active = false;
+  };
+}, []);
+
+const handleLogout = async () => {
+  if (loggingOut) return;
+
+  setLoggingOut(true);
+
+  try {
+    await authService.logout();
+    router.replace("/login");
+  } catch (error) {
+    console.error("Assessment report logout failed:", error);
+    setLoggingOut(false);
+  }
+};
 
   //------------------------------------------------------------
   // Assessment Report Context Selection
@@ -69,9 +113,28 @@ export default function AssessmentReportsPage() {
     <main style={pageStyle}>
       <div style={containerStyle}>
 
-<AppHeader
+<MobileHeader
+  careMode="FAMILY"
+  onCareModeChange={() => {}}
+  userName={userName}
   pageTitle="Assessment Reports"
-  pageIcon="📋"
+  showCareModeToggle={false}
+  showSelfToggle={false}
+  showFamilyToggle={false}
+  showHomeButton
+  onHomeClick={() => router.push("/dashboard")}
+  showSwitchProfile={false}
+  accountMenuOpen={accountMenuOpen}
+  onAccountMenuToggle={() =>
+    setAccountMenuOpen((current) => !current)
+  }
+  consentGranted={false}
+  canAddPatient={false}
+  onAddPatient={() => {}}
+  onCareVRJourney={() => router.push("/carevr-journey")}
+  onHelp={() => router.push("/help")}
+  onLogout={handleLogout}
+  loggingOut={loggingOut}
 />
 
         {/* Family Assessments */}
@@ -140,6 +203,7 @@ export default function AssessmentReportsPage() {
   showDashboardButton
 />
       </div>
+<CareVRFooter />
     </main>
   );
 }

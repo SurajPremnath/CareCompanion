@@ -7,6 +7,11 @@ from "@/lib/utils/pdf/assessmentPdf";
 import { useRouter } from "next/navigation";
 import AppBrand from "@/app/components/AppBrand";
 
+import MobileHeader from "@/Components/common/MobileHeader";
+import CareVRFooter from "@/Components/common/CareVRFooter";
+import { authService } from "@/lib/auth/authService";
+import { profileRepository } from "@/lib/repositories/profileRepository";
+
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 import type { AssessmentInput } from "@/lib/types/assessment";
 
@@ -41,6 +46,57 @@ type Row = {
 export default function ReportPage() {
   const router = useRouter();
 
+const [userName, setUserName] = useState("");
+const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+const [loggingOut, setLoggingOut] = useState(false);
+
+useEffect(() => {
+  let active = true;
+
+  const loadProfile = async () => {
+    try {
+      const profile = await profileRepository.getCurrentProfile();
+
+      if (!active) return;
+
+      const name = profile?.fullName ?? "";
+      setUserName(name);
+
+      const type = localStorage.getItem("assessmentType") || "self";
+
+      if (type !== "family") {
+        setPatientName(
+          localStorage.getItem("patientName") || name
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Failed to load assessment report header profile:",
+        error
+      );
+    }
+  };
+
+  void loadProfile();
+
+  return () => {
+    active = false;
+  };
+}, []);
+
+const handleLogout = async () => {
+  if (loggingOut) return;
+
+  setLoggingOut(true);
+
+  try {
+    await authService.logout();
+    router.replace("/login");
+  } catch (error) {
+    console.error("Assessment report logout failed:", error);
+    setLoggingOut(false);
+  }
+};
 
   const [loaded, setLoaded] = useState(false);
 
@@ -1002,44 +1058,62 @@ const handleNewAssessment = () => {
 
   if (!loaded) return null;
 
-  return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#f8fafc",
-        padding: "14px",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "850px",
-          margin: "0 auto",
-        }}
-      >
-        <div
+return (
+  <main
+    style={{
+      minHeight: "100vh",
+      background: "#f8fafc",
+      padding: "14px",
+      fontFamily: "Arial, sans-serif",
+    }}
+  >
+    <div style={{ maxWidth: "850px", margin: "0 auto" }}>
+      <MobileHeader
+        careMode={assessmentType === "family" ? "FAMILY" : "SELF"}
+        onCareModeChange={() => {}}
+        userName={userName}
+        pageTitle="Health Assessment Report"
+        showCareModeToggle={false}
+        showSelfToggle={false}
+        showFamilyToggle={false}
+        showHomeButton
+        onHomeClick={() => router.push("/dashboard")}
+        showSwitchProfile={false}
+        accountMenuOpen={accountMenuOpen}
+        onAccountMenuToggle={() =>
+          setAccountMenuOpen((current) => !current)
+        }
+        consentGranted={false}
+        canAddPatient={false}
+        onAddPatient={() => {}}
+        onCareVRJourney={() => router.push("/carevr-journey")}
+        onHelp={() => router.push("/help")}
+        onLogout={handleLogout}
+        loggingOut={loggingOut}
+      />
+
+<div
   ref={reportRef}
   style={{
     background: "white",
-            padding: "14px",
-            borderRadius: "14px",
-            border: "1px solid #ddd",
-          }}
-        >
-
-<AppBrand />
-
-<h2
-  style={{
-    fontSize: "32px",
-    fontWeight: 700,
-    color: "#111827",
-    marginTop: "24px",
-    marginBottom: "24px",
+    padding: "14px",
+    borderRadius: "14px",
+    border: "1px solid #ddd",
   }}
 >
-  📄 Health Assessment Report
-</h2>
+
+  <h2
+    style={{
+      fontSize: "32px",
+      fontWeight: 700,
+      color: "#111827",
+      marginTop: "24px",
+      marginBottom: "24px",
+    }}
+  >
+    📄 Health Assessment Report
+  </h2>
+
 
           <p>
   <strong>Patient:</strong>{" "}
@@ -1265,7 +1339,7 @@ onClick={handleDownloadReport}
             🏠 New Assessment
           </button>
         </div>
-
+ <CareVRFooter />
     </main>
   );
 }

@@ -109,7 +109,7 @@ router.push(
   };
 
   return (
-    <AssessmentLayout currentPage={5} assessmentType="self">
+    <AssessmentLayout currentPage={5} assessmentType="self" useMobileHeader>
       <div
         style={{
           backgroundColor: "white",

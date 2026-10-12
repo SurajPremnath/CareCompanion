@@ -1,114 +1,152 @@
+
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 export async function downloadAssessmentPdf(
-
   reportElement: HTMLDivElement,
-
   patientName: string
-
 ): Promise<void> {
-const canvas = await html2canvas(
-  reportElement,
-  {
+  const canvas = await html2canvas(reportElement, {
     scale: 1,
     useCORS: true,
     scrollY: -window.scrollY,
+    backgroundColor: "#ffffff",
   });
 
   const imgData = canvas.toDataURL("image/png");
-
   const pdf = new jsPDF("p", "mm", "a4");
 
   const pdfWidth = 210;
   const pdfHeight = 297;
+  const margin = 10;
+  const headerHeight = 22;
+  const footerHeight = 16;
 
-  const imgWidth = pdfWidth;
-  const imgHeight =
-    (canvas.height * imgWidth) / canvas.width;
+  const contentWidth = pdfWidth - margin * 2;
+  const contentHeight =
+    pdfHeight - margin - headerHeight - footerHeight;
 
-  let heightLeft = imgHeight;
-  let position = 0;
+  // Load the existing CareVR logo.
+  const logo = new Image();
+  logo.src = "/images/CareVR v1.0.png";
 
-  pdf.addImage(
-    imgData,
-    "PNG",
-    0,
-    position,
-    imgWidth,
-    imgHeight
+  await new Promise<void>((resolve) => {
+    logo.onload = () => resolve();
+    logo.onerror = () => resolve();
+  });
+
+  const logoLoaded = logo.complete && logo.naturalWidth > 0;
+
+  const imgWidth = contentWidth;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(imgHeight / contentHeight)
   );
 
-  heightLeft -= pdfHeight;
+  for (let page = 0; page < totalPages; page++) {
+    if (page > 0) {
+      pdf.addPage();
+    }
 
-  while (heightLeft > 0) {
-    position = heightLeft - imgHeight;
+    // Header logo.
+    if (logoLoaded) {
+const maxLogoWidth = 40;
+const maxLogoHeight = 14;
 
-    pdf.addPage();
+const aspectRatio = logo.naturalWidth / logo.naturalHeight;
+
+const logoWidth = Math.min(
+  maxLogoWidth,
+  maxLogoHeight * aspectRatio
+);
+
+const logoHeight = logoWidth / aspectRatio;
+
+pdf.addImage(
+  logo,
+  "PNG",
+  margin,
+  6,
+  logoWidth,
+  logoHeight
+);
+    }
+
+    // Header title.
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(13);
+    pdf.setTextColor(29, 45, 98);
+    pdf.text(
+      "Health Assessment Report",
+      pdfWidth - margin,
+      15,
+      { align: "right" }
+    );
+
+    pdf.setDrawColor(220, 225, 235);
+    pdf.line(
+      margin,
+      headerHeight + 2,
+      pdfWidth - margin,
+      headerHeight + 2
+    );
+
+    // Report image.
+    // Each page displays a vertical slice of the captured report.
+    const position =
+      margin + headerHeight - page * contentHeight;
 
     pdf.addImage(
       imgData,
       "PNG",
-      0,
+      margin,
       position,
       imgWidth,
       imgHeight
     );
 
-    heightLeft -= pdfHeight;
+    // Footer separator.
+    pdf.setDrawColor(220, 225, 235);
+    pdf.line(
+      margin,
+      pdfHeight - footerHeight,
+      pdfWidth - margin,
+      pdfHeight - footerHeight
+    );
+
+    // Footer text.
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(8);
+    pdf.setTextColor(100, 100, 100);
+
+    pdf.text(
+      "Created by Linearise AI Labs",
+      pdfWidth / 2,
+      pdfHeight - 10,
+      { align: "center" }
+    );
+
+    pdf.text(
+      `© ${new Date().getFullYear()} CareVR. All Rights Reserved.`,
+      margin,
+      pdfHeight - 4
+    );
+
+    pdf.text(
+      `Page ${page + 1} of ${totalPages}`,
+      pdfWidth - margin,
+      pdfHeight - 4,
+      { align: "right" }
+    );
   }
 
   const patient =
-    patientName.replace(/\s+/g, "_") ||
-    "Patient";
+    patientName.replace(/\s+/g, "_") || "Patient";
 
   const today = new Date()
     .toISOString()
     .split("T")[0];
 
-/*
-  PHASE 3 PDF ENHANCEMENT
-
-  Disabled for now because the report is generated
-  as a single image via html2canvas.
-
-  Adding page footers here causes overlap with
-  report content when the image spans multiple pages.
-
-  Re-enable after migrating to a fully programmatic
-  jsPDF layout with controlled page breaks.
-
-const totalPages = pdf.getNumberOfPages();
-
-for (let i = 1; i <= totalPages; i++) {
-  pdf.setPage(i);
-
-  pdf.setFontSize(9);
-  pdf.setTextColor(120);
-
-  pdf.text(
-    "Created by Linearise AI Labs",
-    105,
-    287,
-    { align: "center" }
-  );
-
-  pdf.text(
-    `© ${new Date().getFullYear()} CareVR. All Rights Reserved.`,
-    105,
-    292,
-    { align: "center" }
-  );
-
-  pdf.text(
-    `Page ${i} of ${totalPages}`,
-    190,
-    292
-  );
-}
-*/
-
-pdf.save(
-  `CareVR_Report_${patient}_${today}.pdf`
-);
+  pdf.save(`CareVR_Report_${patient}_${today}.pdf`);
 }

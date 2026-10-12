@@ -569,7 +569,7 @@ notSure:
   "Not Sure",
 
 waterIntake:
-  "Water intake",
+  "Water intake (Number of glasses)",
 
 alertAllQuestions:
   "Please answer all questions.",

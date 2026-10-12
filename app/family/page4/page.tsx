@@ -118,7 +118,11 @@ router.push(
   };
 
   return (
-    <AssessmentLayout currentPage={4} assessmentType="family">      
+<AssessmentLayout
+  currentPage={4}
+  assessmentType="family"
+  useMobileHeader
+>      
      <div
         style={{
           backgroundColor: "white",

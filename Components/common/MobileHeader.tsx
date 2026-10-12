@@ -681,10 +681,13 @@ return (
 
 .carevr-mobile-page-title h1 {
     margin: 0;
+    padding: 2px 1px;
     color: #1d2d62;
     font-size: 22px;
     font-weight: 800;
-    line-height: 1.1;
+    line-height: 1.3;
+    overflow: visible;
+    overflow-wrap: normal;
 }
 
 .carevr-mobile-page-title p {
