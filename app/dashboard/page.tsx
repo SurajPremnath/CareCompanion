@@ -550,6 +550,35 @@ if (
 const dashboardHandoff =
     existingDashboardHandoff;
 
+// --------------------------------------------------------
+// PRODUCT INVITATION STATUS
+//
+// Mark the pending product invitation accepted after the
+// existing Dashboard handoff has passed validation.
+//
+// This is a best-effort update. It must never block or
+// interrupt the existing Dashboard flow.
+// --------------------------------------------------------
+
+void fetch(
+    "/api/access-management/access-to-carevr/accept-product-invitation",
+    {
+        method: "POST",
+    }
+).then((response) => {
+    if (!response.ok) {
+        console.error(
+            "[CAREVR][PRODUCT INVITATION] Status update failed.",
+            response.status
+        );
+    }
+}).catch((error) => {
+    console.error(
+        "[CAREVR][PRODUCT INVITATION] Status update failed.",
+        error
+    );
+});
+
 const toggleConfiguration =
     getCareVRToggle(
         dashboardHandoff
