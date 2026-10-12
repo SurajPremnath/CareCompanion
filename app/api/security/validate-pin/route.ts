@@ -135,16 +135,31 @@ export async function POST(
                 pinRecord.pinHash
             );
 
-        if (isValid) {
+if (isValid) {
+    await recordSuccessfulPinVerification(user.id);
 
-            await recordSuccessfulPinVerification(
-                user.id
-            );
+    const pinChangedAt = new Date(
+        pinRecord.pinChangedAt
+    ).getTime();
 
-            return NextResponse.json({
-                success: true,
-            });
-        }
+    if (Number.isNaN(pinChangedAt)) {
+        throw new Error(
+            "Unable to determine the CareVR PIN change date."
+        );
+    }
+
+    const PIN_ROTATION_INTERVAL_MS =
+        60 * 24 * 60 * 60 * 1000;
+
+    const pinExpired =
+        Date.now() - pinChangedAt >=
+        PIN_ROTATION_INTERVAL_MS;
+
+    return NextResponse.json({
+        success: true,
+        pinExpired,
+    });
+}
 
         /*
          * The failed-attempt counter and progressive

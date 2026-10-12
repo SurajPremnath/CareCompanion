@@ -608,6 +608,10 @@ const isRecreateMode =
         "mode"
     ) === "recreate";
 
+const isExpiredReset =
+    isRecreateMode &&
+    searchParams.get("reason") === "expired";
+
 const [pin, setPin] = useState("");
 const [confirmPin, setConfirmPin] = useState("");
 const [currentPin, setCurrentPin] = useState("");
@@ -1451,7 +1455,7 @@ if (showDashboardHandoff) {
     showSelfToggle={false}
     showFamilyToggle={false}
 
-    showHomeButton={true}
+showHomeButton={!isExpiredReset}
     onHomeClick={() =>
         router.replace("/dashboard")
     }
@@ -1517,15 +1521,24 @@ onAccountMenuToggle={() => {
                 ACCOUNT SECURITY
             </div>
 
-            <h1 id="recreate-pin-title">
-                Reset Your CareVR PIN
-            </h1>
+<h1 id="recreate-pin-title">
+    {isExpiredReset
+        ? "Update Your CareVR PIN"
+        : "Reset Your CareVR PIN"}
+</h1>
 
-            <p className="intro">
-                Enter your current PIN and create a
-                new 6-digit PIN to keep your CareVR
-                account secure.
-            </p>
+<p
+    className="intro"
+    style={
+        isExpiredReset
+            ? { color: "#dc2626", fontWeight: 700 }
+            : undefined
+    }
+>
+    {isExpiredReset
+        ? "Your CareVR PIN has reached its 60-day validity limit. Please verify your current PIN and create a new 6-digit PIN to continue."
+        : "Enter your current PIN and create a new 6-digit PIN to keep your CareVR account secure."}
+</p>
 
             <div className="form">
 

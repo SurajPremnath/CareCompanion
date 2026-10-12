@@ -9,6 +9,7 @@ export interface CareVRPinRecord {
     failedAttempts: number;
     lockedUntil: string | null;
     lockoutLevel: number;
+    pinChangedAt: string;
 }
 
 export async function getCareVRPinRecord(
@@ -22,7 +23,7 @@ export async function getCareVRPinRecord(
         await supabaseAdmin
             .from("carevr_pin")
             .select(
-                "id, user_id, pin_hash, failed_attempts, locked_until, lockout_level"
+                "id, user_id, pin_hash, failed_attempts, locked_until, lockout_level, pin_changed_at"
             )
             .eq(
                 "user_id",
@@ -42,24 +43,14 @@ export async function getCareVRPinRecord(
     }
 
 return {
-    id:
-        data.id,
-
-    userId:
-        data.user_id,
-
-    pinHash:
-        data.pin_hash,
-
-        failedAttempts:
-            data.failed_attempts,
-
-        lockedUntil:
-            data.locked_until,
-
-        lockoutLevel:
-            data.lockout_level,
-    };
+    id: data.id,
+    userId: data.user_id,
+    pinHash: data.pin_hash,
+    failedAttempts: data.failed_attempts,
+    lockedUntil: data.locked_until,
+    lockoutLevel: data.lockout_level,
+    pinChangedAt: data.pin_changed_at,
+};
 }
 
 export async function recordSuccessfulPinVerification(
@@ -125,14 +116,14 @@ export async function updateCareVRPin(
     } =
         await supabaseAdmin
             .from("carevr_pin")
-            .update({
-                pin_hash: pinHash,
-                failed_attempts: 0,
-                lockout_level: 0,
-                locked_until: null,
-                updated_at:
-                    new Date().toISOString(),
-            })
+.update({
+    pin_hash: pinHash,
+    pin_changed_at: new Date().toISOString(),
+    failed_attempts: 0,
+    lockout_level: 0,
+    locked_until: null,
+    updated_at: new Date().toISOString(),
+})
             .eq(
                 "user_id",
                 userId

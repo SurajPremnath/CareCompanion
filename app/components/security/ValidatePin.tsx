@@ -339,6 +339,11 @@ try {
 setAttemptsRemaining(null);
 setPin("");
 
+if (result?.pinExpired === true) {
+    router.replace("/secure-access/create-pin?mode=recreate&reason=expired");
+    return;
+}
+
 /*
  * =========================================================
  * DIGITAL HEALTH PROFILE + CAREVR ACCESS

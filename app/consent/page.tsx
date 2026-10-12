@@ -129,7 +129,7 @@ useEffect(() => {
         security: {
             title: "🔐 Security",
             content:
-                "CareVR uses authentication, access controls and other security measures designed to protect your account and health information. No digital system can guarantee absolute security, but CareVR is designed to reduce the risk of unauthorized access, loss or misuse."
+                "CareVR is designed with security and privacy at its core. Authentication, controlled access, consent-based processing and role-based permissions work together to help protect your account and health information. CareVR aims to provide a more structured and controlled approach to managing sensitive healthcare information than general-purpose digital workflows. Security is continuously dependent on appropriate safeguards, responsible use and ongoing improvement; no digital system can guarantee absolute security."
         },
 
         medical: {
@@ -342,6 +342,20 @@ router.replace(
                     associated with using the application.
                 </p>
 
+<p
+    style={{
+        fontWeight: 700,
+        marginTop: "12px",
+        marginBottom: "18px",
+        textAlign: "center",
+        color: "#1d2d62",
+    }}
+>
+    PLEASE REVIEW ALL 8 SECTIONS BELOW. THE CONFIRMATION
+    CHECKBOXES WILL APPEAR AFTER YOU HAVE REVIEWED EVERY SECTION.
+</p>
+
+
                 <div style={styles.tabs}>
 
                     {[
@@ -430,6 +444,9 @@ router.replace(
 </div>
 
                 </div>
+
+{allSectionsReviewed && (
+    <>
 
                 <p
                     style={{
@@ -540,22 +557,6 @@ router.replace(
 
                 </div>
 
-
-{!allSectionsReviewed && (
-    <p
-        style={{
-            fontWeight: 700,
-            marginTop: "18px",
-            marginBottom: "18px",
-            textAlign: "center",
-        }}
-    >
-        PLEASE READ THROUGH ALL 8 SECTIONS ABOVE BEFORE TRYING
-        TO CHECK THE CHECKBOXES. ONCE DONE THE CHECKBOXES WILL
-        BE ACTIVE FOR YOU TO CHOOSE AND PROCEED.
-    </p>
-)}
-
                 <div style={styles.buttonContainer}>
 
                     <button
@@ -595,8 +596,10 @@ router.replace(
                     </button>
 
                 </div>
+            </>
+            )}
 
-            </div>
+        </div>
 
         </main>
 
