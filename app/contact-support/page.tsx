@@ -1,7 +1,7 @@
 ﻿
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import MobileHeader, {
@@ -29,6 +29,72 @@ const categories = [
     "Other",
 ];
 
+const MAX_ATTACHMENT_SIZE = 500 * 1024;
+
+async function prepareSupportImage(file: File): Promise<File> {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+    if (!allowedTypes.includes(file.type)) {
+        throw new Error("Please choose a JPEG, PNG, or WebP image.");
+    }
+
+    if (file.size <= MAX_ATTACHMENT_SIZE) return file;
+
+    const imageUrl = URL.createObjectURL(file);
+
+    try {
+        const image = new Image();
+
+        await new Promise<void>((resolve, reject) => {
+            image.onload = () => resolve();
+            image.onerror = () => reject(new Error("Unable to read this image."));
+            image.src = imageUrl;
+        });
+
+        const canvas = document.createElement("canvas");
+        const maxDimension = 1800;
+        const scale = Math.min(
+            1,
+            maxDimension / Math.max(image.naturalWidth, image.naturalHeight)
+        );
+
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+        const context = canvas.getContext("2d");
+
+        if (!context) {
+            throw new Error("Unable to compress this image on your device.");
+        }
+
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+        // JPEG is broadly supported and usually suitable for screenshots.
+        // Try progressively lower quality until the file is within the limit.
+        for (const quality of [0.82, 0.7, 0.58, 0.45, 0.32]) {
+            const blob = await new Promise<Blob | null>((resolve) =>
+                canvas.toBlob(resolve, "image/jpeg", quality)
+            );
+
+            if (blob && blob.size <= MAX_ATTACHMENT_SIZE) {
+                const baseName = file.name.replace(/\.[^.]+$/, "") || "screenshot";
+
+                return new File([blob], `${baseName}.jpg`, {
+                    type: "image/jpeg",
+                    lastModified: Date.now(),
+                });
+            }
+        }
+
+        throw new Error(
+            "This image is still larger than 500 KB after compression. Please choose a smaller image."
+        );
+    } finally {
+        URL.revokeObjectURL(imageUrl);
+    }
+}
+
+
 export default function ContactSupportPage() {
     const router = useRouter();
 
@@ -44,6 +110,10 @@ export default function ContactSupportPage() {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
+
+const fileInputRef = useRef<HTMLInputElement>(null);
+const [attachment, setAttachment] = useState<File | null>(null);
+const [ticketNumber, setTicketNumber] = useState("");
 
     useEffect(() => {
         let cancelled = false;
@@ -102,47 +172,65 @@ export default function ContactSupportPage() {
         }
     };
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-        if (submitting || !user) return;
+    if (submitting || !user) return;
 
-        setError("");
-        setSuccess(false);
-        setSubmitting(true);
+    setError("");
+    setSuccess(false);
+    setTicketNumber("");
+    setSubmitting(true);
 
-        try {
-            const response = await fetch("/api/contact-support", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    category,
-                    subject: subject.trim(),
-                    message: message.trim(),
-                }),
-            });
+    try {
+        const formData = new FormData();
+        formData.append("category", category);
+        formData.append("subject", subject.trim());
+        formData.append("message", message.trim());
 
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-                throw new Error(
-                    result.error || "Unable to submit your request."
-                );
+        if (attachment) {
+            if (attachment.size > MAX_ATTACHMENT_SIZE) {
+                throw new Error("The attachment must be no larger than 500 KB.");
             }
 
-            setSuccess(true);
-            setSubject("");
-            setMessage("");
-        } catch (submitError) {
-            setError(
-                submitError instanceof Error
-                    ? submitError.message
-                    : "Unable to submit your request. Please try again."
-            );
-        } finally {
-            setSubmitting(false);
+            formData.append("attachment", attachment);
         }
-    };
+
+        const response = await fetch("/api/contact-support", {
+            method: "POST",
+            body: formData,
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "Unable to submit your request.");
+        }
+
+setTicketNumber(result.ticketNumber);
+setSuccess(true);
+
+window.alert(
+    `Thank you for submitting the Support Request. Your Ticket number is #${result.ticketNumber.replace(/^#/, "")}`
+);
+
+setSubject("");
+setMessage("");
+setAttachment(null);
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    } catch (submitError) {
+        setError(
+            submitError instanceof Error
+                ? submitError.message
+                : "Unable to submit your request. Please try again."
+        );
+    } finally {
+        setSubmitting(false);
+    }
+};
 
     if (!user) return null;
 
@@ -208,15 +296,30 @@ export default function ContactSupportPage() {
                         <p>Fields marked * are required.</p>
                     </div>
 
+
                     {success && (
                         <div className="support-success" role="status">
-                            <strong>Request submitted successfully.</strong>
+                            <strong>Support request submitted successfully.</strong>
+
                             <span>
-                                Thank you for contacting CareVR. Your message
-                                has been sent to our support team.
+                                Your reference number is{" "}
+                                <strong>{ticketNumber}</strong>.
                             </span>
+
+                            <span>
+                                Our team is investigating your request and aims
+                                to respond within 24 hours. An acknowledgement
+                                has been sent to your registered email address.
+                            </span>
+
+                            <small>
+                                This is a temporary reference. Persistent ticket
+                                tracking will be designed as part of the
+                                incident-management work.
+                            </small>
                         </div>
                     )}
+
 
                     {error && (
                         <div className="support-error" role="alert">
@@ -275,6 +378,7 @@ export default function ContactSupportPage() {
                             />
                         </div>
 
+
                         <div className="support-field">
                             <label htmlFor="support-message">How can we help? *</label>
                             <textarea
@@ -289,6 +393,86 @@ export default function ContactSupportPage() {
                             <small>{message.length}/5000 characters</small>
                         </div>
 
+                        <div className="support-field">
+                            <label htmlFor="support-attachment">
+                                Screenshot attachment (optional)
+                            </label>
+
+                            <input
+                                ref={fileInputRef}
+                                id="support-attachment"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                disabled={submitting}
+                                onChange={async (event) => {
+                                    const selectedFile = event.target.files?.[0];
+
+                                    if (!selectedFile) {
+                                        setAttachment(null);
+                                        return;
+                                    }
+
+                                    setError("");
+
+                                    try {
+                                        const preparedFile =
+                                            await prepareSupportImage(selectedFile);
+
+                                        setAttachment(preparedFile);
+
+                                        if (preparedFile.size < selectedFile.size) {
+                                            window.alert(
+                                                `Image compressed to ${(preparedFile.size / 1024).toFixed(0)} KB.`
+                                            );
+                                        }
+                                    } catch (fileError) {
+                                        setAttachment(null);
+                                        event.target.value = "";
+
+                                        window.alert(
+                                            fileError instanceof Error
+                                                ? fileError.message
+                                                : "Unable to prepare this image."
+                                        );
+                                    }
+                                }}
+                            />
+
+                            <small>
+                                JPEG, PNG or WebP. Maximum 500 KB. Larger images
+                                will be compressed where possible.
+                            </small>
+
+                            {attachment && (
+                                <small>
+                                    Selected: {attachment.name} ·{" "}
+                                    {(attachment.size / 1024).toFixed(0)} KB
+
+                                    <button
+                                        type="button"
+                                        disabled={submitting}
+                                        onClick={() => {
+                                            setAttachment(null);
+
+                                            if (fileInputRef.current) {
+                                                fileInputRef.current.value = "";
+                                            }
+                                        }}
+                                        style={{
+                                            marginLeft: 10,
+                                            border: 0,
+                                            background: "transparent",
+                                            color: "#205f8b",
+                                            textDecoration: "underline",
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        Remove
+                                    </button>
+                                </small>
+                            )}
+                        </div>
+
                         <div className="support-privacy">
                             <strong>Protect your personal information</strong>
                             <p>
@@ -298,13 +482,14 @@ export default function ContactSupportPage() {
                             </p>
                         </div>
 
-                        <button
-                            className="support-submit"
-                            type="submit"
-                            disabled={submitting}
-                        >
-                            {submitting ? "Submitting request..." : "Submit Support Request"}
-                        </button>
+
+<button
+    className="support-submit"
+    type="submit"
+    disabled={submitting || !message.trim()}
+>
+    {submitting ? "Submitting request..." : "Submit Support Request"}
+</button>
                     </form>
                 </section>
 
@@ -502,24 +687,151 @@ export default function ContactSupportPage() {
                     text-align: center;
                 }
 
-                @media (max-width: 520px) {
-                    .support-shell {
-                        width: min(100% - 20px, 820px);
-                        padding-top: 8px;
-                    }
+@media (max-width: 520px) {
+    .support-page {
+        width: 100%;
+        min-width: 0;
+        overflow-x: clip;
+    }
 
-                    .support-hero {
-                        padding: 30px 4px 22px;
-                    }
+    .support-shell {
+        width: calc(100% - 24px);
+        max-width: 820px;
+        margin-inline: auto;
+        padding: 8px 0 20px;
+    }
 
-                    .support-hero > p {
-                        font-size: 14px;
-                    }
+    .support-hero {
+        padding: 22px 4px 18px;
+    }
 
-                    .support-card {
-                        border-radius: 13px;
-                    }
-                }
+    .support-eyebrow {
+        font-size: 11px;
+        letter-spacing: 1.1px;
+    }
+
+    .support-hero h1 {
+        margin: 10px 0;
+        font-size: clamp(27px, 7vw, 34px);
+        line-height: 1.18;
+        letter-spacing: -0.6px;
+        overflow-wrap: anywhere;
+    }
+
+    .support-hero > p {
+        margin: 0;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .support-trust {
+        align-items: flex-start;
+        margin-top: 14px;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .support-card {
+        min-width: 0;
+        padding: 18px 16px 20px;
+        border-radius: 14px;
+    }
+
+    .support-card-heading {
+        margin-bottom: 22px;
+    }
+
+    .support-card-heading h2 {
+        font-size: 21px;
+        line-height: 1.3;
+    }
+
+    .support-card-heading p {
+        margin-bottom: 0;
+        line-height: 1.5;
+    }
+
+    .support-field {
+        min-width: 0;
+        gap: 7px;
+        margin-bottom: 18px;
+    }
+
+    .support-field label {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .support-field input,
+    .support-field select,
+    .support-field textarea {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        min-height: 50px;
+        padding: 13px 12px;
+        border-radius: 9px;
+        font-size: 16px;
+    }
+
+    .support-field textarea {
+        min-height: 150px;
+        line-height: 1.6;
+    }
+
+    .support-field small {
+        font-size: 12px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .support-privacy {
+        padding: 13px;
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .support-submit {
+        min-height: 52px;
+        margin-top: 18px;
+        padding: 14px 12px;
+        font-size: 15px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    .support-success,
+    .support-error {
+        padding: 13px;
+        font-size: 14px;
+        overflow-wrap: anywhere;
+    }
+
+    .support-alternative {
+        padding: 18px 4px 0;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+}
+
+@media (max-width: 360px) {
+    .support-shell {
+        width: calc(100% - 20px);
+    }
+
+    .support-card {
+        padding: 16px 12px 18px;
+    }
+
+    .support-hero h1 {
+        font-size: 27px;
+    }
+
+    .support-card-heading h2 {
+        font-size: 19px;
+    }
+}
             `}</style>
         </main>
     );

@@ -1,9 +1,14 @@
 ﻿
+import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { profileRepository } from "@/lib/repositories/profileRepository";
 import { sendContactSupportEmail } from "@/lib/email/contactSupportEmailService";
+
+export const runtime = "nodejs";
+
+const MAX_ATTACHMENT_SIZE = 500 * 1024;
 
 const allowedCategories = new Set([
     "Account and Login",
@@ -13,6 +18,12 @@ const allowedCategories = new Set([
     "Invitations and Access",
     "Technical Issue",
     "Other",
+]);
+
+const allowedImageTypes = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
 ]);
 
 export async function POST(request: Request) {
@@ -31,19 +42,12 @@ export async function POST(request: Request) {
             );
         }
 
-        const body: unknown = await request.json();
+        const formData = await request.formData();
 
-        if (!body || typeof body !== "object") {
-            return NextResponse.json(
-                { success: false, error: "Invalid request." },
-                { status: 400 }
-            );
-        }
-
-        const input = body as Record<string, unknown>;
-        const category = typeof input.category === "string" ? input.category.trim() : "";
-        const subject = typeof input.subject === "string" ? input.subject.trim() : "";
-        const message = typeof input.message === "string" ? input.message.trim() : "";
+        const category = String(formData.get("category") ?? "").trim();
+        const subject = String(formData.get("subject") ?? "").trim();
+        const message = String(formData.get("message") ?? "").trim();
+        const uploaded = formData.get("attachment");
 
         if (!allowedCategories.has(category)) {
             return NextResponse.json(
@@ -66,6 +70,48 @@ export async function POST(request: Request) {
             );
         }
 
+        let attachment:
+            | {
+                  filename: string;
+                  content: Buffer;
+                  contentType: string;
+              }
+            | undefined;
+
+        if (uploaded instanceof File && uploaded.size > 0) {
+            if (!allowedImageTypes.has(uploaded.type)) {
+                return NextResponse.json(
+                    { success: false, error: "Attach a JPEG, PNG, or WebP image." },
+                    { status: 400 }
+                );
+            }
+
+            if (uploaded.size > MAX_ATTACHMENT_SIZE) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "The attachment exceeds 500 KB. Please compress the image and try again.",
+                    },
+                    { status: 413 }
+                );
+            }
+
+            const safeFilename = uploaded.name
+                .replace(/[^a-zA-Z0-9._-]/g, "_")
+                .slice(-100) || "support-attachment";
+
+            attachment = {
+                filename: safeFilename,
+                content: Buffer.from(await uploaded.arrayBuffer()),
+                contentType: uploaded.type,
+            };
+        } else if (uploaded !== null && !(uploaded instanceof File)) {
+            return NextResponse.json(
+                { success: false, error: "Invalid attachment." },
+                { status: 400 }
+            );
+        }
+
         const profile = await profileRepository.getCurrentProfile();
 
         const name =
@@ -84,25 +130,34 @@ export async function POST(request: Request) {
             );
         }
 
+        // Temporary reference only; no database ticket record is created yet.
+        const ticketNumber =
+            `CV-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-` +
+            randomBytes(4).toString("hex").toUpperCase();
+
         await sendContactSupportEmail({
             name,
             email,
             category,
             subject,
             message,
+            ticketNumber,
+            attachment,
         });
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({
+            success: true,
+            ticketNumber,
+        });
     } catch (error) {
         console.error("Contact support submission failed.", error);
 
         return NextResponse.json(
             {
                 success: false,
-                error: "We could not send your request right now. Please try again later.",
+                error: "We could not complete your support request. Please try again later.",
             },
             { status: 500 }
         );
     }
 }
-
