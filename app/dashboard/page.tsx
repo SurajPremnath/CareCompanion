@@ -2159,7 +2159,7 @@ onClick={() => {
         </strong>
 
         <span>
-            Prescriptions & doctorâ€™s notes
+            Prescriptions & doctors notes
         </span>
     </button>
 )}
