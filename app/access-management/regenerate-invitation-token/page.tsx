@@ -45,8 +45,11 @@ import {
     type RegenerateInvitationResult,
 } from "./regenerate-invitation-actions";
 
+import { supabase } from "@/lib/supabase";
+
 
 type RegenerationRole =
+    | "PRIMARY"
     | "SECONDARY_FAMILY_MEMBER"
     | "CARETAKER"
     | "DOCTOR";
@@ -55,6 +58,24 @@ type RegenerationRole =
 type RegenerationUser = {
     fullName: string;
     email: string;
+};
+
+
+type PrimaryInvitation = {
+    id: string;
+    email: string;
+    expiresAt: string | null;
+    invitationCount: number;
+    expired: boolean;
+};
+
+
+type PrimaryRegenerationResult = {
+    success: true;
+    invitationId: string;
+    email: string;
+    expiresAt: string;
+    activationToken: string;
 };
 
 
@@ -140,6 +161,19 @@ export default function RegenerateInvitationTokenPage() {
         setInvitedEmails,
     ] =
         useState<RegenerableInvitation[]>([]);
+
+const [
+    primaryInvitations,
+    setPrimaryInvitations,
+] =
+    useState<PrimaryInvitation[]>([]);
+
+
+const [
+    primaryResult,
+    setPrimaryResult,
+] =
+    useState<PrimaryRegenerationResult | null>(null);
 
 
     const [
@@ -336,233 +370,241 @@ export default function RegenerateInvitationTokenPage() {
     // Role change
     //--------------------------------------------------------
 
-    const handleRoleChange =
-        async (
-            role:
-                RegenerationRole | ""
-        ) => {
+const handleRoleChange =
+    async (
+        role: RegenerationRole | ""
+    ) => {
+        setSelectedRole(role);
+        setSelectedInvitationId("");
+        setSelectedAttemptNumber(null);
+        setInvitedEmails([]);
+        setPrimaryInvitations([]);
+        setRegenerationResult(null);
+        setPrimaryResult(null);
+        setTemplateCopied(false);
+        setTokenCopied(false);
+        setError(null);
 
-            setSelectedRole(
-                role
-            );
+        if (!role) {
+            return;
+        }
 
-            setSelectedInvitationId(
-                ""
-            );
+        setLoadingInvitations(true);
 
-            setSelectedAttemptNumber(
-                null
-            );
+        try {
+            if (role === "PRIMARY") {
+                const {
+                    data: { session },
+                    error: sessionError,
+                } = await supabase.auth.getSession();
 
-            setInvitedEmails(
-                []
-            );
+                if (sessionError || !session?.access_token) {
+                    throw new Error(
+                        "Your session could not be verified. Please log in again."
+                    );
+                }
 
-            setRegenerationResult(
-                null
-            );
+                const response = await fetch(
+                    "/api/access-management/access-to-carevr/invitations/regenerate-primary",
+                    {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                        cache: "no-store",
+                    }
+                );
 
-            setTemplateCopied(
-                false
-            );
+                const result = await response.json();
 
-            setTokenCopied(
-                false
-            );
+                if (!response.ok) {
+                    throw new Error(
+                        result.error ??
+                            "Unable to load Primary invitations."
+                    );
+                }
 
-            setError(
-                null
-            );
+                const invitations: PrimaryInvitation[] =
+                    result.invitations ?? [];
 
+                setPrimaryInvitations(invitations);
 
-            if (!role) {
+                if (invitations.length === 0) {
+                    setError(
+                        "No pending Primary product invitations are available."
+                    );
+                }
+
                 return;
             }
 
+            const result = await getRegenerableInvitations(role);
 
-            setLoadingInvitations(
-                true
+            setInvitedEmails(result.invitations);
+
+            if (result.invitations.length === 0) {
+                setError(
+                    "No pending invitations are available for the selected role."
+                );
+            }
+        } catch (lookupError) {
+            console.error(
+                "Unable to load pending invitations.",
+                lookupError
             );
 
-
-            try {
-
-                const result =
-                    await getRegenerableInvitations(
-                        role
-                    );
-
-                setInvitedEmails(
-                    result.invitations
-                );
-
-
-                if (
-                    result.invitations.length === 0
-                ) {
-
-                    setError(
-                        "No pending invitations are available for the selected role."
-                    );
-
-                }
-
-            }
-            catch (lookupError) {
-
-                console.error(
-                    "Unable to load pending invitations.",
-                    lookupError
-                );
-
-                setError(
-                    "Unable to load pending invitations. Please try again."
-                );
-
-            }
-            finally {
-
-                setLoadingInvitations(
-                    false
-                );
-
-            }
-
-        };
+            setError(
+                lookupError instanceof Error
+                    ? lookupError.message
+                    : "Unable to load pending invitations. Please try again."
+            );
+        } finally {
+            setLoadingInvitations(false);
+        }
+    };
 
 
     //--------------------------------------------------------
     // Invitation selection
     //--------------------------------------------------------
 
-    const handleInvitationChange =
-        (
-            invitationId: string
-        ) => {
-
-            const invitation =
-                invitedEmails.find(
-                    item =>
-                        item.id ===
-                        invitationId
+const handleInvitationChange =
+    (
+        invitationId: string
+    ) => {
+        const invitation =
+            selectedRole === "PRIMARY"
+                ? primaryInvitations.find(
+                    (item) => item.id === invitationId
+                )
+                : invitedEmails.find(
+                    (item) => item.id === invitationId
                 );
 
+        setSelectedInvitationId(invitationId);
 
-            setSelectedInvitationId(
-                invitationId
-            );
+        setSelectedAttemptNumber(
+            selectedRole === "PRIMARY"
+                ? invitationId
+                    ? 1
+                    : null
+                : (
+                    invitation as RegenerableInvitation | undefined
+                )?.attemptNumber ?? null
+        );
 
-            setSelectedAttemptNumber(
-                invitation?.attemptNumber ??
-                null
-            );
-
-            setRegenerationResult(
-                null
-            );
-
-            setTemplateCopied(
-                false
-            );
-
-            setTokenCopied(
-                false
-            );
-
-            setError(
-                null
-            );
-
-        };
+        setRegenerationResult(null);
+        setPrimaryResult(null);
+        setTemplateCopied(false);
+        setTokenCopied(false);
+        setError(null);
+    };
 
 
     //--------------------------------------------------------
     // Regenerate
     //--------------------------------------------------------
 
-    const handleRegenerate =
-        async () => {
+const handleRegenerate =
+    async () => {
+        if (regenerating || !selectedInvitationId) {
+            return;
+        }
 
-            if (
-                regenerating ||
-                !selectedInvitationId
-            ) {
+        setRegenerating(true);
+        setError(null);
+        setRegenerationResult(null);
+        setPrimaryResult(null);
+        setTemplateCopied(false);
+        setTokenCopied(false);
+
+        try {
+            if (selectedRole === "PRIMARY") {
+                const {
+                    data: { session },
+                    error: sessionError,
+                } = await supabase.auth.getSession();
+
+                if (sessionError || !session?.access_token) {
+                    throw new Error(
+                        "Your session could not be verified. Please log in again."
+                    );
+                }
+
+                const response = await fetch(
+                    "/api/access-management/access-to-carevr/invitations/regenerate-primary",
+                    {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${session.access_token}`,
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            invitationId: selectedInvitationId,
+                        }),
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        result.error ??
+                            "Unable to regenerate the Primary invitation."
+                    );
+                }
+
+                setPrimaryResult(result as PrimaryRegenerationResult);
+                setSelectedAttemptNumber(
+                    (previous) => (previous ?? 0) + 1
+                );
+
                 return;
             }
 
+            const result = await regenerateInvitationToken(
+                selectedInvitationId
+            );
 
-            setRegenerating(
-                true
+            setRegenerationResult(result);
+            setSelectedAttemptNumber(
+                result.invitationAttemptNumber
+            );
+        } catch (regenerationError) {
+            console.error(
+                "Unable to regenerate invitation.",
+                regenerationError
             );
 
             setError(
-                null
+                regenerationError instanceof Error
+                    ? regenerationError.message
+                    : "Unable to regenerate the invitation. Please try again."
             );
+        } finally {
+            setRegenerating(false);
+        }
+    };
 
-            setRegenerationResult(
-                null
-            );
-
-            setTemplateCopied(
-                false
-            );
-
-            setTokenCopied(
-                false
-            );
-
-
-            try {
-
-                const result =
-                    await regenerateInvitationToken(
-                        selectedInvitationId
-                    );
-
-                setRegenerationResult(
-                    result
-                );
-
-                setSelectedAttemptNumber(
-                    result.invitationAttemptNumber
-                );
-
-            }
-            catch (regenerationError) {
-
-                console.error(
-                    "Unable to regenerate invitation.",
-                    regenerationError
-                );
-
-                setError(
-                    regenerationError instanceof Error
-                        ? regenerationError.message
-                        : "Unable to regenerate the invitation. Please try again."
-                );
-
-            }
-            finally {
-
-                setRegenerating(
-                    false
-                );
-
-            }
-
-        };
 
 
     //--------------------------------------------------------
     // Registration link
     //--------------------------------------------------------
 
-    const invitationLink =
-        regenerationResult
-            ? `${window.location.origin}/invitee-registration?token=${encodeURIComponent(
-                regenerationResult.invitationToken
-            )}`
-            : "";
+const invitationLink =
+    regenerationResult
+        ? `${window.location.origin}/invitee-registration?token=${encodeURIComponent(
+            regenerationResult.invitationToken
+        )}`
+        : "";
+
+const primaryInvitationLink =
+    primaryResult
+        ? `${window.location.origin}/register?productInvitationToken=${encodeURIComponent(
+            primaryResult.activationToken
+        )}`
+        : "";
 
 
     //--------------------------------------------------------
@@ -861,13 +903,19 @@ export default function RegenerateInvitationTokenPage() {
                                     }
                                 >
 
-                                    <option value="">
-                                        Select role
-                                    </option>
+<option value="">
+    Select role
+</option>
 
-                                    <option value="SECONDARY_FAMILY_MEMBER">
-                                        Secondary Family Member
-                                    </option>
+{user.email.trim().toLowerCase() === "premnath.suraj@gmail.com" && (
+    <option value="PRIMARY">
+        Primary
+    </option>
+)}
+
+<option value="SECONDARY_FAMILY_MEMBER">
+    Secondary Family Member
+</option>
 
                                     <option value="CARETAKER">
                                         Caretaker
@@ -890,53 +938,60 @@ export default function RegenerateInvitationTokenPage() {
                                     Invitation
                                 </label>
 
-                                <select
-                                    id="regenerate-email"
-                                    value={
-                                        selectedInvitationId
-                                    }
-                                    disabled={
-                                        !selectedRole ||
-                                        loadingInvitations ||
-                                        invitedEmails.length === 0 ||
-                                        regenerating
-                                    }
-                                    onChange={
-                                        event =>
-                                            handleInvitationChange(
-                                                event.target.value
-                                            )
-                                    }
-                                >
 
-                                    <option value="">
-                                        {!selectedRole
-                                            ? "Select role first"
-                                            : loadingInvitations
-                                                ? "Loading invitations..."
-                                                : invitedEmails.length === 0
-                                                    ? "No pending invitations"
-                                                    : "Select invitation"}
-                                    </option>
 
-                                    {invitedEmails.map(
-                                        invitation => (
-                                            <option
-                                                key={
-                                                    invitation.id
-                                                }
-                                                value={
-                                                    invitation.id
-                                                }
-                                            >
-                                                {
-                                                    invitation.email
-                                                }
-                                            </option>
-                                        )
-                                    )}
+<select
+    id="regenerate-email"
+    value={selectedInvitationId}
+    disabled={
+        !selectedRole ||
+        loadingInvitations ||
+        (
+            selectedRole === "PRIMARY"
+                ? primaryInvitations.length === 0
+                : invitedEmails.length === 0
+        ) ||
+        regenerating
+    }
+    onChange={(event) =>
+        handleInvitationChange(event.target.value)
+    }
+>
+    <option value="">
+        {!selectedRole
+            ? "Select role first"
+            : loadingInvitations
+                ? "Loading invitations..."
+                : (
+                    selectedRole === "PRIMARY"
+                        ? primaryInvitations.length === 0
+                        : invitedEmails.length === 0
+                )
+                    ? "No pending invitations"
+                    : "Select invitation"}
+    </option>
 
-                                </select>
+    {selectedRole === "PRIMARY"
+        ? primaryInvitations.map((invitation) => (
+            <option
+                key={invitation.id}
+                value={invitation.id}
+            >
+                {invitation.email}
+                {invitation.expired
+                    ? " — Expired"
+                    : ""}
+            </option>
+        ))
+        : invitedEmails.map((invitation) => (
+            <option
+                key={invitation.id}
+                value={invitation.id}
+            >
+                {invitation.email}
+            </option>
+        ))}
+</select>
 
                                 <p className="regenerate-field-help">
                                     Select the existing pending invitation
@@ -999,12 +1054,16 @@ export default function RegenerateInvitationTokenPage() {
                             <button
                                 type="button"
                                 className="regenerate-button"
-                                disabled={
-                                    !selectedInvitationId ||
-                                    selectedAttemptNumber !== 1 ||
-                                    regenerating ||
-                                    Boolean(regenerationResult)
-                                }
+disabled={
+    !selectedInvitationId ||
+    (
+        selectedRole !== "PRIMARY" &&
+        selectedAttemptNumber !== 1
+    ) ||
+    regenerating ||
+    Boolean(regenerationResult) ||
+    Boolean(primaryResult)
+}
                                 onClick={
                                     handleRegenerate
                                 }
@@ -1146,7 +1205,63 @@ export default function RegenerateInvitationTokenPage() {
 
                             )}
 
+                            {primaryResult && (
+                                <div className="regenerate-result">
+                                    <div className="regenerate-result-header">
+                                        <strong>
+                                            Primary invitation regenerated
+                                        </strong>
+                                        <span>
+                                            Valid for 7 days
+                                        </span>
+                                    </div>
+
+                                    <div className="regenerate-result-detail">
+                                        <span>Invitee</span>
+                                        <strong>{primaryResult.email}</strong>
+                                    </div>
+
+                                    <div className="regenerate-result-detail">
+                                        <span>Registration Link</span>
+                                        <div className="regenerate-link">
+                                            {primaryInvitationLink}
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="copy-template-button"
+                                        onClick={async () => {
+                                            try {
+                                                await navigator.clipboard.writeText(
+                                                    primaryInvitationLink
+                                                );
+                                                setTokenCopied(true);
+                                            } catch {
+                                                setError(
+                                                    "Unable to copy the registration link. Please select and copy it manually."
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        {tokenCopied
+                                            ? "Registration Link Copied"
+                                            : "Copy Registration Link"}
+                                    </button>
+
+                                    <div className="regenerate-result-detail">
+                                        <span>Invitation Expires</span>
+                                        <strong>
+                                            {new Date(
+                                                primaryResult.expiresAt
+                                            ).toLocaleString()}
+                                        </strong>
+                                    </div>
+                                </div>
+                            )}
+
                         </div>
+
 
                     </div>
 
