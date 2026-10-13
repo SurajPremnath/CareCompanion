@@ -79,6 +79,9 @@ const [showPin, setShowPin] =
     const [saving, setSaving] =
         useState(false);
 
+const [loggingOut, setLoggingOut] =
+    useState(false);
+
 const [showDashboardHandoff, setShowDashboardHandoff] =
     useState(false);
 
@@ -921,9 +924,28 @@ const access = {
     onAddPatient={() => {}}
     onCareVRJourney={() => {}}
     onHelp={() => {}}
+    loggingOut={loggingOut}
     onLogout={async () => {
-        await authService.logout();
-        router.replace("/login");
+        if (loggingOut) {
+            return;
+        }
+
+        setLoggingOut(true);
+
+        try {
+            await authService.logout();
+            router.replace("/login");
+        } catch (error) {
+            console.error(
+                "Unable to log out from Verify PIN page.",
+                error
+            );
+
+            setLoggingOut(false);
+            setError(
+                "Unable to log out. Please try again."
+            );
+        }
     }}
 />
     );
