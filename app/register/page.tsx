@@ -255,14 +255,24 @@ useEffect(() => {
 
             const result = await response.json();
 
-            if (
-                !response.ok ||
-                result.status !== "VALID"
-            ) {
-                throw new Error(
-                    "Unable to validate the CareVR invitation."
-                );
-            }
+if (!response.ok) {
+    throw new Error(
+        result.message ??
+        "Unable to validate the CareVR invitation."
+    );
+}
+
+if (result.status === "EXPIRED") {
+    throw new Error(
+        "This invitation link has expired. Please reach out to Linearise AI Labs for assistance."
+    );
+}
+
+if (result.status !== "VALID") {
+    throw new Error(
+        "Unable to validate the CareVR invitation."
+    );
+}
 
             if (
                 typeof result.email !== "string" ||
