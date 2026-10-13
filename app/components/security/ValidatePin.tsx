@@ -913,6 +913,7 @@ const access = {
     showFamilyToggle={false}
     showHomeButton={false}
     showSwitchProfile={false}
+    restrictAccountMenu={true}
     accountMenuOpen={accountMenuOpen}
     onAccountMenuToggle={() =>
         setAccountMenuOpen(

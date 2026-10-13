@@ -36,6 +36,7 @@ showHomeButton?: boolean;
 onHomeClick?: () => void;
 showSwitchProfile?: boolean;
 
+restrictAccountMenu?: boolean;
     accountMenuOpen: boolean;
     onAccountMenuToggle: () => void;
 
@@ -68,6 +69,7 @@ showFamilyToggle = showCareModeToggle,
 showHomeButton = false,
 onHomeClick,
 showSwitchProfile = true,
+restrictAccountMenu = false,
     accountMenuOpen,
     onAccountMenuToggle,
 
@@ -429,8 +431,29 @@ return (
                     {accountMenuOpen && (
 
 <div className="carevr-mobile-account-menu">
-    <details className="carevr-mobile-account-menu-group">
-        <summary className="carevr-mobile-account-menu-trigger">
+<details
+    className="carevr-mobile-account-menu-group"
+    open={false}
+>
+
+<summary
+        className="carevr-mobile-account-menu-trigger"
+        onClick={(event) => {
+            if (restrictAccountMenu) {
+                event.preventDefault();
+            }
+        }}
+        aria-disabled={restrictAccountMenu}
+        style={{
+            cursor: restrictAccountMenu
+                ? "not-allowed"
+                : "pointer",
+            opacity: restrictAccountMenu
+                ? 0.55
+                : 1,
+        }}
+    >
+
             <span className="carevr-mobile-account-menu-copy">
                 <span className="carevr-mobile-account-menu-heading">
                     Account &amp; Security
@@ -476,9 +499,33 @@ return (
         </div>
     </details>
 
-    <details className="carevr-mobile-account-menu-group">
-        <summary className="carevr-mobile-account-menu-trigger">
-            <span className="carevr-mobile-account-menu-copy">
+<details
+    className="carevr-mobile-account-menu-group"
+    onToggle={(event) => {
+        const details = event.currentTarget;
+
+        if (restrictAccountMenu && details.open) {
+            details.open = false;
+        }
+    }}
+>
+     <summary
+        className="carevr-mobile-account-menu-trigger"
+        aria-disabled={restrictAccountMenu}
+        style={{
+            cursor: restrictAccountMenu
+                ? "not-allowed"
+                : "pointer",
+            opacity: restrictAccountMenu
+                ? 0.55
+                : 1,
+        }}
+        onClick={(event) => {
+            if (restrictAccountMenu) {
+                event.preventDefault();
+            }
+        }}
+    >            <span className="carevr-mobile-account-menu-copy">
                 <span className="carevr-mobile-account-menu-heading">
                     Care Management
                 </span>
@@ -560,8 +607,33 @@ return (
         </div>
     </details>
 
-    <details className="carevr-mobile-account-menu-group">
-        <summary className="carevr-mobile-account-menu-trigger">
+<details
+    className="carevr-mobile-account-menu-group"
+    onToggle={(event) => {
+        const details = event.currentTarget;
+
+        if (restrictAccountMenu && details.open) {
+            details.open = false;
+        }
+    }}
+>
+    <summary
+        className="carevr-mobile-account-menu-trigger"
+        aria-disabled={restrictAccountMenu}
+        style={{
+            cursor: restrictAccountMenu
+                ? "not-allowed"
+                : "pointer",
+            opacity: restrictAccountMenu
+                ? 0.55
+                : 1,
+        }}
+        onClick={(event) => {
+            if (restrictAccountMenu) {
+                event.preventDefault();
+            }
+        }}
+    >
             <span className="carevr-mobile-account-menu-copy">
                 <span className="carevr-mobile-account-menu-heading">
                     Help &amp; Support
