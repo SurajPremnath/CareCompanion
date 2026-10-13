@@ -2691,6 +2691,7 @@ onNoData={() => {
                         {reportExecutionType === "CLINICAL_TRENDS" && (
 
 <ClinicalTrendPdfGenerator
+    careMode={careMode}
     patientId={
         careMode === "SELF"
             ? null

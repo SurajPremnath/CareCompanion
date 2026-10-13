@@ -32,6 +32,7 @@ export interface TrendReportInfo {
     patientName?: string;
     age?: string;
     sex?: string;
+    careMode?: "SELF" | "FAMILY";
     doctorName?: string;
     hospitalName?: string;
     reportPeriod?: string;
@@ -87,6 +88,8 @@ let currentY =
 
         sex: report.sex,
 
+    showGender: report.careMode !== "SELF",
+
     doctorName: report.doctorName,
 
     hospitalName: report.hospitalName,
@@ -139,9 +142,11 @@ currentY =
 
         sex: report.sex,
 
-    doctorName: report.doctorName,
+        showGender: report.careMode !== "SELF",
 
-    hospitalName: report.hospitalName,
+        doctorName: report.doctorName,
+
+        hospitalName: report.hospitalName,
 
         reportPeriod: report.reportPeriod,
 
@@ -249,6 +254,7 @@ currentY =
                     patientName: report.patientName,
                     age: report.age,
                     sex: report.sex,
+                    showGender: report.careMode !== "SELF",
                     doctorName: report.doctorName,
                     hospitalName: report.hospitalName,
                     reportPeriod: report.reportPeriod,
@@ -282,6 +288,7 @@ currentY =
                     patientName: report.patientName,
                     age: report.age,
                     sex: report.sex,
+                    showGender: report.careMode !== "SELF",
                     doctorName: report.doctorName,
                     hospitalName: report.hospitalName,
                     reportPeriod: report.reportPeriod,
