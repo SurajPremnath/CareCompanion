@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 import { patientStorage } from "@/lib/storage/patientStorage";
@@ -17,7 +17,15 @@ import type {
   AssessmentRecommendation,
 } from "@/lib/types/assessment";
 
-import AppHeader from "@/app/components/AppHeader";
+import MobileHeader, {
+  type MobileCareMode,
+} from "@/Components/common/MobileHeader";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
+import { authService } from "@/lib/auth/authService";
+import { profileRepository } from "@/lib/repositories/profileRepository";
+import type { Profile } from "@/lib/types/profile";
+
 import ReportTable, {
   ReportTableColumn,
 } from "@/app/components/ReportTable";
@@ -35,12 +43,46 @@ import {
 
 */
 
-export default function FamilyAssessmentHistoryPage() {
+function FamilyAssessmentHistoryContent() {
 
-  const router = useRouter();
+const router = useRouter();
+const searchParams = useSearchParams();
+const requestedPatientId = searchParams.get("patientId");
 
 const dashboardHandoff =
   getCareVRDashboardHandoff();
+
+const [profile, setProfile] = useState<Profile | null>(null);
+const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+const [loggingOut, setLoggingOut] = useState(false);
+
+const handleLogout = async () => {
+  if (loggingOut) return;
+
+  setLoggingOut(true);
+
+  try {
+    await authService.logout();
+    router.replace("/login");
+  } catch (error) {
+    console.error("Unable to log out.", error);
+    setLoggingOut(false);
+  }
+};
+
+const handleCareVRJourney = () => {
+  setAccountMenuOpen(false);
+  router.push("/dashboard");
+};
+
+const handleHelp = () => {
+  setAccountMenuOpen(false);
+  router.push("/help");
+};
+
+const handleCareModeChange = (_mode: MobileCareMode) => {
+  // Mode switching is intentionally disabled on assessment reports.
+};
 
   //------------------------------------------------------------
   // State
@@ -66,6 +108,30 @@ const [history, setHistory] =
 
 const [selectedHistoryId, setSelectedHistoryId] =
   useState("");
+
+useEffect(() => {
+  let cancelled = false;
+
+  const loadProfile = async () => {
+    try {
+      const currentProfile =
+        await profileRepository.getCurrentProfile();
+
+      if (!cancelled) {
+        setProfile(currentProfile);
+      }
+    } catch (error) {
+      console.error("Unable to load current profile.", error);
+    }
+  };
+
+  void loadProfile();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
 
   //------------------------------------------------------------
   // Load Patients
@@ -111,20 +177,26 @@ if (!response.ok) {
 const patientList =
   result?.data?.patients ?? [];
 
-      setPatients(patientList);
+setPatients(patientList);
 
-      if (patientList.length > 0) {
+if (patientList.length > 0) {
 
-        setSelectedPatientId(
-          patientList[0].id
-        );
+  const requestedPatient =
+    patientList.find(
+      (patient: Patient) =>
+        patient.id === requestedPatientId
+    );
 
-      }
-      else {
+  setSelectedPatientId(
+    requestedPatient?.id ?? patientList[0].id
+  );
 
-        setLoading(false);
+}
+else {
 
-      }
+  setLoading(false);
+
+}
 
     };
 
@@ -407,10 +479,30 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
 
       <div style={containerStyle}>
 
-<AppHeader
-  pageTitle="Family Assessment Reports"
-  pageIcon="👨‍👩‍👧"
- />
+<MobileHeader
+  careMode="FAMILY"
+  onCareModeChange={handleCareModeChange}
+  userName={profile?.fullName ?? ""}
+  showHomeButton={true}
+  onHomeClick={() =>
+  router.push("/record-health?view=timeline")
+}
+  showCareModeToggle={false}
+  showSelfToggle={false}
+  showFamilyToggle={false}
+  showSwitchProfile={false}
+  accountMenuOpen={accountMenuOpen}
+  onAccountMenuToggle={() =>
+    setAccountMenuOpen(value => !value)
+  }
+  consentGranted={true}
+  canAddPatient={false}
+  onAddPatient={() => {}}
+  onCareVRJourney={handleCareVRJourney}
+  onHelp={handleHelp}
+  onLogout={handleLogout}
+  loggingOut={loggingOut}
+/>
 
         {/* Patient Selector */}
 <div
@@ -530,9 +622,9 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
             <button
     style={viewButtonStyle}
     onClick={() =>
-        router.push(
-            `/reports/assessment/family/${latestAssessment.id}`
-        )
+router.push(
+  `/reports/assessment/family/${latestAssessment.id}?patientId=${encodeURIComponent(selectedPatientId)}`
+)
     }
 >
     View Details
@@ -615,9 +707,9 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
 
                     if (!selectedHistoryId) return;
 
-                    router.push(
-                        `/reports/assessment/family/${selectedHistoryId}`
-                    );
+router.push(
+  `/reports/assessment/family/${selectedHistoryId}?patientId=${encodeURIComponent(selectedPatientId)}`
+);
 
                 }}
             >
@@ -634,20 +726,27 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
         <button
     style={backButtonStyle}
     onClick={() =>
-        router.push(
-            "/dashboard"
-        )
+        router.push("/record-health?view=timeline")
     }
 >
-    ← 🏠 Back to Dashboard
+    ← 🏠 Back to Health Timeline
 </button>
 
       </div>
+<CareVRFooter />
 
     </main>
 
   );
 
+}
+
+export default function FamilyAssessmentHistoryPage() {
+  return (
+    <Suspense fallback={<div>Loading assessment history...</div>}>
+      <FamilyAssessmentHistoryContent />
+    </Suspense>
+  );
 }
 
 const loadingStyle: React.CSSProperties = {

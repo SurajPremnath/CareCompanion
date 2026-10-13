@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState} from "react";
-import { useParams, useRouter } from "next/navigation";
+import {
+  useParams,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 
@@ -15,7 +19,14 @@ import type {
   AssessmentRecommendation,
 } from "@/lib/types/assessment";
 
-import AppHeader from "@/app/components/AppHeader";
+import MobileHeader, {
+  type MobileCareMode,
+} from "@/Components/common/MobileHeader";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
+import { authService } from "@/lib/auth/authService";
+import { profileRepository } from "@/lib/repositories/profileRepository";
+import type { Profile } from "@/lib/types/profile";
 
 /*
 import {
@@ -33,6 +44,43 @@ export default function FamilyAssessmentDetailPage() {
 
   const router = useRouter();
   const params = useParams();
+
+const searchParams = useSearchParams();
+
+const requestedPatientId =
+  searchParams.get("patientId");
+
+const [profile, setProfile] = useState<Profile | null>(null);
+const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+const [loggingOut, setLoggingOut] = useState(false);
+
+const handleLogout = async () => {
+  if (loggingOut) return;
+
+  setLoggingOut(true);
+
+  try {
+    await authService.logout();
+    router.replace("/login");
+  } catch (error) {
+    console.error("Unable to log out.", error);
+    setLoggingOut(false);
+  }
+};
+
+const handleCareVRJourney = () => {
+  setAccountMenuOpen(false);
+  router.push("/dashboard");
+};
+
+const handleHelp = () => {
+  setAccountMenuOpen(false);
+  router.push("/help");
+};
+
+const handleCareModeChange = (_mode: MobileCareMode) => {
+  // Mode switching is intentionally disabled on assessment reports.
+};
 
   const assessmentId =
     params.id as string;
@@ -52,6 +100,29 @@ export default function FamilyAssessmentDetailPage() {
 
   const [error, setError] =
     useState("");
+
+useEffect(() => {
+  let cancelled = false;
+
+  const loadProfile = async () => {
+    try {
+      const currentProfile =
+        await profileRepository.getCurrentProfile();
+
+      if (!cancelled) {
+        setProfile(currentProfile);
+      }
+    } catch (error) {
+      console.error("Unable to load current profile.", error);
+    }
+  };
+
+  void loadProfile();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
 
   //------------------------------------------------------------
   // Load Assessment
@@ -79,12 +150,24 @@ export default function FamilyAssessmentDetailPage() {
 
         }
 
-        const loadedAssessment =
-          result.data ?? null;
+const loadedAssessment =
+  result.data ?? null;
 
-        setAssessment(
-          loadedAssessment
-        );
+// Ensure the assessment belongs to the patient
+// selected on the Family Assessment history page.
+if (
+  requestedPatientId &&
+  loadedAssessment?.patientId !== requestedPatientId
+) {
+  setAssessment(null);
+  setPatient(null);
+  setError(
+    "This assessment does not belong to the selected patient."
+  );
+  return;
+}
+
+setAssessment(loadedAssessment);
 
         if (loadedAssessment) {
 
@@ -157,7 +240,7 @@ const patientResult =
 
     }
 
-  }, [assessmentId]);
+  }, [assessmentId, requestedPatientId]);
 
 
   //------------------------------------------------------------
@@ -266,9 +349,27 @@ const patientResult =
       <div style={containerStyle}>
 
 
-<AppHeader
-  pageTitle="Family Assessment Report"
-  pageIcon="📄"
+<MobileHeader
+  careMode="FAMILY"
+  onCareModeChange={handleCareModeChange}
+  userName={profile?.fullName ?? ""}
+  showHomeButton={true}
+  onHomeClick={() => router.push("/dashboard")}
+  showCareModeToggle={false}
+  showSelfToggle={false}
+  showFamilyToggle={false}
+  showSwitchProfile={false}
+  accountMenuOpen={accountMenuOpen}
+  onAccountMenuToggle={() =>
+    setAccountMenuOpen(value => !value)
+  }
+  consentGranted={true}
+  canAddPatient={false}
+  onAddPatient={() => {}}
+  onCareVRJourney={handleCareVRJourney}
+  onHelp={handleHelp}
+  onLogout={handleLogout}
+  loggingOut={loggingOut}
 />
 
         {/*--------------------------------------------------*/}
@@ -560,6 +661,7 @@ const patientResult =
         </button>
 
       </div>
+<CareVRFooter />
 
     </main>
 

@@ -15,7 +15,13 @@ import type {
   AssessmentStatus,
 } from "@/lib/types/assessment";
 
-import AppHeader from "@/app/components/AppHeader";
+import MobileHeader, {
+  type MobileCareMode,
+} from "@/Components/common/MobileHeader";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
+import { authService } from "@/lib/auth/authService";
+
 import ReportTable, {
   ReportTableColumn,
 } from "@/app/components/ReportTable";
@@ -36,6 +42,36 @@ export default function SelfAssessmentHistoryPage() {
 
   const router = useRouter();
 
+const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+const [loggingOut, setLoggingOut] = useState(false);
+
+const handleLogout = async () => {
+  if (loggingOut) return;
+
+  setLoggingOut(true);
+
+  try {
+    await authService.logout();
+    router.replace("/login");
+  } catch (error) {
+    console.error("Unable to log out.", error);
+    setLoggingOut(false);
+  }
+};
+
+const handleCareVRJourney = () => {
+  setAccountMenuOpen(false);
+  router.push("/dashboard");
+};
+
+const handleHelp = () => {
+  setAccountMenuOpen(false);
+  router.push("/help");
+};
+
+const handleCareModeChange = (_mode: MobileCareMode) => {
+  // Mode switching is intentionally disabled on assessment reports.
+};
   //------------------------------------------------------------
   // State
   //------------------------------------------------------------
@@ -280,9 +316,29 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
 
       <div style={containerStyle}>
 
-<AppHeader
-  pageTitle="Self Assessment Reports"
-  pageIcon="👤"
+<MobileHeader
+  careMode="SELF"
+  onCareModeChange={handleCareModeChange}
+  userName={profile?.fullName ?? ""}
+  showHomeButton={true}
+    onHomeClick={() =>
+  router.push("/record-health?view=timeline")
+}
+  showCareModeToggle={false}
+  showSelfToggle={false}
+  showFamilyToggle={false}
+  showSwitchProfile={false}
+  accountMenuOpen={accountMenuOpen}
+  onAccountMenuToggle={() =>
+    setAccountMenuOpen(value => !value)
+  }
+  consentGranted={true}
+  canAddPatient={false}
+  onAddPatient={() => {}}
+  onCareVRJourney={handleCareVRJourney}
+  onHelp={handleHelp}
+  onLogout={handleLogout}
+  loggingOut={loggingOut}
 />
 
         {error && (
@@ -493,16 +549,14 @@ const columns: ReportTableColumn<AssessmentRecord>[] = [
         <button
     style={backButtonStyle}
     onClick={() =>
-        router.push(
-            "/dashboard"
-        )
+        router.push("/record-health?view=timeline")
     }
 >
-    ← 🏠 Back to Dashboard
+    ← 🏠 Back to Health Timeline
 </button>
 
       </div>
-
+ <CareVRFooter />
     </main>
 
   );

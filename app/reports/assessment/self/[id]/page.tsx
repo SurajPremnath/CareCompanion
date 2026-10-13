@@ -14,7 +14,12 @@ import type {
   AssessmentStatus,
 } from "@/lib/types/assessment";
 
-import AppHeader from "@/app/components/AppHeader";
+import MobileHeader, {
+  type MobileCareMode,
+} from "@/Components/common/MobileHeader";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
+import { authService } from "@/lib/auth/authService";
 
 /*
 import {
@@ -30,8 +35,39 @@ import {
 
 export default function SelfAssessmentDetailPage() {
 
-  const router = useRouter();
-  const params = useParams();
+const router = useRouter();
+const params = useParams();
+
+const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+const [loggingOut, setLoggingOut] = useState(false);
+
+const handleLogout = async () => {
+  if (loggingOut) return;
+
+  setLoggingOut(true);
+
+  try {
+    await authService.logout();
+    router.replace("/login");
+  } catch (error) {
+    console.error("Unable to log out.", error);
+    setLoggingOut(false);
+  }
+};
+
+const handleCareVRJourney = () => {
+  setAccountMenuOpen(false);
+  router.push("/dashboard");
+};
+
+const handleHelp = () => {
+  setAccountMenuOpen(false);
+  router.push("/help");
+};
+
+const handleCareModeChange = (_mode: MobileCareMode) => {
+  // Mode switching is intentionally disabled on assessment reports.
+};
 
   const assessmentId =
     params.id as string;
@@ -246,9 +282,27 @@ setProfile(profile);
 
       <div style={containerStyle}>
 
-<AppHeader
-  pageTitle="Self Assessment Report"
-  pageIcon="📄"
+<MobileHeader
+  careMode="SELF"
+  onCareModeChange={handleCareModeChange}
+  userName={profile?.fullName ?? ""}
+  showHomeButton={true}
+  onHomeClick={() => router.push("/dashboard")}
+  showCareModeToggle={false}
+  showSelfToggle={false}
+  showFamilyToggle={false}
+  showSwitchProfile={false}
+  accountMenuOpen={accountMenuOpen}
+  onAccountMenuToggle={() =>
+    setAccountMenuOpen(value => !value)
+  }
+  consentGranted={true}
+  canAddPatient={false}
+  onAddPatient={() => {}}
+  onCareVRJourney={handleCareVRJourney}
+  onHelp={handleHelp}
+  onLogout={handleLogout}
+  loggingOut={loggingOut}
 />
 
 
@@ -568,7 +622,7 @@ setProfile(profile);
         </button>
 
       </div>
-
+      <CareVRFooter />
     </main>
 
   );

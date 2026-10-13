@@ -167,6 +167,7 @@ function RecordHealthPageContent() {
 const searchParams =
     useSearchParams();
 
+
     const [
         user,
         setUser,
@@ -2293,6 +2294,32 @@ setReportNoDataMessage("");
                                 </strong>
 
                             </button>
+
+                            <button
+                                type="button"
+                                className="timeline-report-option"
+onClick={() => {
+    if (careMode === "SELF") {
+        router.push("/reports/assessment/self");
+    } else if (selectedPatientId) {
+        const reportUrl =
+            "/reports/assessment/family?patientId=" +
+            encodeURIComponent(selectedPatientId);
+
+        router.push(reportUrl);
+    }
+}}
+                            >
+                                <span className="timeline-report-icon">
+                                    ✓
+                                </span>
+
+                                <strong>
+                                    Assessment Report
+                                </strong>
+                            </button>
+
+
 
                         </div>
 

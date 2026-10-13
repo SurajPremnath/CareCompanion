@@ -403,7 +403,7 @@ dashboard: {
         "Loading Dashboard...",
 
     createdBy:
-        "Created by Suraj Premnath",
+        "Created by Linearise AI Labs",
 
 home:
     "Home",
@@ -481,7 +481,7 @@ addPatient: {
   savePatient: "Save Patient",
   backToDashboard: "Back To Dashboard",
 
-  createdBy: "Created by Suraj Premnath",
+  createdBy: "Created by Linearise AI Labs",
 
   saveFailed: "Unable to save patient.",
   saveSuccess: "Patient added successfully.",
