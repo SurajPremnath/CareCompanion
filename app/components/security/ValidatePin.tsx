@@ -1178,6 +1178,12 @@ return (
                     event.target.value
                 )
             }
+            onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    void handleVerify();
+                }
+            }}
             disabled={saving}
             autoFocus
             aria-label="Enter your 6-digit CareVR PIN"
