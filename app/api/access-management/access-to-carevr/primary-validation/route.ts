@@ -192,24 +192,35 @@ try {
 
     }
 
-    if (
-        !tokenRecord.expires_at ||
-        new Date(
-            tokenRecord.expires_at
-        ) <= new Date()
-    ) {
+if (!tokenRecord.expires_at) {
 
-        return NextResponse.json(
-            {
-                status:
-                    "NO_INVITATION",
-            },
-            {
-                status: 200,
-            }
-        );
+    return NextResponse.json(
+        {
+            status: "NO_INVITATION",
+        },
+        {
+            status: 200,
+        }
+    );
 
-    }
+}
+
+if (
+    new Date(
+        tokenRecord.expires_at
+    ) <= new Date()
+) {
+
+    return NextResponse.json(
+        {
+            status: "EXPIRED",
+        },
+        {
+            status: 200,
+        }
+    );
+
+}
 
     /*
      * ------------------------------------------------------

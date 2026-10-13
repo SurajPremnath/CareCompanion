@@ -5,7 +5,8 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 export type ProductInvitationStatus =
     | "NO_INVITATION"
     | "PENDING"
-    | "ACCEPTED";
+    | "ACCEPTED"
+    | "EXPIRED";
 
 export interface ProductInvitationValidationResult {
     status: ProductInvitationStatus;
@@ -86,18 +87,29 @@ class ProductInvitationValidation {
             };
         }
 
-        if (
-            data.status === "PENDING" &&
-            new Date(data.expires_at) > new Date()
-        ) {
-            return {
-                status: "PENDING",
-            };
-        }
+if (
+    data.status === "PENDING" &&
+    data.expires_at &&
+    new Date(data.expires_at) <= new Date()
+) {
+    return {
+        status: "EXPIRED",
+    };
+}
 
-        return {
-            status: "NO_INVITATION",
-        };
+if (
+    data.status === "PENDING" &&
+    data.expires_at &&
+    new Date(data.expires_at) > new Date()
+) {
+    return {
+        status: "PENDING",
+    };
+}
+
+return {
+    status: "NO_INVITATION",
+};
     }
 }
 

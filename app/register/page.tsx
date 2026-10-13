@@ -466,14 +466,22 @@ if (
         );
     }
 
-    if (
-        invitationResult.status !==
-        "VALID"
-    ) {
-        throw new Error(
-            "A valid CareVR invitation is required to register."
-        );
-    }
+if (
+    invitationResult.status === "EXPIRED"
+) {
+    throw new Error(
+        "This invitation link has expired. Please reach out to Linearise AI Labs for assistance."
+    );
+}
+
+if (
+    invitationResult.status !==
+    "VALID"
+) {
+    throw new Error(
+        "A valid CareVR invitation is required to register."
+    );
+}
 
 } else {
 
@@ -508,14 +516,22 @@ if (
         );
     }
 
-    if (
-        invitationResult.status !==
-        "PENDING"
-    ) {
-        throw new Error(
-            "A valid CareVR invitation is required to register."
-        );
-    }
+if (
+    invitationResult.status === "EXPIRED"
+) {
+    throw new Error(
+        "This invitation link has expired. Please reach out to Linearise AI Labs for assistance."
+    );
+}
+
+if (
+    invitationResult.status !==
+    "PENDING"
+) {
+    throw new Error(
+        "A valid CareVR invitation is required to register."
+    );
+}
 }
 
         /*
