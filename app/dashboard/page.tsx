@@ -1496,11 +1496,13 @@ patientName:
             new Date().toISOString(),
     });
 
-    router.push(
-        "/record-health?view=timeline"
-    );
+router.push(
+    mobileCareMode === "SELF"
+        ? "/record-health?view=timeline&mode=self"
+        : "/record-health?view=timeline"
+);
 
-    return;
+return;
 }
 
 if (
