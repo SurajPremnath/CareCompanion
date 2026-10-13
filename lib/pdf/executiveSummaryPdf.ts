@@ -19,6 +19,9 @@ import type {
 export interface ExecutiveSummaryReport {
     patient: PatientViewModel;
 
+    careMode?: "SELF" | "FAMILY";
+
+
     reportPeriod?: string;
 
     summary: ExecutiveSummaryViewModel;
@@ -63,6 +66,7 @@ export class ExecutiveSummaryPdf {
                 age: report.patient.age?.toString(),
                 sex: report.patient.gender,
                 doctorName: report.patient.doctor,
+                showGender: report.careMode !== "SELF",
                 hospitalName: report.patient.hospital,
                 generatedOn: new Date()
             });

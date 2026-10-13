@@ -25,6 +25,8 @@ logoImage?: PDFImage;
 
     sex?: string;
 
+    showGender?: boolean;
+
 doctorName?: string;
 
 hospitalName?: string;
@@ -44,13 +46,14 @@ export class PdfHeader {
             page,
             boldFont,
             regularFont,
-logoImage,
+            logoImage,
             reportTitle,
             patientName,
             age,
             sex,
-    doctorName,
-    hospitalName,
+            showGender = true,
+            doctorName,
+            hospitalName,
             reportPeriod,
             generatedOn
         } = options;
@@ -177,7 +180,9 @@ y -= logoSize.height + 8;
         y -= 18;
 
 page.drawText(
-    `Age / Gender : ${age ?? "-"} / ${sex ?? "-"}`,
+    showGender
+        ? `Age / Gender : ${age ?? "-"} / ${sex ?? "-"}`
+        : `Age : ${age ?? "-"}`,
     {
         x: left,
         y,

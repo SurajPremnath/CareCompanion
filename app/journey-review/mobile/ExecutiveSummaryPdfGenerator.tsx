@@ -35,6 +35,9 @@ import {
     dailyCareRepository,
 } from "@/lib/repositories/DailyCareRepository";
 
+import {
+    selfProfileStorage,
+} from "@/lib/storage/SelfProfileStorage";
 
 const REPORT_PERIOD_DAYS = 21;
 
@@ -1018,6 +1021,21 @@ setMessage("Retrieving patient information");
 
 let reportPatient;
 
+let selfDateOfBirth: string | null = null;
+
+if (careMode === "SELF") {
+    const selfProfileResult =
+        await selfProfileStorage.getProfile();
+
+    if (
+        selfProfileResult.success &&
+        selfProfileResult.data
+    ) {
+        selfDateOfBirth =
+            selfProfileResult.data.dateOfBirth;
+    }
+}
+
 
 if (patientId) {
 
@@ -1094,10 +1112,11 @@ const contextResponse =
         name:
             patientName,
 
-        age: null,
+age:
+    calculateAge(selfDateOfBirth),
 
-        gender:
-            "Self",
+gender:
+    "",
 
         doctor:
             undefined,
@@ -1123,6 +1142,7 @@ const bytes =
         patient:
             reportPatient,
 
+        careMode,
 
         reportPeriod:
             `${formatReportDate(
