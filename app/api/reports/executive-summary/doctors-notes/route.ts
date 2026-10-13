@@ -64,11 +64,12 @@ export async function GET(
 
         const url = new URL(request.url);
 
-        const careMode = url.searchParams.get("careMode");
-        const requestedPatientId = url.searchParams.get("patientId");
-        const patientId = url.searchParams.get("patientId");
-        const startDate = url.searchParams.get("startDate");
-        const endDate = url.searchParams.get("endDate");
+const careMode = url.searchParams.get("careMode");
+const requestedPatientId = url.searchParams.get("patientId");
+const rawPatientId = url.searchParams.get("patientId");
+const patientId = rawPatientId?.trim() || null;
+const startDate = url.searchParams.get("startDate");
+const endDate = url.searchParams.get("endDate");
 
         //--------------------------------------------------
         // Validate parameters
