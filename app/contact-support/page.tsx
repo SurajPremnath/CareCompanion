@@ -256,7 +256,7 @@ setAttachment(null);
                     careMode={careMode}
                     onCareModeChange={setCareMode}
                     userName={user.fullName}
-                    pageTitle="Contact Support"
+                    pageTitle=""
                     pageSubtitle=""
                     showCareModeToggle={false}
                     showHomeButton
