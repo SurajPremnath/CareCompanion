@@ -79,6 +79,18 @@ class ProductInvitationValidation {
             };
         }
 
+// Check expiry using the row already retrieved.
+if (
+    data.status === "PENDING" &&
+    data.expires_at &&
+    new Date(data.expires_at).getTime() <= Date.now()
+) {
+    return {
+        status: "EXPIRED",
+    };
+}
+
+
         if (
             data.status === "ACCEPTED"
         ) {
