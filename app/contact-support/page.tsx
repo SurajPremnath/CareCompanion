@@ -257,7 +257,7 @@ setAttachment(null);
                     onCareModeChange={setCareMode}
                     userName={user.fullName}
                     pageTitle="Contact Support"
-                    pageSubtitle="We're here to help"
+                    pageSubtitle=""
                     showCareModeToggle={false}
                     showHomeButton
                     onHomeClick={() => router.push("/dashboard")}
