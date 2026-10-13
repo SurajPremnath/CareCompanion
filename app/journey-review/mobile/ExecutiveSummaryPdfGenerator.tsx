@@ -130,6 +130,7 @@ interface ExecutiveSummaryPdfGeneratorProps {
     onNoData?: () => void;
 }
 
+
 interface ExecutiveSummaryPatientContextResponse {
     patient: {
         id: string;
@@ -155,6 +156,324 @@ interface ExecutiveSummaryPatientContextResponse {
     }>;
 }
 
+type ExecutiveSummaryStage =
+    | "preparing"
+    | "records"
+    | "patient"
+    | "clinical"
+    | "summary"
+    | "pdf";
+
+const executiveSummaryStages: {
+    key: ExecutiveSummaryStage;
+    title: string;
+    description: string;
+}[] = [
+    {
+        key: "preparing",
+        title: "Preparing your report",
+        description: "Getting your health summary ready.",
+    },
+    {
+        key: "records",
+        title: "Gathering health records",
+        description: "Reviewing records for your selected period.",
+    },
+    {
+        key: "patient",
+        title: "Retrieving patient information",
+        description: "Preparing the relevant patient details.",
+    },
+    {
+        key: "clinical",
+        title: "Gathering clinical details",
+        description: "Bringing together prescriptions and doctor's notes.",
+    },
+    {
+        key: "summary",
+        title: "Preparing your Executive Summary",
+        description: "Organising your health trends and clinical timeline.",
+    },
+    {
+        key: "pdf",
+        title: "Generating your report",
+        description: "Putting your Executive Summary together.",
+    },
+];
+
+function ExecutiveSummaryStageIcon({
+    stage,
+}: {
+    stage: ExecutiveSummaryStage;
+}) {
+    return (
+        <svg
+            viewBox="0 0 180 180"
+            className="executive-summary-icon"
+            aria-hidden="true"
+        >
+            <defs>
+                <linearGradient
+                    id="executiveReportGradient"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                >
+                    <stop offset="0%" stopColor="#91B8F4" />
+                    <stop offset="52%" stopColor="#9276E8" />
+                    <stop offset="100%" stopColor="#C16BD9" />
+                </linearGradient>
+
+                <radialGradient id="executiveReportGlow">
+                    <stop
+                        offset="0%"
+                        stopColor="#D9CCFF"
+                        stopOpacity="0.9"
+                    />
+                    <stop
+                        offset="100%"
+                        stopColor="#D9CCFF"
+                        stopOpacity="0"
+                    />
+                </radialGradient>
+            </defs>
+
+            <circle
+                cx="90"
+                cy="90"
+                r="76"
+                fill="url(#executiveReportGlow)"
+            />
+
+            {stage === "preparing" && (
+                <g>
+                    <rect
+                        x="51"
+                        y="34"
+                        width="78"
+                        height="106"
+                        rx="12"
+                        fill="white"
+                        stroke="#B9A7ED"
+                        strokeWidth="3"
+                    />
+                    <path
+                        d="M67 57 H111 M67 69 H101"
+                        stroke="#A99AE1"
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                    />
+                    <path
+                        d="M63 103 C74 103 76 84 87 84 S100 118 115 91"
+                        fill="none"
+                        stroke="url(#executiveReportGradient)"
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                    />
+                    <path
+                        d="M64 119 H105"
+                        stroke="#D6C9F4"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                    />
+                </g>
+            )}
+
+            {stage === "records" && (
+                <g>
+                    <path
+                        d="M40 59 Q40 49 50 49 H77 L87 60 H128 Q138 60 138 70 V125 Q138 135 128 135 H50 Q40 135 40 125Z"
+                        fill="#D9D0FF"
+                    />
+                    <rect
+                        x="49"
+                        y="69"
+                        width="82"
+                        height="58"
+                        rx="8"
+                        fill="white"
+                        stroke="#A795E7"
+                        strokeWidth="3"
+                    />
+                    <path
+                        d="M59 108 L72 94 L84 101 L100 80 L119 91"
+                        fill="none"
+                        stroke="url(#executiveReportGradient)"
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                    <path
+                        d="M59 116 H120"
+                        stroke="#C7B9EE"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                    />
+                </g>
+            )}
+
+            {stage === "patient" && (
+                <g>
+                    <rect
+                        x="39"
+                        y="39"
+                        width="102"
+                        height="102"
+                        rx="17"
+                        fill="white"
+                        stroke="#C5B6F0"
+                        strokeWidth="3"
+                    />
+                    <circle
+                        cx="76"
+                        cy="75"
+                        r="17"
+                        fill="#C8B9F3"
+                    />
+                    <path
+                        d="M49 115 C50 91 102 91 103 115"
+                        fill="#A99AE8"
+                    />
+                    <circle
+                        cx="117"
+                        cy="112"
+                        r="22"
+                        fill="url(#executiveReportGradient)"
+                    />
+                    <path
+                        d="M117 100 V124 M105 112 H129"
+                        stroke="white"
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                    />
+                </g>
+            )}
+
+            {stage === "clinical" && (
+                <g>
+                    <path
+                        d="M49 42 H106 L130 66 V137 H49Z"
+                        fill="white"
+                        stroke="#B9A7ED"
+                        strokeWidth="3"
+                        strokeLinejoin="round"
+                    />
+                    <path
+                        d="M106 42 V66 H130"
+                        fill="#E6DEFF"
+                        stroke="#B9A7ED"
+                        strokeWidth="3"
+                        strokeLinejoin="round"
+                    />
+                    <path
+                        d="M62 83 H100 M62 95 H91"
+                        stroke="#C7B9EE"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                    />
+                    <g transform="rotate(-35 96 113)">
+                        <rect
+                            x="76"
+                            y="103"
+                            width="43"
+                            height="19"
+                            rx="9.5"
+                            fill="url(#executiveReportGradient)"
+                        />
+                        <path
+                            d="M97 104 V121"
+                            stroke="white"
+                            strokeWidth="2"
+                        />
+                    </g>
+                </g>
+            )}
+
+            {stage === "summary" && (
+                <g>
+                    <rect
+                        x="37"
+                        y="42"
+                        width="106"
+                        height="96"
+                        rx="14"
+                        fill="white"
+                        stroke="#B9A7ED"
+                        strokeWidth="3"
+                    />
+                    <path
+                        d="M52 113 L69 96 L83 104 L103 77 L128 88"
+                        fill="none"
+                        stroke="url(#executiveReportGradient)"
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                    <path
+                        d="M53 123 H127"
+                        stroke="#D6C9F4"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                    />
+                    <circle
+                        cx="69"
+                        cy="96"
+                        r="4"
+                        fill="#9276E8"
+                    />
+                    <circle
+                        cx="103"
+                        cy="77"
+                        r="4"
+                        fill="#C16BD9"
+                    />
+                </g>
+            )}
+
+            {stage === "pdf" && (
+                <g>
+                    <path
+                        d="M49 33 H105 L131 59 V139 H49Z"
+                        fill="white"
+                        stroke="#B9A7ED"
+                        strokeWidth="3"
+                        strokeLinejoin="round"
+                    />
+                    <path
+                        d="M105 33 V59 H131"
+                        fill="#E6DEFF"
+                        stroke="#B9A7ED"
+                        strokeWidth="3"
+                        strokeLinejoin="round"
+                    />
+                    <path
+                        d="M63 80 H112 M63 91 H112 M63 102 H95"
+                        stroke="#D1C4F1"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                    />
+                    <circle
+                        cx="112"
+                        cy="119"
+                        r="22"
+                        fill="url(#executiveReportGradient)"
+                    />
+                    <path
+                        d="M101 119 L109 127 L124 110"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                </g>
+            )}
+        </svg>
+    );
+}
+
+
 export default function ExecutiveSummaryPdfGenerator({
     patientId,
     patientName,
@@ -167,14 +486,17 @@ export default function ExecutiveSummaryPdfGenerator({
     onNoData,
 }: ExecutiveSummaryPdfGeneratorProps) {
 
+
 const [progress, setProgress] =
     useState(0);
 
 const [message, setMessage] =
     useState(
-        "Select a reporting period"
+        "Preparing your report"
     );
 
+const [activeStage, setActiveStage] =
+    useState<ExecutiveSummaryStage>("preparing");
 
 const [trends, setTrends] =
     useState<ClinicalTrendSummary[]>([]);
@@ -184,6 +506,7 @@ const [doctorsNotes, setDoctorsNotes] =
 
 const [generating, setGenerating] =
     useState(true);
+
 
 const generationStartedRef =
     useRef(false);
@@ -213,22 +536,42 @@ useEffect(() => {
     generationStartedRef.current = true;
 
 
-    async function startGeneration() {
 
-        try {
+async function startGeneration() {
 
-const user = await authService.getCurrentUser();
+    try {
 
-if (!user) throw new Error("Unable to identify current user.");
+        setProgress(5);
+        setActiveStage("preparing");
+        setMessage("Preparing your report");
 
-// Check health record count before starting report generation.
-let recordsInPeriod = 0;
+        await delay(180);
+
+        setProgress(10);
+        setActiveStage("records");
+        setMessage("Gathering health records");
+
+        const user = await authService.getCurrentUser();
+
+        if (!user) {
+            throw new Error("Unable to identify current user.");
+        }
+
+        // Check health record count before starting report generation.
+        let recordsInPeriod = 0;
+
+
 
 if (careMode === "SELF") {
+    setProgress(15);
+    setActiveStage("records");
+    setMessage("Gathering your health records");
+
     const records =
         await selfDailyCareRepository.getByUserId(user.id);
 
     recordsInPeriod = records.filter(record => {
+
         const recordedDate = record.recordedAt.slice(0, 10);
 
         return (
@@ -236,6 +579,7 @@ if (careMode === "SELF") {
             recordedDate <= endDate
         );
     }).length;
+
 } else {
     if (!patientId) {
         throw new Error(
@@ -243,8 +587,13 @@ if (careMode === "SELF") {
         );
     }
 
+    setProgress(15);
+    setActiveStage("records");
+    setMessage("Gathering health records");
+
     const records =
         await dailyCareRepository.getByPatientId(patientId);
+
 
     recordsInPeriod = records.filter(record => {
         const recordedDate = record.recordedAt.slice(0, 10);
@@ -261,7 +610,12 @@ if (recordsInPeriod === 0) {
     return;
 }
 
+
 let selectedPatient = null;
+
+setProgress(25);
+setActiveStage("patient");
+setMessage("Retrieving patient information");
 
 if (patientId) {
 
@@ -269,6 +623,7 @@ if (patientId) {
         await patientStorage.getProtectedPatient(
             patientId
         );
+
 
     if (
         !patientResult.success ||
@@ -283,6 +638,11 @@ if (patientId) {
         patientResult.data;
 
 }
+
+
+setProgress(35);
+setActiveStage("clinical");
+setMessage("Gathering clinical details");
 
 const prescriptionHistory =
     await prescriptionRepository.getPrescriptionHistory(
@@ -300,8 +660,12 @@ const latestPrescription =
 
 
 
+
 let retrievedDoctorsNotes: any[] = [];
 let retrievedTreatments: any[] = [];
+
+
+setMessage("Gathering clinical details");
 
 const doctorsNotesResponse = await fetch(
     `/api/reports/executive-summary/doctors-notes?careMode=${encodeURIComponent(
@@ -392,21 +756,12 @@ retrievedTreatments = treatmentRecords.filter(
 
 
 
+
 setDoctorsNotes(retrievedDoctorsNotes);
 
-            setProgress(20);
-
-            setMessage(
-                "Loading patient information..."
-            );
-
-            await delay(300);
-
-            setProgress(40);
-
-            setMessage(
-                "Preparing Executive Summary..."
-            );
+setProgress(45);
+setActiveStage("summary");
+setMessage("Preparing your Executive Summary");
 
 const summary =
     await buildExecutiveSummary(
@@ -415,6 +770,7 @@ const summary =
         endDate,
         careMode
     );
+
 
 if (
     summary.totalDailyCareRecords === 0 &&
@@ -655,13 +1011,13 @@ const story =
         retrievedDoctorsNotes
     );
 
-            setProgress(70);
 
-            setMessage(
-                "Generating PDF..."
-            );
+setProgress(65);
+setActiveStage("patient");
+setMessage("Retrieving patient information");
 
 let reportPatient;
+
 
 if (patientId) {
 
@@ -756,11 +1112,17 @@ const contextResponse =
 }
 
 
+
+setProgress(80);
+setActiveStage("pdf");
+setMessage("Generating your report");
+
 const bytes =
     await executiveSummaryPdf.generate({
 
         patient:
             reportPatient,
+
 
         reportPeriod:
             `${formatReportDate(
@@ -926,13 +1288,13 @@ return (
         }}
     >
 
+
 {!generating ? (
 
     <>
         <h2
             style={{
-                margin:
-                    "0 0 18px",
+                margin: "0 0 18px",
             }}
         >
             Executive Summary
@@ -940,10 +1302,8 @@ return (
 
         <p
             style={{
-                margin:
-                    "0 0 10px",
-                color:
-                    "#59657f",
+                margin: "0 0 10px",
+                color: "#59657f",
                 fontSize: 14,
             }}
         >
@@ -959,74 +1319,312 @@ return (
 
 ) : (
 
-            <>
+    <section className="executive-summary-loading">
 
-                <h2
-                    style={{
-                        marginBottom: 18,
-                    }}
-                >
-                    Executive Summary
-                </h2>
+        <div className="executive-summary-orb">
+            <div
+                className="executive-summary-icon-wrap"
+                key={activeStage}
+            >
+                <ExecutiveSummaryStageIcon
+                    stage={activeStage}
+                />
+            </div>
+        </div>
 
-                <p>
-                    {message}
-                </p>
+        <div className="executive-summary-tag">
+            CAREVR HEALTH REPORT
+        </div>
 
-<p
-    style={{
-        marginTop: 4,
-        color: "#59657f",
-        fontSize: 13,
-    }}
->
-    {startDate && endDate
-        ? `${formatReportDate(
-            startDate
-        )} - ${formatReportDate(
-            endDate
-        )}`
-        : ""}
-</p>
+        <div
+            className="executive-summary-copy"
+            key={`copy-${activeStage}`}
+        >
+            <h2 className="executive-summary-title">
+                {executiveSummaryStages.find(
+                    (stage) => stage.key === activeStage
+                )?.title ?? "Preparing your report"}
+            </h2>
 
-                <div
-                    style={{
-                        width: "100%",
-                        height: 12,
-                        background:
-                            "#E5E7EB",
-                        borderRadius: 6,
-                        overflow: "hidden",
-                        marginTop: 24,
-                    }}
-                >
+            <p className="executive-summary-description">
+                {executiveSummaryStages.find(
+                    (stage) => stage.key === activeStage
+                )?.description ?? message}
+            </p>
+        </div>
 
+        <p className="executive-summary-period">
+            {startDate && endDate
+                ? `${formatReportDate(
+                    startDate
+                )} - ${formatReportDate(
+                    endDate
+                )}`
+                : ""}
+        </p>
+
+        <div
+            className="executive-summary-progress"
+            role="progressbar"
+            aria-label="Executive Summary generation progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+        >
+            <div
+                className="executive-summary-progress-fill"
+                style={{
+                    width: `${progress}%`,
+                }}
+            />
+        </div>
+
+        <div className="executive-summary-progress-steps">
+            {executiveSummaryStages.map((stage, index) => {
+                const activeIndex =
+                    executiveSummaryStages.findIndex(
+                        (item) => item.key === activeStage
+                    );
+
+                return (
                     <div
-                        style={{
-                            width:
-                                `${progress}%`,
-                            height: "100%",
-                            background:
-                                "#2563EB",
-                            transition:
-                                "width .35s ease",
-                        }}
+                        key={stage.key}
+                        className={
+                            index <= activeIndex
+                                ? "executive-summary-progress-step is-active"
+                                : "executive-summary-progress-step"
+                        }
                     />
+                );
+            })}
+        </div>
 
-                </div>
+        <div className="executive-summary-percentage">
+            {progress}%
+        </div>
 
-                <div
-                    style={{
-                        marginTop: 12,
-                        fontWeight: 600,
-                    }}
-                >
-                    {progress}%
-                </div>
+        <style jsx>{`
+            .executive-summary-loading {
+                width: 100%;
+                min-height: 440px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 28px 18px;
+                box-sizing: border-box;
+                text-align: center;
+                overflow: hidden;
+            }
 
-            </>
+            .executive-summary-orb {
+                position: relative;
+                width: 190px;
+                height: 190px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 18px;
+            }
 
-        )}
+            .executive-summary-orb::before {
+                content: "";
+                position: absolute;
+                inset: 8px;
+                border-radius: 50%;
+                background: radial-gradient(
+                    circle at 35% 30%,
+                    rgba(255, 255, 255, 0.9),
+                    rgba(215, 205, 255, 0.48) 40%,
+                    rgba(176, 143, 240, 0.2) 70%,
+                    transparent 74%
+                );
+                animation: executiveReportOrbPulse 2.8s ease-in-out infinite;
+            }
+
+            .executive-summary-icon-wrap {
+                position: relative;
+                z-index: 1;
+                width: 180px;
+                height: 180px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: executiveReportIconIn 520ms ease-out;
+            }
+
+            .executive-summary-icon {
+                display: block;
+                width: 180px;
+                height: 180px;
+            }
+
+            .executive-summary-tag {
+                margin-bottom: 10px;
+                color: rgba(103, 91, 180, 0.78);
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.18em;
+            }
+
+            .executive-summary-copy {
+                max-width: 440px;
+                animation: executiveReportCopyIn 420ms ease-out;
+            }
+
+            .executive-summary-title {
+                margin: 0;
+                color: #40366e;
+                font-size: clamp(22px, 4vw, 28px);
+                line-height: 1.25;
+                font-weight: 700;
+                letter-spacing: -0.02em;
+            }
+
+            .executive-summary-description {
+                margin: 10px 0 0;
+                color: rgba(67, 59, 98, 0.75);
+                font-size: 14px;
+                line-height: 1.55;
+            }
+
+            .executive-summary-period {
+                margin: 14px 0 0;
+                color: #59657f;
+                font-size: 12px;
+            }
+
+            .executive-summary-progress {
+                width: min(100%, 320px);
+                height: 8px;
+                margin-top: 24px;
+                border-radius: 999px;
+                background: rgba(123, 106, 210, 0.16);
+                overflow: hidden;
+            }
+
+            .executive-summary-progress-fill {
+                height: 100%;
+                border-radius: inherit;
+                background: linear-gradient(
+                    90deg,
+                    #7b6bea,
+                    #c257d7
+                );
+                transition: width 400ms ease;
+            }
+
+            .executive-summary-progress-steps {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 7px;
+                margin-top: 18px;
+            }
+
+            .executive-summary-progress-step {
+                width: 7px;
+                height: 7px;
+                border-radius: 999px;
+                background: rgba(123, 106, 210, 0.2);
+                transition:
+                    width 300ms ease,
+                    background 300ms ease;
+            }
+
+            .executive-summary-progress-step.is-active {
+                width: 18px;
+                background: linear-gradient(
+                    90deg,
+                    #7b6bea,
+                    #c257d7
+                );
+            }
+
+            .executive-summary-percentage {
+                margin-top: 10px;
+                color: #40366e;
+                font-size: 13px;
+                font-weight: 700;
+                font-variant-numeric: tabular-nums;
+            }
+
+            @keyframes executiveReportOrbPulse {
+                0%, 100% {
+                    transform: scale(0.96);
+                    opacity: 0.72;
+                }
+
+                50% {
+                    transform: scale(1.04);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes executiveReportIconIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.86) translateY(8px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+
+            @keyframes executiveReportCopyIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(7px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .executive-summary-orb::before,
+                .executive-summary-icon-wrap,
+                .executive-summary-copy {
+                    animation: none;
+                }
+
+                .executive-summary-progress-fill,
+                .executive-summary-progress-step {
+                    transition: none;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .executive-summary-loading {
+                    min-height: 400px;
+                    padding: 24px 12px;
+                }
+
+                .executive-summary-orb {
+                    width: 170px;
+                    height: 170px;
+                }
+
+                .executive-summary-icon-wrap,
+                .executive-summary-icon {
+                    width: 160px;
+                    height: 160px;
+                }
+
+                .executive-summary-title {
+                    font-size: 22px;
+                }
+            }
+        `}</style>
+
+    </section>
+
+)}
+
 
     </div>
 );
