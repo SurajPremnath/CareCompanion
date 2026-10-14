@@ -75,26 +75,50 @@ export const getLatestPatientAssessment =
       : null;
   };
 
-export const hasAssessmentBeenSaved =
-  (): boolean => {
-    return (
-      localStorage.getItem(
-        SAVED_FLAG_KEY
-      ) === "true"
-    );
-  };
+const LEGACY_SAVED_FLAG_KEY =
+  "currentAssessmentSaved";
 
-export const markAssessmentSaved =
-  () => {
-    localStorage.setItem(
-      SAVED_FLAG_KEY,
-      "true"
-    );
-  };
+const ASSESSMENT_ATTEMPT_KEY =
+  "currentAssessmentAttemptId";
 
-export const clearAssessmentSavedFlag =
-  () => {
-    localStorage.removeItem(
-      SAVED_FLAG_KEY
-    );
-  };
+export const beginAssessmentAttempt = (): string => {
+  const attemptId = crypto.randomUUID();
+
+  localStorage.removeItem(LEGACY_SAVED_FLAG_KEY);
+
+  localStorage.setItem(
+    ASSESSMENT_ATTEMPT_KEY,
+    attemptId
+  );
+
+  return attemptId;
+};
+
+export const hasAssessmentBeenSaved = (): boolean => {
+  const attemptId = localStorage.getItem(
+    ASSESSMENT_ATTEMPT_KEY
+  );
+
+  if (!attemptId) return false;
+
+  return (
+    localStorage.getItem(
+      `assessmentSaved:${attemptId}`
+    ) === "true"
+  );
+};
+
+export const markAssessmentSaved = (): void => {
+  const attemptId = localStorage.getItem(ASSESSMENT_ATTEMPT_KEY);
+
+  if (attemptId) {
+    localStorage.setItem(`assessmentSaved:${attemptId}`, "true");
+  }
+
+  localStorage.removeItem(LEGACY_SAVED_FLAG_KEY);
+};
+
+export const clearAssessmentSavedFlag = (): void => {
+  localStorage.removeItem(LEGACY_SAVED_FLAG_KEY);
+  localStorage.removeItem(ASSESSMENT_ATTEMPT_KEY);
+};

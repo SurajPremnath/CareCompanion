@@ -128,14 +128,12 @@ dailyCare =
 const {
     data: assessments,
     error: assessmentError
-} =
-await supabase
+} = await supabase
     .from("assessments")
-    .select("*")
-    .eq(
-        "patient_id",
-        patientId
+    .select(
+        "id, patient_id, assessment_type, score, raw_score, normalized_score, risk_category, recommendation, assessment_version, completed_at, record_classification"
     )
+    .eq("patient_id", patientId)
     .gte(
         "completed_at",
         `${startDate}T00:00:00`
@@ -146,10 +144,12 @@ await supabase
     )
     .order(
         "completed_at",
-        {
-            ascending: true
-        }
+        { ascending: true }
     );
+
+if (assessmentError) {
+    throw assessmentError;
+}
 
 let dailyCareSymptoms:
     { symptom_key: string | null }[] = [];

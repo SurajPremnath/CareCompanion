@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 
+import {
+  encryptedAssessmentStorage,
+  encryptedHistoryItemToAssessmentRecord,
+} from "@/lib/storage/encryptedAssessmentStorage";
+
+
 import { profileRepository } from "@/lib/repositories/profileRepository";
 
 import type { Profile } from "@/lib/types/profile";
@@ -37,6 +43,7 @@ import {
   analyticsService,
 } from "@/lib/analytics/analyticsService";
 */
+
 
 export default function SelfAssessmentHistoryPage() {
 
@@ -100,30 +107,76 @@ const [profile, setProfile] =
 
   useEffect(() => {
 
+    let cancelled = false;
+
     const loadHistory = async () => {
 
       try {
 
-        const result =
-          await assessmentStorage.getUserHistory();
+        setError("");
 
-        if (!result.success) {
+        const [
+          legacyResult,
+          encryptedResult,
+        ] = await Promise.all([
 
-          setError(
-            result.error ??
-            "Unable to load assessment history."
-          );
+          assessmentStorage.getUserHistory(),
+
+          encryptedAssessmentStorage.getHistory(
+            "SELF"
+          ),
+
+        ]);
+
+        if (!legacyResult.success) {
+
+          if (!cancelled) {
+
+            setError(
+              legacyResult.error ??
+              "Unable to load assessment history."
+            );
+
+          }
 
           return;
 
         }
 
-        const records =
-          (result.data ?? []).filter(
+        if (!encryptedResult.success) {
+
+          if (!cancelled) {
+
+            setError(
+              encryptedResult.error ??
+              "Unable to load encrypted assessment history."
+            );
+
+          }
+
+          return;
+
+        }
+
+        const legacyRecords =
+          (legacyResult.data ?? []).filter(
             assessment =>
-              assessment.assessmentType ===
-              "SELF"
+              assessment.assessmentType === "SELF"
           );
+
+        const encryptedRecords =
+          (encryptedResult.data ?? []).map(
+            encryptedHistoryItemToAssessmentRecord
+          );
+
+        const records = [
+          ...legacyRecords,
+          ...encryptedRecords,
+        ].sort(
+          (a, b) =>
+            new Date(b.assessmentDate).getTime() -
+            new Date(a.assessmentDate).getTime()
+        );
 
 /*
         void analyticsService.track({
@@ -156,43 +209,65 @@ const [profile, setProfile] =
         });
 */
 
+        const currentProfile =
+          await profileRepository.getCurrentProfile();
 
-const currentProfile =
-  await profileRepository.getCurrentProfile();
+        if (cancelled) {
+          return;
+        }
 
-setProfile(currentProfile);
+        setProfile(currentProfile);
 
         if (records.length === 0) {
 
           setLatestAssessment(null);
           setHistory([]);
+          setSelectedHistoryId("");
 
           return;
 
         }
 
-        setLatestAssessment(
-          records[0]
+        setLatestAssessment(records[0]);
+
+        const previousRecords = records.slice(1);
+
+        setHistory(previousRecords);
+
+        setSelectedHistoryId(
+          previousRecords[0]?.id ?? ""
         );
 
-const previousRecords = records.slice(1);
+      } catch (error) {
 
-setHistory(previousRecords);
+        console.error(
+          "Unable to load self assessment history:",
+          error
+        );
 
-setSelectedHistoryId(
-    previousRecords[0]?.id ?? ""
-);
+        if (!cancelled) {
 
-      }
-      finally {
+          setError(
+            "Unable to load assessment history."
+          );
 
-        setLoading(false);
+        }
+
+      } finally {
+
+        if (!cancelled) {
+          setLoading(false);
+        }
 
       }
 
     };
 
-    loadHistory();
+    void loadHistory();
+
+    return () => {
+      cancelled = true;
+    };
 
   }, []);
 

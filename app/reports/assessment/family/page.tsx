@@ -4,6 +4,12 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
+
+import {
+  encryptedAssessmentStorage,
+  encryptedHistoryItemToAssessmentRecord,
+} from "@/lib/storage/encryptedAssessmentStorage";
+
 import { patientStorage } from "@/lib/storage/patientStorage";
 import type { Patient } from "@/lib/types/patient";
 
@@ -212,34 +218,92 @@ else {
 
     if (!selectedPatientId) {
 
+      setLatestAssessment(null);
+      setHistory([]);
+      setSelectedHistoryId("");
+      setLoading(false);
+
       return;
 
     }
+
+    let cancelled = false;
 
     const loadHistory = async () => {
 
       try {
 
         setLoading(true);
+        setError("");
 
-        const result =
-          await assessmentStorage.getPatientHistory(
+        const [
+          legacyResult,
+          encryptedResult,
+        ] = await Promise.all([
+
+          assessmentStorage.getPatientHistory(
             selectedPatientId
-          );
+          ),
 
-        if (!result.success) {
+          encryptedAssessmentStorage.getHistory(
+            "FAMILY",
+            selectedPatientId
+          ),
 
-          setError(
-            result.error ??
-            "Unable to load assessment history."
-          );
+        ]);
+
+        if (!legacyResult.success) {
+
+          if (!cancelled) {
+
+            setError(
+              legacyResult.error ??
+              "Unable to load assessment history."
+            );
+
+          }
 
           return;
 
         }
 
-        const records =
-          result.data ?? [];
+        if (!encryptedResult.success) {
+
+          if (!cancelled) {
+
+            setError(
+              encryptedResult.error ??
+              "Unable to load encrypted assessment history."
+            );
+
+          }
+
+          return;
+
+        }
+
+        const legacyRecords =
+          legacyResult.data ?? [];
+
+        const encryptedRecords =
+          (encryptedResult.data ?? []).map(
+            encryptedHistoryItemToAssessmentRecord
+          );
+
+        const records = [
+          ...legacyRecords,
+          ...encryptedRecords,
+        ]
+          .filter(
+            assessment =>
+              assessment.assessmentType === "FAMILY" &&
+              assessment.patientId === selectedPatientId
+          )
+          .sort(
+            (a, b) =>
+              new Date(b.assessmentDate).getTime() -
+              new Date(a.assessmentDate).getTime()
+          );
 
 /*
         void analyticsService.track({
@@ -276,37 +340,60 @@ else {
 
 */
 
+        if (cancelled) {
+          return;
+        }
+
         if (records.length === 0) {
 
           setLatestAssessment(null);
           setHistory([]);
+          setSelectedHistoryId("");
 
           return;
 
         }
 
-        setLatestAssessment(
-          records[0]
+        setLatestAssessment(records[0]);
+
+        const previousRecords = records.slice(1);
+
+        setHistory(previousRecords);
+
+        setSelectedHistoryId(
+          previousRecords[0]?.id ?? ""
         );
 
-const previousRecords = records.slice(1);
+      } catch (error) {
 
-setHistory(previousRecords);
+        console.error(
+          "Unable to load family assessment history:",
+          error
+        );
 
-setSelectedHistoryId(
-    previousRecords[0]?.id ?? ""
-);
+        if (!cancelled) {
 
-      }
-      finally {
+          setError(
+            "Unable to load assessment history."
+          );
 
-        setLoading(false);
+        }
+
+      } finally {
+
+        if (!cancelled) {
+          setLoading(false);
+        }
 
       }
 
     };
 
-    loadHistory();
+    void loadHistory();
+
+    return () => {
+      cancelled = true;
+    };
 
   }, [selectedPatientId]);
 

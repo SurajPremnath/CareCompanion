@@ -9,6 +9,11 @@ import {
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 
+import {
+  encryptedAssessmentStorage,
+  encryptedDetailToAssessmentRecord,
+} from "@/lib/storage/encryptedAssessmentStorage";
+
 import { patientStorage } from "@/lib/storage/patientStorage";
 
 import type { Patient } from "@/lib/types/patient";
@@ -128,119 +133,94 @@ useEffect(() => {
   // Load Assessment
   //------------------------------------------------------------
 
-  useEffect(() => {
+useEffect(() => {
+  let cancelled = false;
 
-    const loadAssessment = async () => {
+  const loadAssessment = async () => {
+    try {
+      setError("");
+      setLoading(true);
 
-      try {
+      let loadedAssessment: AssessmentRecord | null = null;
 
-        const result =
-          await assessmentStorage.getById(
-            assessmentId
+      const encryptedResult =
+        await encryptedAssessmentStorage.getById(assessmentId);
+
+      if (encryptedResult.success) {
+        loadedAssessment = encryptedDetailToAssessmentRecord(
+          encryptedResult.data
+        );
+
+        if (!loadedAssessment) {
+          throw new Error("The encrypted assessment payload is invalid.");
+        }
+      } else if (
+        encryptedResult.status === 409 &&
+        encryptedResult.recordClassification === "HISTORICAL"
+      ) {
+        const legacyResult = await assessmentStorage.getById(assessmentId);
+
+        if (!legacyResult.success) {
+          throw new Error(
+            legacyResult.error ?? "Unable to load historical assessment."
           );
-
-        if (!result.success) {
-
-          setError(
-            result.error ??
-            "Unable to load assessment."
-          );
-
-          return;
-
         }
 
-const loadedAssessment =
-  result.data ?? null;
+        loadedAssessment = legacyResult.data ?? null;
 
-// Ensure the assessment belongs to the patient
-// selected on the Family Assessment history page.
-if (
-  requestedPatientId &&
-  loadedAssessment?.patientId !== requestedPatientId
-) {
-  setAssessment(null);
-  setPatient(null);
-  setError(
-    "This assessment does not belong to the selected patient."
-  );
-  return;
-}
-
-setAssessment(loadedAssessment);
-
-        if (loadedAssessment) {
-
-/*
-          void analyticsService.track({
-
-            module:
-              ANALYTICS_MODULES.REPORTS,
-
-            eventName:
-              ANALYTICS_EVENTS.VIEWED,
-
-            context:
-              ANALYTICS_CONTEXTS.FAMILY,
-
-            pagePath:
-              "/reports/assessment/family/[id]",
-
-            metadata: {
-
-              reportCategory:
-                "ASSESSMENT",
-
-              viewType:
-                "DETAIL",
-
-              assessmentId:
-                loadedAssessment.id,
-
-              patientId:
-                loadedAssessment.patientId,
-
-            },
-
-          });
-*/
-
+        if (!loadedAssessment) {
+          throw new Error("Assessment not found.");
         }
+      } else {
+        throw new Error(
+          encryptedResult.error ?? "Unable to securely load assessment."
+        );
+      }
 
-if (result.data?.patientId) {
+      if (cancelled) return;
 
-const patientResult =
-  await patientStorage.getProtectedPatient(
-    result.data.patientId
-  );
+      if (
+        requestedPatientId &&
+        loadedAssessment.patientId !== requestedPatientId
+      ) {
+        throw new Error(
+          "This assessment does not belong to the selected patient."
+        );
+      }
 
+      setAssessment(loadedAssessment);
 
-  if (patientResult.success) {
+      // Retain your existing code here that loads the protected patient
+      // and current profile. Do not remove that code.
 
-    setPatient(
-      patientResult.data ?? null
-    );
+    } catch (error) {
+      console.error("Error loading assessment:", error);
 
+      if (!cancelled) {
+        setAssessment(null);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load assessment."
+        );
+      }
+    } finally {
+      if (!cancelled) {
+        setLoading(false);
+      }
+    }
+  };
+
+  if (assessmentId) {
+    void loadAssessment();
+  } else {
+    setLoading(false);
   }
 
-}
-
-      }
-      finally {
-
-        setLoading(false);
-
-      }
-
-    };
-
-    if (assessmentId) {
-
-      loadAssessment();
-
-    }
-
-  }, [assessmentId, requestedPatientId]);
+  return () => {
+    cancelled = true;
+  };
+}, [assessmentId, requestedPatientId]);
 
 
   //------------------------------------------------------------

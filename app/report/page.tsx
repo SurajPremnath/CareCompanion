@@ -777,49 +777,137 @@ reportSummary.push(
     }
 
 
-const assessment: Omit<AssessmentInput, "userId"> = {
-  patientId:
-    type === "family"
-      ? localStorage.getItem("patientId")
-      : null,
+const assessmentDate = new Date().toISOString();
 
-  assessmentType:
-    type === "family"
-      ? "FAMILY"
-      : "SELF",
+const assessmentType =
+  type === "family" ? "FAMILY" : "SELF";
 
-  assessmentDate: new Date(),
+const patientId =
+  type === "family"
+    ? localStorage.getItem("patientId")
+    : null;
 
-  rawScore: total,
+// Preserve the existing scoring calculations.
+// Only map the resulting score to the database enums.
+const dbStatus =
+  finalScore >= 19
+    ? "EXCELLENT"
+    : finalScore >= 16
+      ? "GOOD"
+      : finalScore >= 12
+        ? "NEEDS_ATTENTION"
+        : "IMMEDIATE_ATTENTION";
 
-  normalizedScore: finalScore,
+const dbRecommendation =
+  finalScore >= 19
+    ? "CONTINUE_CURRENT_ROUTINE"
+    : finalScore >= 16
+      ? "MONITOR_CLOSELY"
+      : finalScore >= 12
+        ? "CONSULT_DOCTOR"
+        : "SEEK_IMMEDIATE_MEDICAL_ATTENTION";
 
-  status: "GOOD",
+// Preserve the original answers as entered.
+// Do not replace unanswered or optional fields with
+// invented clinical values.
+const assessmentPayload = {
+  schemaVersion: 1,
 
-  recommendation: "MONITOR_CLOSELY",
-
-  answers: {
-    breathing: "",
-    cough: false,
-    bloodInCough: false,
-    fever: false,
-    temperature: null,
-    energy: "",
-    appetite: "",
-    waterIntake: "",
-    pain: false,
-    painAreas: [],
-    walkingDifficulty: false,
-    looseMotions: false,
+  subject: {
+    assessmentType,
+    patientId,
+    patientName: localStorage.getItem("patientName"),
+    patientAge: localStorage.getItem("patientAge"),
+    assessmentDate:
+      localStorage.getItem("assessmentDate") ??
+      assessmentDate,
   },
 
-  assessmentVersion: 1,
+  observer: {
+    name: localStorage.getItem("observerName"),
+    relationship:
+      localStorage.getItem("observerRelationship"),
+    relationshipOther:
+      localStorage.getItem("observerRelationshipOther"),
+  },
 
-  dailyCareId: null,
+  answers: {
+    breathing:
+      localStorage.getItem("breathing"),
+
+    cough:
+      localStorage.getItem("cough"),
+
+    bloodInCough:
+      localStorage.getItem("bloodInCough"),
+
+    fever:
+      localStorage.getItem("fever"),
+
+    temperature: {
+      reading:
+        localStorage.getItem("temperatureReading"),
+      unit:
+        localStorage.getItem("temperatureUnit") ?? "F",
+    },
+
+    energy:
+      localStorage.getItem("energy"),
+
+    appetite:
+      localStorage.getItem("appetite"),
+
+    waterIntake:
+      localStorage.getItem("water"),
+
+    waterGlasses:
+      localStorage.getItem("waterGlasses"),
+
+    discomfort:
+      localStorage.getItem("discomfort"),
+
+    discomfortAreas: (() => {
+      const raw = localStorage.getItem("discomfortAreas");
+
+      if (!raw) return [];
+
+      try {
+        const parsed: unknown = JSON.parse(raw);
+
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    })(),
+
+    walking:
+      localStorage.getItem("walking"),
+
+    walkingHelp:
+      localStorage.getItem("walkingHelp"),
+
+    looseMotions:
+      localStorage.getItem("looseMotions"),
+
+    looseMotionType:
+      localStorage.getItem("looseMotionType"),
+
+    confusion:
+      localStorage.getItem("confusion"),
+  },
+
+  results: {
+    rawScore: total,
+    normalizedScore: finalScore,
+    status: finalStatus,
+    recommendation: dbRecommendation,
+    observations: observationList,
+    suggestions: suggestionList,
+    summaryRows: reportSummary,
+  },
 };
 
 void (async () => {
-
   if (
     assessmentProcessingRef.current ||
     hasAssessmentBeenSaved()
@@ -829,87 +917,63 @@ void (async () => {
 
   assessmentProcessingRef.current = true;
 
-  const result =
-    await assessmentStorage.save(
-      assessment
+  try {
+    if (assessmentType === "FAMILY" && !patientId) {
+      throw new Error(
+        "The selected patient is missing. The assessment was not saved."
+      );
+    }
+
+    const response = await fetch(
+      "/api/assessments/encrypted",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          assessmentType,
+          patientId,
+          assessmentDate,
+          rawScore: total,
+          normalizedScore: finalScore,
+          status: dbStatus,
+          recommendation: dbRecommendation,
+          assessmentVersion: 1,
+          dailyCareId: null,
+          payload: assessmentPayload,
+        }),
+      }
     );
 
-if (!result.success) {
+    const result = await response.json();
 
-  assessmentProcessingRef.current = false;
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.error ??
+          "Unable to save the encrypted assessment."
+      );
+    }
 
-  console.error(
-    "Assessment Save Failed",
-    result.error
-  );
+    if (
+      result.data?.record_classification !==
+        "ENCRYPTED_V1" ||
+      result.data?.report_format_version !== 1
+    ) {
+      throw new Error(
+        "The saved assessment did not confirm the expected encrypted format."
+      );
+    }
 
-  return;
-}
-
-  markAssessmentSaved();
-
-/*
-
-  await analyticsService.track({
-
-    module:
-      ANALYTICS_MODULES.ASSESSMENT,
-
-    eventName:
-      ANALYTICS_EVENTS.COMPLETED,
-
-    context:
-      type === "family"
-        ? ANALYTICS_CONTEXTS.FAMILY
-        : ANALYTICS_CONTEXTS.SELF,
-
-    pagePath:
-      "/report",
-
-    metadata: {
-
-      patientId:
-        type === "family"
-          ? localStorage.getItem(
-              "patientId"
-            )
-          : null,
-
-    },
-
-  });
-
-  await analyticsService.track({
-
-    module:
-      ANALYTICS_MODULES.ASSESSMENT,
-
-    eventName:
-      ANALYTICS_EVENTS.RESULT_SHOWN,
-
-    context:
-      type === "family"
-        ? ANALYTICS_CONTEXTS.FAMILY
-        : ANALYTICS_CONTEXTS.SELF,
-
-    pagePath:
-      "/report",
-
-    metadata: {
-
-      patientId:
-        type === "family"
-          ? localStorage.getItem(
-              "patientId"
-            )
-          : null,
-
-    },
-
-  });
-
-*/
-
+    markAssessmentSaved();
+  } catch (error) {
+    console.error(
+      "Encrypted assessment save failed:",
+      error
+    );
+  } finally {
+    assessmentProcessingRef.current = false;
+  }
 })();
 
     setSummaryRows(reportSummary);

@@ -17,7 +17,11 @@ export interface AssessmentRow {
 
   assessment_type: AssessmentType;
 
-  responses_json: AssessmentAnswers;
+  responses_json: AssessmentAnswers | Record<string, never>;
+  record_classification?: "HISTORICAL" | "ENCRYPTED_V1";
+  report_payload_ciphertext?: string | null;
+  report_format_version?: number | null;
+  normalized_score?: number | null;
 
   score: number | null;
 
@@ -103,7 +107,17 @@ export class AssessmentMapper {
 
       assessmentVersion: row.assessment_version,
 
-      answers: row.responses_json,
+      answers: (() => {
+  if (
+    row.record_classification === "ENCRYPTED_V1"
+  ) {
+    throw new Error(
+      "Encrypted assessments must be decrypted by the authorized server-side retrieval service."
+    );
+  }
+
+  return row.responses_json as AssessmentAnswers;
+})(),
 
       dailyCareId: row.daily_care_id,
 

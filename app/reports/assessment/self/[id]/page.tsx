@@ -5,6 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 
+import {
+  encryptedAssessmentStorage,
+  encryptedDetailToAssessmentRecord,
+} from "@/lib/storage/encryptedAssessmentStorage";
+
 import { profileRepository } from "@/lib/repositories/profileRepository";
 import type { Profile } from "@/lib/types/profile";
 
@@ -92,90 +97,87 @@ const handleCareModeChange = (_mode: MobileCareMode) => {
   // Load Assessment
   //------------------------------------------------------------
 
-  useEffect(() => {
+useEffect(() => {
+  let cancelled = false;
 
-    const loadAssessment = async () => {
+  const loadAssessment = async () => {
+    try {
+      setError("");
+      setLoading(true);
 
-      try {
+      let loadedAssessment: AssessmentRecord | null = null;
 
-        const result =
-          await assessmentStorage.getById(
-            assessmentId
-          );
+      const encryptedResult =
+        await encryptedAssessmentStorage.getById(assessmentId);
 
-        if (!result.success) {
-
-          setError(
-            result.error ??
-            "Unable to load assessment."
-          );
-
-          return;
-
-        }
-
-        const loadedAssessment =
-          result.data ?? null;
-
-        setAssessment(
-          loadedAssessment
+      if (encryptedResult.success) {
+        loadedAssessment = encryptedDetailToAssessmentRecord(
+          encryptedResult.data
         );
 
-        if (loadedAssessment) {
+        if (!loadedAssessment) {
+          throw new Error("The encrypted assessment payload is invalid.");
+        }
+      } else if (
+        encryptedResult.status === 409 &&
+        encryptedResult.recordClassification === "HISTORICAL"
+      ) {
+        const legacyResult = await assessmentStorage.getById(assessmentId);
 
-/*
-          void analyticsService.track({
-
-            module:
-              ANALYTICS_MODULES.REPORTS,
-
-            eventName:
-              ANALYTICS_EVENTS.VIEWED,
-
-            context:
-              ANALYTICS_CONTEXTS.SELF,
-
-            pagePath:
-              "/reports/assessment/self/[id]",
-
-            metadata: {
-
-              reportCategory:
-                "ASSESSMENT",
-
-              viewType:
-                "DETAIL",
-
-              assessmentId:
-                loadedAssessment.id,
-
-            },
-
-          });
-*/
+        if (!legacyResult.success) {
+          throw new Error(
+            legacyResult.error ?? "Unable to load historical assessment."
+          );
         }
 
-const profile =
-  await profileRepository.getCurrentProfile();
+        loadedAssessment = legacyResult.data ?? null;
 
-setProfile(profile);
-
+        if (!loadedAssessment) {
+          throw new Error("Assessment not found.");
+        }
+      } else {
+        throw new Error(
+          encryptedResult.error ?? "Unable to securely load assessment."
+        );
       }
-      finally {
 
+      if (cancelled) return;
+
+      setAssessment(loadedAssessment);
+
+      const currentProfile = await profileRepository.getCurrentProfile();
+
+      if (!cancelled) {
+        setProfile(currentProfile);
+      }
+    } catch (error) {
+      console.error("Error loading assessment:", error);
+
+      if (!cancelled) {
+        setAssessment(null);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load assessment."
+        );
+      }
+    } finally {
+      if (!cancelled) {
         setLoading(false);
-
       }
-
-    };
-
-    if (assessmentId) {
-
-      loadAssessment();
-
     }
+  };
 
-  }, [assessmentId]);
+  if (assessmentId) {
+    void loadAssessment();
+  } else {
+    setLoading(false);
+  }
+
+  return () => {
+    cancelled = true;
+  };
+}, [assessmentId]);
 
   //------------------------------------------------------------
   // Helpers

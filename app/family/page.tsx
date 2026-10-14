@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { clearAssessmentData } from "@/lib/assessmentStorage";
+import { beginAssessmentAttempt } from "@/lib/reportStorage";
 
 import { authService } from "@/lib/auth/authService";
 import { profileRepository } from "@/lib/repositories/profileRepository";
@@ -404,6 +405,13 @@ if (loadedPatients.length > 0) {
     }
 
 clearAssessmentData();
+
+beginAssessmentAttempt();
+
+// Persist the selected Family assessment context.
+localStorage.setItem("assessmentType", "family");
+localStorage.setItem("patientId", selectedPatient.id);
+localStorage.setItem("patientName", selectedPatient.fullName);
 
 /*
 void analyticsService

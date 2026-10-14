@@ -12,6 +12,8 @@ import {
   clearAssessmentData,
 } from "@/lib/assessmentStorage";
 
+import { beginAssessmentAttempt } from "@/lib/reportStorage";
+
 /*
 import {
   analyticsService,
@@ -40,7 +42,8 @@ const {
       return;
     }
 
-    clearAssessmentData();
+clearAssessmentData();
+beginAssessmentAttempt();
 
 /*
 await analyticsService.track({

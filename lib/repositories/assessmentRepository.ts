@@ -18,42 +18,13 @@ export class AssessmentRepository {
   // Create
   //------------------------------------------------------------
 
-  async create(
-    assessment: AssessmentInput
-  ): Promise<AssessmentRecord> {
-
-    const payload =
-      AssessmentMapper.toInsert(
-        assessment
-      );
-
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("assessments")
-      .insert(payload)
-      .select()
-      .single();
-
-    if (error) {
-
-      console.error(
-        "Supabase Insert Error:",
-        error
-      );
-
-      throw new Error(
-        error.message
-      );
-
-    }
-
-    return AssessmentMapper.toDomain(
-      data as AssessmentRow
-    );
-
-  }
+async create(
+  _assessment: AssessmentInput
+): Promise<AssessmentRecord> {
+  throw new Error(
+    "New assessments must be saved through the encrypted server-side assessment API."
+  );
+}
 
   //------------------------------------------------------------
   // Get By Id
@@ -122,9 +93,11 @@ export class AssessmentRepository {
 
     }
 
-    return AssessmentMapper.toDomainList(
-      data as AssessmentRow[]
-    );
+return AssessmentMapper.toDomainList(
+  (data as AssessmentRow[]).filter(
+    (row) => row.record_classification !== "ENCRYPTED_V1"
+  )
+);
 
   }
 
@@ -132,114 +105,111 @@ export class AssessmentRepository {
   // Get User Assessments
   //------------------------------------------------------------
 
-  async getByUserId(
-    userId: string
-  ): Promise<AssessmentRecord[]> {
 
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("assessments")
-      .select("*")
-      .eq(
-        "user_id",
-        userId
-      )
-      .order(
-        "completed_at",
-        {
-          ascending: false,
-        }
-      );
+async getByUserId(userId: string): Promise<AssessmentRecord[]> {
+  const { data, error } = await supabase
+    .from("assessments")
+    .select("*")
+    .eq("user_id", userId)
+    .order("completed_at", { ascending: false });
 
-    if (
-      error ||
-      !data
-    ) {
-
-      return [];
-
-    }
-
-    return AssessmentMapper.toDomainList(
-      data as AssessmentRow[]
-    );
-
+  if (error || !data) {
+    return [];
   }
+
+  const historicalRows = (data as AssessmentRow[]).filter(
+    (row) => row.record_classification !== "ENCRYPTED_V1"
+  );
+
+  return AssessmentMapper.toDomainList(historicalRows);
+}
+
 
   //------------------------------------------------------------
   // Update
   //------------------------------------------------------------
 
-  async update(
-    id: string,
-    assessment: AssessmentInput
-  ): Promise<AssessmentRecord> {
+async update(
+  id: string,
+  assessment: AssessmentInput
+): Promise<AssessmentRecord> {
+  const { data: existing, error: lookupError } = await supabase
+    .from("assessments")
+    .select("id, record_classification")
+    .eq("id", id)
+    .maybeSingle();
 
-    const payload =
-      AssessmentMapper.toInsert(
-        assessment
-      );
-
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("assessments")
-      .update(payload)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) {
-
-      console.error(
-        "Supabase Update Error:",
-        error
-      );
-
-      throw new Error(
-        error.message
-      );
-
-    }
-
-    return AssessmentMapper.toDomain(
-      data as AssessmentRow
+  if (lookupError) {
+    throw new Error(
+      `Unable to verify assessment before update: ${lookupError.message}`
     );
-
   }
+
+  if (!existing) {
+    throw new Error("Assessment not found or access denied.");
+  }
+
+  if (existing.record_classification === "ENCRYPTED_V1") {
+    throw new Error(
+      "Encrypted assessments cannot be updated through the legacy repository."
+    );
+  }
+
+  const payload = AssessmentMapper.toInsert(assessment);
+
+  const { data, error } = await supabase
+    .from("assessments")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return AssessmentMapper.toDomain(data as AssessmentRow);
+}
 
   //------------------------------------------------------------
   // Delete
   //------------------------------------------------------------
 
-  async delete(
-    id: string
-  ): Promise<void> {
+async delete(
+  id: string
+): Promise<void> {
+  const { data: existing, error: lookupError } = await supabase
+    .from("assessments")
+    .select("id, record_classification")
+    .eq("id", id)
+    .maybeSingle();
 
-    const {
-      error,
-    } = await supabase
-      .from("assessments")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-
-      console.error(
-        "Supabase Delete Error:",
-        error
-      );
-
-      throw new Error(
-        error.message
-      );
-
-    }
-
+  if (lookupError) {
+    throw new Error(
+      `Unable to verify assessment before deletion: ${lookupError.message}`
+    );
   }
+
+  if (!existing) {
+    throw new Error("Assessment not found or access denied.");
+  }
+
+  if (existing.record_classification === "ENCRYPTED_V1") {
+    throw new Error(
+      "Encrypted assessments cannot be deleted through the legacy repository."
+    );
+  }
+
+  const { error } = await supabase
+    .from("assessments")
+    .delete()
+    .eq("id", id)
+    .neq("record_classification", "ENCRYPTED_V1");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
 
 }
 
