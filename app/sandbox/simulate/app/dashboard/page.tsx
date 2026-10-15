@@ -515,13 +515,13 @@ useEffect(() => {
         "ACCESS_MANAGEMENT",
     ];
 
-    setUser({
-        id: "sandbox-demo-user",
-        fullName: "Alex Morgan",
-        email: "demo@carevr.in",
-        role: "PRIMARY",
-        isFounder: false,
-    });
+setUser({
+    id: "sandbox-demo-user",
+    fullName: "Mr S",
+    email: "demo@carevr.in",
+    role: "PRIMARY",
+    isFounder: false,
+});
 
     setConsentGranted(true);
     setMobileCareMode("SELF");
@@ -1092,6 +1092,21 @@ showFamilyToggle={true}
 
     )}
 
+
+{mobileCareMode === "SELF" && (
+    <section className="mobile-health-card">
+        <div className="mobile-health-card-heading">
+            <h2>My Profile</h2>
+        </div>
+
+        <div style={{ padding: "12px 16px" }}>
+            <strong>{user.fullName}</strong>
+            <p style={{ margin: "6px 0 0" }}>
+                Age 27 · Male
+            </p>
+        </div>
+    </section>
+)}
 
 {mobilePatients.length > 0 && (
     <PatientPanel
