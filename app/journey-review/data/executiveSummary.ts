@@ -125,15 +125,45 @@ dailyCare =
 }
 
 
-const {
-    data: assessments,
-    error: assessmentError
-} = await supabase
+let assessmentsQuery = supabase
     .from("assessments")
     .select(
         "id, patient_id, assessment_type, score, raw_score, normalized_score, risk_category, recommendation, assessment_version, completed_at, record_classification"
-    )
-    .eq("patient_id", patientId)
+    );
+
+if (careMode === "SELF") {
+    const {
+        data: { user },
+        error: authError
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+        throw authError ?? new Error(
+            "Unable to identify the authenticated user."
+        );
+    }
+
+    assessmentsQuery = assessmentsQuery.eq(
+        "user_id",
+        user.id
+    );
+} else {
+    if (!patientId || patientId === "null") {
+        throw new Error(
+            "A valid patient must be selected for FAMILY mode."
+        );
+    }
+
+    assessmentsQuery = assessmentsQuery.eq(
+        "patient_id",
+        patientId
+    );
+}
+
+const {
+    data: assessments,
+    error: assessmentError
+} = await assessmentsQuery
     .gte(
         "completed_at",
         `${startDate}T00:00:00`
@@ -150,6 +180,7 @@ const {
 if (assessmentError) {
     throw assessmentError;
 }
+
 
 let dailyCareSymptoms:
     { symptom_key: string | null }[] = [];
