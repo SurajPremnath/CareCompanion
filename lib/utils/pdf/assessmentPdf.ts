@@ -2,16 +2,25 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+type AssessmentPdfStage =
+  | "capturing"
+  | "building"
+  | "saving";
+
 export async function downloadAssessmentPdf(
   reportElement: HTMLDivElement,
-  patientName: string
+  patientName: string,
+  onStage?: (stage: AssessmentPdfStage) => void
 ): Promise<void> {
+  onStage?.("capturing");
   const canvas = await html2canvas(reportElement, {
     scale: 1,
     useCORS: true,
     scrollY: -window.scrollY,
     backgroundColor: "#ffffff",
   });
+
+  onStage?.("building");
 
   const imgData = canvas.toDataURL("image/png");
   const pdf = new jsPDF("p", "mm", "a4");
@@ -141,12 +150,26 @@ pdf.addImage(
     );
   }
 
-  const patient =
-    patientName.replace(/\s+/g, "_") || "Patient";
+  onStage?.("saving");
 
-  const today = new Date()
-    .toISOString()
-    .split("T")[0];
+  const safePatientName =
+    (patientName || "Patient")
+      .trim()
+      .replace(/\s+/g, "_")
+      .replace(/[<>:"/\\|?*]/g, "")
+      .replace(/[. ]+$/g, "") || "Patient";
 
-  pdf.save(`CareVR_Report_${patient}_${today}.pdf`);
+  const now = new Date();
+
+  const date =
+    `${now.getFullYear()}-` +
+    `${String(now.getMonth() + 1).padStart(2, "0")}-` +
+    `${String(now.getDate()).padStart(2, "0")}`;
+
+  const time =
+    `${String(now.getHours()).padStart(2, "0")}-` +
+    `${String(now.getMinutes()).padStart(2, "0")}-` +
+    `${String(now.getSeconds()).padStart(2, "0")}`;
+
+  pdf.save(`CareVR_${safePatientName}_${date}_${time}.pdf`);
 }

@@ -21,13 +21,33 @@ export interface AssessmentAnswers {
   bloodInCough: boolean;
   fever: boolean;
   temperature: number | null;
+  temperatureUnit?: string;
   energy: string;
   appetite: string;
   waterIntake: string;
+  waterGlasses?: string;
   pain: boolean;
   painAreas: string[];
   walkingDifficulty: boolean;
+  walkingHelp?: string;
   looseMotions: boolean;
+  looseMotionType?: string;
+  confusion?: string;
+}
+
+export interface AssessmentReportDetails {
+  patientName: string | null;
+  patientAge: string | null;
+  observerName: string | null;
+  observerRelationship: string | null;
+  observerRelationshipOther: string | null;
+  observations: string[];
+  suggestions: string[];
+  summaryRows: Array<{
+    label: string;
+    value: string;
+  }>;
+  wellbeingSummary: string | null;
 }
 
 export interface AssessmentInput {
@@ -46,6 +66,8 @@ export interface AssessmentInput {
   recommendation: AssessmentRecommendation;
 
   answers: AssessmentAnswers;
+
+reportDetails?: AssessmentReportDetails;
 
   assessmentVersion: number;
 

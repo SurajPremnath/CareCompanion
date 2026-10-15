@@ -4,6 +4,7 @@ import type {
   AssessmentRecord,
   AssessmentStatus,
   AssessmentRecommendation,
+  AssessmentReportDetails,
 } from "@/lib/types/assessment";
 
 export interface EncryptedAssessmentHistoryItem {
@@ -212,33 +213,77 @@ export function encryptedDetailToAssessmentRecord(
   const answers = {
     breathing: stringValue(answerData.breathing),
     cough: booleanValue(answerData.cough),
-    bloodInCough: booleanValue(
-      answerData.bloodInCough
-    ),
+    bloodInCough: booleanValue(answerData.bloodInCough),
     fever: booleanValue(answerData.fever),
+
     temperature:
       temperatureReading === null ||
       temperatureReading === undefined ||
       temperatureReading === ""
         ? null
         : numberValue(temperatureReading, NaN),
+
+    temperatureUnit: isObject(answerData.temperature)
+      ? stringValue(answerData.temperature.unit)
+      : undefined,
+
     energy: stringValue(answerData.energy),
     appetite: stringValue(answerData.appetite),
-    waterIntake: stringValue(
-      answerData.waterIntake ??
-      answerData.waterGlasses
-    ),
+
+    waterIntake: stringValue(answerData.waterIntake),
+    waterGlasses: stringValue(answerData.waterGlasses),
+
     pain: booleanValue(answerData.discomfort),
-    painAreas: stringArrayValue(
-      answerData.discomfortAreas
-    ),
-    walkingDifficulty: booleanValue(
-      answerData.walking
-    ),
-    looseMotions: booleanValue(
-      answerData.looseMotions
-    ),
+    painAreas: stringArrayValue(answerData.discomfortAreas),
+
+    walkingDifficulty: booleanValue(answerData.walking),
+    walkingHelp: stringValue(answerData.walkingHelp),
+
+    looseMotions: booleanValue(answerData.looseMotions),
+    looseMotionType: stringValue(answerData.looseMotionType),
+    confusion: stringValue(answerData.confusion),
   } satisfies AssessmentAnswers;
+
+  const summaryRows = Array.isArray(results.summaryRows)
+    ? results.summaryRows.flatMap((item) => {
+        if (
+          !isObject(item) ||
+          typeof item.label !== "string" ||
+          typeof item.value !== "string"
+        ) {
+          return [];
+        }
+
+        return [{
+          label: item.label,
+          value: item.value,
+        }];
+      })
+    : [];
+
+  const reportDetails: AssessmentReportDetails = {
+    patientName: stringValue(subject.patientName) || null,
+    patientAge: stringValue(subject.patientAge) || null,
+    observerName: stringValue(
+      isObject(payload.observer)
+        ? payload.observer.name
+        : null
+    ) || null,
+    observerRelationship: stringValue(
+      isObject(payload.observer)
+        ? payload.observer.relationship
+        : null
+    ) || null,
+    observerRelationshipOther: stringValue(
+      isObject(payload.observer)
+        ? payload.observer.relationshipOther
+        : null
+    ) || null,
+    observations: stringArrayValue(results.observations),
+    suggestions: stringArrayValue(results.suggestions),
+    summaryRows,
+    wellbeingSummary: null,
+  };
 
   const rawScore = numberValue(
     value.rawScore ?? results.rawScore,
@@ -272,6 +317,7 @@ export function encryptedDetailToAssessmentRecord(
     recommendation:
       recommendation as AssessmentRecommendation,
     answers,
+    reportDetails,
     assessmentVersion: numberValue(
       value.assessmentVersion,
       1
