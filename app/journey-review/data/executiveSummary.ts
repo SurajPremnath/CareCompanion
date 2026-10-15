@@ -15,7 +15,8 @@ export async function buildExecutiveSummary(
 ): Promise<ExecutiveSummaryViewModel> {
 
 
-let dailyCare: {
+
+type DailyCareReportRecord = {
     temperature: number | null;
     pulse: number | null;
     spo2: number | null;
@@ -25,111 +26,10 @@ let dailyCare: {
     symptoms: string[] | null;
     other_symptom: string | null;
     recorded_at: string;
-}[] = [];
-
-let dailyCareError: unknown = null;
-
-if (careMode === "FAMILY") {
-
-    const result =
-        await supabase
-            .from("daily_care")
-            .select(
-`
-temperature,
-pulse,
-spo2,
-systolic,
-diastolic,
-weight_kg,
-symptoms,
-other_symptom,
-recorded_at
-`
-            )
-            .eq(
-                "patient_id",
-                patientId
-            )
-            .gte(
-                "recorded_at",
-                `${startDate}T00:00:00`
-            )
-            .lte(
-                "recorded_at",
-                `${endDate}T23:59:59`
-            )
-            .order(
-                "recorded_at",
-                {
-                    ascending: true
-                }
-            );
-
-    dailyCare =
-        result.data ?? [];
-
-    dailyCareError =
-        result.error ?? null;
-
-} else {
-
-    const selfResult =
-        await selfDailyCareRepository.getByUserId();
-
-dailyCare =
-    selfResult
-        .filter(record => {
-
-            const recordedDate =
-                record.recordedAt
-                    .slice(0, 10);
-
-            return (
-                recordedDate >= startDate &&
-                recordedDate <= endDate
-            );
-
-        })
-            .map(record => ({
-
-                temperature:
-                    record.temperature,
-
-                pulse:
-                    record.pulse,
-
-                spo2:
-                    record.spo2,
-
-                systolic:
-                    record.systolic,
-
-                diastolic:
-                    record.diastolic,
-
-                weight_kg:
-                    record.weightKg,
-
-                symptoms:
-                    record.symptoms,
-
-                other_symptom:
-                    record.otherSymptom ?? null,
-
-                recorded_at:
-                    record.recordedAt,
-
-            }));
-
-}
+};
 
 
-let assessmentsQuery = supabase
-    .from("assessments")
-    .select(
-        "id, patient_id, assessment_type, score, raw_score, normalized_score, risk_category, recommendation, assessment_version, completed_at, record_classification"
-    );
+let authenticatedUserId: string | null = null;
 
 if (careMode === "SELF") {
     const {
@@ -143,9 +43,118 @@ if (careMode === "SELF") {
         );
     }
 
+    authenticatedUserId = user.id;
+}
+
+let allDailyCare: DailyCareReportRecord[] = [];
+let dailyCareError: unknown = null;
+
+
+if (careMode === "FAMILY") {
+    if (!patientId || patientId === "null") {
+        throw new Error(
+            "A valid patient must be selected for FAMILY mode."
+        );
+    }
+
+    const {
+        data,
+        error
+    } = await supabase
+        .from("daily_care")
+        .select(`
+            temperature,
+            pulse,
+            spo2,
+            systolic,
+            diastolic,
+            weight_kg,
+            symptoms,
+            other_symptom,
+            recorded_at
+        `)
+        .eq("patient_id", patientId)
+        .order("recorded_at", { ascending: false });
+
+    if (error) {
+        throw error;
+    }
+
+    allDailyCare = data ?? [];
+
+} else {
+    if (!authenticatedUserId) {
+        throw new Error(
+            "Unable to identify the authenticated user."
+        );
+    }
+
+    const selfResult =
+        await selfDailyCareRepository.getByUserId(
+            authenticatedUserId
+        );
+
+    allDailyCare = selfResult.map(record => ({
+
+        temperature: record.temperature,
+        pulse: record.pulse,
+        spo2: record.spo2,
+        systolic: record.systolic,
+        diastolic: record.diastolic,
+        weight_kg: record.weightKg,
+        symptoms: record.symptoms,
+        other_symptom: record.otherSymptom ?? null,
+        recorded_at: record.recordedAt
+    }));
+}
+
+const dailyCare = allDailyCare
+    .filter(record => {
+        const date = record.recorded_at.slice(0, 10);
+
+        return date >= startDate && date <= endDate;
+    })
+    .sort((a, b) =>
+        a.recorded_at.localeCompare(b.recorded_at)
+    );
+
+const records = dailyCare;
+
+const previousRecords = allDailyCare
+    .filter(record =>
+        record.recorded_at < `${startDate}T00:00:00`
+    )
+    .sort((a, b) =>
+        b.recorded_at.localeCompare(a.recorded_at)
+    )
+    .map(record => ({
+        temperature: record.temperature,
+        pulse: record.pulse,
+        spo2: record.spo2,
+        systolic: record.systolic,
+        diastolic: record.diastolic,
+        weight_kg: record.weight_kg,
+        recorded_at: record.recorded_at
+    }));
+
+
+
+let assessmentsQuery = supabase
+    .from("assessments")
+    .select(
+        "id, patient_id, assessment_type, score, raw_score, normalized_score, risk_category, recommendation, assessment_version, completed_at, record_classification"
+    );
+
+if (careMode === "SELF") {
+    if (!authenticatedUserId) {
+        throw new Error(
+            "Unable to identify the authenticated user."
+        );
+    }
+
     assessmentsQuery = assessmentsQuery.eq(
         "user_id",
-        user.id
+        authenticatedUserId
     );
 } else {
     if (!patientId || patientId === "null") {
@@ -188,16 +197,19 @@ let dailyCareSymptoms:
 let dailyCareSymptomsError: unknown = null;
 
 if (careMode === "SELF") {
+    if (!authenticatedUserId) {
+        throw new Error(
+            "Unable to identify the authenticated user."
+        );
+    }
+
     const {
         data,
         error
     } = await supabase
         .from("self_daily_care_symptoms")
         .select("symptom_key")
-        .eq(
-            "patient_id",
-            (await supabase.auth.getUser()).data.user?.id ?? ""
-        );
+        .eq("patient_id", authenticatedUserId);
 
     dailyCareSymptoms = data ?? [];
     dailyCareSymptomsError = error;
@@ -214,79 +226,6 @@ if (careMode === "SELF") {
     dailyCareSymptomsError = error;
 }
 
-
-const records =
-    dailyCare ?? [];
-
-let previousRecords: {
-    temperature: number | null;
-    pulse: number | null;
-    spo2: number | null;
-    systolic: number | null;
-    diastolic: number | null;
-    weight_kg: number | null;
-    recorded_at: string;
-}[] = [];
-
-if (careMode === "FAMILY") {
-    const {
-        data: previousDailyCare,
-        error: previousDailyCareError
-    } =
-        await supabase
-            .from("daily_care")
-            .select(`
-                temperature,
-                pulse,
-                spo2,
-                systolic,
-                diastolic,
-                weight_kg,
-                recorded_at
-            `)
-            .eq("patient_id", patientId)
-            .lt(
-                "recorded_at",
-                `${startDate}T00:00:00`
-            )
-            .order(
-                "recorded_at",
-                {
-                    ascending: false
-                }
-            );
-
-    if (previousDailyCareError) {
-        throw previousDailyCareError;
-    }
-
-    previousRecords =
-        previousDailyCare ?? [];
-} else {
-    const selfDailyCare =
-        await selfDailyCareRepository.getByUserId();
-
-    previousRecords =
-        selfDailyCare
-            .filter(record =>
-                new Date(record.recordedAt) <
-                new Date(`${startDate}T00:00:00`)
-            )
-            .sort(
-                (a, b) =>
-                    new Date(b.recordedAt).getTime() -
-                    new Date(a.recordedAt).getTime()
-            )
-            .map(record => ({
-                temperature: record.temperature,
-                pulse: record.pulse,
-                spo2: record.spo2,
-                systolic: record.systolic,
-                diastolic: record.diastolic,
-                weight_kg: record.weightKg,
-                recorded_at: record.recordedAt
-            }));
-}
 
 const selectedVitalValues = {
     temperature:
