@@ -481,64 +481,86 @@ const [
     // No authentication, database, consent or handoff checks.
     //------------------------------------------------------------
 
-    useEffect(() => {
-        setUser({
-            id: "sandbox-demo-user",
-            fullName: "Alex Morgan",
-            email: "demo@carevr.in",
-            role: "PRIMARY",
-            isFounder: false,
-        });
+useEffect(() => {
+    const demoPatients: Patient[] = [
+        {
+            id: "sandbox-patient-mr-x",
+            userId: "sandbox-demo-user",
+            fullName: "Mr X",
+            dateOfBirth: null,
+            gender: "Male",
+            relationship: "Father",
+            status: "ACTIVE",
+            createdAt: "",
+            updatedAt: "",
+        },
+        {
+            id: "sandbox-patient-mrs-y",
+            userId: "sandbox-demo-user",
+            fullName: "Mrs Y",
+            dateOfBirth: null,
+            gender: "Female",
+            relationship: "Mother",
+            status: "ACTIVE",
+            createdAt: "",
+            updatedAt: "",
+        },
+    ];
 
-        setConsentGranted(true);
-        setMobileCareMode("SELF");
-        setLoading(false);
-        setMobilePeopleLoading(false);
-    }, []);
+    const demoModules = [
+        "RECORD_HEALTH",
+        "CARE_JOURNEY",
+        "ASSESSMENT",
+        "HEALTH_TIMELINE",
+        "ACCESS_MANAGEMENT",
+    ];
+
+    setUser({
+        id: "sandbox-demo-user",
+        fullName: "Alex Morgan",
+        email: "demo@carevr.in",
+        role: "PRIMARY",
+        isFounder: false,
+    });
+
+    setConsentGranted(true);
+    setMobileCareMode("SELF");
+    setLoading(false);
+    setMobilePeopleLoading(false);
+
+    setMobilePatients(demoPatients);
+    setFamilyModeAvailable(true);
+    setMobileSelectedPatientId(demoPatients[0].id);
+    setMobileSnapshots({});
+
+    setCareVRHandoff({
+        userId: "sandbox-demo-user",
+        role: "SELF",
+        access: {
+            id: "sandbox-demo-access",
+            accessType: "PRIMARY",
+            familyId: "sandbox-demo-family",
+            patientId: null,
+        },
+        modules: demoModules.map((module) => ({
+            module,
+            permission: "ADMIN" as const,
+        })),
+        moduleCount: demoModules.length,
+        patients: demoPatients.map((patient) => ({
+            id: patient.id,
+            userId: patient.userId,
+            name: patient.fullName,
+            relationship: patient.relationship,
+        })),
+        patientCount: demoPatients.length,
+        scope: "PATIENTS",
+    });
+}, []);
 
  
 
-    //------------------------------------------------------------
-    // SANDBOX DEMO PATIENTS AND HEALTH SNAPSHOTS
-    // No database, Daily Care or Self Daily Care calls.
-    //------------------------------------------------------------
 
-    useEffect(() => {
-        const demoPatients: Patient[] = [
-            {
-                id: "sandbox-patient-mr-x",
-                userId: "sandbox-demo-user",
-                fullName: "Mr X",
-                dateOfBirth: null,
-                gender: "Male",
-                relationship: "Father",
-                status: "ACTIVE",
-                createdAt: "",
-                updatedAt: "",
-            },
-            {
-                id: "sandbox-patient-mrs-y",
-                userId: "sandbox-demo-user",
-                fullName: "Mrs Y",
-                dateOfBirth: null,
-                gender: "Female",
-                relationship: "Mother",
-                status: "ACTIVE",
-                createdAt: "",
-                updatedAt: "",
-            },
-        ];
-
-        setMobilePatients(demoPatients);
-        setFamilyModeAvailable(true);
-
-        setMobileSelectedPatientId(
-            demoPatients[0].id
-        );
-
-        setMobileSnapshots({});
-        setMobilePeopleLoading(false);
-    }, []);
 
 //------------------------------------------------------------
 // Mobile Dashboard Actions
@@ -1002,15 +1024,9 @@ const mobileSnapshotKey =
         }
     }}
     userName={user.fullName}
-    showCareModeToggle={
-        careVRToggle?.showToggle ?? false
-    }
-    showSelfToggle={
-        careVRToggle?.showSelf ?? false
-    }
-    showFamilyToggle={
-        careVRToggle?.showFamily ?? false
-    }
+showCareModeToggle={true}
+showSelfToggle={true}
+showFamilyToggle={true}
     showHomeButton={true}
     onHomeClick={() =>
         router.replace("/dashboard")
