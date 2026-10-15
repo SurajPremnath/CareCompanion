@@ -1,0 +1,327 @@
+import { dailyCareRepository } from "@/lib/repositories/DailyCareRepository";
+import { authService } from "@/lib/auth/authService";
+
+import type {
+  DailyCare,
+  CreateDailyCareRequest
+} from "@/lib/types/dailyCare";
+
+import type { Result } from "@/lib/types/result";
+
+import { ClinicalEventBuilder } from "@/lib/builders/clinicalEventBuilder";
+
+import { ClinicalEventStorage } from "@/lib/storage/clinicalEventStorage";
+
+export class DailyCareStorage {
+
+  //------------------------------------------------------------
+  // Save Daily Care
+  //------------------------------------------------------------
+
+async save(
+  request: CreateDailyCareRequest
+): Promise<Result<DailyCare>> {
+
+    try {
+
+      if (!request.patientId) {
+
+        return {
+
+          success: false,
+
+          error: "Patient is required."
+
+        };
+
+      }
+
+
+const userId =
+  await authService.getCurrentUserId();
+
+if (!userId) {
+
+  return {
+
+    success: false,
+
+    error: "User not authenticated."
+
+  };
+
+}
+
+const dailyCare: Omit<
+  DailyCare,
+  "id" | "createdAt" | "updatedAt"
+> = {
+
+  ...request,
+
+  userId
+
+};
+
+const savedDailyCare =
+  await dailyCareRepository.create(
+    dailyCare
+  );
+
+try {
+
+  const clinicalEvent =
+    ClinicalEventBuilder.fromDailyCare(
+      savedDailyCare
+    );
+
+  await ClinicalEventStorage.create(
+    clinicalEvent
+  );
+
+}
+catch (error) {
+
+  console.error(
+    "Unable to create Clinical Event:",
+    error
+  );
+
+}
+
+      return {
+
+        success: true,
+
+        data: savedDailyCare
+
+      };
+
+    }
+
+catch (error) {
+  console.error("Error saving daily care:", error);
+
+  const errorMessage =
+    error instanceof Error ? error.message : String(error ?? "");
+
+  if (
+    errorMessage.includes("chk_daily_care_temperature") ||
+    (
+      errorMessage.includes('relation "daily_care"') &&
+      errorMessage.toLowerCase().includes("temperature")
+    )
+  ) {
+    return {
+      success: false,
+      error:
+        "We couldn't save this temperature reading. Please check the temperature and selected unit, then try again."
+    };
+  }
+
+  return {
+    success: false,
+    error: "Unable to save Daily Care. Please check your entries and try again."
+  };
+}
+
+
+  }
+
+  //------------------------------------------------------------
+  // Get Reading
+  //------------------------------------------------------------
+
+  async getById(
+    id: string
+  ): Promise<Result<DailyCare>> {
+
+    try {
+
+      const dailyCare =
+        await dailyCareRepository.getById(id);
+
+      if (!dailyCare) {
+
+        return {
+
+          success: false,
+
+          error: "Daily Care record not found."
+
+        };
+
+      }
+
+      return {
+
+        success: true,
+
+        data: dailyCare
+
+      };
+
+    }
+    catch (error) {
+
+      console.error(error);
+
+      return {
+
+        success: false,
+
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load Daily Care."
+
+      };
+
+    }
+
+  }
+
+  //------------------------------------------------------------
+  // Patient History
+  //------------------------------------------------------------
+
+  async getPatientHistory(
+    patientId: string
+  ): Promise<Result<DailyCare[]>> {
+
+    try {
+
+      const history =
+        await dailyCareRepository.getByPatientId(
+          patientId
+        );
+
+      return {
+
+        success: true,
+
+        data: history
+
+      };
+
+    }
+    catch (error) {
+
+      console.error(error);
+
+      return {
+
+        success: false,
+
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load patient history."
+
+      };
+
+    }
+
+  }
+
+  //------------------------------------------------------------
+  // User History
+  //------------------------------------------------------------
+
+  async getUserHistory(
+  ): Promise<Result<DailyCare[]>> {
+
+    try {
+
+      const userId =
+        await authService.getCurrentUserId();
+
+      if (!userId) {
+
+        return {
+
+          success: false,
+
+          error: "User not authenticated."
+
+        };
+
+      }
+
+      const history =
+        await dailyCareRepository.getByUserId(
+          userId
+        );
+
+      return {
+
+        success: true,
+
+        data: history
+
+      };
+
+    }
+    catch (error) {
+
+      console.error(error);
+
+      return {
+
+        success: false,
+
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load Daily Care history."
+
+      };
+
+    }
+
+  }
+
+  //------------------------------------------------------------
+  // Delete Reading
+  //------------------------------------------------------------
+
+  async delete(
+    id: string
+  ): Promise<Result<boolean>> {
+
+    try {
+
+      await dailyCareRepository.delete(id);
+
+      return {
+
+        success: true,
+
+        data: true
+
+      };
+
+    }
+    catch (error) {
+
+      console.error(error);
+
+      return {
+
+        success: false,
+
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to delete Daily Care."
+
+      };
+
+    }
+
+  }
+
+}
+
+export const dailyCareStorage =
+  new DailyCareStorage();

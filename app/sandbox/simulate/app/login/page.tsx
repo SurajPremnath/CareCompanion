@@ -1,0 +1,3591 @@
+"use client";
+
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+
+import { useRouter } from "next/navigation";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
+
+import {
+  Turnstile,
+  type TurnstileInstance,
+} from "@marsidev/react-turnstile";
+
+import { authService } from "@/lib/auth/authService";
+
+import { authSecurity } from "@/lib/auth/authSecurity";
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+// import {
+//   performanceTracker,
+// } from "@/lib/performance/performanceTracker";
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+
+import ValidatePin from "@/app/components/security/ValidatePin";
+
+import {
+  inviteeToPrimaryHandoff,
+} from "@/lib/authorization/inviteeToPrimaryHandoff";
+
+import { supabase } from "@/lib/supabase";
+
+type GoogleCredentialResponse = {
+  credential: string;
+};
+
+declare global {
+  interface Window {
+    google: {
+      accounts: {
+id: {
+  initialize: (options: {
+    client_id: string;
+    callback: (
+      response: GoogleCredentialResponse
+    ) => void | Promise<void>;
+    nonce?: string;
+    auto_select?: boolean;
+    cancel_on_tap_outside?: boolean;
+    use_fedcm_for_button?: boolean;
+  }) => void;
+
+  prompt: (
+    momentListener?: (notification: {
+      isDisplayed: () => boolean;
+      isNotDisplayed: () => boolean;
+      isSkippedMoment: () => boolean;
+      isDismissedMoment: () => boolean;
+    }) => void
+  ) => void;
+
+  renderButton: (
+    parent: HTMLElement,
+    options: {
+      type?: "standard" | "icon";
+      theme?: string;
+      size?: string;
+      text?: string;
+      shape?: string;
+      width?: number;
+      logo_alignment?: string;
+      use_fedcm_for_button?: boolean;
+    }
+  ) => void;
+};
+      };
+    };
+  }
+}
+
+export default function LoginPage() {
+  const router = useRouter();
+
+  const loginPageReadyRef = useRef(false);
+
+const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+const [loading, setLoading] = useState(false);
+
+const [googleLoading, setGoogleLoading] = useState(false);
+const [googleTransition, setGoogleTransition] =
+  useState(false);
+const [error, setError] = useState("");
+
+const googleMobileButtonRef =
+  useRef<HTMLDivElement | null>(null);
+
+
+const [captchaToken, setCaptchaToken] =
+    useState<string | null>(null);
+
+const [showInvitationMessage, setShowInvitationMessage] =
+    useState(false);
+
+const [submitting, setSubmitting] =
+    useState(false);
+
+const turnstileRef =
+  useRef<TurnstileInstance>(null);
+
+
+const [showPassword, setShowPassword] =
+    useState(false);
+
+const [selectedContext, setSelectedContext] =
+  useState<"FAMILY" | "ORGANISATION">("FAMILY");
+
+const [loginMethod, setLoginMethod] =
+  useState<"EMAIL" | "GOOGLE">("EMAIL");
+
+
+const [pinVerification, setPinVerification] =
+  useState<{
+    user: Awaited<
+      ReturnType<typeof authService.login>
+    >;
+  } | null>(null);
+
+
+/*
+ * CareVR role and context are established after PIN
+ * verification from authoritative CareVR access records.
+ *
+ * Login does not accept or select a CareVR role.
+ */
+
+  useEffect(() => {
+    if (loginPageReadyRef.current) {
+      return;
+    }
+
+    loginPageReadyRef.current = true;
+
+// PERFORMANCE TRACKING — COMMENTED OUT FOR DEMO
+// void performanceTracker.complete({
+//   toPath: "/login",
+// });
+
+  }, []);
+
+
+const continueAfterAuthentication = async (
+  authenticatedUser: Awaited<
+    ReturnType<typeof authService.login>
+  >
+): Promise<void> => {
+  let registrationContext:
+    | "PRODUCT"
+    | "INVITATION"
+    | "DUAL"
+    | null = null;
+
+const normalizedLoginEmail =
+  authenticatedUser.email?.trim().toLowerCase();
+
+if (!normalizedLoginEmail) {
+  throw new Error(
+    "Unable to determine the authenticated user's email."
+  );
+}
+
+const {
+  data: roleContexts,
+  error: roleContextsError,
+} = await supabase
+  .from("role_clarification")
+  .select("type, invited_role")
+  .eq("email", normalizedLoginEmail);
+
+if (roleContextsError) {
+  throw new Error(roleContextsError.message);
+}
+
+const contexts = roleContexts ?? [];
+
+const productContexts = contexts.filter(
+  (context) =>
+
+    context.type === "PRODUCT" &&
+    context.invited_role === "PRIMARY"
+);
+
+const invitationContexts = contexts.filter(
+  (context) => context.type === "INVITATION"
+);
+
+
+if (
+  contexts.length === 2 &&
+  productContexts.length === 1 &&
+  invitationContexts.length === 1
+) {
+  registrationContext = "DUAL";
+} else {
+  // Preserve the existing invitation-context validation.
+  // Check accepted CareVR invitation first.
+  const {
+    data: invitation,
+    error: invitationError,
+  } = await supabase
+    .from("carevr_invitation")
+    .select("role")
+    .eq(
+      "invited_user_id",
+      authenticatedUser.id
+    )
+    .eq(
+      "status",
+      "ACCEPTED"
+    )
+    .order(
+      "accepted_at",
+      {
+        ascending: false,
+      }
+    )
+    .limit(1)
+    .maybeSingle();
+
+  if (invitationError) {
+    throw new Error(
+      invitationError.message
+    );
+  }
+
+  if (invitation) {
+    const matchingInvitationContext =
+      invitationContexts.find(
+        (context) =>
+          context.invited_role === invitation.role
+      );
+
+    if (matchingInvitationContext) {
+      registrationContext = "INVITATION";
+    }
+  }
+
+
+  // If there is no accepted invitation,
+  // check the existing PRODUCT registration context.
+  if (!registrationContext) {
+    const {
+      data: productContext,
+      error: productContextError,
+    } = await supabase
+      .from("role_clarification")
+      .select("type")
+      .eq(
+        "email",
+        normalizedLoginEmail
+      )
+      .eq(
+        "type",
+        "PRODUCT"
+      )
+      .eq(
+        "invited_role",
+        "PRIMARY"
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        }
+      )
+      .limit(1)
+      .maybeSingle();
+
+    if (productContextError) {
+      throw new Error(
+        productContextError.message
+      );
+    }
+
+    if (productContext) {
+      registrationContext = "PRODUCT";
+    }
+  }
+}
+
+// ------------------------------------------------------------
+// PIN STATUS
+// ------------------------------------------------------------
+
+const pinStatusResponse =
+  await fetch(
+    "/api/security/pin-status",
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+const pinStatus =
+  await pinStatusResponse.json();
+
+if (!pinStatusResponse.ok) {
+  throw new Error(
+    pinStatus?.error ||
+      "Unable to determine CareVR PIN status."
+  );
+}
+
+if (pinStatus.hasPin !== true) {
+  if (!registrationContext) {
+    throw new Error(
+      "CareVR registration context is unavailable."
+    );
+  }
+
+  router.replace(
+    `/secure-access/create-pin?registrationContext=${registrationContext}`
+  );
+
+  return;
+}
+
+setPinVerification({
+  user: authenticatedUser,
+});
+};
+
+
+
+const handleLogin = async () => {
+  setError("");
+
+  if (!email.trim()) {
+    setError("Email is required.");
+    return;
+  }
+
+  if (!password) {
+    setError("Password is required.");
+    return;
+  }
+
+    setLoading(true);
+
+    try {
+
+      const verifiedCaptchaToken =
+        authSecurity.requireCaptchaToken(
+          captchaToken
+        );
+
+  setCaptchaToken(null);
+
+// PERFORMANCE TRACKING — COMMENTED OUT FOR DEMO
+// performanceTracker.start({
+//   fromPath: "/login",
+//   toPath: "/dashboard",
+//   feature: "LOGIN_TO_DASHBOARD",
+// });
+
+// Temporary login performance diagnostics retained for future troubleshooting.
+//
+// const loginStartedAt = performance.now();
+
+const authenticatedUser =
+  await authService.login(
+    email.trim(),
+    password,
+    verifiedCaptchaToken
+  );
+
+const passwordStatusResponse =
+  await fetch(
+    "/api/security/password-status",
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+const passwordStatus =
+  await passwordStatusResponse.json();
+
+if (!passwordStatusResponse.ok) {
+  throw new Error(
+    passwordStatus.error ||
+      "Unable to determine password status."
+  );
+}
+
+if (passwordStatus.isExpired === true) {
+  router.replace(
+    "/reset-password?mode=expired"
+  );
+  return;
+}
+
+
+      // ------------------------------------------------------------
+      // CAREVR REGISTRATION CONTEXT
+      // ------------------------------------------------------------
+
+      let registrationContext:
+        | "PRODUCT"
+        | "INVITATION"
+        | "DUAL"
+        | null = null;
+
+      const normalizedLoginEmail =
+        authenticatedUser.email?.trim().toLowerCase();
+
+      if (!normalizedLoginEmail) {
+        throw new Error(
+          "Unable to determine the authenticated user's email."
+        );
+      }
+
+      const {
+        data: roleContexts,
+        error: roleContextsError,
+      } = await supabase
+        .from("role_clarification")
+        .select("type, invited_role")
+        .eq("email", normalizedLoginEmail);
+
+      if (roleContextsError) {
+        throw new Error(roleContextsError.message);
+      }
+
+      const contexts = roleContexts ?? [];
+
+      const productContexts = contexts.filter(
+        (context) =>
+          context.type === "PRODUCT" &&
+          context.invited_role === "PRIMARY"
+      );
+
+      const invitationContexts = contexts.filter(
+        (context) => context.type === "INVITATION"
+      );
+
+      if (
+        contexts.length === 2 &&
+        productContexts.length === 1 &&
+        invitationContexts.length === 1
+      ) {
+        registrationContext = "DUAL";
+      } else {
+        const {
+          data: invitation,
+          error: invitationError,
+        } = await supabase
+          .from("carevr_invitation")
+          .select("role")
+          .eq("invited_user_id", authenticatedUser.id)
+          .eq("status", "ACCEPTED")
+          .order("accepted_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (invitationError) {
+          throw new Error(invitationError.message);
+        }
+
+        if (invitation) {
+          const matchingInvitationContext =
+            invitationContexts.find(
+              (context) =>
+                context.invited_role === invitation.role
+            );
+
+          if (matchingInvitationContext) {
+            registrationContext = "INVITATION";
+          }
+        }
+
+        if (
+          !registrationContext &&
+          productContexts.length > 0
+        ) {
+          registrationContext = "PRODUCT";
+        }
+      }
+
+// If there is no accepted invitation, check the
+// existing PRODUCT registration context for Primary.
+if (!registrationContext) {
+  const {
+    data: productContext,
+    error: productContextError,
+  } = await supabase
+    .from("role_clarification")
+    .select("type")
+    .eq(
+      "email",
+      authenticatedUser.email
+    )
+    .eq(
+      "type",
+      "PRODUCT"
+    )
+    .eq(
+      "invited_role",
+      "PRIMARY"
+    )
+    .order(
+      "created_at",
+      {
+        ascending: false,
+      }
+    )
+    .limit(1)
+    .maybeSingle();
+
+  if (productContextError) {
+    throw new Error(
+      productContextError.message
+    );
+  }
+
+  if (productContext) {
+    registrationContext =
+      "PRODUCT";
+  }
+}
+
+
+
+
+// const loginCompletedAt = performance.now();
+
+// console.log(
+//   `[LOGIN-PERF] authService.login: ${Math.round(
+//     loginCompletedAt - loginStartedAt
+//   )} ms`
+// );
+
+// const pinStatusStartedAt = performance.now();
+
+const pinStatusResponse =
+  await fetch(
+    "/api/security/pin-status",
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+// const pinStatusResponseReceivedAt =
+//   performance.now();
+
+const pinStatus =
+  await pinStatusResponse.json();
+
+// const pinStatusCompletedAt =
+//   performance.now();
+
+// console.log(
+//   `[LOGIN-PERF] /api/security/pin-status fetch: ${Math.round(
+//     pinStatusResponseReceivedAt - pinStatusStartedAt
+//   )} ms`
+// );
+
+// console.log(
+//   `[LOGIN-PERF] /api/security/pin-status JSON: ${Math.round(
+//     pinStatusCompletedAt - pinStatusResponseReceivedAt
+//   )} ms`
+// );
+
+if (!pinStatusResponse.ok) {
+  throw new Error(
+    pinStatus?.error ||
+    "Unable to determine CareVR PIN status."
+  );
+}
+
+if (pinStatus.hasPin !== true) {
+
+  if (!registrationContext) {
+    throw new Error(
+      "CareVR registration context is unavailable."
+    );
+  }
+
+  router.replace(
+    `/secure-access/create-pin?registrationContext=${registrationContext}`
+  );
+
+  return;
+}
+
+const pinRenderStartedAt =
+  performance.now();
+
+setPinVerification({
+  user: authenticatedUser,
+});
+
+
+return;
+
+  } catch (err) {
+
+//    performanceTracker.cancel();
+
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Unable to login.";
+
+    setError(message);
+} finally {
+  setCaptchaToken(null);
+  turnstileRef.current?.reset();
+  setLoading(false);
+}
+};
+
+
+useEffect(() => {
+  const isMobile =
+    window.matchMedia(
+      "(max-width: 767px)"
+    ).matches;
+
+  if (!isMobile) {
+    return;
+  }
+
+  const googleClientId =
+    "720994182648-0n28fbdvd6t92muirm81gv1adjd4vnhp.apps.googleusercontent.com";
+
+  const initializeMobileGoogle =
+    async () => {
+      try {
+        if (
+          !window.google?.accounts?.id
+        ) {
+          await new Promise<void>(
+            (resolve, reject) => {
+              const existingScript =
+                document.querySelector(
+                  'script[src="https://accounts.google.com/gsi/client"]'
+                );
+
+              if (existingScript) {
+                existingScript.addEventListener(
+                  "load",
+                  () => resolve(),
+                  { once: true }
+                );
+
+                existingScript.addEventListener(
+                  "error",
+                  () =>
+                    reject(
+                      new Error(
+                        "Unable to load Google authentication."
+                      )
+                    ),
+                  { once: true }
+                );
+
+                return;
+              }
+
+              const script =
+                document.createElement(
+                  "script"
+                );
+
+              script.src =
+                "https://accounts.google.com/gsi/client";
+
+              script.async = true;
+              script.defer = true;
+
+              script.onload = () =>
+                resolve();
+
+              script.onerror = () =>
+                reject(
+                  new Error(
+                    "Unable to load Google authentication."
+                  )
+                );
+
+              document.head.appendChild(
+                script
+              );
+            }
+          );
+        }
+
+        if (
+          !googleMobileButtonRef.current
+        ) {
+          return;
+        }
+
+        const nonce = btoa(
+          String.fromCharCode(
+            ...crypto.getRandomValues(
+              new Uint8Array(32)
+            )
+          )
+        );
+
+        const hashBuffer =
+          await crypto.subtle.digest(
+            "SHA-256",
+            new TextEncoder().encode(
+              nonce
+            )
+          );
+
+        const hashedNonce =
+          Array.from(
+            new Uint8Array(hashBuffer)
+          )
+            .map(
+              (b) =>
+                b
+                  .toString(16)
+                  .padStart(2, "0")
+            )
+            .join("");
+
+        window.google.accounts.id.initialize(
+          {
+            client_id: googleClientId,
+            nonce: hashedNonce,
+            use_fedcm_for_button: true,
+
+callback: async (
+  response: GoogleCredentialResponse
+) => {
+  try {
+// ============================================================
+// MOBILE GOOGLE LOGIN FLOW
+// Google Identity Services renderButton()
+// ============================================================
+
+
+setGoogleTransition(true);
+setGoogleLoading(true);
+
+await new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            resolve();
+        });
+    });
+});
+
+const credential =
+    response.credential;
+
+                const payload =
+                  JSON.parse(
+                    atob(
+                      credential.split(".")[1]
+                    )
+                  );
+
+                const selectedGmail =
+                  typeof payload.email ===
+                  "string"
+                    ? payload.email
+                        .trim()
+                        .toLowerCase()
+                    : "";
+
+                if (!selectedGmail) {
+                  throw new Error(
+                    "Unable to identify the selected Google account."
+                  );
+                }
+
+                const authUserResponse =
+                  await fetch(
+                    "/api/auth/verify-user",
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type":
+                          "application/json",
+                      },
+                      body: JSON.stringify({
+                        email:
+                          selectedGmail,
+                      }),
+                    }
+                  );
+
+                const authUserResult =
+                  await authUserResponse.json();
+
+                if (
+                  !authUserResponse.ok ||
+                  authUserResult.exists !==
+                    true
+                ) {
+                  throw new Error(
+                    "Please complete registration provided in your email or reach out to your Primary."
+                  );
+                }
+
+
+
+
+                const authenticatedUser =
+                  await authService.signInWithGoogleCredential(
+                    credential,
+                    nonce
+                  );
+
+
+
+
+                await continueAfterAuthentication(
+                  authenticatedUser
+                );
+
+              } catch (error) {
+                const message =
+                  error instanceof Error
+                    ? error.message
+                    : "Unable to continue with Google.";
+
+    setGoogleTransition(false);
+    setError(message);
+    setGoogleLoading(false);
+              }
+            },
+
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          }
+        );
+
+        googleMobileButtonRef.current.innerHTML =
+          "";
+
+        window.google.accounts.id.renderButton(
+          googleMobileButtonRef.current,
+          {
+            type: "standard",
+            theme: "outline",
+            size: "large",
+            text: "continue_with",
+            shape: "rectangular",
+            width: 320,
+            logo_alignment: "left",
+            use_fedcm_for_button: true,
+          }
+        );
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to load Google authentication.";
+
+        setError(message);
+      }
+    };
+
+  void initializeMobileGoogle();
+}, []);
+
+const handleGoogleLogin = async () => {
+  setError("");
+
+  try {
+    setGoogleLoading(true);
+
+    const googleClientId =
+      "720994182648-0n28fbdvd6t92muirm81gv1adjd4vnhp.apps.googleusercontent.com";
+
+    const loadGoogleIdentityServices =
+      () =>
+        new Promise<void>((resolve, reject) => {
+          if (
+            window.google?.accounts?.id
+          ) {
+            resolve();
+            return;
+          }
+
+          const existingScript =
+            document.querySelector(
+              'script[src="https://accounts.google.com/gsi/client"]'
+            );
+
+          if (existingScript) {
+            existingScript.addEventListener(
+              "load",
+              () => resolve(),
+              { once: true }
+            );
+
+            existingScript.addEventListener(
+              "error",
+              () =>
+                reject(
+                  new Error(
+                    "Unable to load Google authentication."
+                  )
+                ),
+              { once: true }
+            );
+
+            return;
+          }
+
+          const script =
+            document.createElement("script");
+
+          script.src =
+            "https://accounts.google.com/gsi/client";
+
+          script.async = true;
+          script.defer = true;
+
+          script.onload = () => resolve();
+
+          script.onerror = () =>
+            reject(
+              new Error(
+                "Unable to load Google authentication."
+              )
+            );
+
+          document.head.appendChild(script);
+        });
+
+    await loadGoogleIdentityServices();
+
+const nonce = btoa(
+  String.fromCharCode(
+    ...crypto.getRandomValues(new Uint8Array(32))
+  )
+);
+
+const encodedNonce = new TextEncoder().encode(nonce);
+
+const hashBuffer =
+  await crypto.subtle.digest(
+    "SHA-256",
+    encodedNonce
+  );
+
+const hashArray =
+  Array.from(new Uint8Array(hashBuffer));
+
+const hashedNonce =
+  hashArray
+    .map(
+      (b) =>
+        b.toString(16).padStart(2, "0")
+    )
+    .join("");
+
+let authenticatedUser:
+  | Awaited<
+      ReturnType<typeof authService.login>
+    >
+  | null = null;
+
+await new Promise<void>(
+  (resolve, reject) => {
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      nonce: hashedNonce,
+      callback: async (
+        response: GoogleCredentialResponse
+      ) => {
+        try {
+          const credential =
+            response.credential;
+
+          if (!credential) {
+            throw new Error(
+              "Unable to identify the selected Google account."
+            );
+          }
+
+          const payload =
+            JSON.parse(
+              atob(
+                credential.split(".")[1]
+              )
+            );
+
+          const selectedGmail =
+            typeof payload.email === "string"
+              ? payload.email
+                  .trim()
+                  .toLowerCase()
+              : "";
+
+          if (!selectedGmail) {
+            throw new Error(
+              "Unable to identify the selected Google account."
+            );
+          }
+
+          const authUserResponse =
+            await fetch(
+              "/api/auth/verify-user",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+                body: JSON.stringify({
+                  email: selectedGmail,
+                }),
+              }
+            );
+
+          const authUserResult =
+            await authUserResponse.json();
+
+          if (
+            !authUserResponse.ok ||
+            authUserResult.exists !== true
+          ) {
+            throw new Error(
+              "Please complete registration provided in your email or reach out to your Primary."
+            );
+          }
+
+
+// ============================================================
+// DESKTOP GOOGLE LOGIN FLOW
+// Google Identity Services prompt()
+// ============================================================
+
+setGoogleTransition(true);
+
+
+          authenticatedUser =
+            await authService.signInWithGoogleCredential(
+              credential,
+              nonce
+            );
+
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      },
+
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+
+window.google.accounts.id.prompt();
+
+  }
+);
+
+
+if (!authenticatedUser) {
+  throw new Error(
+    "Unable to authenticate with Google."
+  );
+}
+
+
+
+await continueAfterAuthentication(
+  authenticatedUser
+);
+
+} catch (err) {
+  const message =
+    err instanceof Error
+      ? err.message
+      : "Unable to continue with Google.";
+
+  setError(message);
+  setGoogleLoading(false);
+}
+};
+return (
+  <>
+{pinVerification ? (
+  <ValidatePin
+    userId={pinVerification.user.id}
+    email={pinVerification.user.email ?? ""}
+  />
+) : googleTransition ? (
+  <div
+    className="google-transition"
+    style={{
+      minHeight: "100dvh",
+      width: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center",
+      background: "#f1eaff",
+      padding: "24px",
+    }}
+  >
+    <style jsx global>{`
+      @keyframes googleTransitionPulse {
+        0%,
+        60%,
+        100% {
+          opacity: 0.3;
+          transform: scale(0.8);
+        }
+
+        30% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    `}</style>
+
+    <div
+      aria-hidden="true"
+      style={{
+        display: "flex",
+        gap: "8px",
+        marginBottom: "18px",
+      }}
+    >
+      <span
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          background: "#8b6fd8",
+          animation: "googleTransitionPulse 1.2s ease-in-out infinite",
+        }}
+      />
+      <span
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          background: "#8b6fd8",
+          animation: "googleTransitionPulse 1.2s ease-in-out 0.15s infinite",
+        }}
+      />
+      <span
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          background: "#8b6fd8",
+          animation: "googleTransitionPulse 1.2s ease-in-out 0.3s infinite",
+        }}
+      />
+    </div>
+
+  <div className="google-transition-title">
+    Connecting to CareVR
+  </div>
+
+<div className="google-transition-subtitle">
+  Preparing your secure access
+</div>
+</div>
+) : (
+  <>
+        <style jsx global>{`
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+      }
+
+      body {
+        background: #ffffff;
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        color: #15203d;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .login-page {
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        background: #f1eaff;
+      }
+
+      .login-shell {
+        width: min(1180px, 100%);
+        min-height: 720px;
+        display: grid;
+        grid-template-columns: 47% 53%;
+        position: relative;
+        overflow: hidden;
+        border-radius: 28px;
+        border: 1px solid #e9e5f3;
+        background: #ffffff;
+        box-shadow:
+          0 30px 80px rgba(36, 28, 75, 0.10),
+          0 6px 20px rgba(36, 28, 75, 0.04);
+      }
+
+      /* ==============================
+         LEFT â€” LOGIN
+      ============================== */
+
+      .login-left {
+        display: flex;
+        flex-direction: column;
+        padding: 34px 54px 30px;
+        background: #f1eaff;
+      }
+
+/* =========================================================
+   DESKTOP CAREVR LOGO
+   ========================================================= */
+
+.carevr-logo {
+  width: 250px;
+  height: 150px;
+  margin-bottom: 28px;
+
+  background-image: url("/images/CareVR%20v1.0.png");
+  background-repeat: no-repeat;
+  background-position: left top;
+  background-size: contain;
+}
+
+      .login-content {
+        width: 100%;
+        max-width: 430px;
+        margin: auto;
+      }
+
+      .login-heading {
+        margin-bottom: 28px;
+      }
+
+      .login-heading h1 {
+        margin: 0;
+        font-size: 42px;
+        line-height: 1.08;
+        letter-spacing: -1.8px;
+        font-weight: 730;
+        color: #15203d;
+      }
+
+      .login-heading p {
+        margin: 9px 0 0;
+        font-size: 16px;
+        line-height: 1.5;
+        color: #737b91;
+      }
+
+      .login-error {
+        margin-bottom: 16px;
+        padding: 11px 13px;
+        border: 1px solid #ffd0d0;
+        border-radius: 11px;
+        background: #fff5f5;
+        color: #b42318;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+/* ---------------------------------------------------------
+   LOGIN VALIDATION PANEL
+
+   Positioned independently so validation never pushes the
+   role panels or any controls below them downward.
+
+   The panel is intentionally compact and narrower than
+   the login form.
+--------------------------------------------------------- */
+
+.login-validation-panel {
+  position: absolute;
+
+  left: 0;
+  top: -54px;
+
+  width: 39%;
+  min-height: 30px;
+
+  padding: 3px 8px;
+
+  border: 1px solid #ffd0d0;
+  border-radius: 7px;
+
+  background: #fff5f5;
+
+  color: #b42318;
+
+  font-size: 10px;
+  line-height: 14px;
+
+  z-index: 20;
+}
+
+.login-validation-visible {
+  visibility: visible;
+}
+
+      .field {
+        margin-bottom: 16px;
+      }
+
+      .field label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 14px;
+        line-height: 1.3;
+        font-weight: 700;
+        color: #25304d;
+      }
+
+      .input-wrap {
+        position: relative;
+      }
+
+      .input-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        width: 19px;
+        height: 19px;
+        transform: translateY(-50%);
+        color: #8991a5;
+        pointer-events: none;
+      }
+
+      .login-input {
+        width: 100%;
+        height: 53px;
+        padding: 0 46px;
+        border: 1px solid #d9dce6;
+        border-radius: 13px;
+        outline: none;
+        background: #ffffff;
+        color: #15203d;
+        font-size: 15px;
+        transition:
+          border-color 160ms ease,
+          box-shadow 160ms ease;
+      }
+
+      .login-input::placeholder {
+        color: #9ba1b2;
+      }
+
+      .login-input:focus {
+        border-color: #7043f5;
+        box-shadow: 0 0 0 4px rgba(112, 67, 245, 0.09);
+      }
+
+      .password-toggle {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        transform: translateY(-50%);
+        border: 0;
+        border-radius: 9px;
+        background: transparent;
+        color: #7f879d;
+        cursor: pointer;
+      }
+
+      .password-toggle:hover {
+        background: #f6f3ff;
+        color: #7043f5;
+      }
+
+.login-security-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 4px;
+}
+
+.login-captcha {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+.login-action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  width: 100%;
+  column-gap: 24px;
+  row-gap: 0;
+  align-items: center;
+  margin: -8px 0 0;
+}
+
+.login-action-grid .primary-button {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  justify-self: center;
+  width: 104px;
+  height: 34px;
+  margin: 0;
+  padding: 0;
+  border-radius: 9px;
+  font-size: 11.5px;
+  font-weight: 700;
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 10px
+    rgba(106, 62, 239, 0.14);
+}
+
+.login-action-grid .forgot-password {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: start;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #7043f5;
+  font-size: 11.5px;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transform: translateY(2px);
+}
+
+.login-create-account {
+  grid-column: 2;
+  grid-row: 2;
+
+  justify-self: start;
+
+  width: auto;
+  height: auto;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+  color: #7043f5;
+
+  font-size: 11.5px;
+  font-weight: 650;
+  line-height: 1.2;
+
+  white-space: nowrap;
+  cursor: pointer;
+  transform: translateY(-6px);
+}
+
+.invitation-required-message {
+  width: 100%;
+  margin-top: 10px;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.invitation-required-star {
+  color: #dc2626;
+  font-weight: 800;
+  margin-right: 3px;
+}
+
+.login-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  width: 100%;
+  gap: 5px 12px;
+  margin: 0;
+}
+
+.login-actions .forgot-password {
+  grid-column: 1;
+  grid-row: 1;
+
+  justify-self: center;
+
+  display: block;
+  width: auto;
+
+  margin: 0;
+  padding: 0;
+
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.login-actions .primary-button {
+  grid-column: 1;
+  grid-row: 2;
+
+  justify-self: center;
+
+  display: flex;
+
+  width: 82px;
+  height: 34px;
+
+  margin: 0;
+
+  border-radius: 9px;
+
+  font-size: 11px;
+}
+
+      .primary-button {
+        width: 100%;
+        height: 53px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 13px;
+        background: linear-gradient(135deg, #7545f5, #6432e8);
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 10px 22px rgba(106, 62, 239, 0.19);
+        transition:
+          transform 160ms ease,
+          box-shadow 160ms ease;
+      }
+
+      .primary-button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 13px 27px rgba(106, 62, 239, 0.25);
+      }
+
+      .primary-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 21px 0;
+      }
+
+      .divider-line {
+        flex: 1;
+        height: 1px;
+        background: rgba(229, 230, 236, 0.65);
+      }
+
+      .divider-text {
+        color: #9399aa;
+        font-size: 12px;
+      }
+
+      .google-button {
+        width: 100%;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid #d9dce6;
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.96);
+        color: #30384f;
+        font-size: 11.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          background 160ms ease,
+          border-color 160ms ease;
+      }
+
+      .google-button:hover:not(:disabled) {
+        background: #fafaff;
+        border-color: #c8ccda;
+      }
+
+      .google-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .google-icon {
+        width: 19px;
+        height: 19px;
+      }
+
+.google-transition {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: #f1eaff;
+  padding: 24px;
+}
+
+.google-transition-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-bottom: 22px;
+}
+
+.google-transition-spinner span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7043f5;
+  animation: googleTransitionPulse 1.2s ease-in-out infinite;
+}
+
+.google-transition-spinner span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.google-transition-spinner span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.google-transition-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #15203d;
+}
+
+.google-transition-subtitle {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #737b91;
+}
+
+.google-transition-dots span {
+  display: inline-block;
+  animation: googleTransitionDot 1.2s infinite;
+}
+
+.google-transition-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.google-transition-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes googleTransitionPulse {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes googleTransitionDot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+  }
+
+  30% {
+    opacity: 1;
+  }
+}
+
+.register {
+  margin: 8px 0 0;
+  text-align: center;
+  color: #7b8296;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.register button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #7043f5;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.registerPrompt {
+  font-size: 15px;
+  font-weight: 600;
+  color: #7b8296;
+}
+
+      /* ==============================
+         COMMON CAREVR FOOTER
+      ============================== */
+
+      .login-footer {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 5;
+  pointer-events: none;
+      }
+
+
+
+      /* ==============================
+         RIGHT â€” BRAND IMAGE
+      ============================== */
+
+.login-right {
+  position: relative;
+  min-height: 720px;
+  overflow: hidden;
+  background:
+    #f2edff
+    url("/images/Desktop%20Login%20Background.png")
+    center center / 100% 100%
+    no-repeat;
+}
+
+      /* ==============================
+         CARE CONTEXT
+         ============================== */
+
+      .context-selection {
+        width: 100%;
+        margin-bottom: 14px;
+      }
+
+      .context-selection-title {
+        margin-bottom: 8px;
+        font-size: 14px;
+        line-height: 1.3;
+        font-weight: 700;
+        color: #15203d;
+      }
+
+      .context-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .context-option {
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border: 1px solid #d9dce6;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.82);
+        color: #15203d;
+        text-align: left;
+        cursor: pointer;
+        transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+      }
+
+      .context-option:hover:not(:disabled) {
+        border-color: #b9a7f7;
+        background: rgba(255, 255, 255, 0.96);
+      }
+
+      .context-option-selected {
+        border: 2px solid #7043f5;
+        background: #f7f3ff;
+        box-shadow: 0 0 0 2px rgba(112, 67, 245, 0.10);
+      }
+
+      .context-option:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .context-icon {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 9px;
+        background: #f1eaff;
+        color: #7043f5;
+      }
+
+      .context-option-copy {
+        min-width: 0;
+      }
+
+      .context-option-title {
+        display: block;
+        font-size: 13px;
+        font-weight: 750;
+        line-height: 1.2;
+      }
+
+      .context-option-description {
+        display: block;
+        margin-top: 3px;
+        font-size: 10.5px;
+        line-height: 1.25;
+        color: #737b91;
+      }
+
+      /* =========================================================
+         ROLE SELECTION
+
+         UI-only at this stage.
+         Authentication and authorization remain unchanged.
+      ========================================================= */
+
+      .role-selection {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      .role-selection-title {
+        margin-bottom: 10px;
+
+        font-size: 14px;
+        line-height: 1.3;
+
+        font-weight: 700;
+
+        color: #15203d;
+      }
+
+.role-options {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 7px;
+}
+
+.role-option {
+  min-height: 66px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  padding: 7px 4px;
+
+  border: 1px solid #d9dce6;
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  color: #15203d;
+
+  cursor: pointer;
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+      .role-option:hover:not(:disabled) {
+        border-color: #b9a7f7;
+        background: #faf8ff;
+      }
+
+.role-option-selected {
+  border: 1px solid #7043f5;
+
+  background: #f7f3ff;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(112, 67, 245, 0.12);
+}
+
+      .role-option:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .role-icon {
+        width: 30px;
+        height: 30px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+
+        background: #f1eaff;
+
+        color: #7043f5;
+
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .role-label {
+        font-size: 12px;
+        line-height: 1.2;
+
+        font-weight: 700;
+
+        text-align: center;
+      }
+
+
+      /* ==============================
+         TABLET
+      ============================== */
+
+@media (max-width: 900px) {
+  .login-page {
+    padding: 18px;
+  }
+
+  .login-shell {
+    width: min(1180px, 100%);
+    min-height: 720px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+
+    position: relative;
+
+    overflow: hidden;
+  }
+
+  .login-left {
+    position: relative;
+    inset: auto;
+    z-index: 1;
+
+    flex: 0 0 47%;
+    width: 47%;
+    min-width: 0;
+    min-height: 720px;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 34px 46px 30px;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+  }
+
+  .login-right {
+    position: relative;
+    inset: auto;
+    z-index: 2;
+
+    flex: 0 0 53%;
+    width: 53%;
+    min-width: 0;
+    min-height: 720px;
+    height: auto;
+    max-height: none;
+
+    display: block;
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+
+    background:
+      #f2edff
+      url("/images/Desktop%20Login%20Background.png")
+      center center / 100% 100%
+      no-repeat;
+  }
+
+  .login-content {
+    margin: auto;
+  }
+}
+
+      /* =========================================================
+         MOBILE LOGIN
+         
+         COSMETIC / ALIGNMENT ONLY
+         
+         Mobile uses one full-width login surface.
+         Desktop left/right composition is not used.
+         
+         Authentication, CAPTCHA, login state, routing,
+         authorization and all application functionality
+         remain completely unchanged.
+      ========================================================= */
+
+      @media (max-width: 600px) {
+
+        /* =====================================================
+           MOBILE PAGE
+        ===================================================== */
+
+        .login-page {
+          display: block;
+
+          width: 100%;
+          height: 100dvh;
+          min-height: 100dvh;
+
+          padding: 0;
+
+          overflow: hidden;
+
+          background: #f1eaff;
+        }
+
+
+        /* =====================================================
+           MOBILE SHELL
+        ===================================================== */
+
+        .login-shell {
+          position: relative;
+
+          width: 100%;
+          height: 100dvh;
+          min-height: 100dvh;
+
+          display: block;
+
+          overflow: hidden;
+
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
+
+          background-color: #f1eaff;
+
+          background-image:
+            url("/images/Mobile%20Login%20Background.png");
+
+          background-repeat: no-repeat;
+
+          background-position: center top;
+
+          background-size: 100% 100%;
+        }
+
+
+        /* =====================================================
+           DESKTOP ARTWORK — HIDDEN ON MOBILE
+        ===================================================== */
+
+        .login-right {
+          display: none !important;
+        }
+
+
+        /* =====================================================
+           MOBILE LOGIN LAYER
+        ===================================================== */
+
+        .login-left {
+          position: absolute;
+
+          inset: 0;
+
+          z-index: 2;
+
+          display: block;
+
+          width: 100%;
+          min-width: 0;
+          min-height: 0;
+
+          padding: 0;
+
+          background: transparent;
+        }
+
+
+        /* =====================================================
+           CAREVR LOGO
+           
+           Mobile artwork already contains the visual branding.
+        ===================================================== */
+
+        .carevr-logo {
+          display: none !important;
+        }
+
+
+        /* =====================================================
+           MOBILE LOGIN CONTENT
+           
+           Full available horizontal space.
+        ===================================================== */
+
+        .login-content {
+          position: absolute;
+
+          top: calc(35%);
+
+          left: 4%;
+          right: 4%;
+
+          width: auto;
+          max-width: none;
+
+          margin: 0;
+
+          padding: 0;
+        }
+
+
+        /* =====================================================
+           MOBILE FORM BLOCK
+           
+           IMPORTANT:
+           No translateY.
+           No desktop max-width.
+           Entire form occupies available width.
+        ===================================================== */
+
+        .mobile-login-form-block {
+          display: block;
+
+          width: 100%;
+          max-width: none;
+
+          margin: 0;
+          padding: 0;
+
+          transform: none;
+        }
+
+
+        /* =====================================================
+           CARE CONTEXT
+        ===================================================== */
+
+        .context-selection {
+          width: 100%;
+
+          margin: 0 0 10px;
+        }
+
+        .context-selection-title {
+          margin-bottom: 5px;
+
+          font-size: 10.5px;
+          line-height: 1.25;
+
+          font-weight: 700;
+
+          color: #15203d;
+        }
+
+        .context-options {
+          display: grid;
+
+          width: 100%;
+
+          grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 1fr);
+
+          gap: 8px;
+        }
+
+        .context-option {
+          width: 100%;
+          min-width: 0;
+          min-height: 57px;
+
+          display: flex;
+          align-items: center;
+
+          gap: 8px;
+
+          padding: 7px 10px;
+
+          box-sizing: border-box;
+
+          border: 1px solid #d9dce6;
+          border-radius: 10px;
+
+          background: rgba(255, 255, 255, 0.96);
+
+          color: #15203d;
+
+          text-align: left;
+
+          cursor: pointer;
+        }
+
+        .context-option-selected {
+          border: 2px solid #7043f5;
+
+          background: #f7f3ff;
+
+          box-shadow:
+            0 0 0 2px
+            rgba(112, 67, 245, 0.10);
+        }
+
+        .context-option:disabled {
+          opacity: 0.55;
+
+          cursor: not-allowed;
+        }
+
+        .context-icon {
+          width: 28px;
+          height: 28px;
+
+          flex: 0 0 28px;
+
+          display: grid;
+          place-items: center;
+
+          border-radius: 8px;
+
+          background: #f1eaff;
+
+          color: #7043f5;
+        }
+
+        .context-icon svg {
+          width: 18px;
+          height: 18px;
+        }
+
+        .context-option-copy {
+          min-width: 0;
+
+          flex: 1;
+        }
+
+        .context-option-title {
+          display: block;
+
+          font-size: 10.5px;
+          line-height: 1.2;
+
+          font-weight: 750;
+        }
+
+        .context-option-description {
+          display: block;
+
+          margin-top: 2px;
+
+          font-size: 8.5px;
+          line-height: 1.25;
+
+          color: #737b91;
+        }
+
+
+        /* =====================================================
+           LOGIN METHOD TABS
+           
+           FULL WIDTH.
+        ===================================================== */
+
+.login-method-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  width: 100%;
+  height: 26px;
+
+  margin-bottom: 8px;
+  padding: 1px;
+
+  border: 1px solid #ddd7f2;
+  border-radius: 7px;
+
+  background: rgba(255, 255, 255, 0.72);
+
+  box-sizing: border-box;
+}
+
+.login-method-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 24px;
+  min-width: 0;
+  min-height: 24px;
+
+  margin: 0;
+  padding: 0;
+
+  box-sizing: border-box;
+
+  border: 1px solid transparent;
+  border-radius: 5px;
+
+  background: transparent;
+
+  color: #737b91;
+
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.login-method-tab-active {
+  height: 24px;
+  min-height: 24px;
+
+  background: #ffffff;
+
+  color: #7043f5;
+
+  border: 1px solid #7043f5;
+
+  box-shadow:
+    0 1px 3px rgba(112, 67, 245, 0.10);
+}
+
+
+        /* =====================================================
+           LOGIN METHOD CONTENT
+           
+           Full width.
+        ===================================================== */
+
+        .login-method-content {
+          width: 100%;
+          max-width: none;
+
+          margin: 0;
+          padding: 0;
+        }
+
+        .login-email-panel {
+          width: 100%;
+          max-width: none;
+        }
+
+
+        /* =====================================================
+           ERROR
+        ===================================================== */
+
+        .login-error {
+          width: 100%;
+
+          margin: 0 0 8px;
+
+          padding: 7px 9px;
+
+          box-sizing: border-box;
+
+          border: 1px solid #ffd0d0;
+          border-radius: 10px;
+
+          background: rgba(255, 245, 245, 0.96);
+
+          color: #b42318;
+
+          font-size: 10.5px;
+          line-height: 1.4;
+        }
+
+
+        /* =====================================================
+           INPUT FIELDS
+           
+           FULL WIDTH.
+        ===================================================== */
+
+        .field {
+          width: 100%;
+
+          margin: 0 0 7px;
+        }
+
+        .field label {
+          display: block;
+
+          width: 100%;
+
+          margin: 0 0 3px;
+
+          font-size: 10.5px;
+          line-height: 1.25;
+
+          font-weight: 700;
+
+          color: #4b556d;
+        }
+
+        .input-wrap {
+          position: relative;
+
+          width: 100%;
+        }
+
+        .input-icon {
+          position: absolute;
+
+          left: 13px;
+          top: 50%;
+
+          width: 17px;
+          height: 17px;
+
+          transform: translateY(-50%);
+
+          color: #8991a5;
+
+          pointer-events: none;
+        }
+
+        .login-input {
+          display: block;
+
+          width: 100%;
+          max-width: none;
+
+          height: 41px;
+
+          padding: 0 42px;
+
+          box-sizing: border-box;
+
+          border: 1px solid #d9dce6;
+          border-radius: 11px;
+
+          outline: none;
+
+          background: rgba(255, 255, 255, 0.96);
+
+          color: #15203d;
+
+          font-size: 16px;
+
+          -webkit-appearance: none;
+          appearance: none;
+        }
+
+        .login-input::placeholder {
+          color: #9ba1b2;
+        }
+
+        .login-input:focus {
+          border-color: #7043f5;
+
+          box-shadow:
+            0 0 0 3px
+            rgba(112, 67, 245, 0.09);
+        }
+
+
+        /* =====================================================
+           PASSWORD TOGGLE
+        ===================================================== */
+
+        .password-toggle {
+          position: absolute;
+
+          right: 3px;
+          top: 50%;
+
+          width: 35px;
+          height: 35px;
+
+          display: grid;
+          place-items: center;
+
+          transform: translateY(-50%);
+
+          border: 0;
+          border-radius: 9px;
+
+          background: transparent;
+
+          color: #7f879d;
+
+          cursor: pointer;
+        }
+
+
+        /* =====================================================
+           SECURITY / CAPTCHA
+        ===================================================== */
+
+        .login-security-actions {
+          display: flex;
+
+          flex-direction: column;
+
+          align-items: stretch;
+
+          width: 100%;
+
+          margin: 0;
+          padding: 0;
+
+          gap: 4px;
+        }
+
+        .login-captcha {
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          width: 100%;
+          min-width: 0;
+
+          overflow: visible;
+        }
+
+
+        /* =====================================================
+           LOGIN ACTION GRID
+           
+           Entire action area remains full width.
+        ===================================================== */
+
+        .login-action-grid {
+          display: grid;
+
+          grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 1fr);
+
+          grid-template-rows:
+            auto
+            auto;
+
+          width: 100%;
+          max-width: none;
+
+          column-gap: 24px;
+          row-gap: 5px;
+
+          align-items: center;
+
+          margin: -8px 0 0;
+
+          padding: 0;
+        }
+
+        .login-action-grid .primary-button {
+          grid-column: 1;
+          grid-row: 1 / span 2;
+
+          justify-self: center;
+
+          width: 104px;
+          height: 40px;
+
+          margin: 0;
+          padding: 0;
+
+          border-radius: 10px;
+
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .login-action-grid .forgot-password {
+          grid-column: 2;
+          grid-row: 1;
+
+          justify-self: start;
+
+          width: auto;
+
+          margin: 0;
+          padding: 0;
+
+          border: 0;
+
+          background: transparent;
+
+          color: #7043f5;
+
+          font-size: 12px;
+          font-weight: 650;
+          line-height: 1.2;
+
+          white-space: nowrap;
+
+          cursor: pointer;
+        }
+
+        .login-create-account {
+          grid-column: 2;
+          grid-row: 2;
+
+          justify-self: start;
+
+          width: auto;
+          height: auto;
+
+          margin: 0;
+          padding: 0;
+
+          border: 0;
+          border-radius: 0;
+
+          background: transparent;
+
+          color: #7043f5;
+
+          font-size: 12px;
+          font-weight: 650;
+          line-height: 1.2;
+
+          white-space: nowrap;
+
+          cursor: pointer;
+        }
+
+
+        /* =====================================================
+           GOOGLE LOGIN
+        ===================================================== */
+
+        .login-google-panel {
+          display: none;
+
+          width: 100%;
+          max-width: none;
+        }
+
+        .login-method-content[data-login-method="EMAIL"]
+          .login-google-panel,
+        .login-method-content[data-login-method="EMAIL"]
+          .divider {
+          display: none;
+        }
+
+        .login-method-content[data-login-method="GOOGLE"]
+          .login-email-panel {
+          display: none;
+        }
+
+
+.login-method-content[data-login-method="GOOGLE"]
+  .login-google-panel {
+  display: block;
+  transform: translateY(7px);
+}
+
+        .google-button {
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          width: 100%;
+          max-width: none;
+
+          height: 43px;
+
+          gap: 9px;
+
+          box-sizing: border-box;
+
+          border: 1px solid #d9dce6;
+          border-radius: 11px;
+
+          background: rgba(255, 255, 255, 0.96);
+
+          color: #202943;
+
+          font-size: 12px;
+          font-weight: 600;
+
+          cursor: pointer;
+        }
+
+        .google-icon {
+          width: 17px;
+          height: 17px;
+        }
+
+.mobile-google-button {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .desktop-google-button {
+    display: none;
+  }
+
+  .mobile-google-button {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+
+        /* =====================================================
+           REGISTER
+        ===================================================== */
+
+        .register {
+          width: 100%;
+
+          margin: 8px 0 0;
+
+          text-align: center;
+
+          color: #7b8296;
+
+          font-size: 10.5px;
+        }
+
+        .login-register-desktop {
+          display: none;
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        .login-footer {
+          display: none;
+        }
+
+
+        /* =====================================================
+           SMALL MOBILE
+        ===================================================== */
+
+        @media (max-width: 380px) {
+
+          .login-content {
+            top: calc(35%);
+
+            left: 5%;
+            right: 5%;
+
+            width: auto;
+          }
+
+          .login-heading h1 {
+            font-size: 22px;
+          }
+
+          .login-heading p {
+            font-size: 11.5px;
+          }
+
+          .field {
+            width: 100%;
+
+            margin-bottom: 8px;
+          }
+
+          .login-input {
+            height: 39px;
+          }
+
+          .primary-button {
+            height: 39px;
+          }
+
+          .google-button {
+            height: 39px;
+          }
+
+          .divider {
+            margin: 7px 0;
+          }
+
+          .register {
+            margin-top: 6px;
+          }
+        }
+
+
+        /* =====================================================
+           SHORT MOBILE
+        ===================================================== */
+
+        @media (max-height: 700px) {
+
+          .login-content {
+            top: calc(35%);
+          }
+
+          .login-heading {
+            margin-bottom: 15px;
+          }
+
+          .login-heading h1 {
+            font-size: 21px;
+          }
+
+          .login-heading p {
+            font-size: 11px;
+          }
+
+          .field {
+            margin-bottom: 6px;
+          }
+
+          .login-input {
+            height: 37px;
+          }
+
+          .primary-button {
+            height: 37px;
+          }
+
+          .google-button {
+            height: 37px;
+          }
+
+          .forgot-password {
+            font-size: 14px;
+          }
+
+          .divider {
+            margin: 6px 0;
+          }
+
+          .register {
+            margin-top: 5px;
+          }
+        }
+
+      }
+
+/* =========================================================
+   CAREVR LOGIN VISUAL RESTORATION
+
+   Visual-only override.
+   Authentication, CAPTCHA, CareVR access,
+   context resolution and navigation are untouched.
+========================================================= */
+
+@media (min-width: 901px) {
+
+  /* ---------------------------------------------------------
+     DESKTOP LOGIN METHOD TABS
+     --------------------------------------------------------- */
+
+  .login-method-tabs {
+    display: grid !important;
+
+    grid-template-columns: 1fr 1fr;
+
+    width: 100%;
+    height: 40px;
+
+    margin-bottom: 14px;
+    padding: 2px;
+
+    border: 1px solid #ddd7f2;
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, 0.72);
+
+    box-sizing: border-box;
+  }
+
+  .login-method-tab {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 34px;
+
+    min-width: 0;
+    min-height: 34px;
+
+    margin: 0;
+    padding: 0;
+
+    box-sizing: border-box;
+
+    border: 1px solid transparent;
+    border-radius: 7px;
+
+    background: transparent;
+
+    color: #737b91;
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+      background 140ms ease,
+      color 140ms ease,
+      border-color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  .login-method-tab-active {
+    height: 34px;
+    min-height: 34px;
+
+    background: #ffffff;
+
+    color: #7043f5;
+
+    border: 1px solid #7043f5;
+
+    box-shadow:
+      0 2px 6px
+      rgba(112, 67, 245, 0.12);
+  }
+
+  /* ---------------------------------------------------------
+     LOGIN METHOD CONTENT
+     --------------------------------------------------------- */
+
+.login-method-content[data-login-method="EMAIL"]
+  .login-google-panel,
+.login-method-content[data-login-method="EMAIL"]
+  .divider {
+  display: none !important;
+}
+
+.login-method-content[data-login-method="GOOGLE"]
+  .login-email-panel,
+.login-method-content[data-login-method="GOOGLE"]
+  .divider {
+  display: none !important;
+}
+
+.login-method-content[data-login-method="GOOGLE"]
+  .login-google-panel {
+  display: block !important;
+  transform: translateY(5px);
+}
+
+  /* ---------------------------------------------------------
+     DESKTOP PAGE
+     --------------------------------------------------------- */
+
+  .login-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    padding: 28px;
+
+    background: #f1eaff;
+  }
+
+  /* ---------------------------------------------------------
+     DESKTOP SHELL
+     --------------------------------------------------------- */
+
+  .login-shell {
+    width: min(1180px, 100%);
+
+    min-height: 720px;
+
+    display: grid;
+
+    grid-template-columns: 47% 53%;
+    grid-template-rows: minmax(720px, 1fr);
+
+    position: relative;
+
+    overflow: hidden;
+
+    border-radius: 28px;
+    border: 1px solid #e9e5f3;
+
+    background: #ffffff;
+
+    box-shadow:
+      0 30px 80px rgba(36, 28, 75, 0.10),
+      0 6px 20px rgba(36, 28, 75, 0.04);
+  }
+
+  /* ---------------------------------------------------------
+     DESKTOP LEFT — LOGIN
+     --------------------------------------------------------- */
+
+  .login-left {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+
+    position: relative;
+    inset: auto;
+
+    z-index: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    min-width: 0;
+    min-height: 720px;
+
+    padding: 34px 54px 30px;
+
+    background: #ffffff;
+  }
+
+  /* ---------------------------------------------------------
+     DESKTOP CAREVR LOGO
+     --------------------------------------------------------- */
+
+  .carevr-logo {
+    display: block;
+
+    width: 250px;
+    height: 150px;
+
+    margin-bottom: 28px;
+
+    background-image:
+      url("/images/CareVR%20v1.0.png");
+
+    background-repeat: no-repeat;
+    background-position: left top;
+    background-size: contain;
+  }
+
+  /* ---------------------------------------------------------
+     DESKTOP LOGIN CONTENT
+     --------------------------------------------------------- */
+
+.login-content {
+  position: relative;
+  z-index: 6;
+
+  width: 100%;
+  max-width: 430px;
+
+  margin: auto;
+  padding-bottom: 35px;
+}
+
+  /* ---------------------------------------------------------
+     DESKTOP RIGHT — BRAND EXPERIENCE
+     --------------------------------------------------------- */
+
+  .login-right {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+
+    position: relative;
+
+    z-index: 2;
+
+    min-width: 0;
+    min-height: 720px;
+
+    height: 100%;
+
+    overflow: hidden;
+
+    background:
+      #f2edff
+      url("/images/Desktop%20Login%20Background.png")
+      center center / 100% 100%
+      no-repeat;
+  }
+}
+
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    `}</style>
+
+    <main className="login-page">
+      <section className="login-shell">
+
+        {/* ============================
+            LEFT â€” LOGIN
+        ============================ */}
+
+        <div className="login-left">
+
+          <div
+  className="carevr-logo"
+  aria-label="CareVR"
+/>
+
+<div className="login-content">
+
+<div className="mobile-login-form-block">
+
+<div className="context-selection">
+  <div className="context-selection-title"></div>
+  <div className="context-selection-title"></div>
+  <div className="context-selection-title"></div>
+  <div className="context-options" role="group" aria-label="Care context">
+    <button
+      type="button"
+      className={`context-option ${
+        selectedContext === "FAMILY"
+          ? "context-option-selected"
+          : ""
+      }`}
+      onClick={() => setSelectedContext("FAMILY")}
+      disabled={loading || googleLoading}
+      aria-pressed={selectedContext === "FAMILY"}
+    >
+      <span className="context-icon" aria-hidden="true">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M3 10.5 12 3l9 7.5" />
+          <path d="M5.5 9.5V20h13V9.5" />
+          <path d="M9.5 20v-5h5v5" />
+        </svg>
+      </span>
+      <span className="context-option-copy">
+        <span className="context-option-title">Care Family</span>
+        <span className="context-option-description">For individuals and families</span>
+      </span>
+    </button>
+
+    <button
+      type="button"
+      className={`context-option ${
+        selectedContext === "ORGANISATION"
+          ? "context-option-selected"
+          : ""
+      }`}
+      onClick={() => setSelectedContext("ORGANISATION")}
+      disabled={true}
+      aria-pressed={selectedContext === "ORGANISATION"}
+      aria-label="Care Organisation (coming soon)"
+    >
+      <span className="context-icon" aria-hidden="true">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <rect x="4" y="3" width="16" height="18" rx="2" />
+          <path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-4h4v4" />
+        </svg>
+      </span>
+      <span className="context-option-copy">
+        <span className="context-option-title">Care Organisation</span>
+        <span className="context-option-description">Coming soon — for care teams and providers</span>
+      </span>
+    </button>
+  </div>
+</div>
+
+
+    <div
+      className="login-method-tabs"
+      role="tablist"
+      aria-label="Login method"
+    >
+  <button
+    type="button"
+    className={`login-method-tab ${
+      loginMethod === "EMAIL"
+        ? "login-method-tab-active"
+        : ""
+    }`}
+    role="tab"
+    aria-selected={loginMethod === "EMAIL"}
+    onClick={() =>
+      setLoginMethod("EMAIL")
+    }
+    disabled={loading || googleLoading}
+  >
+    Email
+  </button>
+
+  <button
+    type="button"
+    className={`login-method-tab ${
+      loginMethod === "GOOGLE"
+        ? "login-method-tab-active"
+        : ""
+    }`}
+    role="tab"
+    aria-selected={loginMethod === "GOOGLE"}
+    onClick={() =>
+      setLoginMethod("GOOGLE")
+    }
+    disabled={loading || googleLoading}
+  >
+    Google
+  </button>
+</div>
+{error && (
+  <div
+    className="login-error"
+    role="alert"
+    aria-live="polite"
+  >
+    {error}
+  </div>
+)}
+
+<div
+  className="login-method-content"
+  data-login-method={loginMethod}
+>
+
+  <div className="login-email-panel">
+
+    {/* EMAIL */}
+
+    <div className="field">
+
+      <label htmlFor="email">
+        Email Address
+      </label>
+
+      <div className="input-wrap">
+
+        <svg
+          className="input-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          aria-hidden="true"
+        >
+          <rect
+            x="3"
+            y="5"
+            width="18"
+            height="14"
+            rx="2.5"
+          />
+          <path d="m3 7 9 6 9-6" />
+        </svg>
+
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
+          placeholder="Enter your email"
+          className="login-input"
+          disabled={loading}
+          autoComplete="email"
+        />
+
+      </div>
+    </div>
+
+    {/* PASSWORD */}
+
+    <div className="field">
+
+      <label htmlFor="password">
+        Password
+      </label>
+
+      <div className="input-wrap">
+
+        <svg
+          className="input-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          aria-hidden="true"
+        >
+          <rect
+            x="5"
+            y="10"
+            width="14"
+            height="10"
+            rx="2"
+          />
+          <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+        </svg>
+
+        <input
+          id="password"
+          type={
+            showPassword
+              ? "text"
+              : "password"
+          }
+          value={password}
+          onChange={(e) =>
+            setPassword(e.target.value)
+          }
+          placeholder="Enter your password"
+          className="login-input"
+          style={{
+            paddingRight: "48px",
+          }}
+          disabled={loading}
+          autoComplete="current-password"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              void handleLogin();
+            }
+          }}
+        />
+
+        <button
+          type="button"
+          className="password-toggle"
+          onClick={() =>
+            setShowPassword(
+              (value) => !value
+            )
+          }
+          aria-label={
+            showPassword
+              ? "Hide password"
+              : "Show password"
+          }
+        >
+          {showPassword ? (
+            <svg
+              width="19"
+              height="19"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <path d="M3 3l18 18" />
+              <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+              <path d="M9.5 4.4A11 11 0 0 1 12 4c5.3 0 9 4.8 10 8-0.4 1.1-1.2 2.4-2.3 3.4" />
+              <path d="M6.7 6.7C4.5 8.1 3.1 10.2 2 12c1 2.8 4.5 8 10 8 1.3 0 2.5-.2 3.6-.7" />
+            </svg>
+          ) : (
+            <svg
+              width="19"
+              height="19"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+              <circle
+                cx="12"
+                cy="12"
+                r="2.5"
+              />
+            </svg>
+          )}
+        </button>
+
+      </div>
+    </div>
+
+    <div className="login-security-actions">
+
+      <div className="login-captcha">
+        <Turnstile
+          ref={turnstileRef}
+          siteKey={
+            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!
+          }
+          onSuccess={(token) =>
+            setCaptchaToken(token)
+          }
+          onExpire={() =>
+            setCaptchaToken(null)
+          }
+          onError={() =>
+            setCaptchaToken(null)
+          }
+        />
+      </div>
+
+      <div className="login-action-grid">
+
+        <button
+          type="button"
+          className="primary-button"
+          onClick={() =>
+            void handleLogin()
+          }
+          disabled={
+            loading || !captchaToken
+          }
+        >
+          {loading
+            ? "Signing In..."
+            : "Sign In"}
+        </button>
+
+        <button
+          type="button"
+          className="forgot-password"
+          onClick={() =>
+            router.push("/forgot-password")
+          }
+          disabled={loading}
+        >
+          Forgot Password?
+        </button>
+
+<button
+  type="button"
+  className="login-create-account"
+  onClick={() => {
+    setShowInvitationMessage(true);
+  }}
+  disabled={loading}
+>
+  Create an Account
+</button>
+
+{showInvitationMessage && (
+  <div className="invitation-required-message">
+    <span className="invitation-required-star">*</span>
+    Please reach out to your Primary for an invitation.
+  </div>
+)}
+
+      </div>
+    </div>
+
+  </div>
+
+  {/* GOOGLE LOGIN */}
+
+  <div className="login-google-panel">
+
+    <button
+      type="button"
+      className="google-button desktop-google-button"
+      onClick={() =>
+        void handleGoogleLogin()
+      }
+      disabled={
+        loading ||
+        googleLoading
+      }
+    >
+      <svg
+        className="google-icon"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          fill="#4285F4"
+          d="M21.6 12.23c0-.79-.07-1.55-.21-2.28H12v4.31h5.38a4.6 4.6 0 0 1-1.99 3.02v2.51h3.23c1.89-1.74 2.98-4.31 2.98-7.56Z"
+        />
+        <path
+          fill="#34A853"
+          d="M12 22c2.7 0 4.97-.9 6.62-2.45l-3.23-2.51c-.9.6-2.04.96-3.39 0-2.61 0-4.83-1.76-5.62-4.13H3.04v2.59A10 10 0 0 0 12 22Z"
+        />
+        <path
+          fill="#FBBC05"
+          d="M6.38 13.87A6.01 6.01 0 0 1 6.06 12c0-.65.11-1.28-.32-1.87V7.54H3.04A10 10 0 0 0 2 12c0 1.61.38 3.13 1.04 4.46l3.34-2.59Z"
+        />
+        <path
+          fill="#EA4335"
+          d="M12 6c1.47 0 2.79.51 3.83 1.51l2.87-2.87C16.96 2.99 14.69 2 12 2a10 10 0 0 0-8.96 5.54l3.34 2.59C7.17 7.76 9.39 7.76 12 6Z"
+        />
+      </svg>
+
+      {googleLoading
+        ? "Connecting..."
+        : "Continue with Google"}
+    </button>
+
+    <div
+      ref={googleMobileButtonRef}
+      className="mobile-google-button"
+    />
+
+  </div>
+
+</div>
+
+
+</div>
+
+</div>
+
+<div className="login-footer">
+  <CareVRFooter />
+</div>
+
+
+</div>
+{/* ============================
+    RIGHT â€” BRAND EXPERIENCE
+============================ */}
+
+    <div
+      className="login-right"
+      aria-hidden="true"
+    />
+
+      </section>
+</main>
+      </>
+    )}
+  </>
+);
+}

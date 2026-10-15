@@ -1,0 +1,1280 @@
+"use client";
+
+import VoiceRecorder from
+    "@/Components/daily-care/VoiceRecorder";
+
+import {
+    useEffect,
+    useState,
+} from "react";
+
+import {
+    medicalVoiceService,
+} from "@/lib/medical-voice/medicalVoiceService";
+
+import type {
+    MedicalVoiceDailyCareDraft,
+} from "@/lib/medical-voice/medicalVoiceTypes";
+
+import {
+    dailyCareStorage,
+} from "@/lib/storage/DailyCareStorage";
+
+import {
+    selfDailyCareStorage,
+} from "@/lib/storage/SelfDailyCareStorage";
+
+import {
+    useLanguage,
+} from "@/Components/language/LanguageProvider";
+
+
+interface VoiceCareWorkspaceProps {
+
+    mode:
+        | "self"
+        | "family";
+
+    patientId?:
+        string;
+
+    patientName?:
+        string;
+
+    currentUserName:
+        string;
+
+}
+
+
+export default function VoiceCareWorkspace({
+
+    mode,
+
+    patientId,
+
+    patientName,
+
+    currentUserName,
+
+}: VoiceCareWorkspaceProps) {
+
+const {
+    t,
+} = useLanguage();
+
+
+const [
+    processingVoice,
+    setProcessingVoice,
+] = useState(false);
+
+
+const [
+    voiceTranscript,
+    setVoiceTranscript,
+] = useState<string | null>(
+    null
+);
+
+
+const [
+    showTranscript,
+    setShowTranscript,
+] = useState(false);
+
+
+const [
+    audioPlaybackUrl,
+    setAudioPlaybackUrl,
+] = useState<string | null>(
+    null
+);
+
+const [
+    voiceDraft,
+    setVoiceDraft,
+] = useState<
+    MedicalVoiceDailyCareDraft | null
+>(null);
+
+
+const [
+    voiceError,
+    setVoiceError,
+] = useState<string | null>(
+    null
+);
+
+
+const [
+    savingVoice,
+    setSavingVoice,
+] = useState(false);
+
+const [
+    feverTemperature,
+    setFeverTemperature,
+] = useState<string>("");
+
+
+const [
+    feverTemperatureUnknown,
+    setFeverTemperatureUnknown,
+] = useState(false);
+
+
+const [
+    clarificationError,
+    setClarificationError,
+] = useState<string | null>(
+    null
+);
+
+
+useEffect(() => {
+
+    return () => {
+
+        if (audioPlaybackUrl) {
+
+            URL.revokeObjectURL(
+                audioPlaybackUrl
+            );
+
+        }
+
+    };
+
+}, [audioPlaybackUrl]);
+
+
+    const recordingName =
+
+        mode === "self"
+            ? currentUserName
+            : patientName ?? "";
+
+
+const needsFeverTemperatureClarification =
+
+    voiceDraft !== null &&
+
+    voiceDraft.symptoms.includes(
+        "FEVER"
+    ) &&
+
+    voiceDraft.temperature === null;
+
+function resetVoiceSession() {
+
+    if (audioPlaybackUrl) {
+
+        URL.revokeObjectURL(
+            audioPlaybackUrl
+        );
+
+    }
+
+    setAudioPlaybackUrl(null);
+
+    setShowTranscript(false);
+
+    setProcessingVoice(false);
+
+    setVoiceTranscript(null);
+
+    setVoiceDraft(null);
+
+    setVoiceError(null);
+
+    setFeverTemperature("");
+
+    setFeverTemperatureUnknown(false);
+
+    setClarificationError(null);
+
+}
+
+async function processVoiceRecording(
+    audio: File
+) {
+
+    setProcessingVoice(true);
+
+    setVoiceError(null);
+
+    setVoiceTranscript(null);
+
+    setVoiceDraft(null);
+
+setShowTranscript(false);
+
+
+if (audioPlaybackUrl) {
+
+    URL.revokeObjectURL(
+        audioPlaybackUrl
+    );
+
+}
+
+
+const playbackUrl =
+    URL.createObjectURL(
+        audio
+    );
+
+
+setAudioPlaybackUrl(
+    playbackUrl
+);
+
+    const result =
+        await medicalVoiceService.processVoice(
+            audio,
+            "care_recording"
+        );
+
+
+    if (!result.success) {
+
+        setVoiceError(
+            result.error ??
+            t("dailyCare.unableToComplete")
+        );
+
+        setProcessingVoice(false);
+
+        return;
+
+    }
+
+
+    setVoiceTranscript(
+        result.data.transcript
+    );
+
+    setVoiceDraft(
+        result.data.draft
+    );
+
+    setProcessingVoice(false);
+
+}
+
+
+
+function reRecordVoice() {
+
+    resetVoiceSession();
+
+}
+
+async function saveVoiceObservation() {
+
+    if (
+        savingVoice ||
+        !voiceDraft
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        mode === "family" &&
+        !patientId
+    ) {
+
+        setVoiceError(
+            t("medication.pleaseSelectFamilyMember")
+        );
+
+        return;
+
+    }
+
+
+if (
+    needsFeverTemperatureClarification &&
+    !feverTemperature &&
+    !feverTemperatureUnknown
+) {
+
+    setClarificationError(
+        t("medication.selectTemperatureOrDontKnow")
+    );
+
+    return;
+
+}
+
+setClarificationError(null);
+
+    setSavingVoice(true);
+
+    setVoiceError(null);
+
+
+    try {
+
+        const temperature =
+
+            needsFeverTemperatureClarification
+
+                ? (
+                    feverTemperatureUnknown
+                        ? null
+                        : Number(
+                            feverTemperature
+                        )
+                )
+
+                : voiceDraft.temperature;
+
+
+        const temperatureUnit =
+
+            needsFeverTemperatureClarification &&
+            feverTemperature
+
+                ? "F"
+
+                : (
+                    voiceDraft.temperatureUnit ??
+                    "F"
+                );
+
+
+        const overallStatus:
+            | "NO_CONCERNS_REPORTED"
+            | "CONCERNS_REPORTED"
+            | null =
+
+            voiceDraft.overallObservation ===
+            "NO_CONCERNS_REPORTED"
+
+                ? "NO_CONCERNS_REPORTED"
+
+                : (
+                    voiceDraft.symptoms.length > 0 ||
+                    voiceDraft.painLocations.length > 0
+                )
+
+                    ? "CONCERNS_REPORTED"
+
+                    : null;
+
+
+        const commonReading = {
+
+            recordedAt:
+                new Date().toISOString(),
+
+            overallStatus,
+
+            temperature,
+
+            temperatureUnit,
+
+    weightKg:
+        voiceDraft.weightKg,
+
+            systolic:
+                voiceDraft.systolic,
+
+            diastolic:
+                voiceDraft.diastolic,
+
+            pulse:
+                voiceDraft.pulse,
+
+            spo2:
+                voiceDraft.spo2,
+
+            symptoms:
+                voiceDraft.symptoms,
+
+            otherSymptom:
+                voiceDraft.otherSymptom,
+
+            painLocations:
+                voiceDraft.painLocations,
+
+            otherPainLocation:
+                voiceDraft.otherPainLocation,
+
+        };
+
+
+        const result =
+
+            mode === "self"
+
+                ? await selfDailyCareStorage.save(
+                    commonReading
+                )
+
+                : await dailyCareStorage.save({
+
+                    ...commonReading,
+
+                    patientId:
+                        patientId!,
+
+                });
+
+
+        if (!result.success) {
+
+            setVoiceError(
+                result.error ??
+                t("dailyCare.unableToComplete")
+            );
+
+            return;
+
+        }
+
+
+        resetVoiceSession();
+
+    }
+    catch (error) {
+
+        console.error(
+            t("medication.voiceCareSaveError"),
+            error
+        );
+
+        setVoiceError(
+
+            error instanceof Error
+
+                ? error.message
+
+                : t("dailyCare.unableToSaveHealthUpdate")
+
+        );
+
+    }
+    finally {
+
+        setSavingVoice(false);
+
+    }
+
+}
+
+    return (
+
+        <section>
+
+{!voiceDraft &&
+    !processingVoice && (
+
+    <h3 className="voice-care-heading">
+        {
+            mode === "self"
+                ? t("dailyCare.tellUsHowYouFeel")
+                : t("dailyCare.tellUsHowPatientFeels")
+                    .replace("{name}", recordingName)
+        }
+    </h3>
+
+)}
+
+{!voiceDraft &&
+    !processingVoice &&
+    !voiceError && (
+
+    <VoiceRecorder
+        onRecordingReady={
+            processVoiceRecording
+        }
+        disabled={
+            processingVoice
+        }
+    />
+
+)}
+
+
+{processingVoice && (
+
+    <div style={processingContainer}>
+
+        <p style={processingText}>
+            {t("dailyCare.understandingRecording")}
+        </p>
+
+<div style={progressTrack}>
+
+    <div
+        className="voice-progress-indicator"
+        style={progressIndicator}
+    />
+
+</div>
+
+        <p style={processingHint}>
+            {t("dailyCare.preparingHealthUpdate")}
+        </p>
+
+    </div>
+
+)}
+
+{voiceError &&
+    !voiceDraft && (
+
+    <div>
+
+        <p>
+            {voiceError}
+        </p>
+
+        <button
+            type="button"
+            onClick={
+                resetVoiceSession
+            }
+        >
+            🎙️ {t("dailyCare.recordAgain")}
+        </button>
+
+    </div>
+
+)}
+
+
+{voiceDraft && voiceTranscript && (
+
+    <div style={reviewContainer}>
+
+        <h3 style={reviewTitle}>
+            {t("medication.reviewRecording")}
+        </h3>
+
+        <p style={reviewDescription}>
+            {t("medication.healthUpdateReady")}
+        </p>
+
+
+        {audioPlaybackUrl && (
+
+            <div style={playbackContainer}>
+
+                <audio
+                    controls
+                    src={audioPlaybackUrl}
+                    style={audioPlayer}
+                />
+
+            </div>
+
+        )}
+
+
+        {showTranscript && (
+
+            <div style={transcriptContainer}>
+
+                <h4 style={transcriptTitle}>
+                    {t("dailyCare.transcript")}
+                </h4>
+
+                <p style={transcriptText}>
+                    {voiceTranscript}
+                </p>
+
+            </div>
+
+        )}
+
+
+        {needsFeverTemperatureClarification && (
+
+            <div style={clarificationContainer}>
+
+                <h3>
+                    {t("dailyCare.mentionedFever")}
+                </h3>
+
+                <p>
+                    {t("dailyCare.knowTemperature")}
+                </p>
+
+
+                <div style={feverControlRow}>
+
+                    <select
+                        value={
+                            feverTemperature
+                        }
+                        style={temperatureSelect}
+                        disabled={
+                            feverTemperatureUnknown
+                        }
+                        onChange={(event) => {
+
+                            setFeverTemperature(
+                                event.target.value
+                            );
+
+                            setFeverTemperatureUnknown(
+                                false
+                            );
+
+                            setClarificationError(
+                                null
+                            );
+
+                        }}
+                    >
+
+                        <option value="">
+                            {t("dailyCare.selectTemperature")}
+                        </option>
+
+
+                        {Array.from(
+                            { length: 111 },
+                            (_, index) =>
+                                (
+                                    99 +
+                                    index / 10
+                                ).toFixed(1)
+                        ).map(
+                            temperature => (
+
+                                <option
+                                    key={
+                                        temperature
+                                    }
+                                    value={
+                                        temperature
+                                    }
+                                >
+                                    {temperature}°F
+                                </option>
+
+                            )
+                        )}
+
+                    </select>
+
+
+                    <button
+                        type="button"
+                        onClick={() => {
+
+                            setFeverTemperature("");
+
+                            setFeverTemperatureUnknown(
+                                true
+                            );
+
+                            setClarificationError(
+                                null
+                            );
+
+                        }}
+                        style={unknownButton}
+                    >
+                        I DON&apos;T KNOW
+                    </button>
+
+                </div>
+
+
+                {clarificationError && (
+
+                    <p style={errorText}>
+                        {clarificationError}
+                    </p>
+
+                )}
+
+            </div>
+
+        )}
+
+
+        {voiceError && (
+
+            <p style={errorText}>
+                {voiceError}
+            </p>
+
+        )}
+
+
+<div
+    className="voice-review-actions"
+    style={reviewActionRow}
+>
+    <div className="voice-review-secondary-actions">
+        <button
+            type="button"
+            onClick={() =>
+                setShowTranscript(
+                    previous =>
+                        !previous
+                )
+            }
+            disabled={
+                savingVoice
+            }
+            style={secondaryActionButton}
+        >
+            {
+                showTranscript
+                    ? "📄 Hide Transcript"
+                    : "📄 Show Transcript"
+            }
+        </button>
+
+        <button
+            type="button"
+            onClick={
+                reRecordVoice
+            }
+            disabled={
+                savingVoice
+            }
+            style={secondaryActionButton}
+        >
+            🎙️ Re-record
+        </button>
+    </div>
+
+    <button
+        type="button"
+        onClick={
+            saveVoiceObservation
+        }
+        disabled={
+            savingVoice
+        }
+        style={{
+            ...saveButton,
+            opacity:
+                savingVoice
+                    ? 0.7
+                    : 1,
+        }}
+    >
+        {
+            savingVoice
+                ? "Saving..."
+                : "✓ Save"
+        }
+    </button>
+</div>
+
+    </div>
+
+)}
+
+<style jsx>{`
+    .voice-progress-indicator {
+        animation:
+            voiceProgress 1.4s ease-in-out infinite;
+    }
+
+    @keyframes voiceProgress {
+
+        0% {
+            transform:
+                translateX(-120%);
+        }
+
+        100% {
+            transform:
+                translateX(320%);
+        }
+
+    }
+
+.voice-care-heading {
+    margin: 0 0 8px;
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .voice-care-heading {
+        margin-bottom: 6px;
+        font-size: 14px;
+        line-height: 1.2;
+    }
+
+.voice-review-actions {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.voice-review-secondary-actions {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+}
+
+.voice-review-secondary-actions button {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    padding: 9px 8px !important;
+    font-size: 12px !important;
+    border-radius: 10px !important;
+    white-space: nowrap;
+}
+
+.voice-review-actions > button {
+    width: 100%;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    padding: 9px 10px !important;
+    font-size: 13px !important;
+    border-radius: 10px !important;
+    flex: none !important;
+}
+}
+`}</style>
+
+        </section>
+
+    );
+
+}
+
+const processingContainer:
+    React.CSSProperties = {
+
+        marginTop:
+            "16px",
+
+        padding:
+            "18px",
+
+        background:
+            "#f8fafc",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "12px",
+
+    };
+
+
+const processingText:
+    React.CSSProperties = {
+
+        margin:
+            "0 0 12px",
+
+        fontSize:
+            "16px",
+
+        fontWeight:
+            700,
+
+        color:
+            "#111827",
+
+    };
+
+
+const progressTrack:
+    React.CSSProperties = {
+
+        width:
+    "32%",
+
+        height:
+            "8px",
+
+        background:
+            "#e2e8f0",
+
+        borderRadius:
+            "999px",
+
+        overflow:
+            "hidden",
+
+    };
+
+
+const progressIndicator:
+    React.CSSProperties = {
+
+        width:
+            "60%",
+
+        height:
+            "100%",
+
+        background:
+            "#2563eb",
+
+        borderRadius:
+            "999px",
+
+    };
+
+
+const processingHint:
+    React.CSSProperties = {
+
+        margin:
+            "10px 0 0",
+
+        fontSize:
+            "13px",
+
+fontWeight:
+    600,
+
+        color:
+            "#64748b",
+
+    };
+
+const feverControlRow:
+    React.CSSProperties = {
+
+        display:
+            "flex",
+
+        flexWrap:
+            "wrap",
+
+        alignItems:
+            "center",
+
+        gap:
+            "12px",
+
+        marginTop:
+            "12px",
+
+        marginBottom:
+            "12px",
+
+    };
+
+
+const temperatureSelect:
+    React.CSSProperties = {
+
+        flex:
+            "1 1 180px",
+
+        minWidth:
+            "160px",
+
+        padding:
+            "12px",
+
+        border:
+            "1px solid #d1d5db",
+
+        borderRadius:
+            "10px",
+
+        fontSize:
+            "16px",
+
+        background:
+            "#ffffff",
+
+    };
+
+
+const unknownButton:
+    React.CSSProperties = {
+
+        flex:
+            "0 1 auto",
+
+        minHeight:
+            "46px",
+
+        padding:
+            "12px 16px",
+
+        border:
+            "1px solid #2563eb",
+
+        borderRadius:
+            "10px",
+
+        background:
+            "#ffffff",
+
+        color:
+            "#1d4ed8",
+
+        fontSize:
+            "14px",
+
+        fontWeight:
+            700,
+
+        cursor:
+            "pointer",
+
+        whiteSpace:
+            "nowrap",
+
+    };
+
+const reviewContainer:
+    React.CSSProperties = {
+
+        marginTop:
+            "16px",
+
+        padding:
+            "20px",
+
+        background:
+            "#f8fafc",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "12px",
+
+    };
+
+
+const reviewTitle:
+    React.CSSProperties = {
+
+        margin:
+            "0 0 8px",
+
+        fontSize:
+            "22px",
+
+        color:
+            "#111827",
+
+    };
+
+
+const reviewDescription:
+    React.CSSProperties = {
+
+        margin:
+            "0 0 20px",
+
+        color:
+            "#64748b",
+
+        lineHeight:
+            1.5,
+
+    };
+
+
+const playbackContainer:
+    React.CSSProperties = {
+
+        marginBottom:
+            "16px",
+
+    };
+
+
+const audioPlayer:
+    React.CSSProperties = {
+
+        width:
+            "100%",
+
+        maxWidth:
+            "520px",
+
+    };
+
+
+const transcriptContainer:
+    React.CSSProperties = {
+
+        marginBottom:
+            "16px",
+
+        padding:
+            "16px",
+
+        background:
+            "#ffffff",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "10px",
+
+    };
+
+
+const transcriptTitle:
+    React.CSSProperties = {
+
+        margin:
+            "0 0 8px",
+
+        color:
+            "#111827",
+
+    };
+
+
+const transcriptText:
+    React.CSSProperties = {
+
+        margin:
+            0,
+
+        color:
+            "#374151",
+
+        lineHeight:
+            1.6,
+
+    };
+
+
+const clarificationContainer:
+    React.CSSProperties = {
+
+        marginBottom:
+            "16px",
+
+        padding:
+            "16px",
+
+        background:
+            "#ffffff",
+
+        border:
+            "1px solid #e2e8f0",
+
+        borderRadius:
+            "10px",
+
+    };
+
+
+const reviewActionRow:
+    React.CSSProperties = {
+
+        display:
+            "flex",
+
+        flexWrap:
+            "wrap",
+
+        gap:
+            "12px",
+
+        marginTop:
+            "20px",
+
+    };
+
+
+const secondaryActionButton:
+    React.CSSProperties = {
+
+        flex:
+            "1 1 180px",
+
+        minHeight:
+            "50px",
+
+        padding:
+            "12px 16px",
+
+        background:
+            "#ffffff",
+
+        color:
+            "#1f2937",
+
+        border:
+            "1px solid #d1d5db",
+
+        borderRadius:
+            "10px",
+
+        fontSize:
+            "15px",
+
+        fontWeight:
+            700,
+
+        cursor:
+            "pointer",
+
+    };
+
+
+const saveButton:
+    React.CSSProperties = {
+
+        flex:
+            "1 1 180px",
+
+        minHeight:
+            "50px",
+
+        padding:
+            "12px 16px",
+
+        background:
+            "#2563eb",
+
+        color:
+            "#ffffff",
+
+        border:
+            "none",
+
+        borderRadius:
+            "10px",
+
+        fontSize:
+            "16px",
+
+        fontWeight:
+            700,
+
+        cursor:
+            "pointer",
+
+    };
+
+
+const errorText:
+    React.CSSProperties = {
+
+        color:
+            "#b91c1c",
+
+        fontWeight:
+            600,
+
+    };

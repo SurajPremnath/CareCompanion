@@ -1,0 +1,576 @@
+"use client";
+
+import {
+  Suspense,
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+
+import { authService } from "@/lib/auth/authService";
+
+import {
+  resolveCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
+
+import {
+  carevrContextResolver,
+} from "@/lib/auth/carevrContextResolver";
+
+import {
+  carevrAuthorizationHandoff,
+} from "@/lib/authorization/carevrAuthorizationHandoff";
+
+import {
+  validateInvitedUserLogin,
+} from "@/lib/invitations/invitedUserLoginValidation";
+
+import ValidatePin from "@/app/components/security/ValidatePin";
+
+type CareVRRole =
+  | "SELF"
+  | "DOCTOR"
+  | "CARETAKER"
+  | "FAMILY";
+
+const VALID_ROLES: CareVRRole[] = [
+  "SELF",
+  "DOCTOR",
+  "CARETAKER",
+  "FAMILY",
+];
+
+function GoogleAuthComplete() {
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [pinVerification, setPinVerification] =
+    useState<{
+      user: NonNullable<
+        Awaited<
+          ReturnType<
+            typeof authService.getCurrentUser
+          >
+        >
+      >;
+      role: CareVRRole;
+    } | null>(null);
+
+  const continueGoogleLogin =
+    async (
+      authenticatedUser: NonNullable<
+        Awaited<
+          ReturnType<
+            typeof authService.getCurrentUser
+          >
+        >
+      >,
+      selectedRole: CareVRRole,
+      cancelled: boolean
+    ) => {
+
+      /*
+       * Resolve the already-authoritative active
+       * CareVR access records once for this login
+       * continuation.
+       *
+       * The selected access record is then reused
+       * when creating the Dashboard handoff.
+       *
+       * This avoids making resolveCareVRDashboardHandoff()
+       * query carevr_access again merely to reconstruct
+       * the same active context.
+       */
+      const resolveDashboardForSelectedRole =
+        async () => {
+
+          const {
+            activeAccessRecords,
+            contexts: availableContexts,
+          } =
+            await carevrContextResolver
+              .getAvailableContexts(
+                authenticatedUser.id
+              );
+
+          const selectedContext =
+            availableContexts.find(
+              (context) =>
+                context.loginRole ===
+                selectedRole
+            );
+
+          if (!selectedContext) {
+            throw new Error(
+              "Selected CareVR role is not assigned. Please contact your Primary."
+            );
+          }
+
+          const access =
+            activeAccessRecords.find(
+              (record) =>
+                record.id ===
+                selectedContext.accessId
+            );
+
+          if (!access) {
+            throw new Error(
+              "Selected CareVR access is no longer active."
+            );
+          }
+
+          await resolveCareVRDashboardHandoff(
+            authenticatedUser.id,
+            selectedRole,
+            access
+          );
+        };
+
+      const validationResult =
+        await validateInvitedUserLogin({
+          email:
+            authenticatedUser.email ?? "",
+          userId:
+            authenticatedUser.id,
+          selectedRole:
+            selectedRole === "FAMILY"
+              ? "SECONDARY_FAMILY_MEMBER"
+              : selectedRole,
+          mode:
+            "GOOGLE",
+        });
+
+      if (
+        validationResult.status ===
+        "PRIMARY"
+      ) {
+        carevrAuthorizationHandoff.set({
+          userId:
+            authenticatedUser.id,
+          carevrRole:
+            "PRIMARY",
+          familyId:
+            null,
+          patientId:
+            null,
+          consentStage:
+            "COMPLETED",
+          governanceId:
+            null,
+          governanceVersion:
+            null,
+        });
+
+        await resolveDashboardForSelectedRole();
+
+        if (!cancelled) {
+          router.replace(
+            "/dashboard"
+          );
+        }
+
+        return;
+      }
+
+      if (
+        validationResult.status ===
+        "VALID_INVITATION"
+      ) {
+        if (
+          !validationResult.invitationId
+        ) {
+          throw new Error(
+            "Invitation information is missing."
+          );
+        }
+
+        router.replace(
+          `/invite-reset-temp-pwd?invitationId=${encodeURIComponent(
+            validationResult.invitationId
+          )}`
+        );
+
+        return;
+      }
+
+      if (
+        validationResult.status ===
+        "CONSENT_REQUIRED"
+      ) {
+        const carevrRole =
+          selectedRole === "DOCTOR"
+            ? "DOCTOR"
+            : selectedRole === "CARETAKER"
+              ? "CARETAKER"
+              : selectedRole === "FAMILY"
+                ? "SECONDARY_FAMILY_MEMBER"
+                : "PRIMARY";
+
+        carevrAuthorizationHandoff.set({
+          userId:
+            authenticatedUser.id,
+          carevrRole,
+          familyId:
+            validationResult.familyId ??
+            null,
+          patientId:
+            null,
+          consentStage:
+            "POST_LOGIN",
+          governanceId:
+            null,
+          governanceVersion:
+            null,
+        });
+
+        router.replace(
+          "/consent"
+        );
+
+        return;
+      }
+
+      if (
+        validationResult.status ===
+        "ACCEPTED"
+      ) {
+        const carevrRole =
+          selectedRole === "DOCTOR"
+            ? "DOCTOR"
+            : selectedRole === "CARETAKER"
+              ? "CARETAKER"
+              : selectedRole === "FAMILY"
+                ? "SECONDARY_FAMILY_MEMBER"
+                : "PRIMARY";
+
+        carevrAuthorizationHandoff.set({
+          userId:
+            authenticatedUser.id,
+          carevrRole,
+          familyId:
+            validationResult.familyId ??
+            null,
+          patientId:
+            null,
+          consentStage:
+            "COMPLETED",
+          governanceId:
+            null,
+          governanceVersion:
+            null,
+        });
+
+        await resolveDashboardForSelectedRole();
+
+        if (!cancelled) {
+          router.replace(
+            "/dashboard"
+          );
+        }
+
+        return;
+      }
+
+      if (
+        validationResult.status ===
+          "ROLE_MISMATCH" ||
+        validationResult.status ===
+          "INVALID_INVITATION"
+      ) {
+        throw new Error(
+          validationResult.message
+        );
+      }
+
+      if (
+        validationResult.status ===
+          "NOT_INVITED" &&
+        selectedRole === "FAMILY"
+      ) {
+        throw new Error(
+          "Family Member Access Not Available\n\n" +
+          "This account is registered as a Primary member of CareVR and does not have Family Member access. " +
+          "Please sign in using your Primary role."
+        );
+      }
+
+      if (
+        validationResult.status ===
+        "NOT_INVITED"
+      ) {
+        await resolveDashboardForSelectedRole();
+
+        if (!cancelled) {
+          router.replace(
+            "/dashboard"
+          );
+        }
+
+        return;
+      }
+
+      throw new Error(
+        validationResult.message
+      );
+    };
+
+  useEffect(() => {
+
+    let cancelled = false;
+
+    const completeGoogleLogin =
+      async () => {
+
+        try {
+
+          const requestedRole =
+            searchParams.get("role") as CareVRRole | null;
+
+          const selectedRole =
+            requestedRole &&
+            VALID_ROLES.includes(
+              requestedRole
+            )
+              ? requestedRole
+              : null;
+
+          if (!selectedRole) {
+
+            throw new Error(
+              "Please return to Login and select your CareVR role."
+            );
+
+          }
+
+
+const authenticatedUser =
+  await authService.getCurrentUser();
+
+if (!authenticatedUser) {
+
+  throw new Error(
+    "Unable to establish your CareVR session. Please return to Login."
+  );
+
+}
+
+const selectedGmail =
+  authenticatedUser.email?.trim().toLowerCase();
+
+if (!selectedGmail) {
+
+  throw new Error(
+    "Unable to identify the selected Google account. Please return to Login."
+  );
+
+}
+
+const authUserResponse =
+  await fetch("/api/auth/verify-user", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: selectedGmail,
+    }),
+  });
+
+const authUserResult =
+  await authUserResponse.json();
+
+if (
+  !authUserResponse.ok ||
+  authUserResult.exists !== true
+) {
+
+  throw new Error(
+    "Please complete registration provided in your email or reach out to your Primary."
+  );
+
+}
+
+const verifyResponse =
+  await fetch("/api/auth/verify-user", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: authenticatedUser.email,
+    }),
+  });
+
+const verifyText =
+    await verifyResponse.text();
+
+console.log(
+    "[VERIFY-AUTH-USER]",
+    verifyResponse.status,
+    verifyResponse.headers.get("content-type"),
+    verifyText
+);
+
+let verifyResult;
+
+try {
+
+    verifyResult =
+        JSON.parse(verifyText);
+
+} catch {
+
+    throw new Error(
+        `Auth verification returned a non-JSON response (${verifyResponse.status}).`
+    );
+
+}
+
+if (
+  !verifyResponse.ok ||
+  !verifyResult.exists
+) {
+
+  throw new Error(
+    "Please complete registration provided in your email or reach out to your Primary."
+  );
+
+}
+
+/*
+ * Google authentication establishes the Supabase identity.
+ * CareVR authorization must be established before allowing
+ * the user to proceed to PIN creation or PIN verification.
+ *
+ * An authenticated Google account by itself does not grant
+ * CareVR access.
+ */
+const {
+  activeAccessRecords,
+} =
+  await carevrContextResolver
+    .getAvailableContexts(
+      authenticatedUser.id
+    );
+
+if (
+  activeAccessRecords.length === 0
+) {
+
+  throw new Error(
+    "CareVR registration is not complete.\n\n" +
+    "Please complete the registration using the link provided in your email, " +
+    "or reach out to your Primary or Linearise AI Labs for assistance."
+  );
+
+}
+
+const pinStatusResponse =
+  await fetch(
+    "/api/security/pin-status",
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+const pinStatus =
+  await pinStatusResponse.json();
+
+if (!pinStatusResponse.ok) {
+  throw new Error(
+    pinStatus?.error ||
+    "Unable to determine CareVR PIN status."
+  );
+}
+
+if (pinStatus.hasPin !== true) {
+  router.replace(
+    "/secure-access/create-pin"
+  );
+  return;
+}
+
+setPinVerification({
+  user: authenticatedUser,
+  role: selectedRole,
+});
+
+return;
+
+        }
+        catch (err) {
+
+          if (cancelled) {
+            return;
+          }
+
+          const message =
+            err instanceof Error
+              ? err.message
+              : "Unable to complete Google login.";
+
+          alert(message);
+
+          router.replace(
+            "/login"
+          );
+
+        }
+
+      };
+
+    void completeGoogleLogin();
+
+    return () => {
+
+      cancelled = true;
+
+    };
+
+  }, [
+    router,
+    searchParams,
+  ]);
+
+  if (pinVerification) {
+    return (
+      <ValidatePin
+        userId={pinVerification.user.id}
+        email={pinVerification.user.email ?? ""}
+      />
+    );
+  }
+
+  return (
+    <main>
+      <p>
+        Completing your CareVR login...
+      </p>
+    </main>
+  );
+
+}
+
+export default function GoogleAuthCompletePage() {
+
+  return (
+    <Suspense
+      fallback={
+        <main>
+          <p>
+            Completing your CareVR login...
+          </p>
+        </main>
+      }
+    >
+      <GoogleAuthComplete />
+    </Suspense>
+  );
+
+}

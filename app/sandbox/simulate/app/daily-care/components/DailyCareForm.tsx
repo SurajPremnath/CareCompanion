@@ -1,0 +1,2711 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { patientStorage } from "@/lib/storage/patientStorage";
+
+import type { Patient } from "@/lib/types/patient";
+import type {
+  DailyCareSymptom,
+  PainLocation,
+} from "@/lib/types/dailyCare";
+
+import PatientCard from "./PatientCard";
+import TemperatureCard from "./TemperatureCard";
+import VitalsCard from "./VitalsCard";
+import SymptomsCard from "./SymptomsCard";
+import PainLocationCard from "./PainLocationCard";
+import ActionButtons from "./ActionButtons";
+import { dailyCareStorage } from "@/lib/storage/DailyCareStorage";
+import { selfDailyCareStorage } from "@/lib/storage/SelfDailyCareStorage";
+
+import { AppAlert } from "@/lib/utils/appAlert";
+
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
+import {
+  medicalImageService,
+} from "@/lib/medical-image/medicalImageService";
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+
+// import {
+//   analyticsService,
+// } from "@/lib/analytics/analyticsService";
+
+// import {
+//   ANALYTICS_MODULES,
+//   ANALYTICS_EVENTS,
+//   ANALYTICS_CONTEXTS,
+//   ANALYTICS_INPUT_METHODS,
+// } from "@/lib/analytics/analyticsEvents";
+
+// import {
+//   performanceTracker,
+// } from "@/lib/performance/performanceTracker";
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
+
+import {
+  medicalVoiceService,
+} from "@/lib/medical-voice/medicalVoiceService";
+
+import VoiceRecorder from "@/Components/daily-care/VoiceRecorder";
+
+
+//------------------------------------------------------------
+// Types
+//------------------------------------------------------------
+
+type TemperatureUnit = "F" | "C";
+
+type ReadingInputMethod =
+  "image" |
+  "manual" |
+  "voice" |
+  null;
+
+type ImageSource =
+  "camera" |
+  "gallery" |
+  null;
+
+
+interface DailyCareFormState {
+
+  patientId: string;
+
+  date: string;
+
+  time: string;
+
+  temperature: string;
+
+  temperatureUnit: TemperatureUnit;
+
+weightKg: string;
+
+  systolic: string;
+
+  diastolic: string;
+
+  pulse: string;
+
+  spo2: string;
+
+  symptoms: DailyCareSymptom[];
+
+otherSymptom: string;
+
+painLocations: PainLocation[];
+
+otherPainLocation: string;
+
+}
+
+//------------------------------------------------------------
+// Helpers
+//------------------------------------------------------------
+
+function getCurrentDate(): string {
+
+  const now = new Date();
+
+  const year = now.getFullYear();
+
+  const month = String(now.getMonth() + 1)
+    .padStart(2, "0");
+
+  const day = String(now.getDate())
+    .padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+
+}
+
+function getCurrentTime(): string {
+
+  const now =
+    new Date();
+
+  const hours =
+    String(now.getHours())
+      .padStart(2, "0");
+
+  const minutes =
+    String(now.getMinutes())
+      .padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+
+}
+
+function createInitialForm(): DailyCareFormState {
+
+  return {
+
+    patientId: "",
+
+    date: getCurrentDate(),
+
+    time: getCurrentTime(),
+
+    temperature: "",
+
+    temperatureUnit: "F",
+
+weightKg: "",
+
+    systolic: "",
+
+    diastolic: "",
+
+    pulse: "",
+
+    spo2: "",
+
+    symptoms: [],
+
+otherSymptom: "",
+
+painLocations: [],
+
+otherPainLocation: ""
+
+  };
+
+}
+
+//------------------------------------------------------------
+// Component
+//------------------------------------------------------------
+
+interface DailyCareFormProps {
+
+  mode: "self" | "family";
+
+  currentUserName?: string;
+
+  selfPatientId?: string;
+
+}
+
+export default function DailyCareForm({
+
+  mode,
+
+  currentUserName,
+
+  selfPatientId
+
+}: DailyCareFormProps) {
+
+  const router = useRouter();
+
+ const {
+    t,
+  } = useLanguage();
+
+  //------------------------------------------------------------
+  // State
+  //------------------------------------------------------------
+
+  const [patients, setPatients] =
+    useState<Patient[]>([]);
+
+  const [loadingPatients, setLoadingPatients] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+const [processingImage, setProcessingImage] =
+  useState(false);
+
+const [
+  processingVoice,
+  setProcessingVoice
+] = useState(false);
+
+const [
+  activeImageSource,
+  setActiveImageSource
+] = useState<ImageSource>(null);
+
+const [
+  readingInputMethod,
+  setReadingInputMethod
+] = useState<ReadingInputMethod>(
+  null
+);
+
+const [
+  imageReadSuccessful,
+  setImageReadSuccessful
+] = useState(false);
+
+  const [showVitals, setShowVitals] =
+    useState(false);
+
+  const [showSymptoms, setShowSymptoms] =
+    useState(false);
+
+  const [formData, setFormData] =
+    useState<DailyCareFormState>(
+      createInitialForm()
+    );
+
+  //------------------------------------------------------------
+  // Load Patients
+  //------------------------------------------------------------
+
+useEffect(() => {
+
+  if (mode !== "family") {
+
+    setLoadingPatients(false);
+
+    return;
+
+  }
+
+  const loadPatients = async () => {
+
+    setLoadingPatients(true);
+
+    try {
+
+      const result =
+        await patientStorage.getPatients();
+
+      if (result.success) {
+
+        setPatients(
+          result.data ?? []
+        );
+
+      }
+
+    }
+    finally {
+
+      setLoadingPatients(false);
+
+    }
+
+  };
+
+  void loadPatients();
+
+}, [mode]);
+
+  //------------------------------------------------------------
+  // Field Updates
+  //------------------------------------------------------------
+
+  function updateField<
+    K extends keyof DailyCareFormState
+  >(
+    field: K,
+    value: DailyCareFormState[K]
+  ) {
+
+    setFormData(previous => ({
+
+      ...previous,
+
+      [field]: value
+
+    }));
+
+  }
+
+  //------------------------------------------------------------
+  // Toggle Symptoms
+  //------------------------------------------------------------
+
+  function toggleSymptom(
+    symptom: DailyCareSymptom
+  ) {
+
+    const exists =
+      formData.symptoms.includes(symptom);
+
+if (exists) {
+
+  const updatedSymptoms =
+    formData.symptoms.filter(
+      s => s !== symptom
+    );
+
+  updateField(
+    "symptoms",
+    updatedSymptoms
+  );
+
+  if (symptom === "BODY_PAIN") {
+
+    updateField(
+      "painLocations",
+      []);
+
+    updateField(
+      "otherPainLocation",
+      "");
+
+  }
+
+  if (symptom === "OTHER") {
+
+    updateField(
+      "otherSymptom",
+      "");
+
+  }
+
+  return;
+
+}
+
+    updateField(
+      "symptoms",
+      [
+        ...formData.symptoms,
+        symptom
+      ]
+    );
+
+  }
+
+  //------------------------------------------------------------
+  // Toggle Pain Location
+  //------------------------------------------------------------
+
+  function togglePainLocation(
+    location: PainLocation
+  ) {
+
+    const exists =
+      formData.painLocations.includes(location);
+
+if (exists) {
+
+  const updatedLocations =
+    formData.painLocations.filter(
+      p => p !== location
+    );
+
+  updateField(
+    "painLocations",
+    updatedLocations
+  );
+
+  if (location === "OTHER") {
+
+    updateField(
+      "otherPainLocation",
+      ""
+    );
+
+  }
+
+  return;
+
+}
+    updateField(
+
+      "painLocations",
+
+      [
+        ...formData.painLocations,
+        location
+      ]
+
+    );
+
+  }
+
+//------------------------------------------------------------
+// Reading Input Method Selection
+//------------------------------------------------------------
+
+function selectReadingInputMethod(
+  method: "image" | "manual" | "voice"
+) {
+
+  setReadingInputMethod(
+    method
+  );
+
+  setImageReadSuccessful(
+    false
+  );
+
+}
+
+//------------------------------------------------------------
+// Clear Image Readings
+//------------------------------------------------------------
+
+function clearImageReadings() {
+
+  setFormData(previous => ({
+
+    ...previous,
+
+    temperature: "",
+
+    systolic: "",
+
+    diastolic: "",
+
+    pulse: "",
+
+    spo2: ""
+
+  }));
+
+  setImageReadSuccessful(false);
+
+  setShowVitals(false);
+
+}
+
+//------------------------------------------------------------
+// Medical Image Capture
+//------------------------------------------------------------
+
+async function handleMedicalImage(
+  event: React.ChangeEvent<HTMLInputElement>,
+  source: Exclude<ImageSource, null>
+) {
+
+  const image =
+    event.target.files?.[0];
+
+  event.target.value = "";
+
+  if (!image) {
+
+    return;
+
+  }
+
+if (
+  processingImage ||
+  saving
+) {
+
+  return;
+
+}
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+
+// void analyticsService
+//   .track({
+// 
+//     module:
+//       ANALYTICS_MODULES.DAILY_CARE,
+// 
+//     eventName:
+//       ANALYTICS_EVENTS.IMAGE_SOURCE_SELECTED,
+// 
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+// 
+//     pagePath:
+//       "/daily-care",
+// 
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.IMAGE,
+// 
+//     metadata: {
+// 
+//       source:
+//         source === "camera"
+//           ? "CAMERA"
+//           : "GALLERY",
+// 
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
+// 
+//     },
+// 
+//   })
+//   .catch(() => {
+//     Analytics must not delay image processing
+//   });
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
+
+setActiveImageSource(source);
+
+setProcessingImage(true);
+
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+
+// void analyticsService
+//   .track({
+// 
+//     module:
+//       ANALYTICS_MODULES.AI_IMAGE,
+// 
+//     eventName:
+//       ANALYTICS_EVENTS.ATTEMPTED,
+// 
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+// 
+//     pagePath:
+//       "/daily-care",
+// 
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.IMAGE,
+// 
+//     metadata: {
+// 
+//       source:
+//         source === "camera"
+//           ? "CAMERA"
+//           : "GALLERY",
+// 
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
+// 
+//     },
+// 
+//   })
+//   .catch(() => {
+    // Analytics must not delay image processing
+//   });
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
+
+try {
+
+const result =
+    await medicalImageService.processImage(
+        image
+    );
+
+if (
+  !result.success ||
+  !result.data
+) {
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+
+  // void analyticsService
+  //   .track({
+  //
+  //     module:
+  //       ANALYTICS_MODULES.AI_IMAGE,
+  //
+  //     eventName:
+  //       ANALYTICS_EVENTS.FAILED,
+  //
+  //     context:
+  //       mode === "self"
+  //         ? ANALYTICS_CONTEXTS.SELF
+  //         : ANALYTICS_CONTEXTS.FAMILY,
+  //
+  //     pagePath:
+  //       "/daily-care",
+  //
+  //     inputMethod:
+  //       ANALYTICS_INPUT_METHODS.IMAGE,
+  //
+  //     metadata: {
+  //
+  //       source:
+  //         source === "camera"
+  //           ? "CAMERA"
+  //           : "GALLERY",
+  //
+  //       patientId:
+  //         mode === "family"
+  //           ? formData.patientId || null
+  //           : null,
+  //
+  //       reason:
+  //         "INVALID_MEDICAL_IMAGE",
+  //
+  //     },
+  //
+  //   })
+  //   .catch(() => {
+  //     Analytics must not delay image error feedback
+  //   });
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
+
+  AppAlert.error(
+    t("alerts.invalidMedicalImage")
+  );
+
+  clearImageReadings();
+
+  return;
+
+}
+
+    const readings =
+      result.data;
+
+setFormData(previous => ({
+
+  ...previous,
+
+  temperature:
+    readings.temperature !== null
+      ? String(readings.temperature)
+      : "",
+
+  temperatureUnit:
+    readings.temperatureUnit ??
+    previous.temperatureUnit,
+
+weightKg:
+  readings.weightKg !== null
+    ? String(readings.weightKg)
+    : previous.weightKg,
+
+  systolic:
+    readings.systolic !== null
+      ? String(readings.systolic)
+      : "",
+
+  diastolic:
+    readings.diastolic !== null
+      ? String(readings.diastolic)
+      : "",
+
+  pulse:
+    readings.pulse !== null
+      ? String(readings.pulse)
+      : "",
+
+  spo2:
+    readings.spo2 !== null
+      ? String(readings.spo2)
+      : "",
+
+}));
+
+    const hasVitals =
+      readings.systolic !== null ||
+      readings.diastolic !== null ||
+      readings.pulse !== null ||
+      readings.spo2 !== null;
+
+    if (hasVitals) {
+
+      setShowVitals(true);
+
+    }
+
+setImageReadSuccessful(
+  true
+);
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+
+// void analyticsService
+//   .track({
+//
+//     module:
+//       ANALYTICS_MODULES.AI_IMAGE,
+//
+//     eventName:
+//       ANALYTICS_EVENTS.SUCCEEDED,
+//
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+//
+//     pagePath:
+//       "/daily-care",
+//
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.IMAGE,
+//
+//     metadata: {
+//
+//       source:
+//         source === "camera"
+//           ? "CAMERA"
+//           : "GALLERY",
+//
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
+//
+//     },
+//
+//   })
+//   .catch(() => {
+//     Analytics must not delay image result display
+//   });
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
+
+  }
+  catch (error) {
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+
+// void analyticsService
+//   .track({
+//
+//     module:
+//       ANALYTICS_MODULES.AI_IMAGE,
+//
+//     eventName:
+//       ANALYTICS_EVENTS.FAILED,
+//
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+//
+//     pagePath:
+//       "/daily-care",
+//
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.IMAGE,
+//
+//     metadata: {
+//
+//       source:
+//         source === "camera"
+//           ? "CAMERA"
+//           : "GALLERY",
+//
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
+//
+//       reason:
+//         error instanceof Error
+//           ? error.message
+//           : "UNKNOWN_ERROR",
+//
+//     },
+//
+//   })
+//   .catch(() => {
+//     Analytics must not delay image error feedback
+//   });
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
+
+    console.error(
+      "Medical Image Capture Error:",
+      error
+    );
+
+    AppAlert.error(
+      t("alerts.imageProcessingFailed")
+    );
+
+    clearImageReadings();
+
+  }
+  finally {
+
+    setProcessingImage(false);
+
+    setActiveImageSource(null);
+
+  }
+
+}
+
+//------------------------------------------------------------
+// Clear Voice Vital Readings
+//------------------------------------------------------------
+
+function clearVoiceVitals() {
+
+  setFormData(previous => ({
+
+    ...previous,
+
+    temperature: "",
+
+    systolic: "",
+
+    diastolic: "",
+
+    pulse: "",
+
+    spo2: ""
+
+  }));
+
+  setShowVitals(false);
+
+}
+
+//------------------------------------------------------------
+// Medical Voice Processing
+//------------------------------------------------------------
+
+async function handleMedicalVoice(
+  audio: File
+) {
+
+  if (
+    processingVoice ||
+    processingImage ||
+    saving
+  ) {
+
+    return;
+
+  }
+
+  clearVoiceVitals();
+
+  setProcessingVoice(true);
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+
+// void analyticsService
+//   .track({
+
+//     module:
+//       ANALYTICS_MODULES.AI_VOICE,
+
+//     eventName:
+//       ANALYTICS_EVENTS.ATTEMPTED,
+
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+
+//     pagePath:
+//       "/daily-care",
+
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.VOICE,
+
+//     metadata: {
+
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
+
+//     },
+
+//   })
+//   .catch(() => {
+//     // Analytics must not delay voice processing
+//   });
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
+
+
+  try {
+
+    const result =
+      await medicalVoiceService.processVoice(
+        audio
+      );
+
+
+    if (!result.success) {
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+// ------------------------------------------------------------
+
+//       void analyticsService
+//         .track({
+
+//           module:
+//             ANALYTICS_MODULES.AI_VOICE,
+
+//           eventName:
+//             ANALYTICS_EVENTS.FAILED,
+
+//           context:
+//             mode === "self"
+//               ? ANALYTICS_CONTEXTS.SELF
+//               : ANALYTICS_CONTEXTS.FAMILY,
+
+//           pagePath:
+//             "/daily-care",
+
+//           inputMethod:
+//             ANALYTICS_INPUT_METHODS.VOICE,
+
+//           metadata: {
+
+//             patientId:
+//               mode === "family"
+//                 ? formData.patientId || null
+//                 : null,
+
+//             reason:
+//               result.error,
+
+//           },
+
+//         })
+//         .catch(() => {
+//           // Analytics must not delay voice error feedback
+//         });
+
+// ------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+// ------------------------------------------------------------
+
+
+      AppAlert.error(
+        result.error
+      );
+
+      return;
+
+    }
+
+
+    const {
+      draft,
+      usage,
+    } =
+      result.data;
+
+
+    setFormData(previous => ({
+
+      ...previous,
+
+      temperature:
+        draft.temperature !== null
+          ? String(draft.temperature)
+          : "",
+
+      temperatureUnit:
+        draft.temperatureUnit ??
+        previous.temperatureUnit,
+
+weightKg:
+    draft.weightKg !== null
+        ? String(draft.weightKg)
+        : previous.weightKg,
+
+      systolic:
+        draft.systolic !== null
+          ? String(draft.systolic)
+          : "",
+
+      diastolic:
+        draft.diastolic !== null
+          ? String(draft.diastolic)
+          : "",
+
+      pulse:
+        draft.pulse !== null
+          ? String(draft.pulse)
+          : "",
+
+      spo2:
+        draft.spo2 !== null
+          ? String(draft.spo2)
+          : "",
+
+symptoms:
+  draft.symptoms,
+
+otherSymptom:
+  draft.otherSymptom ?? "",
+
+painLocations:
+  draft.painLocations,
+
+otherPainLocation:
+  draft.otherPainLocation ?? "",
+
+}));
+
+
+
+    const hasVitals =
+
+      draft.systolic !== null ||
+
+      draft.diastolic !== null ||
+
+      draft.pulse !== null ||
+
+      draft.spo2 !== null;
+
+
+    if (hasVitals) {
+
+      setShowVitals(true);
+
+    }
+
+
+    if (
+      draft.symptoms.length > 0
+    ) {
+
+      setShowSymptoms(true);
+
+    }
+
+//------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+//------------------------------------------------------------
+
+//     void analyticsService
+//   .track({
+
+//     module:
+//       ANALYTICS_MODULES.AI_VOICE,
+
+//     eventName:
+//       ANALYTICS_EVENTS.SUCCEEDED,
+
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+
+//     pagePath:
+//       "/daily-care",
+
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.VOICE,
+
+//     metadata: {
+
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
+
+//       usageUsed:
+//         usage.used,
+
+//       usageRemaining:
+//         usage.remaining,
+
+//     },
+
+//   })
+//   .catch(() => {
+//     Analytics must not delay voice success feedback
+//   });
+
+//------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+//------------------------------------------------------------
+
+
+if (usage.unlimited) {
+
+  AppAlert.success(
+    "Voice processed successfully. Please review the details before saving."
+  );
+
+}
+else {
+
+  AppAlert.success(
+    `Voice processed successfully. ${usage.remaining} of ${usage.limit} trial uses remaining. Please review the details before saving.`
+  );
+
+}
+
+  }
+  catch (error) {
+
+    console.error(
+      "Medical Voice Processing Error:",
+      error
+    );
+
+
+//------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO START
+//------------------------------------------------------------
+
+//     void analyticsService
+//   .track({
+
+//     module:
+//       ANALYTICS_MODULES.AI_VOICE,
+
+//     eventName:
+//       ANALYTICS_EVENTS.FAILED,
+
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+
+//     pagePath:
+//       "/daily-care",
+
+//     inputMethod:
+//       ANALYTICS_INPUT_METHODS.VOICE,
+
+//     metadata: {
+
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId || null
+//           : null,
+
+//       reason:
+//         error instanceof Error
+//           ? error.message
+//           : "UNKNOWN_ERROR",
+
+//     },
+
+//   })
+//   .catch(() => {
+//     // Analytics must not delay voice error feedback
+//   });
+
+//------------------------------------------------------------
+// ANALYTICS — COMMENTED OUT FOR DEMO END
+//------------------------------------------------------------
+
+    AppAlert.error(
+      "Unable to process the voice recording."
+    );
+
+  }
+  finally {
+
+    setProcessingVoice(false);
+
+  }
+
+}
+
+  //------------------------------------------------------------
+  // Reset Form
+  //------------------------------------------------------------
+
+function resetForm() {
+
+  const patientId =
+    formData.patientId;
+
+  const unit =
+    formData.temperatureUnit;
+
+  setFormData({
+
+    ...createInitialForm(),
+
+    patientId,
+
+    temperatureUnit: unit
+
+  });
+
+  setReadingInputMethod(null);
+
+  setImageReadSuccessful(false);
+
+  setShowVitals(false);
+
+  setShowSymptoms(false);
+
+}
+
+//------------------------------------------------------------
+// Back To Dashboard
+//------------------------------------------------------------
+
+function handleBackToDashboard() {
+
+  // performanceTracker.start({
+
+  //   fromPath:
+  //     "/daily-care",
+
+  //   toPath:
+  //     "/dashboard",
+
+  //   feature:
+  //     mode === "self"
+  //       ? "DAILY_CARE_SELF_TO_DASHBOARD"
+  //       : "DAILY_CARE_FAMILY_TO_DASHBOARD",
+
+  //   context:
+  //     mode === "self"
+  //       ? "SELF"
+  //       : "FAMILY",
+
+  // });
+
+  // void analyticsService
+  //   .track({
+
+  //     module:
+  //       ANALYTICS_MODULES.DAILY_CARE,
+
+  //     eventName:
+  //       ANALYTICS_EVENTS.BACK_TO_DASHBOARD_CLICKED,
+
+  //     context:
+  //       mode === "self"
+  //         ? ANALYTICS_CONTEXTS.SELF
+  //         : ANALYTICS_CONTEXTS.FAMILY,
+
+  //     pagePath:
+  //       "/daily-care",
+
+  //     metadata: {
+
+  //       patientId:
+  //         mode === "family"
+  //           ? formData.patientId || null
+  //           : null,
+
+  //     },
+
+  //   })
+  //   .catch(() => {
+  //     Analytics must not block dashboard navigation
+  //   });
+
+  router.push(
+    "/dashboard"
+  );
+
+}
+
+  //------------------------------------------------------------
+  // JSX Continues In Part 2
+  //------------------------------------------------------------
+
+return (
+
+  <>
+
+    {/*--------------------------------------------------------
+      Patient Information
+    --------------------------------------------------------*/}
+
+    <section style={cardStyle}>
+
+      <h3 style={sectionTitle}>
+        👤 {t("dailyCare.patientInformation")}
+      </h3>
+
+<label style={labelStyle}>
+  {t("dailyCare.patient")}
+</label>
+
+{mode === "family" ? (
+
+  <select
+    value={formData.patientId}
+    disabled={loadingPatients || saving}
+    onChange={(e) =>
+      updateField(
+        "patientId",
+        e.target.value
+      )
+    }
+    style={inputStyle}
+  >
+
+    <option value="">
+      Select Patient
+    </option>
+
+    {patients.map((patient) => (
+
+      <option
+        key={patient.id}
+        value={patient.id}
+      >
+        {patient.fullName}
+      </option>
+
+    ))}
+
+  </select>
+
+) : (
+
+  <div
+    style={{
+      ...inputStyle,
+      background: "#f3f4f6",
+      color: "#374151",
+      display: "flex",
+      alignItems: "center",
+      minHeight: "52px",
+      fontWeight: 600,
+    }}
+  >
+    👤 {currentUserName}
+  </div>
+
+)}
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "16px",
+          marginTop: "20px",
+        }}
+      >
+
+        <div>
+
+          <label style={labelStyle}>
+            {t("dailyCare.date")} *
+          </label>
+
+          <input
+            type="date"
+            value={formData.date}
+            onChange={(e) =>
+              updateField(
+                "date",
+                e.target.value
+              )
+            }
+            style={inputStyle}
+          />
+
+        </div>
+
+        <div>
+
+          <label style={labelStyle}>
+            {t("dailyCare.time")} *
+          </label>
+
+          <input
+            type="time"
+            value={formData.time}
+            onChange={(e) =>
+              updateField(
+                "time",
+                e.target.value
+              )
+            }
+            style={inputStyle}
+          />
+
+        </div>
+
+      </div>
+
+    </section>
+
+    {/*--------------------------------------------------------
+      Reading Input Method
+    --------------------------------------------------------*/}
+
+    <section style={cardStyle}>
+
+      <h3 style={sectionTitle}>
+        {t("dailyCare.readingMethodQuestion")}
+      </h3>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "12px",
+        }}
+      >
+
+        <button
+          type="button"
+          disabled={
+            processingImage ||
+            saving
+          }
+
+onClick={() => {
+
+  void selectReadingInputMethod(
+    "image"
+  );
+
+}}
+
+          style={{
+            ...methodButton,
+
+            border:
+              readingInputMethod === "image"
+                ? "2px solid #2563eb"
+                : "1px solid #d1d5db",
+
+            background:
+              readingInputMethod === "image"
+                ? "#eff6ff"
+                : "#ffffff",
+
+            color:
+              readingInputMethod === "image"
+                ? "#1d4ed8"
+                : "#111827",
+          }}
+        >
+          📷 {t("dailyCare.uploadPhoto")}
+        </button>
+
+        <button
+          type="button"
+          disabled={
+            processingImage ||
+            saving
+          }
+
+onClick={() => {
+
+  void selectReadingInputMethod(
+    "manual"
+  );
+
+}}
+
+          style={{
+            ...methodButton,
+
+            border:
+              readingInputMethod === "manual"
+                ? "2px solid #2563eb"
+                : "1px solid #d1d5db",
+
+            background:
+              readingInputMethod === "manual"
+                ? "#eff6ff"
+                : "#ffffff",
+
+            color:
+              readingInputMethod === "manual"
+                ? "#1d4ed8"
+                : "#111827",
+          }}
+        >
+          ✍️ {t("dailyCare.enterManually")}
+        </button>
+
+
+        {/* Record With Voice */}
+
+        <button
+          type="button"
+          disabled={
+            processingImage ||
+            processingVoice ||
+            saving
+          }
+onClick={() => {
+
+  void selectReadingInputMethod(
+    "voice"
+  );
+
+}}
+          style={{
+            ...methodButton,
+
+            border:
+              readingInputMethod === "voice"
+                ? "2px solid #2563eb"
+                : "1px solid #d1d5db",
+
+            background:
+              readingInputMethod === "voice"
+                ? "#eff6ff"
+                : "#ffffff",
+
+            color:
+              readingInputMethod === "voice"
+                ? "#1d4ed8"
+                : "#111827",
+          }}
+        >
+          🎙️ Record with Voice
+        </button>
+
+      </div>
+
+    </section>
+
+{readingInputMethod === "voice" && (
+
+  <section style={cardStyle}>
+
+    <h3 style={sectionTitle}>
+      🎙️ Record Daily Care
+    </h3>
+
+<p
+  style={{
+    marginTop: 0,
+    marginBottom: "12px",
+    color: "#6b7280",
+    lineHeight: 1.5,
+  }}
+>
+  Speak naturally in your preferred language.
+  You can mention temperature, weight, blood pressure,
+  pulse, oxygen level, symptoms, or pain details.
+</p>
+
+<p
+  style={{
+    marginTop: 0,
+    marginBottom: "16px",
+    color: "#92400e",
+    fontWeight: 600,
+    lineHeight: 1.5,
+  }}
+>
+  🔇 For best results, speak clearly and record in a
+  quiet place with minimal background noise.
+</p>
+
+
+<div
+  style={{
+    padding: "14px 16px",
+    marginBottom: "16px",
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    borderRadius: "10px",
+    lineHeight: 1.5,
+    color: "#374151",
+  }}
+>
+  <strong>For example:</strong>
+
+  <div
+    style={{
+      marginTop: "6px",
+    }}
+  >
+    “Temperature is 99.2 Fahrenheit, Weight is 72 kilograms, BP is 120 over 80,
+    oxygen is 96, pulse is 92, and I have cough and
+    body pain in my back.”
+  </div>
+</div>
+
+
+{processingVoice ? (
+
+      <p
+        style={{
+          textAlign: "center",
+          fontWeight: 600,
+          color: "#2563eb",
+        }}
+      >
+        Understanding your recording…
+      </p>
+
+    ) : (
+
+      <VoiceRecorder
+        onRecordingReady={
+          handleMedicalVoice
+        }
+        disabled={
+          saving ||
+          processingImage
+        }
+      />
+
+    )}
+
+  </section>
+
+)}
+
+{(
+  readingInputMethod === "image" &&
+  !imageReadSuccessful
+) && (
+
+  <>
+
+{/*--------------------------------------------------------
+  Medical Image Capture
+--------------------------------------------------------*/}
+
+
+
+<section style={cardStyle}>
+
+  <h3 style={sectionTitle}>
+    📷 {t("dailyCare.captureMedicalReadings")}
+  </h3>
+
+  <p
+    style={{
+      marginTop: 0,
+      marginBottom: "16px",
+      color: "#6b7280",
+      lineHeight: 1.5,
+    }}
+  >
+    {t("dailyCare.captureHelp")}
+  </p>
+
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "12px",
+  }}
+>
+
+  {/* Take Photo */}
+
+  <label
+    style={{
+      ...imageCaptureButton,
+
+      opacity:
+        processingImage || saving
+          ? 0.7
+          : 1,
+
+      cursor:
+        processingImage || saving
+          ? "not-allowed"
+          : "pointer",
+    }}
+  >
+
+{activeImageSource === "camera"
+  ? t("dailyCare.readingImage")
+  : `📷 ${t("dailyCare.takePhoto")}`}
+
+    <input
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      capture="environment"
+      disabled={
+        processingImage ||
+        saving
+      }
+onChange={(event) =>
+  handleMedicalImage(
+    event,
+    "camera"
+  )
+}
+      style={{
+        display: "none",
+      }}
+    />
+
+  </label>
+
+
+  {/* Choose Existing Photo */}
+
+  <label
+    style={{
+      ...imageCaptureButton,
+
+      opacity:
+        processingImage || saving
+          ? 0.7
+          : 1,
+
+      cursor:
+        processingImage || saving
+          ? "not-allowed"
+          : "pointer",
+    }}
+  >
+
+    {activeImageSource === "gallery"
+  ? t("dailyCare.readingImage")
+  : `🖼️ ${t("dailyCare.chooseExistingPhoto")}`}
+
+    <input
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      disabled={
+        processingImage ||
+        saving
+      }
+onChange={(event) =>
+  handleMedicalImage(
+    event,
+    "gallery"
+  )
+}
+      style={{
+        display: "none",
+      }}
+    />
+
+  </label>
+
+</div>
+
+</section>
+
+  </>
+)}
+
+{(
+  readingInputMethod === "manual" ||
+  readingInputMethod === "voice" ||
+  imageReadSuccessful
+) && (
+  <>
+
+    {/*--------------------------------------------------------
+      Temperature
+    --------------------------------------------------------*/}
+
+    <section style={cardStyle}>
+
+      <h3 style={sectionTitle}>
+        🌡 {t("dailyCare.temperature")}
+      </h3>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "2fr 1fr",
+          gap: "16px",
+          alignItems: "end",
+        }}
+      >
+
+        <div>
+
+          <label style={labelStyle}>
+            {t("dailyCare.temperature")} 
+          </label>
+
+          <input
+            type="number"
+            step="0.1"
+            placeholder={t("dailyCare.enterTemperature")}
+            value={formData.temperature}
+            onChange={(e) =>
+              updateField(
+                "temperature",
+                e.target.value
+              )
+            }
+            style={inputStyle}
+          />
+
+        </div>
+
+        <div>
+
+          <label style={labelStyle}>
+            {t("dailyCare.unit")}
+          </label>
+
+          <select
+            value={formData.temperatureUnit}
+            onChange={(e) =>
+              updateField(
+                "temperatureUnit",
+                e.target.value as TemperatureUnit
+              )
+            }
+            style={inputStyle}
+          >
+
+            <option value="F">
+              °F
+            </option>
+
+            <option value="C">
+              °C
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+    </section>
+
+{/*--------------------------------------------------------
+  Weight
+--------------------------------------------------------*/}
+
+<section style={cardStyle}>
+
+  <h3 style={sectionTitle}>
+    ⚖ Weight
+  </h3>
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "2fr 1fr",
+      gap: "16px",
+      alignItems: "end",
+    }}
+  >
+
+    <div>
+
+      <label style={labelStyle}>
+        Weight
+      </label>
+
+      <input
+        type="number"
+        step="0.1"
+        min="0"
+        placeholder="Enter weight"
+        value={formData.weightKg}
+        onChange={(e) =>
+          updateField(
+            "weightKg",
+            e.target.value
+          )
+        }
+        style={inputStyle}
+      />
+
+    </div>
+
+    <div>
+
+      <label style={labelStyle}>
+        Unit
+      </label>
+
+      <div
+        style={{
+          ...inputStyle,
+          background: "#f3f4f6",
+          display: "flex",
+          alignItems: "center",
+          fontWeight: 600,
+          minHeight: "52px",
+        }}
+      >
+        kg
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+    {/*--------------------------------------------------------
+      Additional Vitals
+    --------------------------------------------------------*/}
+
+<VitalsCard
+  expanded={showVitals}
+  disabled={saving}
+  systolic={formData.systolic}
+  diastolic={formData.diastolic}
+  pulse={formData.pulse}
+  spo2={formData.spo2}
+  onToggle={() => setShowVitals(!showVitals)}
+  onSystolicChange={(value) =>
+    updateField("systolic", value)
+  }
+  onDiastolicChange={(value) =>
+    updateField("diastolic", value)
+  }
+  onPulseChange={(value) =>
+    updateField("pulse", value)
+  }
+  onSpo2Change={(value) =>
+    updateField("spo2", value)
+  }
+/>
+
+{/*--------------------------------------------------------
+  Symptoms
+--------------------------------------------------------*/}
+
+<SymptomsCard
+  expanded={showSymptoms}
+  disabled={saving}
+  symptoms={formData.symptoms}
+  otherSymptom={formData.otherSymptom}
+  onToggle={() =>
+    setShowSymptoms(!showSymptoms)
+  }
+  onSymptomToggle={
+    toggleSymptom
+  }
+  onOtherSymptomChange={(value) =>
+    updateField(
+      "otherSymptom",
+      value
+    )
+  }
+/>
+
+{/*--------------------------------------------------------
+  Pain Location
+--------------------------------------------------------*/}
+
+{formData.symptoms.includes("BODY_PAIN") && (
+
+  <PainLocationCard
+    painLocations={formData.painLocations}
+    otherPainLocation={formData.otherPainLocation}
+    disabled={saving}
+    onPainLocationToggle={
+      togglePainLocation
+    }
+    onOtherPainLocationChange={(value) =>
+      updateField(
+        "otherPainLocation",
+        value
+      )
+    }
+  />
+
+)}
+
+
+
+</>
+    )}
+
+    {/*--------------------------------------------------------
+      Actions
+    --------------------------------------------------------*/}
+
+    <div
+      style={{
+        display: "flex",
+        gap: "16px",
+        marginTop: "32px"
+      }}
+    >
+
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={saving}
+        style={{
+          ...primaryButton,
+          flex: 1,
+          opacity: saving ? 0.7 : 1
+        }}
+      >
+
+{saving
+  ? t("dailyCare.saving")
+  : `💾 ${t("dailyCare.saveReading")}`}
+
+      </button>
+
+<button
+  type="button"
+  disabled={saving}
+  onClick={handleBackToDashboard}
+  style={{
+    ...secondaryButton,
+    flex: 1
+  }}
+>
+  🏠 {t("dailyCare.backToDashboard")}
+</button>
+
+    </div>
+
+  </>
+
+);
+
+  //------------------------------------------------------------
+  // Save
+  //------------------------------------------------------------
+
+//------------------------------------------------------------
+// Validation
+//------------------------------------------------------------
+
+function validateForm(): boolean {
+
+if (!readingInputMethod) {
+
+  AppAlert.warning(
+    "Please choose how you want to record the reading."
+  );
+
+  return false;
+
+}
+
+if (
+  mode === "family" &&
+  !formData.patientId.trim()
+) {
+
+  AppAlert.warning(
+    "Please select a patient."
+  );
+
+  return false;
+
+}
+
+const hasTemperature =
+  formData.temperature.trim() !== "";
+
+const hasWeight =
+  formData.weightKg.trim() !== "";
+
+const hasVitals =
+  formData.systolic.trim() !== "" ||
+  formData.diastolic.trim() !== "" ||
+  formData.pulse.trim() !== "" ||
+  formData.spo2.trim() !== "";
+
+const hasSymptoms =
+  formData.symptoms.length > 0;
+
+const hasPainLocations =
+  formData.painLocations.length > 0;
+
+const hasNotes = false;
+
+const hasMedications = false;
+
+if (
+  !hasTemperature &&
+  !hasWeight &&
+  !hasVitals &&
+  !hasSymptoms &&
+  !hasPainLocations &&
+  !hasNotes &&
+  !hasMedications
+){
+
+AppAlert.warning(
+  "Please record at least one health observation.\n\n" +
+  "• Temperature\n" +
+  "• Weight\n" +  
+  "• Vitals\n" +
+  "• Symptoms\n" +
+  "• Pain Location"
+);
+
+  return false;
+
+}
+
+if (hasTemperature) {
+
+  const temperature =
+    Number(formData.temperature);
+
+  if (Number.isNaN(temperature)) {
+
+    AppAlert.warning("Temperature is invalid.");
+
+    return false;
+
+  }
+
+}
+
+if (hasWeight) {
+
+  const weight =
+    Number(formData.weightKg);
+
+  if (Number.isNaN(weight)) {
+
+    AppAlert.warning(
+      "Weight is invalid."
+    );
+
+    return false;
+
+  }
+
+  if (
+    weight <= 0 ||
+    weight > 500
+  ) {
+
+    AppAlert.warning(
+      "Weight must be between 0 and 500 kg."
+    );
+
+    return false;
+
+  }
+
+}
+
+  if (
+    formData.systolic &&
+    Number.isNaN(Number(formData.systolic))
+  ) {
+
+    AppAlert.warning("Blood Pressure is invalid.");
+
+    return false;
+
+  }
+
+  if (
+    formData.diastolic &&
+    Number.isNaN(Number(formData.diastolic))
+  ) {
+
+    AppAlert.warning("Blood Pressure is invalid.");
+
+
+    return false;
+
+  }
+
+  if (
+    formData.pulse &&
+    Number.isNaN(Number(formData.pulse))
+  ) {
+
+    AppAlert.warning("Pulse Rate is invalid.");
+
+    return false;
+
+  }
+
+  if (
+    formData.spo2 &&
+    Number.isNaN(Number(formData.spo2))
+  ) {
+
+    AppAlert.warning("SpO₂ is invalid.");
+
+    return false;
+
+  }
+
+if (
+  formData.symptoms.includes("OTHER") &&
+  !formData.otherSymptom.trim()
+) {
+
+  AppAlert.warning("Please specify the other symptom.");
+
+  return false;
+
+}
+
+if (
+  formData.painLocations.includes("OTHER") &&
+  !formData.otherPainLocation.trim()
+) {
+
+  AppAlert.warning("Please specify the pain location.");
+
+  return false;
+
+}
+
+return true;
+
+}
+
+//------------------------------------------------------------
+// Save Reading
+//------------------------------------------------------------
+
+async function handleSave() {
+
+  if (saving) {
+
+    return;
+
+  }
+
+  if (!validateForm()) {
+
+    return;
+
+  }
+
+  setSaving(true);
+
+  try {
+
+
+    const reading = {
+
+  patientId:
+    formData.patientId,
+
+  recordedAt:
+    `${formData.date}T${formData.time}:00`,
+
+  overallStatus: null,
+
+  temperature:
+  formData.temperature.trim()
+    ? Number(formData.temperature)
+    : null,
+
+      temperatureUnit:
+        formData.temperatureUnit,
+
+weightKg:
+  formData.weightKg.trim()
+    ? Number(formData.weightKg)
+    : null,
+
+      systolic:
+        formData.systolic
+          ? Number(formData.systolic)
+          : null,
+
+      diastolic:
+        formData.diastolic
+          ? Number(formData.diastolic)
+          : null,
+
+      pulse:
+        formData.pulse
+          ? Number(formData.pulse)
+          : null,
+
+      spo2:
+        formData.spo2
+          ? Number(formData.spo2)
+          : null,
+
+      symptoms:
+        formData.symptoms,
+
+otherSymptom:
+  formData.otherSymptom.trim()
+    ? formData.otherSymptom.trim()
+    : null,
+
+      painLocations:
+        formData.painLocations,
+
+otherPainLocation:
+  formData.otherPainLocation.trim()
+    ? formData.otherPainLocation.trim()
+    : null
+
+    };
+
+let result;
+
+if (mode === "family") {
+
+  result =
+    await dailyCareStorage.save(
+      reading
+    );
+
+}
+else {
+
+  result =
+  await selfDailyCareStorage.save({
+
+    recordedAt:
+      reading.recordedAt,
+
+    overallStatus:
+      reading.overallStatus,
+
+    temperature:
+      reading.temperature,
+
+      temperatureUnit:
+        reading.temperatureUnit,
+
+weightKg:
+  reading.weightKg,
+
+      systolic:
+        reading.systolic,
+
+      diastolic:
+        reading.diastolic,
+
+      pulse:
+        reading.pulse,
+
+      spo2:
+        reading.spo2,
+
+      symptoms:
+        reading.symptoms,
+
+      otherSymptom:
+        reading.otherSymptom,
+
+      painLocations:
+        reading.painLocations,
+
+      otherPainLocation:
+        reading.otherPainLocation
+
+    });
+
+}
+
+if (!result.success) {
+
+  throw new Error(
+    result.error
+  );
+
+}
+
+// void analyticsService
+//   .track({
+//
+//     module:
+//       ANALYTICS_MODULES.DAILY_CARE,
+//
+//     eventName:
+//       ANALYTICS_EVENTS.COMPLETED,
+//
+//     context:
+//       mode === "self"
+//         ? ANALYTICS_CONTEXTS.SELF
+//         : ANALYTICS_CONTEXTS.FAMILY,
+//
+//     pagePath:
+//       "/daily-care",
+//
+//     inputMethod:
+//       readingInputMethod === "image"
+//         ? ANALYTICS_INPUT_METHODS.IMAGE
+//         : readingInputMethod === "voice"
+//         ? ANALYTICS_INPUT_METHODS.VOICE
+//         : ANALYTICS_INPUT_METHODS.MANUAL,
+//
+//     metadata: {
+//
+//       patientId:
+//         mode === "family"
+//           ? formData.patientId
+//           : null,
+//
+//     },
+//
+//   })
+//   .catch(() => {
+//     Analytics must not delay save confirmation
+//   });
+
+resetForm();
+
+AppAlert.success(
+  "Daily Care saved successfully."
+);
+
+  }
+
+catch (error) {
+
+  console.error(
+    "Daily Care Save Error:",
+    error
+  );
+
+  if (error instanceof Error) {
+
+    AppAlert.error(error.message);
+
+  } else {
+
+    AppAlert.error("Unable to save Daily Care.");
+
+  }
+
+}
+  finally {
+
+    setSaving(false);
+
+  }
+
+}
+
+}
+
+//------------------------------------------------------------
+// Styles
+//------------------------------------------------------------
+
+const cardStyle: React.CSSProperties = {
+
+  background: "#ffffff",
+
+  border: "1px solid #d1d5db",
+
+  borderRadius: "12px",
+
+  padding: "24px",
+
+  marginBottom: "24px",
+
+  boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
+
+};
+
+const sectionTitle: React.CSSProperties = {
+
+  margin: 0,
+
+  marginBottom: "20px",
+
+  fontSize: "22px",
+
+  fontWeight: 700,
+
+  color: "#111827"
+
+};
+
+const labelStyle: React.CSSProperties = {
+
+  display: "block",
+
+  marginBottom: "8px",
+
+  marginTop: "16px",
+
+  fontWeight: 600,
+
+  color: "#111827",
+
+  fontSize: "15px"
+
+};
+
+const inputStyle: React.CSSProperties = {
+
+  width: "100%",
+
+  padding: "14px",
+
+  border: "1px solid #d1d5db",
+
+  borderRadius: "10px",
+
+  fontSize: "16px",
+
+  boxSizing: "border-box",
+
+  background: "#ffffff",
+
+  outline: "none"
+
+};
+
+const collapseButton: React.CSSProperties = {
+
+  width: "100%",
+
+  background: "transparent",
+
+  border: "none",
+
+  padding: 0,
+
+  margin: 0,
+
+  textAlign: "left",
+
+  fontSize: "20px",
+
+  fontWeight: 700,
+
+  cursor: "pointer",
+
+  color: "#111827"
+
+};
+
+const checkboxLabel: React.CSSProperties = {
+
+  display: "flex",
+
+  alignItems: "center",
+
+  gap: "10px",
+
+  padding: "6px 0",
+
+  cursor: "pointer",
+
+  fontSize: "15px",
+
+  color: "#111827"
+
+};
+
+const methodButton: React.CSSProperties = {
+
+  minHeight: "58px",
+
+  padding: "16px",
+
+  borderRadius: "10px",
+
+  fontSize: "16px",
+
+  fontWeight: 700,
+
+  cursor: "pointer",
+
+  transition: "0.2s",
+
+};
+
+const primaryButton: React.CSSProperties = {
+
+  padding: "16px",
+
+  background: "#2563eb",
+
+  color: "#ffffff",
+
+  border: "none",
+
+  borderRadius: "10px",
+
+  fontSize: "16px",
+
+  fontWeight: 700,
+
+  cursor: "pointer",
+
+  transition: "0.2s"
+
+};
+
+const secondaryButton: React.CSSProperties = {
+
+  padding: "16px",
+
+  background: "#ffffff",
+
+  color: "#111827",
+
+  border: "1px solid #d1d5db",
+
+  borderRadius: "10px",
+
+  fontSize: "16px",
+
+  fontWeight: 700,
+
+  cursor: "pointer",
+
+  transition: "0.2s"
+
+};
+
+const imageCaptureButton: React.CSSProperties = {
+
+  width: "100%",
+
+  minHeight: "54px",
+
+  padding: "16px",
+
+  background: "#ffffff",
+
+  color: "#2563eb",
+
+  border: "2px solid #2563eb",
+
+  borderRadius: "10px",
+
+  fontSize: "16px",
+
+  fontWeight: 700,
+
+  display: "flex",
+
+  alignItems: "center",
+
+  justifyContent: "center",
+
+  boxSizing: "border-box",
+
+};

@@ -1,0 +1,101 @@
+id,medicine_code,brand_name,generic_name,strength,formulation,manufacturer,search_key,is_active,created_at,updated_at
+d663e3fb-f1d6-4ff0-bf99-3b7f6c04bff7,MED000001,Paracetamol,Paracetamol,650 mg,Tablet,null,paracetamol pcm 650,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+2e8e52c3-62be-489f-a074-bbd56f55a31d,MED000002,Dolo 650,Paracetamol,650 mg,Tablet,Micro Labs,dolo650 dolo paracetamol pcm650,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+17d89d91-47ff-4fae-9ea4-a48eaa5e3abe,MED000003,Crocin 650,Paracetamol,650 mg,Tablet,Haleon,crocin650 crocin paracetamol,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+b925da1d-0c12-47bb-98f9-3aeff844aeeb,MED000004,Calpol 650,Paracetamol,650 mg,Tablet,GSK,calpol650 calpol paracetamol,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+fc53bee0-7f5c-42cd-aced-faa0f9fc7cc2,MED000005,Meftal Spas,Mefenamic Acid + Dicyclomine,null,Tablet,Blue Cross,meftal spas mefenamic dicyclomine,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+85580852-27c8-436b-b385-a7d8c053c4a3,MED000006,Meftal Forte,Mefenamic Acid,500 mg,Tablet,Blue Cross,meftal forte mefenamic,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+8b892e59-586e-4870-b292-50f384fdf7e4,MED000007,Brufen 400,Ibuprofen,400 mg,Tablet,Abbott,brufen ibuprofen 400,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+044092cb-c575-4f16-9e6c-9404094d34b8,MED000008,Combiflam,Ibuprofen + Paracetamol,null,Tablet,Sanofi,combiflam ibuprofen paracetamol,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+779353c9-3bdc-4ad8-b5dd-fdc0f875cf2b,MED000009,Zerodol SP,Aceclofenac + Paracetamol + Serratiopeptidase,null,Tablet,Ipca,zerodol sp aceclofenac,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+8251021e-bba1-43f2-923d-a3d022345dab,MED000010,Ultracet,Tramadol + Paracetamol,null,Tablet,Janssen,ultracet tramadol paracetamol,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+63f70191-334f-49b5-88e8-de2ca297bc28,MED000011,Augmentin 625,Amoxicillin + Clavulanic Acid,625 mg,Tablet,GSK,augmentin625 augmentin amoxyclav,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+ee1579cb-9849-4fe0-938f-2bf64628ef88,MED000012,Augmentin Duo,Amoxicillin + Clavulanic Acid,null,Suspension,GSK,augmentin duo,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+26e66108-c838-461c-b1d3-86dc7977f6b8,MED000013,Azithral 500,Azithromycin,500 mg,Tablet,Alembic,azithral500 azithromycin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+6b427abf-0096-4ae3-b125-af5c7c815d63,MED000014,Azee 500,Azithromycin,500 mg,Tablet,Cipla,azee500 azithromycin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+6dcda3d1-13f3-4286-85e3-73cdf3cc587b,MED000015,Taxim O 200,Cefixime,200 mg,Tablet,Alkem,taximo200 cefixime,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+fafdb61e-4439-4ac4-a2fd-0caa3a771a48,MED000016,Cefix 200,Cefixime,200 mg,Tablet,Cipla,cefix200 cefixime,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+2d574fe1-002c-44f2-903d-e14b1fce7ddd,MED000017,Monocef,Ceftriaxone,1 g,Injection,Aristo,monocef ceftriaxone,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+01521113-b9e9-40f3-8e00-e5ebc721a6cf,MED000018,Amoxyclav 625,Amoxicillin + Clavulanic Acid,625 mg,Tablet,Abbott,amoxyclav625,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+c3885ce7-50a0-4ced-995b-ff11b965039d,MED000019,Ciplox 500,Ciprofloxacin,500 mg,Tablet,Cipla,ciplox500 ciprofloxacin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+795f36d6-c9e0-440c-a668-79c70f560116,MED000020,Levoflox 500,Levofloxacin,500 mg,Tablet,Cipla,levoflox500 levofloxacin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+2595a772-4da6-4c82-84f9-5c8ff6ad2836,MED000021,Telma 40,Telmisartan,40 mg,Tablet,Glenmark,telma40 telmisartan,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+db738cf4-d0ec-4afc-8727-f20cc4616b59,MED000022,Telma 80,Telmisartan,80 mg,Tablet,Glenmark,telma80 telmisartan,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+9b8dd7dd-11e7-47ed-8c97-19d3b1dc032a,MED000023,Olmesart 20,Olmesartan,20 mg,Tablet,Sun Pharma,olmesart20 olmesartan,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+84bea683-6de2-4b3d-92c6-5b61ced279cf,MED000024,Olmezest 20,Olmesartan,20 mg,Tablet,Sun Pharma,olmezest20 olmesartan,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+2a97125f-7e2c-4889-818b-e818dee8200d,MED000025,Amlong 5,Amlodipine,5 mg,Tablet,Micro Labs,amlong5 amlodipine,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+e90c6e0d-a854-48eb-9b4a-93aa3050e030,MED000026,Amlodac 5,Amlodipine,5 mg,Tablet,Zydus,amlodac5 amlodipine,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+d09772be-0f05-4568-bd64-37a3793aac23,MED000027,Losar 50,Losartan,50 mg,Tablet,Torrent,losar50 losartan,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+9a2bbae8-5874-43f5-9994-ee0b4a696dcd,MED000028,Cardace 5,Ramipril,5 mg,Tablet,Sanofi,cardace5 ramipril,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+bc3d5a61-6af1-4d34-9890-de68ea145a91,MED000029,Met XL 50,Metoprolol,50 mg,Tablet,Dr Reddys,metxl50 metoprolol,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+d77c61a7-87cd-43ac-82b6-601687d30bc1,MED000030,Prolomet XL 50,Metoprolol,50 mg,Tablet,Sun Pharma,prolometxl50 metoprolol,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+86927309-5cf0-4674-887d-362c3ad5f90b,MED000031,Glycomet 500,Metformin,500 mg,Tablet,USV,glycomet500 metformin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+3337cb1b-f870-4e81-ae61-065b475f2e17,MED000032,Glycomet GP2,Metformin + Glimepiride,null,Tablet,USV,glycomet gp2,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+f87f7fdb-d1d8-44c5-aef6-75280941567d,MED000033,Janumet,Metformin + Sitagliptin,null,Tablet,MSD,janumet sitagliptin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+fb33bfa5-37d8-4d99-bb94-904ca0442372,MED000034,Galvus Met,Metformin + Vildagliptin,null,Tablet,Novartis,galvus met,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+81f04ec6-bd72-4806-af6f-838ba6b6a89f,MED000035,Istamet,Metformin + Sitagliptin,null,Tablet,Sun Pharma,istamet,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+2b70b5ad-eaf1-4e5f-a765-af787df7d0d8,MED000036,Amaryl 2,Glimepiride,2 mg,Tablet,Sanofi,amaryl2 glimepiride,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+fd984ae5-7c1a-4736-921f-d9411ccb4259,MED000037,Jardiance 10,Empagliflozin,10 mg,Tablet,Boehringer,jardiance10 empagliflozin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+02b50eb5-3be4-4cad-94fd-8eff454a8d1d,MED000038,Forxiga 10,Dapagliflozin,10 mg,Tablet,AstraZeneca,forxiga10 dapagliflozin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+7e9fb663-3038-4df5-a9fb-d2d3a3c773ea,MED000039,Rybelsus,Semaglutide,null,Tablet,Novo Nordisk,rybelsus semaglutide,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+52ef1ccd-ef7f-44b0-84d2-4a3f42d13ad0,MED000040,Ozempic,Semaglutide,null,Injection,Novo Nordisk,ozempic semaglutide,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+09a684aa-8c75-4329-87f1-b72a7de8f1ef,MED000041,Pan 40,Pantoprazole,40 mg,Tablet,Alkem,pan40 pantoprazole,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+d5ef5bc6-fd1b-47c8-8d77-e4d9a7ad254c,MED000042,Pantocid 40,Pantoprazole,40 mg,Tablet,Sun Pharma,pantocid40 pantoprazole,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+9bab8aec-31b3-48e7-8a73-1545b4a6e68a,MED000043,Nexpro RD,Esomeprazole + Domperidone,null,Capsule,Torrent,nexpro rd,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+d822e223-1191-4989-9b3c-eb69971261eb,MED000044,Sympraz D,Pantoprazole + Domperidone,null,Capsule,Mankind,sympraz d,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+30d635da-72ad-4324-97e1-08c443e1c613,MED000045,Rablet D,Rabeprazole + Domperidone,null,Capsule,Lupin,rablet d,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+85fd6141-26d4-4d3a-a2da-2c6febdd9279,MED000046,Omez,Omeprazole,20 mg,Capsule,Dr Reddys,omez omeprazole,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+a22c2c99-4ffc-4da3-824a-9aa47b98feff,MED000047,Ocid,Omeprazole,20 mg,Capsule,Zydus,ocid omeprazole,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+51b48a14-4fd0-481b-8f31-524258035afb,MED000048,Gelusil,Antacid,null,Suspension,Pfizer,gelusil antacid,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+c7b3c7c5-5009-47c8-a71f-8da3266c23b7,MED000049,Digene,Antacid,null,Tablet,Abbott,digene antacid,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+17b248ea-642d-4b67-a470-cef753a9d0ac,MED000050,Sucral,Sucralfate,null,Suspension,Abbott,sucral sucralfate,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+750d4a98-406a-4512-84b7-c5d29982d40b,MED000051,Foracort 200,Budesonide + Formoterol,200/6,Inhaler,Cipla,foracort200,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+70db6b0a-501d-4375-af38-071696d307c3,MED000052,Budecort,Budesonide,null,Respules,Cipla,budecort budesonide,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+9cedeb5f-c404-4e77-b886-601c5edd1a7b,MED000053,Asthalin,Salbutamol,null,Inhaler,Cipla,asthalin salbutamol,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+86b64e5d-9baa-4844-911b-b4440de2050c,MED000054,Duolin,Ipratropium + Levosalbutamol,null,Nebules,Cipla,duolin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+d7d49e99-e4c7-41bc-be58-d0e935187014,MED000055,Levolin,Levosalbutamol,null,Inhaler,Cipla,levolin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+2b602165-21dc-45d0-9ff8-60713d0af3bc,MED000056,Deriphyllin,Etofylline + Theophylline,null,Tablet,Zydus,deriphyllin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+2f4bd8be-e419-43db-84bc-a0d4bf0b0475,MED000117,Ceftum 500,Cefuroxime,500 mg,Tablet,GSK,ceftum500,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+d32843e1-43ee-444d-901c-4916833a0d2e,MED000057,Mucinac,Acetylcysteine,600 mg,Effervescent Tablet,Cipla,mucinac acetylcysteine,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+1eeeabdc-527a-4aec-b2fd-abbba1bc614e,MED000058,Montair LC,Montelukast + Levocetirizine,null,Tablet,Cipla,montair lc,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+2363d2ab-d00f-48af-a579-7cacc186c605,MED000059,Montek LC,Montelukast + Levocetirizine,null,Tablet,Sun Pharma,montek lc,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+2b56f03d-8b36-4dc0-9062-0e032d69526f,MED000060,Seroflo 250,Salmeterol + Fluticasone,250,Inhaler,Cipla,seroflo250,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+f7c14eed-24b4-4a30-a52d-ac25cdf552d4,MED000061,Ecosprin 75,Aspirin,75 mg,Tablet,USV,ecosprin75 aspirin,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+2ffb4345-1392-4210-ab3d-02a5eac8e594,MED000062,Clopitab,Clopidogrel,75 mg,Tablet,Lupin,clopitab clopidogrel,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+98625cdc-0230-495a-b84f-58c6af04fa79,MED000063,Clopilet,Clopidogrel,75 mg,Tablet,Sun Pharma,clopilet clopidogrel,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+462efb27-184a-4f21-bf40-6e96b96d1198,MED000064,Rosuvas 10,Rosuvastatin,10 mg,Tablet,Sun Pharma,rosuvas10,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+a37b0025-b236-49b2-8a5c-c2da177a09b8,MED000065,Atorva 20,Atorvastatin,20 mg,Tablet,Zydus,atorva20,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+adeb4d6c-0ef0-4e83-8332-ffe6069c933e,MED000066,Storvas 10,Atorvastatin,10 mg,Tablet,Sun Pharma,storvas10,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+2f154f90-df81-459c-ad09-68dec3f81d02,MED000067,Cardivas 6.25,Carvedilol,6.25 mg,Tablet,Sun Pharma,cardivas625,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+fb47ff5e-bc99-4a98-99af-44ae019785a4,MED000068,Lasix,Furosemide,40 mg,Tablet,Sanofi,lasix furosemide,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+ba06b5f1-86f5-4ccf-9e1d-d9ef0353cff1,MED000069,Torsemide,Torsemide,10 mg,Tablet,null,torsemide,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+feaf1816-9c92-4426-b4a3-d6d9d42bf0e9,MED000070,Lasilactone,Furosemide + Spironolactone,null,Tablet,Sanofi,lasilactone,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+4dd74225-2eb6-4e0c-b3bc-5ece457a2cc4,MED000071,Shelcal 500,Calcium + Vitamin D3,null,Tablet,Torrent,shelcal500,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+05cedf17-dbf0-4a99-a69e-2f768d159cef,MED000072,Limcee,Vitamin C,500 mg,Tablet,Abbott,limcee vitamin c,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+7e249993-6dee-4ca5-9252-f7562286c71b,MED000073,Neurobion Forte,Vitamin B Complex,null,Tablet,P&G,neurobion forte,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+d2cc0831-bebd-4d51-be6f-55cd9afe4d1d,MED000074,Becosules,Vitamin B Complex,null,Capsule,Pfizer,becosules,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+f027ea67-70cf-40b1-93b7-054d265f99d0,MED000075,Supradyn,Multivitamin,null,Tablet,Bayer,supradyn,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+7ada69c9-a2e2-4f77-88e7-91b458b875e0,MED000076,Gabapin 300,Gabapentin,300 mg,Capsule,Intas,gabapin300,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+9951f453-953e-4c5b-ab08-49275e4f0d23,MED000077,Pregabalin 75,Pregabalin,75 mg,Capsule,null,pregabalin75,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+e40786b0-96cf-440a-b427-5229f8c0a90a,MED000078,Nexito 10,Escitalopram,10 mg,Tablet,Sun Pharma,nexito10,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+408f0740-99b8-4455-a596-2b49fb87f726,MED000079,Petril 0.5,Clonazepam,0.5 mg,Tablet,Sun Pharma,petril05,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+003b5c3d-6a2d-492c-b3ea-6e9472f08ce0,MED000080,Zapiz 0.5,Clonazepam,0.5 mg,Tablet,Intas,zapiz05,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+70c047b0-ebf1-4635-90ca-d95fbab6442e,MED000081,Rahika,Capmatinib,200 mg,Tablet,Novartis,rahika capmatinib,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+bda86351-5d13-4879-ae0f-483a619ef9ac,MED000082,Capmaxen,Capmatinib,200 mg,Tablet,null,capmaxen capmatinib,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+69160d87-148c-4812-bb58-32c50946a7b0,MED000083,Tagrisso,Osimertinib,80 mg,Tablet,AstraZeneca,tagrisso osimertinib,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+7ade6515-2024-422a-b2ec-7b82f18298a2,MED000084,Iressa,Gefitinib,250 mg,Tablet,AstraZeneca,iressa gefitinib,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+1f4e9aaf-78d0-4804-9fbb-36bad720d287,MED000085,Gefitinib,Gefitinib,250 mg,Tablet,null,gefitinib,true,2026-07-24 12:17:44.724817+00,2026-07-24 12:17:44.724817+00
+d9df58f5-ef70-4196-8820-a9ef444d1fec,MED000086,Nexpro 40,Esomeprazole,40 mg,Tablet,Torrent,nexpro40,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+270e4f8c-e74a-4482-a41b-c601b70edde2,MED000087,Sompraz 40,Esomeprazole,40 mg,Tablet,Sun Pharma,sompraz40,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+60ba1665-7509-40a7-839e-b9624e3c465d,MED000088,Sompraz D,Esomeprazole + Domperidone,null,Capsule,Sun Pharma,somprazd,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+7195a63d-434b-4781-a533-d9294f08971e,MED000089,Pan D,Pantoprazole + Domperidone,null,Capsule,Alkem,pand,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+8a124e37-fe17-4509-ba51-14f93a654ea7,MED000090,Pantosec 40,Pantoprazole,40 mg,Tablet,Cipla,pantosec40,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+77ec02ea-0b89-479d-be6c-79fd503b5cee,MED000091,Cilacar 10,Cilnidipine,10 mg,Tablet,J B Chemicals,cilacar10,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+5b024d5b-1f69-4511-8784-8de5663973eb,MED000092,Cilacar T,Telmisartan + Cilnidipine,null,Tablet,J B Chemicals,cilacart,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+d712a640-00e9-4afa-92e5-d223a8a5d3ba,MED000093,Clinidip 10,Cilnidipine,10 mg,Tablet,Torrent,clinidip10,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+d04cfec6-cded-45b3-99e7-0cdb8a613b3e,MED000094,Arkamin,Clonidine,100 mcg,Tablet,Torrent,arkamin,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+5ce3f34b-40ac-40bc-929f-fc96a6f52426,MED000095,Nicardia Retard,Nifedipine,20 mg,Tablet,J B Chemicals,nicardiaretard,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+6ccb9baf-854a-4663-aff4-f02575fcf541,MED000096,Bisoprol 5,Bisoprolol,5 mg,Tablet,Lupin,bisoprol5,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+25a9f9ab-42e9-4dfc-9287-234a7203e682,MED000097,Concor 5,Bisoprolol,5 mg,Tablet,Merck,concor5,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+a182b8de-fcfe-483f-9453-a8dd13fa6b71,MED000098,Ivabrad 5,Ivabradine,5 mg,Tablet,Lupin,ivabrad5,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00
+9ba92b91-b8fd-4bb6-8ff3-84291fe23298,MED000099,Brilinta 90,Ticagrelor,90 mg,Tablet,AstraZeneca,brilinta90,true,2026-07-24 13:30:00.156326+00,2026-07-24 13:30:00.156326+00

@@ -1,0 +1,2167 @@
+"use client";
+
+import React, {
+    useEffect,
+    useRef,
+    useState
+} from "react";
+
+import {
+    Turnstile,
+    type TurnstileInstance
+} from "@marsidev/react-turnstile";
+import {
+    useRouter,
+    useSearchParams,
+} from "next/navigation"
+
+import { supabase } from "@/lib/supabase";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
+import { authService } from "@/lib/auth/authService";
+
+import {
+    inviteeToPrimaryHandoff,
+    type InviteeToPrimaryHandoff
+} from "@/lib/authorization/inviteeToPrimaryHandoff";
+
+import { provisionPrimaryAccess } from "@/lib/authorization/provisionPrimaryAccess";
+
+import { carevrMessages } from "@/lib/messages/carevrMessages";
+
+import { authSecurity } from "@/lib/auth/authSecurity";
+
+function RegisterPageContent() {
+
+const router = useRouter();
+const searchParams = useSearchParams();
+
+const productInvitationToken =
+    searchParams.get(
+        "productInvitationToken"
+    );
+
+const registrationContext = searchParams.get("registrationContext");
+
+const [
+    inviteePrimaryHandoffState,
+    setInviteePrimaryHandoffState
+] = useState<InviteeToPrimaryHandoff | null>(
+    () => inviteeToPrimaryHandoff.get()
+);
+
+const inviteePrimaryHandoff =
+    inviteePrimaryHandoffState;
+
+const isInviteeToPrimary =
+    inviteePrimaryHandoff !== null;
+
+    /*
+     * Primary Family Member declaration is the first registration-flow gate.
+     *
+     * null  = user has not answered yet
+     * true  = user declared they are the Primary Family Member
+     * false = user selected that they are not the Primary Family Member
+     *
+     * This is a UI flow decision only at this stage. It does not establish
+     * authoritative Primary status in the database or authorization layer.
+     */
+    const [isPrimaryFamilyMember, setIsPrimaryFamilyMember] =
+        useState<boolean | null>(null);
+
+const [inviteePrimaryConfirmed, setInviteePrimaryConfirmed] =
+    useState(false);
+
+const [
+    primaryDigitalHealthProfileId,
+    setPrimaryDigitalHealthProfileId,
+] = useState<string | null>(null);
+
+const [
+    primaryRoleConsentAccepted,
+    setPrimaryRoleConsentAccepted,
+] = useState(false);
+
+    const [fullName, setFullName] = useState("");
+
+    const [email, setEmail] = useState("");
+
+    const [isPrimaryInvitationEmailLocked, setIsPrimaryInvitationEmailLocked] =
+        useState(false);
+
+    const [password, setPassword] = useState("");
+
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    const [showPassword, setShowPassword] =
+        useState(false);
+
+    const [showConfirmPassword, setShowConfirmPassword] =
+        useState(false);
+
+    const [loading, setLoading] = useState(false);
+
+    const [error, setError] = useState("");
+
+    const [success, setSuccess] = useState("");
+
+const [captchaToken, setCaptchaToken] =
+    useState<string | null>(null);
+
+const turnstileRef =
+    useRef<TurnstileInstance>(null);
+
+const [registrationCompleted, setRegistrationCompleted] =
+    useState(false);
+
+
+const [registrationResumeRequired, setRegistrationResumeRequired] =
+    useState(false);
+
+useEffect(() => {
+    if (registrationContext !== "INVITEE_PRIMARY") {
+        return;
+    }
+
+    const restoreInviteePrimaryRegistration = async () => {
+        try {
+            const storedHandoff =
+                sessionStorage.getItem(
+                    "carevr_invitee_primary_registration"
+                );
+
+            if (!storedHandoff) {
+                return;
+            }
+
+            const parsed = JSON.parse(storedHandoff) as {
+                userId?: unknown;
+                targetRole?: unknown;
+            };
+
+            if (
+                typeof parsed.userId !== "string" ||
+                parsed.targetRole !== "PRIMARY"
+            ) {
+                return;
+            }
+
+            const user =
+                await authService.getCurrentUser();
+
+            if (!user?.id) {
+                return;
+            }
+
+            if (user.id !== parsed.userId) {
+                return;
+            }
+
+            /*
+             * sessionStorage is only a resume marker.
+             *
+             * The current user's active CareVR access remains
+             * the authoritative source for the existing invitee role.
+             */
+            const {
+                data: inviteeAccessRecords,
+                error: inviteeAccessError
+            } = await supabase
+                .from("carevr_access")
+                .select("id, access_type")
+                .eq("user_id", user.id)
+                .eq("access_status", "ACTIVE")
+                .in(
+                    "access_type",
+                    [
+                        "CARETAKER",
+                        "DOCTOR",
+                        "SECONDARY_FAMILY_MEMBER"
+                    ]
+                )
+                .limit(1);
+
+            if (inviteeAccessError) {
+                throw inviteeAccessError;
+            }
+
+            const inviteeAccess =
+                inviteeAccessRecords?.[0];
+
+            if (!inviteeAccess) {
+                return;
+            }
+
+            const restoredHandoff:
+                InviteeToPrimaryHandoff = {
+                    userId: user.id,
+                    sourceRole:
+                        inviteeAccess.access_type as InviteeToPrimaryHandoff["sourceRole"],
+                    targetRole: "PRIMARY",
+                    createdAt:
+                        new Date().toISOString()
+                };
+
+            inviteeToPrimaryHandoff.set(
+                restoredHandoff
+            );
+
+            setInviteePrimaryHandoffState(
+                restoredHandoff
+            );
+
+            setIsPrimaryFamilyMember(true);
+
+        } catch (restoreError) {
+            console.error(
+                "[INVITEE-PRIMARY-RESTORE]",
+                restoreError
+            );
+        }
+    };
+
+    void restoreInviteePrimaryRegistration();
+
+}, [registrationContext]);
+
+useEffect(() => {
+    if (
+        registrationContext !== "PRODUCT" ||
+        !productInvitationToken
+    ) {
+        return;
+    }
+
+    let cancelled = false;
+
+    // Lock the email field immediately while the invitation is validated.
+    setIsPrimaryInvitationEmailLocked(true);
+    setError("");
+
+    const loadPrimaryInvitationEmail = async () => {
+        try {
+            const response = await fetch(
+                "/api/access-management/access-to-carevr/primary-validation",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        token: productInvitationToken,
+                    }),
+                }
+            );
+
+            const result = await response.json();
+
+if (!response.ok) {
+    throw new Error(
+        result.message ??
+        "Unable to validate the CareVR invitation."
+    );
+}
+
+if (result.status === "EXPIRED") {
+    throw new Error(
+        "This invitation link has expired. Please reach out to Linearise AI Labs for assistance."
+    );
+}
+
+if (result.status !== "VALID") {
+    throw new Error(
+        "Unable to validate the CareVR invitation."
+    );
+}
+
+            if (
+                typeof result.email !== "string" ||
+                !result.email.trim()
+            ) {
+                throw new Error(
+                    "The invitation email could not be retrieved."
+                );
+            }
+
+            if (!cancelled) {
+                setEmail(result.email.trim());
+                setIsPrimaryInvitationEmailLocked(true);
+            }
+        } catch (loadError) {
+            if (!cancelled) {
+                setError(
+                    loadError instanceof Error
+                        ? loadError.message
+                        : "Unable to load the invitation email."
+                );
+            }
+        }
+    };
+
+    void loadPrimaryInvitationEmail();
+
+    return () => {
+        cancelled = true;
+    };
+}, [registrationContext, productInvitationToken]);
+
+
+    const validateForm = (): boolean => {
+
+        setError("");
+
+        setSuccess("");
+
+        if (!fullName.trim()) {
+
+            setError("Full name is required.");
+
+            return false;
+
+        }
+
+        const emailRegex =
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email.trim())) {
+
+            setError("Please enter a valid email address.");
+
+            return false;
+
+        }
+
+        if (password.length < 6) {
+
+            setError(
+                "Password must contain at least 6 characters."
+            );
+
+            return false;
+
+        }
+
+        if (password !== confirmPassword) {
+
+            setError("Passwords do not match.");
+
+            return false;
+
+        }
+
+        return true;
+
+    };
+
+const handleRegister = async () => {
+
+    if (!validateForm()) {
+        return;
+    }
+
+    const verifiedCaptchaToken =
+        authSecurity.requireCaptchaToken(captchaToken);
+
+    try {
+
+        setLoading(true);
+
+        setError("");
+
+        setSuccess("");
+
+/*
+ * =========================================================
+ * CAREVR REGISTRATION ENTRY
+ * =========================================================
+ *
+ * Do not decide Primary vs Invitee from the registration
+ * form.
+ *
+ * The invitation itself determines the entry path:
+ *
+ * Founder -> New Primary
+ *      = PRODUCT
+ *
+ * Primary -> Family Invitee
+ *      = INVITATION
+ *
+ * Invitee -> Primary
+ *      = CONVERTED
+ *
+ * The Role Clarification record is only used to determine
+ * which existing validation path should continue.
+ *
+ * It does NOT replace or modify the existing authorization,
+ * invitation, access, PIN, consent, or registration logic.
+ * =========================================================
+ */
+
+const roleClarificationResponse =
+    await fetch(
+        "/api/access-management/role-clarification",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+            body: JSON.stringify({
+                email:
+                    email.trim(),
+            }),
+        }
+    );
+
+const roleClarificationResult =
+    await roleClarificationResponse.json();
+
+if (!roleClarificationResponse.ok) {
+    throw new Error(
+        roleClarificationResult.message ??
+        "Unable to determine CareVR registration context."
+    );
+}
+
+const registrationContext =
+    roleClarificationResult.context;
+
+
+/*
+ * =========================================================
+ * FOUNDER -> NEW PRIMARY
+ * =========================================================
+ *
+ * The Role Clarification table says PRODUCT.
+ *
+ * Continue through the existing Product Invitation
+ * validation. Do NOT require carevr_access yet because
+ * this is pre-authentication registration.
+ *
+ * carevr_access is established later by the existing
+ * Primary provisioning flow.
+ * =========================================================
+ */
+
+if (
+    registrationContext ===
+    "PRODUCT"
+) {
+
+    const invitationResponse =
+        await fetch(
+            "/api/access-management/access-to-carevr/primary-validation",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json",
+                },
+                body: JSON.stringify({
+                    token:
+                        productInvitationToken,
+                    email:
+                        email.trim(),
+                }),
+            }
+        );
+
+    const invitationResult =
+        await invitationResponse.json();
+
+    if (!invitationResponse.ok) {
+        throw new Error(
+            invitationResult.message ??
+            "Unable to validate the CareVR invitation."
+        );
+    }
+
+if (
+    invitationResult.status === "EXPIRED"
+) {
+    throw new Error(
+        "This invitation link has expired. Please reach out to Linearise AI Labs for assistance."
+    );
+}
+
+if (
+    invitationResult.status !==
+    "VALID"
+) {
+    throw new Error(
+        "A valid CareVR invitation is required to register."
+    );
+}
+
+} else {
+
+    // ==================================================
+    // INVITEE / PRODUCT INVITATION
+    // ==================================================
+
+    const invitationResponse =
+        await fetch(
+            "/api/access-management/access-to-carevr/validation",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    token:
+                        productInvitationToken,
+                    email:
+                        email.trim(),
+                }),
+            }
+        );
+
+    const invitationResult =
+        await invitationResponse.json();
+
+    if (!invitationResponse.ok) {
+        throw new Error(
+            invitationResult.message ??
+            "Unable to validate the CareVR invitation."
+        );
+    }
+
+if (
+    invitationResult.status === "EXPIRED"
+) {
+    throw new Error(
+        "This invitation link has expired. Please reach out to Linearise AI Labs for assistance."
+    );
+}
+
+if (
+    invitationResult.status !==
+    "PENDING"
+) {
+    throw new Error(
+        "A valid CareVR invitation is required to register."
+    );
+}
+}
+
+        /*
+         * Existing registration service remains unchanged.
+         * No Primary/family/database logic is added in this UI step.
+         */
+if (registrationResumeRequired) {
+
+    await authService.resumeRegistration(
+        email.trim(),
+        password,
+        verifiedCaptchaToken
+    );
+
+} else {
+
+    try {
+
+        const result =
+            await authService.register(
+                fullName.trim(),
+                email.trim(),
+                password,
+                "PRIMARY",
+                verifiedCaptchaToken
+            );
+
+        if (!result.session) {
+            throw new Error(
+                "Account created, but an authenticated session was not established. Please try again."
+            );
+        }
+
+    } catch (registrationError) {
+
+        const registrationMessage =
+            registrationError instanceof Error
+                ? registrationError.message
+                : "";
+
+        if (
+            registrationMessage !==
+            "User already registered"
+        ) {
+            throw registrationError;
+        }
+
+        /*
+         * The Auth identity already exists, but the
+         * CareVR invitation is still PENDING.
+         *
+         * The CAPTCHA token used for the first request
+         * has already been consumed. Reset Turnstile so
+         * the next attempt receives a fresh token.
+         */
+        setRegistrationResumeRequired(true);
+        setCaptchaToken(null);
+        turnstileRef.current?.reset();
+
+        setError(
+            "Your CareVR registration was started earlier. Please complete the security verification again to continue."
+        );
+
+        return;
+    }
+}
+
+
+/*
+ * =========================================================
+ * FOUNDER -> PRIMARY CAREVR PROVISIONING
+ * =========================================================
+ *
+ * Auth/Profile now exists.
+ *
+ * Provision the PRIMARY CareVR access context before
+ * handing the user to Create PIN.
+ *
+ * provisionPrimaryAccess() also ensures the corresponding
+ * digital_health_profile exists.
+ * =========================================================
+ */
+
+if (
+    registrationContext ===
+    "PRODUCT"
+) {
+
+    const authenticatedUser =
+        await authService.getCurrentUser();
+
+    if (!authenticatedUser?.id) {
+
+        throw new Error(
+            "Authenticated user could not be established after registration."
+        );
+
+    }
+
+    await provisionPrimaryAccess(
+        authenticatedUser.id
+    );
+}
+
+/*
+ * Account creation or registration resumption
+ * is complete.
+ *
+ * Move the user to the dedicated CareVR
+ * Passkey security page.
+ *
+ * Passkey creation itself is intentionally
+ * not performed in this step.
+ */
+const secureAccessUrl =
+    `/secure-access/create-pin?registrationContext=${encodeURIComponent(
+        registrationContext
+    )}`;
+
+router.replace(secureAccessUrl);
+
+    } catch (err) {
+
+        const message =
+            err instanceof Error
+                ? err.message
+                : "Unable to create your account.";
+
+        setError(message);
+
+    } finally {
+
+        setLoading(false);
+
+    }
+
+};
+
+
+    /*
+     * The initials shown in the public registration header are derived only
+     * from the name entered by the user. Until a name is entered, a neutral
+     * placeholder is shown rather than implying an authenticated identity.
+     */
+    const getInitials = (name: string): string => {
+
+        const parts = name
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+
+        if (parts.length === 0) {
+            return "?";
+        }
+
+        if (parts.length === 1) {
+            return parts[0]
+                .slice(0, 2)
+                .toUpperCase();
+        }
+
+        return (
+            parts[0][0] +
+            parts[parts.length - 1][0]
+        ).toUpperCase();
+
+    };
+
+    return (
+
+        <main className="register-page">
+
+            <div className="register-shell">
+
+                {/* ============================
+                    CAREVR PUBLIC HEADER
+                ============================ */}
+
+                <header className="register-header">
+
+                    <button
+                        type="button"
+                        className="carevr-brand"
+                        onClick={() => router.replace("/login")}
+                        aria-label="CareVR"
+                    >
+                        <img
+                            src="/images/CareVR v1.0.png"
+                            alt="CareVR"
+                            className="carevr-logo"
+                        />
+                    </button>
+
+                    <div className="header-actions">
+
+                        <button
+                            type="button"
+                            className="initials-button"
+                            aria-label="Account"
+                            title="Account"
+                        >
+                            {getInitials(fullName)}
+                        </button>
+
+                    </div>
+
+                </header>
+
+                {/* ============================
+                    REGISTRATION CONTENT
+                ============================ */}
+
+                <section className="register-content">
+
+                    <div className="welcome-block">
+
+                        <h1>
+                            Welcome to CareVR
+                        </h1>
+
+                    </div>
+
+                    <div className="primary-definition">
+
+                        <div className="important-label">
+                            Important
+                        </div>
+
+                        <p>
+                            Primary Family Member is the person who
+                            establishes a CareVR family and assumes
+                            primary responsibility for managing that
+                            family's CareVR access.
+                        </p>
+
+                    </div>
+
+                    <div className="primary-question">
+
+                        <div className="question-row">
+
+                            <h2>
+                                Are you the Primary Family Member?
+                            </h2>
+
+
+                        </div>
+
+
+                        <div className="primary-options">
+
+<button
+    type="button"
+    className={`primary-option ${
+        isPrimaryFamilyMember === true
+            ? "primary-option-selected"
+            : ""
+    }`}
+    onClick={() => {
+        setIsPrimaryFamilyMember(true);
+
+        if (isInviteeToPrimary) {
+            setInviteePrimaryConfirmed(false);
+        }
+    }}
+    disabled={
+    registrationCompleted ||
+    inviteePrimaryConfirmed
+}
+>
+    <span className="radio-circle">
+        {isPrimaryFamilyMember === true && (
+            <span className="radio-dot" />
+        )}
+    </span>
+
+    <span>
+        Yes
+    </span>
+</button>
+
+<button
+    type="button"
+    className={`primary-option ${
+        isPrimaryFamilyMember === false
+            ? "primary-option-selected"
+            : ""
+    }`}
+    onClick={() => {
+        setIsPrimaryFamilyMember(false);
+
+        if (isInviteeToPrimary) {
+            inviteeToPrimaryHandoff.clear();
+        }
+
+        router.replace("/login");
+    }}
+    disabled={
+    registrationCompleted ||
+    inviteePrimaryConfirmed
+}
+>
+                                <span className="radio-circle">
+                                    {isPrimaryFamilyMember === false && (
+                                        <span className="radio-dot" />
+                                    )}
+                                </span>
+
+                                <span>
+                                    No
+                                </span>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    {/* ============================
+                        EXISTING REGISTRATION FORM
+                        ============================ */}
+
+{isPrimaryFamilyMember === true &&
+    !isInviteeToPrimary &&
+    !inviteePrimaryConfirmed && (
+
+    <div className="registration-panel">
+
+{!registrationCompleted ? (
+
+        <>
+            <div className="registration-panel-heading">
+
+                <h2>
+                    Create Your Account
+                </h2>
+
+                <p>
+                    Register once to securely manage
+                    your family's health records.
+                </p>
+
+            </div>
+
+            {error && (
+
+                <div
+                    className="error-message"
+                    role="alert"
+                >
+                    {error}
+                </div>
+
+            )}
+
+            <label
+                className="field-label"
+                htmlFor="fullName"
+            >
+                Full Name
+            </label>
+
+            <input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) =>
+                    setFullName(e.target.value)
+                }
+                placeholder="Enter your full name"
+                className="form-input"
+                disabled={loading}
+                autoComplete="name"
+            />
+
+            <label
+                className="field-label"
+                htmlFor="email"
+            >
+                Email Address
+            </label>
+
+            <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) =>
+                    setEmail(e.target.value)
+                }
+                placeholder="Enter your email"
+                className={`form-input ${
+                    isPrimaryInvitationEmailLocked
+                        ? "primary-invitation-email-locked"
+                        : ""
+                }`}
+                disabled={
+                    loading ||
+                    isPrimaryInvitationEmailLocked
+                }
+                autoComplete="email"
+            />
+
+
+            <label
+                className="field-label"
+                htmlFor="password"
+            >
+                Password
+            </label>
+
+            <div className="password-wrap">
+
+                <input
+                    id="password"
+                    type={
+                        showPassword
+                            ? "text"
+                            : "password"
+                    }
+                    value={password}
+                    onChange={(e) =>
+                        setPassword(e.target.value)
+                    }
+                    placeholder="Create a password"
+                    className="form-input password-input"
+                    disabled={loading}
+                    autoComplete="new-password"
+                />
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        setShowPassword(
+                            !showPassword
+                        )
+                    }
+                    className="password-toggle"
+                    aria-label={
+                        showPassword
+                            ? "Hide password"
+                            : "Show password"
+                    }
+                >
+                    {showPassword ? "🙈" : "👁"}
+                </button>
+
+            </div>
+
+            <label
+                className="field-label"
+                htmlFor="confirmPassword"
+            >
+                Confirm Password
+            </label>
+
+            <div className="password-wrap">
+
+                <input
+                    id="confirmPassword"
+                    type={
+                        showConfirmPassword
+                            ? "text"
+                            : "password"
+                    }
+                    value={confirmPassword}
+                    onChange={(e) =>
+                        setConfirmPassword(
+                            e.target.value
+                        )
+                    }
+                    placeholder="Re-enter your password"
+                    className="form-input password-input"
+                    disabled={loading}
+                    autoComplete="new-password"
+                />
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        setShowConfirmPassword(
+                            !showConfirmPassword
+                        )
+                    }
+                    className="password-toggle"
+                    aria-label={
+                        showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"
+                    }
+                >
+                    {showConfirmPassword ? "🙈" : "👁"}
+                </button>
+
+            </div>
+
+            <div className="captcha-container">
+<Turnstile
+    ref={turnstileRef}
+    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+    onSuccess={(token) => setCaptchaToken(token)}
+    onExpire={() => setCaptchaToken(null)}
+    onError={() => setCaptchaToken(null)}
+/>
+            </div>
+
+{/*
+* Code for changes to ensure user doesnt click create 
+* account before hand
+*/}
+<button
+    type="button"
+    onClick={() =>
+        void handleRegister()
+    }
+    disabled={
+        loading ||
+        !fullName.trim() ||
+        !email.trim() ||
+        !password ||
+        !confirmPassword
+    }
+    className="create-account-button"
+>
+    {loading
+        ? "Creating Account..."
+        : "Create Account"}
+</button>
+
+            <button
+                type="button"
+                onClick={() =>
+                    router.replace("/login")
+                }
+                disabled={loading}
+                className="login-link-button"
+            >
+                Already have an account? Login
+            </button>
+
+        </>
+
+
+) : (
+
+    <div
+        className="registration-success-panel"
+        role="status"
+    >
+
+        <div className="registration-success-icon">
+            💙
+        </div>
+
+        <h2>
+            {carevrMessages.registration.primaryCompleted.title}
+        </h2>
+
+        <p>
+            {carevrMessages.registration.primaryCompleted.message}
+        </p>
+
+        <p>
+            {carevrMessages.registration.primaryCompleted.footer}
+        </p>
+
+        <button
+            type="button"
+            className="create-account-button"
+            onClick={() =>
+                router.replace("/login")
+            }
+        >
+            Continue to Login
+        </button>
+
+    </div>
+
+)}
+
+    </div>
+
+)}
+
+{isPrimaryFamilyMember === true &&
+    (isInviteeToPrimary || inviteePrimaryConfirmed) && (
+    <div className="registration-panel">
+        <div className="registration-panel-heading">
+            <h2>
+                Confirm Primary Registration
+            </h2>
+
+            <p>
+                Please confirm for registration of Primary role.
+            </p>
+        </div>
+
+        {error && (
+            <div
+                className="error-message"
+                role="alert"
+            >
+                {error}
+            </div>
+        )}
+
+<div className="invitee-primary-confirmation">
+    {!inviteePrimaryConfirmed ? (
+        <>
+            <p>
+                You are about to take on additional responsibility as a{" "}
+                Primary Family Member.
+            </p>
+
+            {isInviteeToPrimary && (
+                <label className="primary-role-consent">
+                    <input
+                        type="checkbox"
+                        checked={primaryRoleConsentAccepted}
+                        onChange={(event) =>
+                            setPrimaryRoleConsentAccepted(
+                                event.target.checked
+                            )
+                        }
+                    />
+
+                    <span>
+                        I consent to assuming and using Primary access,
+                        rights and responsibilities in CareVR, and
+                        acknowledge that this role provides access to
+                        additional CareVR capabilities and information.
+                    </span>
+                </label>
+            )}
+
+            <div className="confirmation-actions">
+                <button
+                    type="button"
+                    className="create-account-button"
+onClick={async () => {
+    if (!inviteePrimaryHandoff) {
+        setError(
+            "Primary registration handoff is no longer available."
+        );
+        return;
+    }
+
+    if (
+        isInviteeToPrimary &&
+        !primaryRoleConsentAccepted
+    ) {
+        setError(
+            "Please confirm your consent to assume Primary access, rights and responsibilities."
+        );
+        return;
+    }
+
+    try {
+        setLoading(true);
+                                    setError("");
+                                    setSuccess("");
+
+                                    const user =
+                                        await authService.getCurrentUser();
+
+                                    if (!user) {
+                                        throw new Error(
+                                            "Authenticated user could not be found."
+                                        );
+                                    }
+
+                                    if (
+                                        user.id !==
+                                        inviteePrimaryHandoff.userId
+                                    ) {
+                                        throw new Error(
+                                            "Primary registration handoff does not belong to the current user."
+                                        );
+                                    }
+
+                                    /*
+                                     * The user already has a Supabase Auth account.
+                                     * This provisions an additional PRIMARY CareVR
+                                     * access context for the existing user.
+                                     * It does not create another Auth account.
+                                     */
+const {
+    carevrAccessId,
+    primaryDigitalHealthProfileId,
+} =
+    await provisionPrimaryAccess(user.id);
+
+const {
+    data: primaryAccess,
+    error: primaryAccessError,
+} =
+    await supabase
+        .from("carevr_access")
+        .select(
+            "family_id"
+        )
+        .eq(
+            "id",
+            carevrAccessId
+        )
+        .eq(
+            "user_id",
+            user.id
+        )
+        .eq(
+            "access_type",
+            "PRIMARY"
+        )
+        .eq(
+            "access_status",
+            "ACTIVE"
+        )
+        .single();
+
+if (primaryAccessError) {
+
+    throw primaryAccessError;
+
+}
+
+if (
+    !primaryAccess?.family_id
+) {
+
+    throw new Error(
+        "Primary CareVR family could not be resolved."
+    );
+
+}
+
+
+/*
+ * Keep the exact DHP record created for the
+ * Primary profile so Cancel can restore it.
+ */
+
+setPrimaryDigitalHealthProfileId(
+    primaryDigitalHealthProfileId
+);
+
+
+
+/*
+ * =========================================================
+ * MARK BOTH DIGITAL HEALTH PROFILES AS DUAL
+ * =========================================================
+ *
+ * At this point the additional PRIMARY digital health
+ * profile has already been inserted.
+ *
+ * Both profiles belong to the same authenticated user.
+ *
+ * Therefore update both records together.
+ */
+
+const {
+    data: updatedDigitalHealthProfiles,
+    error: digitalHealthProfileUpdateError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .update({
+            role_status: "DUAL",
+            digital_health_flag: true,
+            ...(isInviteeToPrimary
+                ? {
+                      consent_status: "ACCEPTED",
+                  }
+                : {}),
+        })
+        .eq("user_id", user.id)
+        .select(
+            "id, user_id, role, role_status, consent_status, digital_health_flag"
+        );
+
+
+
+if (digitalHealthProfileUpdateError) {
+    throw digitalHealthProfileUpdateError;
+}
+
+if (
+    !updatedDigitalHealthProfiles ||
+    updatedDigitalHealthProfiles.length === 0
+) {
+    throw new Error(
+        "No digital health profiles were updated for the authenticated user."
+    );
+}
+
+                                    /*
+                                     * The additional PRIMARY profile has been
+                                     * created successfully.
+                                     */
+                                    setSuccess(
+                                        "Your Additional profile of Primary has been created successfully. Please be responsible and accountable in adhering to CareVR’s Terms of Use, privacy requirements, and the responsibilities associated with the Primary Family Member role."
+                                    );
+
+                                    /*
+                                     * Keep the confirmation panel visible so the
+                                     * success message can be displayed even after
+                                     * the handoff is consumed.
+                                     */
+setInviteePrimaryConfirmed(true);
+
+/*
+ * The handoff has now been consumed successfully.
+ *
+ * Clearing the client-side handoff is cleanup only.
+ * It must not cause a successful Primary registration
+ * to be reported as a failure.
+ */
+try {
+    inviteeToPrimaryHandoff.clear();
+} catch (handoffClearError) {
+    console.error(
+        "[PRIMARY-REGISTRATION-HANDOFF-CLEAR]",
+        handoffClearError
+    );
+}
+
+} catch (err) {
+                                    const message =
+                                        err instanceof Error
+                                            ? err.message
+                                            : "Unable to register Primary Family Member access.";
+
+                                    setError(message);
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }}
+                            disabled={
+    loading ||
+    (
+        isInviteeToPrimary &&
+        !primaryRoleConsentAccepted
+    )
+}
+                        >
+                            {loading
+                                ? "Confirming..."
+                                : "Confirm"}
+                        </button>
+
+<button
+    type="button"
+    className="login-link-button"
+    onClick={async () => {
+
+        try {
+
+            setLoading(true);
+            setError("");
+            setSuccess("");
+
+            /*
+             * Restore ONLY the additional PRIMARY DHP
+             * created during Primary registration.
+             *
+             * The original invitee DHP is not modified.
+             */
+            if (
+                primaryDigitalHealthProfileId
+            ) {
+
+                const {
+                    error:
+                        restorePrimaryProfileError,
+                } =
+                    await supabase
+                        .from(
+                            "digital_health_profile"
+                        )
+                        .update({
+                            role_status:
+                                "SINGLE",
+
+                            digital_health_flag:
+                                false,
+                        })
+                        .eq(
+                            "id",
+                            primaryDigitalHealthProfileId
+                        );
+
+                if (
+                    restorePrimaryProfileError
+                ) {
+                    throw restorePrimaryProfileError;
+                }
+            }
+
+            setPrimaryDigitalHealthProfileId(null);
+            setIsPrimaryFamilyMember(null);
+            setInviteePrimaryConfirmed(false);
+            setPrimaryRoleConsentAccepted(false);
+
+        } catch (err) {
+
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Unable to cancel Primary registration.";
+
+            setError(message);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    }}
+    disabled={loading}
+>
+    Cancel
+</button>
+                    </div>
+                </>
+            ) : (
+                <div
+                    className="success-message"
+                    role="status"
+                >
+                    <p>
+                        {success}
+                    </p>
+
+                    <button
+                        type="button"
+                        className="login-link-button"
+onClick={async () => {
+    await authService.logout();
+    router.replace("/login");
+}}
+                    >
+                        Click Back to Login
+                    </button>
+                </div>
+            )}
+        </div>
+    </div>
+)}
+
+                </section>
+
+                {/* ============================
+                    COMMON CAREVR FOOTER
+                ============================ */}
+
+                <CareVRFooter />
+
+            </div>
+
+            <style jsx global>{`
+
+                * {
+                    box-sizing: border-box;
+                }
+
+                html,
+                body {
+                    margin: 0;
+                    padding: 0;
+                    min-height: 100%;
+                }
+
+                body {
+                    font-family:
+                        Inter,
+                        -apple-system,
+                        BlinkMacSystemFont,
+                        "Segoe UI",
+                        sans-serif;
+                    color: #15203d;
+                }
+
+                button,
+                input {
+                    font: inherit;
+                }
+
+                .register-page {
+                    min-height: 100vh;
+                    min-height: 100dvh;
+                    padding: 0;
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #f7f3ff 0%,
+                            #f1eaff 50%,
+                            #eee8ff 100%
+                        );
+                }
+
+                .register-shell {
+                    width: 100%;
+                    min-height: 100vh;
+                    min-height: 100dvh;
+                    display: flex;
+                    flex-direction: column;
+                    padding: 20px 28px 18px;
+                }
+
+                /* ============================
+                   HEADER
+                ============================ */
+
+                .register-header {
+                    width: 100%;
+                    min-height: 72px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+                }
+
+                .carevr-brand {
+                    border: 0;
+                    background: transparent;
+                    padding: 0;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .carevr-logo {
+                    display: block;
+                    width: 190px;
+                    height: 72px;
+                    object-fit: contain;
+                    object-position: left center;
+                }
+
+                .header-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+
+
+                /*
+                 * Public registration has no authenticated account yet.
+                 * The avatar therefore reflects the name being entered rather
+                 * than implying that an authenticated CareVR session exists.
+                 */
+                .initials-button {
+                    width: 42px;
+                    height: 42px;
+                    border: 0;
+                    border-radius: 50%;
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #7545f5,
+                            #6432e8
+                        );
+                    color: #ffffff;
+                    font-size: 13px;
+                    font-weight: 800;
+                    cursor: default;
+                    box-shadow:
+                        0 5px 14px
+                        rgba(106, 62, 239, 0.18);
+                }
+
+                /* ============================
+                   MAIN CONTENT
+                ============================ */
+
+                .register-content {
+                    width: min(620px, 100%);
+                    margin: 30px auto 0;
+                    flex: 1 1 auto;
+                }
+
+                .welcome-block {
+                    text-align: center;
+                    margin-bottom: 24px;
+                }
+
+                .welcome-block h1 {
+                    margin: 0;
+                    color: #15203d;
+                    font-size: 38px;
+                    line-height: 1.12;
+                    letter-spacing: -1px;
+                    font-weight: 750;
+                }
+
+                .primary-definition {
+                    padding: 16px 18px;
+                    border: 1px solid #ded6f3;
+                    border-radius: 15px;
+                    background: rgba(255, 255, 255, 0.72);
+                    box-shadow:
+                        0 8px 24px
+                        rgba(63, 44, 120, 0.05);
+                }
+
+                .primary-invitation-email-locked {
+                    background: #f1f3f5 !important;
+                    color: #667085 !important;
+                    border-color: #d0d5dd !important;
+                    cursor: not-allowed !important;
+                    opacity: 1;
+                }
+
+                .primary-invitation-email-locked:focus {
+                    outline: none;
+                    box-shadow: none;
+                    border-color: #d0d5dd !important;
+                }
+
+
+                .important-label {
+                    margin-bottom: 5px;
+                    color: #5e42a0;
+                    font-size: 13px;
+                    line-height: 1.3;
+                    font-weight: 800;
+                }
+
+                .primary-definition p {
+                    margin: 0;
+                    color: #59627a;
+                    font-size: 14px;
+                    line-height: 1.5;
+                }
+
+                .primary-question {
+                    margin-top: 20px;
+                    padding: 18px;
+                    border-radius: 15px;
+                    background: rgba(255, 255, 255, 0.88);
+                    border: 1px solid #ded8ed;
+                    box-shadow:
+                        0 10px 28px
+                        rgba(63, 44, 120, 0.06);
+                }
+
+                .question-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 10px;
+                }
+
+                .question-row h2 {
+                    margin: 0;
+                    color: #25304d;
+                    font-size: 17px;
+                    line-height: 1.35;
+                    font-weight: 750;
+                }
+
+                .info-button {
+                    flex: 0 0 auto;
+                    width: 30px;
+                    height: 30px;
+                    border: 0;
+                    border-radius: 50%;
+                    background: #f0eaff;
+                    color: #7043f5;
+                    font-size: 18px;
+                    cursor: pointer;
+                }
+
+                .primary-info {
+                    margin-top: 12px;
+                    padding: 13px 14px;
+                    border-radius: 11px;
+                    background: #f8f6ff;
+                    border: 1px solid #e1daf5;
+                    color: #59627a;
+                    font-size: 13px;
+                    line-height: 1.5;
+                }
+
+                .primary-info strong {
+                    color: #403363;
+                }
+
+                .primary-info p {
+                    margin: 5px 0 0;
+                }
+
+                .primary-options {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 12px;
+                    margin-top: 16px;
+                }
+
+                .primary-option {
+                    min-height: 50px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 9px;
+                    border: 1px solid #d9dce6;
+                    border-radius: 12px;
+                    background: #ffffff;
+                    color: #25304d;
+                    font-size: 15px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition:
+                        border-color 160ms ease,
+                        background 160ms ease,
+                        box-shadow 160ms ease;
+                }
+
+                .primary-option:hover {
+                    border-color: #b9a7e8;
+                    background: #faf8ff;
+                }
+
+                .primary-option-selected {
+                    border: 2px solid #7043f5;
+                    background: #f7f3ff;
+                    box-shadow:
+                        0 0 0 2px
+                        rgba(112, 67, 245, 0.08);
+                }
+
+.primary-role-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+
+                .radio-circle {
+                    width: 18px;
+                    height: 18px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 2px solid #8991a5;
+                    border-radius: 50%;
+                }
+
+                .primary-option-selected .radio-circle {
+                    border-color: #7043f5;
+                }
+
+                .radio-dot {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: #7043f5;
+                }
+
+                /* ============================
+                   REGISTRATION PANEL
+                ============================ */
+
+                .registration-panel {
+                    margin-top: 20px;
+                    padding: 22px;
+                    border: 1px solid #ded8ed;
+                    border-radius: 15px;
+                    background: rgba(255, 255, 255, 0.94);
+                    box-shadow:
+                        0 12px 30px
+                        rgba(63, 44, 120, 0.07);
+                }
+
+                .registration-panel-heading {
+                    margin-bottom: 18px;
+                }
+
+                .registration-panel-heading h2 {
+                    margin: 0;
+                    color: #15203d;
+                    font-size: 22px;
+                    line-height: 1.2;
+                    font-weight: 750;
+                }
+
+                .registration-panel-heading p {
+                    margin: 6px 0 0;
+                    color: #737b91;
+                    font-size: 13px;
+                    line-height: 1.45;
+                }
+
+                .field-label {
+                    display: block;
+                    margin: 14px 0 7px;
+                    color: #25304d;
+                    font-size: 13px;
+                    font-weight: 700;
+                }
+
+                .form-input {
+                    width: 100%;
+                    height: 48px;
+                    padding: 0 14px;
+                    border: 1px solid #d9dce6;
+                    border-radius: 11px;
+                    outline: none;
+                    background: #ffffff;
+                    color: #15203d;
+                    font-size: 15px;
+                }
+
+                .form-input:focus {
+                    border-color: #7043f5;
+                    box-shadow:
+                        0 0 0 3px
+                        rgba(112, 67, 245, 0.09);
+                }
+
+                .password-wrap {
+                    position: relative;
+                }
+
+                .password-input {
+                    padding-right: 48px;
+                }
+
+                .password-toggle {
+                    position: absolute;
+                    right: 5px;
+                    top: 50%;
+                    width: 36px;
+                    height: 36px;
+                    display: grid;
+                    place-items: center;
+                    transform: translateY(-50%);
+                    border: 0;
+                    border-radius: 9px;
+                    background: transparent;
+                    color: #7f879d;
+                    cursor: pointer;
+                }
+
+.captcha-container {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+                .create-account-button {
+                    width: 100%;
+                    height: 48px;
+                    margin-top: 22px;
+                    border: 0;
+                    border-radius: 12px;
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #7545f5,
+                            #6432e8
+                        );
+                    color: #ffffff;
+                    font-size: 14px;
+                    font-weight: 750;
+                    cursor: pointer;
+                    box-shadow:
+                        0 8px 18px
+                        rgba(106, 62, 239, 0.18);
+                }
+
+                .create-account-button:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+
+                .login-link-button {
+                    width: 100%;
+                    margin-top: 10px;
+                    padding: 8px;
+                    border: 0;
+                    background: transparent;
+                    color: #7043f5;
+                    font-size: 13px;
+                    font-weight: 700;
+                    cursor: pointer;
+                }
+
+                .error-message,
+                .success-message {
+                    padding: 11px 13px;
+                    border-radius: 10px;
+                    margin-bottom: 12px;
+                    font-size: 13px;
+                    line-height: 1.4;
+                }
+
+
+                .registration-success-panel {
+                    text-align: center;
+                    padding: 18px 8px 8px;
+                }
+
+                .registration-success-icon {
+                    width: 64px;
+                    height: 64px;
+                    margin: 0 auto 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    background: #f0fff5;
+                    border: 1px solid #c7efd5;
+                    font-size: 30px;
+                }
+
+                .registration-success-panel h2 {
+                    margin: 0 0 14px;
+                    color: #15203d;
+                    font-size: 25px;
+                    line-height: 1.25;
+                    font-weight: 750;
+                }
+
+                .registration-success-panel p {
+                    margin: 0 auto 12px;
+                    max-width: 500px;
+                    color: #59627a;
+                    font-size: 14px;
+                    line-height: 1.6;
+                }
+
+                .registration-success-panel .create-account-button {
+                    margin-top: 18px;
+                }
+
+                .error-message {
+                    border: 1px solid #ffd0d0;
+                    background: #fff5f5;
+                    color: #b42318;
+                }
+
+                .success-message {
+                    border: 1px solid #c7efd5;
+                    background: #f0fff5;
+                    color: #176b37;
+                }
+
+                /* ============================
+                   MOBILE
+                ============================ */
+
+                @media (max-width: 600px) {
+
+                    .register-shell {
+                        min-height: 100dvh;
+                        padding:
+                            10px
+                            14px
+                            12px;
+                    }
+
+                    .register-header {
+                        min-height: 58px;
+                    }
+
+                    .carevr-logo {
+                        width: 145px;
+                        height: 55px;
+                    }
+
+                    .header-actions {
+                        gap: 7px;
+                    }
+
+                    .initials-button {
+                        width: 42px;
+                        height: 42px;
+                    }
+
+                    .register-content {
+                        margin-top: 18px;
+                    }
+
+                    .welcome-block {
+                        margin-bottom: 17px;
+                    }
+
+                    .welcome-block h1 {
+                        font-size: 29px;
+                        letter-spacing: -0.6px;
+                    }
+
+                    .primary-definition {
+                        padding: 13px 14px;
+                        border-radius: 13px;
+                    }
+
+                    .important-label {
+                        font-size: 12px;
+                    }
+
+                    .primary-definition p {
+                        font-size: 12.5px;
+                        line-height: 1.45;
+                    }
+
+                    .primary-question {
+                        margin-top: 14px;
+                        padding: 14px;
+                        border-radius: 13px;
+                    }
+
+                    .question-row h2 {
+                        font-size: 15px;
+                    }
+
+                    .primary-options {
+                        gap: 8px;
+                        margin-top: 13px;
+                    }
+
+                    .primary-option {
+                        min-height: 46px;
+                        font-size: 14px;
+                    }
+
+                    .registration-panel {
+                        margin-top: 14px;
+                        padding: 16px;
+                        border-radius: 13px;
+                    }
+
+                    .registration-panel-heading h2 {
+                        font-size: 20px;
+                    }
+
+                    .registration-panel-heading p {
+                        font-size: 12px;
+                    }
+
+                    .field-label {
+                        font-size: 12px;
+                    }
+
+                    .form-input {
+                        height: 45px;
+                        font-size: 16px;
+                    }
+
+                    .create-account-button {
+                        height: 46px;
+                    }
+
+                    .carevr-footer {
+                        margin-top: 14px !important;
+                        padding-top: 12px !important;
+                    }
+
+                    .carevr-footer-title {
+                        font-size: 11px !important;
+                    }
+
+                    .carevr-footer-text {
+                        font-size: 10px !important;
+                    }
+
+                }
+
+                @media (max-width: 380px) {
+
+                    .register-shell {
+                        padding-left: 10px;
+                        padding-right: 10px;
+                    }
+
+                    .carevr-logo {
+                        width: 130px;
+                        height: auto;
+                    }
+
+                    .welcome-block h1 {
+                        font-size: 26px;
+                    }
+
+                    .primary-definition p {
+                        font-size: 12px;
+                    }
+
+                    .question-row h2 {
+                        font-size: 14px;
+                    }
+
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+
+                    *,
+                    *::before,
+                    *::after {
+                        transition: none !important;
+                    }
+
+                }
+
+            `}</style>
+
+        </main>
+
+    );
+}
+
+export default function RegisterPage() {
+
+    return (
+        <React.Suspense fallback={null}>
+            <RegisterPageContent />
+        </React.Suspense>
+    );
+}
+
+

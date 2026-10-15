@@ -1,0 +1,3863 @@
+"use client";
+
+import {
+    Suspense,
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
+
+import {
+    useRouter,
+    useSearchParams,
+} from "next/navigation";
+
+import {
+    authService,
+} from "@/lib/auth/authService";
+
+import {
+    supabase,
+} from "@/lib/supabase";
+
+import {
+    profileRepository,
+} from "@/lib/repositories/profileRepository";
+
+import {
+    patientStorage,
+} from "@/lib/storage/patientStorage";
+
+import {
+    getCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
+
+import type {
+    Patient,
+} from "@/lib/types/patient";
+
+import {
+    consentStorage,
+} from "@/lib/consent/storage/consentStorage";
+
+import MobileHeader, {
+    type MobileCareMode,
+} from "@/Components/common/MobileHeader";
+
+import PatientPanel
+    from "@/Components/common/PatientPanel";
+
+import CareVRFooter
+    from "@/Components/common/CareVRFooter";
+
+import LanguageSelector
+    from "@/Components/language/LanguageSelector";
+
+import ManualCareWorkspace
+    from "@/Components/dashboard/ManualCareWorkspace";
+
+import VoiceCareWorkspace
+    from "@/Components/dashboard/VoiceCareWorkspace";
+
+import UploadCareWorkspace
+    from "@/Components/dashboard/UploadCareWorkspace";
+
+
+import CareJourneyDisplayConfiguration
+    from "@/Components/dashboard/CareJourneyDisplayConfiguration";
+
+/*
+import CareJourneyProcessingWorkspace
+    from "@/Components/dashboard/CareJourneyProcessingWorkspace";
+
+
+import CareJourneyProcessingWorkspace
+    from "@/Components/dashboard/CareJourneyProcessingWorkspaceStrataparseTest";
+*/
+
+import CareJourneyProcessingWorkspace
+    from "@/Components/dashboard/CareJourneyProcessingWorkspaceWOW";
+
+import {
+    prescriptionStorage,
+} from "@/lib/prescription/prescriptionStorage";
+
+import {
+    createCareJourneyConfiguration,
+    lockCareJourneyConfiguration,
+} from "@/lib/prescription-ai/configuration/careJourneyConfiguration";
+
+import type {
+    CareJourneyDisplayConfiguration as CareJourneyDisplayConfigurationState,
+} from "@/lib/prescription-ai/configuration/careJourneyConfiguration";
+
+import ExecutiveSummaryPdfGenerator
+    from "@/app/journey-review/mobile/ExecutiveSummaryPdfGenerator";
+
+import ClinicalTrendPdfGenerator
+    from "@/app/journey-review/mobile/ClinicalTrendPdfGenerator";
+
+// AUDIT TEMPORARILY DISABLED — DO NOT REMOVE
+//
+// import {
+//     startAuditCoordinator,
+//     syncAuditCoordinatorObservations,
+//     markAuditCoordinatorRendered,
+//     completeAuditCoordinator,
+//     recordAuditCoordinatorEvaluation,
+//     type AuditCoordinator,
+// } from "@/CareVRTestAuditAgent/runtime/auditCoordinator";
+
+// import {
+//     observeStrataparse,
+// } from "@/CareVRTestAuditAgent/runtime/auditObserver";
+
+// import {
+//     recordAuditEvaluation,
+//     buildAuditAccuracyComparisons,
+// } from "@/CareVRTestAuditAgent/runtime/auditEvaluation";
+
+import careVRGoldStandard
+    from "@/benchmarks/consultation-v1/expected-output.json";
+
+type DashboardUser = {
+    id: string;
+    fullName: string;
+    email: string;
+    role: string;
+    isFounder: boolean;
+};
+
+import CareJourneyUploadPanel
+    from "@/Components/dashboard/CareJourneyUploadPanel";
+
+import {
+    reportHandoffStore,
+} from "@/lib/authorization/reportHandoff";
+
+import type {
+    ReportHandoff,
+} from "@/lib/authorization/reportHandoff";
+
+
+import {
+    reportExecutionHandoffStore,
+} from "@/lib/authorization/reportExecutionHandoff";
+
+type RecordHealthOption =
+    | "VOICE"
+    | "UPLOAD"
+    | "MANUAL"
+    | "MEDICATION_MANAGEMENT"
+    | "EXECUTIVE_SUMMARY"
+    | "CLINICAL_TRENDS"
+    | "START_ASSESSMENT"
+    | "";
+
+
+const CareVR_Record_health_Options_Enable = false;
+
+
+function RecordHealthPageContent() {
+
+    const router =
+        useRouter();
+
+const searchParams =
+    useSearchParams();
+
+
+    const [
+        user,
+        setUser,
+    ] = useState<DashboardUser | null>(
+        null
+    );
+
+
+    const [
+        patients,
+        setPatients,
+    ] = useState<Patient[]>(
+        []
+    );
+
+
+    const [
+        selectedPatientId,
+        setSelectedPatientId,
+    ] = useState<string | null>(
+        null
+    );
+
+
+const [
+    careMode,
+    setCareMode,
+] = useState<MobileCareMode>(
+    searchParams.get("mode") === "self"
+        ? "SELF"
+        : "FAMILY"
+);
+
+const [selectedOption, setSelectedOption] = useState<RecordHealthOption>("");
+
+const [
+    recordHealthPremiumMessage,
+    setRecordHealthPremiumMessage,
+] = useState<string>("");
+
+const [reportExecutionType, setReportExecutionType] =
+    useState<
+        "EXECUTIVE_SUMMARY" |
+        "CLINICAL_TRENDS" |
+        null
+    >(null);
+
+const [
+    reportNoDataMessage,
+    setReportNoDataMessage,
+] = useState<string>("");
+
+
+/*
+const [
+    careJourneyAuditCoordinator,
+    setCareJourneyAuditCoordinator,
+] = useState<AuditCoordinator | null>(
+    null
+);
+*/
+
+const [
+    reportHandoff,
+    setReportHandoff,
+] = useState<ReportHandoff | null>(
+    null
+);
+
+
+const [
+    reportStartDate,
+    setReportStartDate,
+] = useState<string>("");
+
+
+const [
+    reportEndDate,
+    setReportEndDate,
+] = useState<string>("");
+
+
+const [
+    reportDatePreset,
+    setReportDatePreset,
+] = useState<
+    | "LAST_3_DAYS"
+    | "LAST_7_DAYS"
+    | "LAST_10_DAYS"
+    | "LAST_21_DAYS"
+    | "CUSTOM"
+    | ""
+>("");
+
+
+const [
+    reportDateError,
+    setReportDateError,
+] = useState<string>("");
+
+/*
+ * CARE JOURNEY AUDIT LIFECYCLE
+ *
+ * The audit begins when the user clicks Continue and is
+ * retained by the parent until the processing workspace
+ * confirms that the final results UI has rendered.
+ */
+
+/*
+ * PATIENT-SPECIFIC CARE JOURNEY DOCUMENT WORKSPACES
+ *
+ * Each patient's uploaded documents and extracted results
+ * remain available while the user stays inside Record Health.
+ *
+ * This is intentionally React state only.
+ * It is NOT persisted to sessionStorage or the database.
+ *
+ * Patient 1 -> Patient 1 documents/results
+ * Patient 2 -> Patient 2 documents/results
+ *
+ * Leaving Record Health discards this temporary workspace.
+ */
+type CareJourneyDocumentWorkspaceItem = {
+    file: File;
+    status:
+        | "WAITING"
+        | "READING"
+        | "EXTRACTING"
+        | "COMPLETED"
+        | "FAILED";
+
+/*
+ * Current Strataparse document result.
+ *
+ * CareVR keeps the document type together with the
+ * extraction returned by Strataparse so the presentation
+ * layer can render the selected information correctly.
+ */
+data?: {
+    documentType: string;
+    extraction: Record<string, unknown>;
+};
+    error?: string;
+
+};
+
+const [
+    careJourneyDocumentWorkspaces,
+    setCareJourneyDocumentWorkspaces,
+] =
+    useState<
+        Record<
+            string,
+            CareJourneyDocumentWorkspaceItem[]
+        >
+    >({});
+
+/*
+ * Distinguish the initial upload state from a patient-selected
+ * empty state.
+ *
+ * Initial state:
+ *   Show the document upload screen.
+ *
+ * Patient-selected empty state:
+ *   Keep the patient panels visible and show
+ *   "No documents uploaded" in the workspace.
+ */
+const [
+    careJourneyNoDocuments,
+    setCareJourneyNoDocuments,
+] = useState(false);
+
+/*
+ * CARE JOURNEY CONFIGURATION
+ *
+ * Configuration is patient-specific.
+ *
+ * Each patient can have their own Care Journey display
+ * configuration. The configuration remains available for
+ * the current browser session and is selected using
+ * the active patient ID.
+ *
+ * Example:
+ *   Patient 1 â†’ Patient 1 configuration
+ *   Patient 2 â†’ Patient 2 configuration
+ *
+ * This prevents one patient's configuration from being
+ * incorrectly reused for another patient.
+ */
+const [
+    careJourneyConfigurations,
+    setCareJourneyConfigurations,
+] =
+    useState<
+        Record<
+            string,
+            CareJourneyDisplayConfigurationState
+        >
+    >(
+        {}
+    );
+
+const [
+    careJourneyConfigurationLoaded,
+    setCareJourneyConfigurationLoaded,
+] =
+    useState(false);
+
+/*
+ * TEMPORARY CARE JOURNEY CONFIGURATION DEBUG
+ *
+ * Used only during development to verify that
+ * patient-specific configurations are actually being
+ * persisted in sessionStorage.
+ *
+ * This should be removed after configuration storage
+ * has been fully verified.
+ */
+const [
+    showCareJourneyConfigurationDebug,
+    setShowCareJourneyConfigurationDebug,
+] =
+    useState(false);
+
+/*
+ * LOAD SAVED CARE JOURNEY CONFIGURATIONS
+ *
+ * Configuration is patient-specific and session-scoped.
+ *
+ * The configuration map is restored when Record Health
+ * opens so that each patient's completed configuration
+ * remains available during the current browser session.
+ *
+ * sessionStorage is intentionally used instead of
+ * localStorage because configuration must not become a
+ * permanent browser setting.
+ */
+useEffect(() => {
+    const savedConfigurations =
+        window.sessionStorage.getItem(
+            "carevr-care-journey-configurations"
+        );
+
+    if (savedConfigurations) {
+        try {
+            const parsedConfigurations =
+                JSON.parse(
+                    savedConfigurations
+                ) as Record<
+                    string,
+                    CareJourneyDisplayConfigurationState
+                >;
+
+            setCareJourneyConfigurations(
+                parsedConfigurations
+            );
+        } catch {
+            /*
+             * Ignore invalid saved configurations.
+             * Affected patients can configure again.
+             */
+        }
+    }
+
+    setCareJourneyConfigurationLoaded(
+        true
+    );
+}, []);
+
+/*
+ * TEMPORARY CONFIGURATION DEBUG READER
+ *
+ * Reads the exact sessionStorage value used by the
+ * production configuration save logic.
+ *
+ * This gives us visibility into what is actually stored
+ * without changing how configuration is persisted.
+ */
+const getStoredCareJourneyConfigurations = () => {
+    try {
+        const stored =
+            window.sessionStorage.getItem(
+                "carevr-care-journey-configurations"
+            );
+
+        if (!stored) {
+            return {};
+        }
+
+        return JSON.parse(stored) as Record<
+            string,
+            CareJourneyDisplayConfigurationState
+        >;
+
+    } catch {
+        return {};
+    }
+};
+
+/*
+ * SAVE PATIENT-SPECIFIC CARE JOURNEY CONFIGURATION
+ *
+ * The configuration belongs to the currently selected
+ * patient. It must never be shared with another patient.
+ */
+const handleCareJourneyConfigurationContinue = async (
+    configurable_Rest:
+        Parameters<
+            typeof createCareJourneyConfiguration
+        >[0]
+) => {
+
+/*
+    const auditConfigurationResponse =
+        await fetch(
+            "/admin/Audit/configuration"
+        );
+
+    if (
+        !auditConfigurationResponse.ok
+    ) {
+        throw new Error(
+            "Unable to resolve audit configuration."
+        );
+    }
+
+const auditConfiguration =
+    await auditConfigurationResponse.json() as {
+        productId:
+            string;
+
+        ruleId:
+            string;
+
+        pricing: {
+            model:
+                string;
+
+            inputCostPer1K:
+                number;
+
+            outputCostPer1K:
+                number;
+
+            currency?:
+                string;
+        };
+    };
+
+*/
+
+    /*
+     * A Care Journey configuration cannot be saved
+     * without an active patient in Family mode.
+     */
+    if (
+        careMode === "FAMILY" &&
+        !selectedPatientId
+    ) {
+        return;
+    }
+
+    /*
+     * Start the audit coordinator only after the
+     * patient validation has succeeded.
+     *
+     * Product and Rule are resolved through the
+     * server-side audit configuration route so
+     * supabaseAdmin never enters the client bundle.
+     */
+
+// let auditCoordinator:
+//         AuditCoordinator;
+
+// auditCoordinator =
+//     await startAuditCoordinator({
+//         runId:
+//             crypto.randomUUID(),
+
+//         module:
+//             "CARE_JOURNEY",
+
+//         documentCount:
+//             careJourneyDocuments.length,
+
+//         productId:
+//             auditConfiguration.productId,
+
+//         ruleId:
+//             auditConfiguration.ruleId,
+
+//         pricing:
+//             auditConfiguration.pricing,
+
+//         documentInventory:
+//             careJourneyDocuments.map(
+//                 (
+//                     item,
+//                     index
+//                 ) => ({
+//                     documentNumber:
+//                         index + 1,
+
+//                     fileName:
+//                         item.file.name,
+
+//                     fileType:
+//                         item.file.type,
+//                 })
+//             ),
+//     });
+
+    const configuration =
+        createCareJourneyConfiguration(
+            configurable_Rest
+        );
+
+
+    const lockedConfiguration =
+        lockCareJourneyConfiguration(
+            configuration
+        );
+
+
+    /*
+     * Persist the Care Journey configuration
+     * for the currently selected patient.
+     */
+    setCareJourneyConfigurations(
+        currentConfigurations => {
+
+            const updatedConfigurations = {
+                ...currentConfigurations,
+                [selectedPatientId ?? "SELF"]:
+                    lockedConfiguration,
+            };
+
+            try {
+                window.sessionStorage.setItem(
+                    "carevr-care-journey-configurations",
+                    JSON.stringify(
+                        updatedConfigurations
+                    )
+                );
+            } catch {
+                /*
+                 * Persistence failure must not block
+                 * the current Care Journey session.
+                 */
+            }
+
+            return updatedConfigurations;
+        }
+    );
+
+    /*
+     * CAREVR â†’ STRATAPARSE
+     *
+     * CareVR supplies the documents and the
+     * Care Journey configuration.
+     *
+     * Strataparse owns:
+     * - integration validation
+     * - document intake
+     * - page counting
+     * - classification
+     * - readability assessment
+     * - model routing
+     * - extraction
+     * - result assembly
+     */
+
+    try {
+
+        const formData =
+            new FormData();
+
+
+formData.append(
+    "digitalKey",
+    "LineariseAILabs-HealthCare-PatientManagement-CareVR-Strataparse01"
+);
+
+        formData.append(
+            "module",
+            "CARE_JOURNEY"
+        );
+
+/*
+formData.append(
+    "auditRunId",
+    auditCoordinator.run.runId
+);
+*/
+
+        formData.append(
+            "documentType",
+            "CARE_JOURNEY"
+        );
+
+formData.append(
+    "configuration",
+    JSON.stringify({
+        expectedOutput:
+            lockedConfiguration.configurable_Rest,
+    })
+);
+
+        careJourneyDocuments.forEach(
+            item => {
+                formData.append(
+                    "documents",
+                    item.file
+                );
+            }
+        );
+
+        const response =
+            await fetch(
+                "/api/strataparse",
+                {
+                    method: "POST",
+                    body: formData,
+                }
+            );
+
+
+        if (!response.ok) {
+
+            const errorText =
+                await response.text();
+
+            console.error(
+                "[CARE JOURNEY DEBUG] 10 - Strataparse request failed",
+                {
+                    timestamp:
+                        new Date().toISOString(),
+                    status:
+                        response.status,
+                    error:
+                        errorText,
+                }
+            );
+
+            return;
+        }
+
+const responseText =
+    await response.text();
+
+const responseLines =
+    responseText
+        .split("\n")
+        .map(
+            line =>
+                line.trim()
+        )
+        .filter(Boolean);
+
+type StrataparseDocumentResult = {
+    documentType:
+        string;
+
+    extraction:
+        Record<string, unknown>;
+};
+
+type StrataparseStreamResult = {
+    documentCount?:
+        number;
+
+    results?:
+        StrataparseDocumentResult[];
+};
+
+const parsedResults:
+    StrataparseStreamResult[] = [];
+
+for (
+    const line
+    of responseLines
+) {
+
+    try {
+
+const parsed =
+    JSON.parse(
+        line
+    );
+
+if (
+    parsed &&
+    typeof parsed ===
+        "object"
+) {
+
+    parsedResults.push(
+        parsed as
+            StrataparseStreamResult
+    );
+}
+
+    } catch (
+        parseError
+    ) {
+
+        console.error(
+            "[CARE JOURNEY DEBUG] 10A - Invalid Strataparse response record",
+            {
+                timestamp:
+                    new Date().toISOString(),
+
+                error:
+                    parseError,
+
+                line,
+            }
+        );
+
+        throw parseError;
+    }
+}
+
+/*
+ * STRATAPARSE RESPONSE
+ *
+ * Strataparse returns one JSON record per streamed
+ * response record. The final result record contains
+ * the documentCount and document results consumed
+ * below.
+ *
+ * Do not treat the entire response body as one JSON
+ * document because the API response is streamed.
+ */
+const strataparseResult =
+    parsedResults[
+        parsedResults.length - 1
+    ] ??
+    {};
+
+/*
+ * ------------------------------------------------------------
+ * AUDIT ACCURACY EVALUATION
+ * ------------------------------------------------------------
+ *
+ * The Audit Agent now compares the actual CareVR/Strataparse
+ * result against the approved CareVR Gold Standard benchmark.
+ *
+ * IMPORTANT:
+ *
+ * - The benchmark is the source of expected evidence.
+ * - The actual result comes directly from the production
+ *   Strataparse response already received above.
+ * - The Audit Agent does not modify the production result.
+ * - No model routing, prompt, or extraction decision is changed.
+ *
+ * This produces explicit:
+ *
+ *     CORRECT
+ *     MISSED
+ *     INCORRECT
+ *
+ * evidence for Founder-level accuracy reporting.
+ */
+
+/*
+const benchmarkExpectedOutput =
+    careVRGoldStandard as Record<
+        string,
+        unknown
+    >;
+
+const benchmarkActualResult =
+    Array.isArray(
+        strataparseResult.results
+    ) &&
+    strataparseResult.results.length > 0
+        ? strataparseResult.results[0]?.extraction
+        : undefined;
+
+if (
+    benchmarkActualResult &&
+    typeof benchmarkActualResult ===
+        "object"
+) {
+
+    const accuracyComparisons =
+        buildAuditAccuracyComparisons(
+            benchmarkExpectedOutput,
+            benchmarkActualResult
+        );
+
+    const accuracyEvaluation =
+        recordAuditEvaluation({
+            runId:
+                auditCoordinator.run.runId,
+
+            documentNumber:
+                1,
+
+            accuracyComparisons,
+
+            notes: [
+                "Accuracy evaluated against the approved CareVR Gold Standard Consultation v1 benchmark.",
+            ],
+        });
+
+    auditCoordinator =
+        recordAuditCoordinatorEvaluation(
+            auditCoordinator,
+            accuracyEvaluation
+        );
+
+
+} else {
+
+    console.warn(
+        "[CARE JOURNEY AUDIT DEBUG] Accuracy evaluation skipped because no actual extraction result was available.",
+        {
+            runId:
+                auditCoordinator.run.runId,
+        }
+    );
+}
+*/
+
+
+        /*
+         * STRATAPARSE â†’ CAREVR RESULT HANDOFF
+         *
+         * Strataparse returns exactly one result for each
+         * independently processed input document.
+         *
+         * CareVR now attaches each returned extraction to
+         * the corresponding workspace document.
+         *
+         * No database persistence happens here.
+         * This is temporary in-session UI state only.
+         */
+        setCareJourneyDocumentWorkspaces(
+            currentWorkspaces => {
+
+                const patientKey =
+                    selectedPatientId ?? "SELF";
+
+                const existingItems =
+                    currentWorkspaces[
+                        patientKey
+                    ] ?? [];
+
+                const results =
+                    Array.isArray(
+                        strataparseResult.results
+                    )
+                        ? strataparseResult.results
+                        : [];
+
+                const updatedItems =
+                    existingItems.map(
+                        (
+                            item,
+                            index
+                        ) => {
+
+                            const result =
+                                results[index];
+
+                            if (!result) {
+
+                                return {
+                                    ...item,
+                                    status:
+                                        "FAILED" as const,
+                                    error:
+                                        "Strataparse did not return a result for this document.",
+                                };
+
+                            }
+
+                            return {
+                                ...item,
+
+                                /*
+                                 * Strataparse has completed the
+                                 * document and returned its extracted
+                                 * intelligence.
+                                 */
+                                status:
+                                    "COMPLETED" as const,
+
+
+/* Preserve the complete Strataparse document result.
+ *
+ * CareVR presentation uses the document type to determine
+ * how the returned extraction should be displayed.
+ */
+data: {
+    documentType:
+        result.documentType,
+
+    extraction:
+        result.extraction,
+},
+
+                                error:
+                                    undefined,
+                            };
+                        }
+                    );
+
+
+                return {
+                    ...currentWorkspaces,
+                    [patientKey]:
+                        updatedItems,
+                };
+            }
+        );
+
+
+
+// Audit temporarily disabled.
+// auditCoordinator =
+//     syncAuditCoordinatorObservations(
+//         auditCoordinator
+//     );
+
+// Audit temporarily disabled.
+// const resultRenderedAt =
+//     Date.now();
+
+// Audit temporarily disabled.
+// auditCoordinator =
+//     markAuditCoordinatorRendered(
+//         auditCoordinator,
+//         resultRenderedAt
+//     );
+
+// Audit temporarily disabled.
+// observeStrataparse({
+//     type:
+//         "RESULT_RENDERED",
+
+//     runId:
+//         auditCoordinator.run.runId,
+
+//     documentCount:
+//         auditCoordinator.run.documentCount,
+
+//     timestamp:
+//         resultRenderedAt,
+//     });
+
+// Audit temporarily disabled.
+// auditCoordinator =
+//     await completeAuditCoordinator(
+//         auditCoordinator
+//     );
+
+// Audit temporarily disabled.
+// const auditSaveResponse =
+// await fetch(
+//     "/admin/Audit/save",
+//     {
+//         method:
+//             "POST",
+
+//         headers: {
+//             "Content-Type":
+//                 "application/json",
+//         },
+
+//         body:
+//             JSON.stringify({
+//                 aggregation:
+//                     auditCoordinator.aggregation,
+
+//                 productId:
+//                     auditCoordinator.productId,
+
+//                 ruleId:
+//                     auditCoordinator.ruleId,
+//             }),
+//     }
+// );
+
+// Audit temporarily disabled.
+// if (
+//     !auditSaveResponse.ok
+// ) {
+//     throw new Error(
+//         "Failed to save audit to database."
+//     );
+// }
+
+
+} catch (error) {
+
+    console.error(
+        "[CARE JOURNEY DEBUG] 12 - Strataparse invocation failed",
+        {
+            timestamp:
+                new Date().toISOString(),
+
+            error:
+                error instanceof Error
+                    ? error.message
+                    : String(error),
+
+            stack:
+                error instanceof Error
+                    ? error.stack
+                    : undefined,
+        }
+    );
+}
+
+};
+
+
+    const [
+        consentGranted,
+        setConsentGranted,
+    ] = useState(false);
+
+
+    const [
+        loading,
+        setLoading,
+    ] = useState(true);
+
+
+    const [
+        loggingOut,
+        setLoggingOut,
+    ] = useState(false);
+
+
+    const [
+        accountMenuOpen,
+        setAccountMenuOpen,
+    ] = useState(false);
+
+
+    const [
+        error,
+        setError,
+    ] = useState<string | null>(
+        null
+    );
+
+
+    /*
+     * Load authenticated user,
+     * consent and active patients.
+     */
+    useEffect(() => {
+
+        let cancelled = false;
+
+
+        async function loadPage() {
+
+
+            try {
+
+                const authUser =
+                    await authService
+                        .getCurrentUser();
+
+
+                if (!authUser) {
+
+                    router.replace(
+                        "/login"
+                    );
+
+                    return;
+                }
+
+
+const incomingReportHandoff =
+    reportHandoffStore.get();
+
+if (
+    incomingReportHandoff &&
+    incomingReportHandoff.userId !== authUser.id
+) {
+    throw new Error(
+        "Report handoff does not match the authenticated user."
+    );
+}
+
+setReportHandoff(
+    incomingReportHandoff
+);
+
+
+
+
+                const profile =
+                    await profileRepository
+                        .getCurrentProfile();
+
+
+                if (!profile) {
+
+                    await authService.logout();
+
+                    router.replace(
+                        "/login"
+                    );
+
+                    return;
+                }
+
+
+                const consent =
+                    await consentStorage
+                        .hasAcceptedCurrentConsent();
+
+
+                if (cancelled) {
+                    return;
+                }
+
+
+                if (!consent) {
+
+                    router.replace(
+                        "/consent"
+                    );
+
+                    return;
+                }
+
+
+setUser({
+    id:
+        profile.id,
+
+    fullName:
+        profile.fullName,
+
+    email:
+        profile.email,
+
+    role:
+        profile.role,
+
+    isFounder:
+        profile.isFounder,
+});
+
+
+                setConsentGranted(
+                    true
+                );
+
+
+const dashboardHandoff =
+    getCareVRDashboardHandoff();
+
+
+if (!dashboardHandoff) {
+
+    throw new Error(
+        "CareVR Dashboard handoff is required."
+    );
+
+}
+
+
+/*
+ * The Dashboard handoff contains the patients
+ * already resolved for the authenticated user's
+ * selected CareVR role and active CareVR access.
+ *
+ * Use those patient IDs as the scope for Record Health.
+ *
+ * Retrieve the complete Patient domain objects
+ * through the protected patient API rather than
+ * constructing incomplete Patient objects from
+ * the lightweight Dashboard handoff.
+ */
+
+/*
+const scopedPatientIds =
+    dashboardHandoff.patients.map(
+        patient => patient.id
+    );
+
+
+const loadedPatients =
+    (
+        await Promise.all(
+            scopedPatientIds.map(
+                async (patientId) => {
+
+                    const result =
+                        await patientStorage
+                            .getProtectedPatient(
+                                patientId
+                            );
+
+                    if (!result.success) {
+                        return null;
+                    }
+
+                    return result.data ?? null;
+
+                }
+            )
+        )
+    ).filter(
+        (
+            patient
+        ): patient is Patient =>
+            patient !== null
+    );
+
+
+if (cancelled) {
+    return;
+}
+
+
+setPatients(
+    loadedPatients
+);
+
+*/
+
+/*
+ * Family mode defaults to
+ * the first authorized patient.
+ */
+
+/*
+if (
+    loadedPatients.length > 0
+) {
+
+    setSelectedPatientId(
+        loadedPatients[0].id
+    );
+
+}
+
+*/
+
+const scopedPatientIds =
+    dashboardHandoff.patients.map(
+        patient => patient.id
+    );
+
+const authorizedFamilyId =
+    dashboardHandoff.access.familyId;
+
+if (!authorizedFamilyId) {
+    throw new Error(
+        "Authorized CareVR Family could not be resolved."
+    );
+}
+
+const {
+    data: digitalHealthProfile,
+    error: digitalHealthProfileError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .select(`
+            patients,
+            carevr_access:carevr_access_id!inner (
+                access_type,
+                access_status
+            )
+        `)
+        .eq("family_id", authorizedFamilyId)
+        .eq("digital_health_flag", true)
+        .eq("carevr_access.access_type", "PRIMARY")
+        .eq("carevr_access.access_status", "ACTIVE")
+        .maybeSingle();
+
+if (digitalHealthProfileError) {
+    throw digitalHealthProfileError;
+}
+
+const dhpPatients =
+    Array.isArray(
+        digitalHealthProfile?.patients
+    )
+        ? digitalHealthProfile.patients
+        : [];
+
+const loadedPatients: Patient[] =
+    dhpPatients
+        .filter(
+            patient =>
+                patient &&
+                typeof patient.id === "string" &&
+                scopedPatientIds.includes(
+                    patient.id
+                )
+        )
+        .map(
+            patient => ({
+                id: patient.id,
+                userId:
+                    patient.user_id ??
+                    authUser.id,
+                fullName:
+                    patient.full_name,
+                dateOfBirth:
+                    patient.date_of_birth ??
+                    null,
+                gender:
+                    patient.gender ??
+                    null,
+                relationship:
+                    patient.relationship ??
+                    null,
+                status:
+                    patient.status ??
+                    "ACTIVE",
+                createdAt:
+                    patient.created_at ??
+                    "",
+                updatedAt:
+                    patient.updated_at ??
+                    "",
+            })
+        );
+
+if (cancelled) {
+    return;
+}
+
+setPatients(
+    loadedPatients
+);
+
+/*
+ * Family mode defaults to
+ * the first authorized patient.
+ */
+if (
+    loadedPatients.length > 0
+) {
+
+    setSelectedPatientId(
+        loadedPatients[0].id
+    );
+
+}
+
+            }
+            catch (loadError) {
+
+                console.error(
+                    "Unable to load Record Health page.",
+                    loadError
+                );
+
+
+                if (!cancelled) {
+
+                    setError(
+                        "Unable to load Record Health."
+                    );
+
+                }
+
+            }
+            finally {
+
+                if (!cancelled) {
+
+                    setLoading(
+                        false
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        void loadPage();
+
+
+        return () => {
+
+            cancelled = true;
+
+        };
+
+    }, [router]);
+
+
+const selectedPatient =
+    useMemo(
+        () =>
+            patients.find(
+                patient =>
+                    patient.id ===
+                    selectedPatientId
+            ) ?? null,
+        [
+            patients,
+            selectedPatientId,
+        ]
+    );
+
+
+
+/*
+ * Changing Family / Self clears
+ * the current recording option.
+ *
+ * Family:
+ *   patient must be selected.
+ *
+ * Self:
+ *   no Patient record is required.
+ */
+const handleCareModeChange =
+        (
+            mode: MobileCareMode
+        ) => {
+
+            setCareMode(
+                mode
+            );
+
+            setSelectedOption(
+                ""
+            );
+
+            if (
+                mode === "FAMILY" &&
+                patients.length > 0
+            ) {
+
+                setSelectedPatientId(
+                    current =>
+                        current &&
+                        patients.some(
+                            patient =>
+                                patient.id ===
+                                current
+                        )
+                            ? current
+                            : patients[0].id
+                );
+
+            }
+
+        };
+
+
+/*
+ * PATIENT SELECTION
+ *
+ * Patient panels remain unchanged.
+ *
+ * When the user changes patient, the current Care Journey
+ * document workspace belongs to the previous patient and must
+ * therefore be cleared.
+ *
+ * The one-time display configuration is deliberately preserved.
+ * It must NOT be shown again merely because the patient changes.
+ */
+const handlePatientSelect =
+    (
+        patient: Patient
+    ) => {
+        if (!consentGranted) {
+            return;
+        }
+
+        setSelectedPatientId(
+            patient.id
+        );
+
+        setSelectedOption(
+            ""
+        );
+
+        /*
+         * Clear only the patient-specific uploaded documents.
+         *
+         * The configuration is intentionally NOT cleared because
+         * configuration is a one-time activity.
+         */
+        /*
+         * Do NOT clear Care Journey documents here.
+         *
+         * Each patient owns a separate temporary workspace.
+         * Changing patient simply changes which workspace is
+         * displayed.
+         */
+    };
+
+
+    const handleLogout =
+        async () => {
+
+            if (loggingOut) {
+                return;
+            }
+
+
+            setLoggingOut(
+                true
+            );
+
+
+try {
+
+    await authService.logout();
+
+    /*
+     * Care Journey configuration is session-scoped.
+     *
+     * It must not survive logout because the next login
+     * may belong to a different user.
+     */
+    try {
+        window.sessionStorage.removeItem(
+            "carevr-care-journey-configurations"
+        );
+    } catch {
+        /*
+         * Storage cleanup failure must not prevent logout.
+         */
+    }
+
+    /*
+     * Clear the in-memory Care Journey state as well.
+     */
+    setCareJourneyConfigurations({});
+    setCareJourneyDocumentWorkspaces({});
+
+    router.replace(
+        "/login"
+    );
+
+}
+            catch (logoutError) {
+
+                console.error(
+                    "Unable to log out.",
+                    logoutError
+                );
+
+
+                setLoggingOut(
+                    false
+                );
+
+            }
+
+        };
+
+const handleCareJourneyProcessingStateChange =
+    useCallback(
+        (
+            items: CareJourneyDocumentWorkspaceItem[]
+        ) => {
+
+            if (!selectedPatientId) {
+                return;
+            }
+
+            setCareJourneyDocumentWorkspaces(
+                currentWorkspaces => {
+
+                    const existingItems =
+                        currentWorkspaces[
+                            selectedPatientId
+                        ] ?? [];
+
+                    if (
+                        JSON.stringify(
+                            existingItems
+                        ) ===
+                        JSON.stringify(
+                            items
+                        )
+                    ) {
+                        return currentWorkspaces;
+                    }
+
+                    return {
+                        ...currentWorkspaces,
+                        [selectedPatientId]:
+                            items,
+                    };
+                }
+            );
+        },
+        [
+            selectedPatientId,
+        ]
+    );
+
+
+    const handleCareVRJourney =
+        () => {
+
+            setAccountMenuOpen(
+                false
+            );
+
+            router.push(
+                "/dashboard"
+            );
+
+        };
+
+
+    const handleHelp =
+        () => {
+
+            setAccountMenuOpen(
+                false
+            );
+
+            router.push(
+                "/help"
+            );
+
+        };
+
+
+/*
+ * Family mode requires a selected patient.
+ * Self mode operates without one.
+ */
+const canRecord =
+    careMode === "SELF" ||
+    selectedPatient !== null;
+
+
+/*
+ * ACTIVE PATIENT CARE JOURNEY CONFIGURATION
+ *
+ * The Care Journey configuration is stored separately
+ * for each patient.
+ *
+ * When the selected patient changes, this automatically
+ * selects that patient's saved configuration.
+ *
+ * Patient 1 â†’ Patient 1 configuration
+ * Patient 2 â†’ Patient 2 configuration
+ *
+ * If the selected patient has no saved configuration,
+ * the value remains null and the configuration screen
+ * is shown.
+ */
+const careJourneyConfiguration =
+    careJourneyConfigurations[
+        selectedPatientId ?? "SELF"
+    ] ?? null;
+
+/*
+ * ACTIVE PATIENT CARE JOURNEY DOCUMENTS
+ *
+ * Always display the workspace belonging to the currently
+ * selected patient.
+ */
+const careJourneyDocuments =
+    careJourneyDocumentWorkspaces[
+        selectedPatientId ?? "SELF"
+    ] ?? [];
+
+
+if (loading) {
+
+    return (
+            <main className="record-health-page">
+
+                <div className="record-health-loading">
+                    Loading...
+                </div>
+
+                <style jsx>{`
+
+                    .record-health-page {
+                        min-height: 100vh;
+                        background: #f8f6ff;
+                    }
+
+                    .record-health-loading {
+                        min-height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #59657f;
+                        font-size: 15px;
+                    }
+
+                `}</style>
+
+            </main>
+        );
+
+    }
+
+
+    if (!user) {
+        return null;
+    }
+
+
+    return (
+        <main className="record-health-page">
+
+            <div className="record-health-shell">
+
+                <MobileHeader
+                    careMode={
+                        careMode
+                    }
+
+                    onCareModeChange={
+                        handleCareModeChange
+                    }
+
+                    userName={
+                        user.fullName
+                    }
+
+                    showHomeButton={
+                        true
+                    }
+
+                    onHomeClick={() =>
+                        router.push(
+                            "/dashboard"
+                        )
+                    }
+
+                    accountMenuOpen={
+                        accountMenuOpen
+                    }
+
+                    onAccountMenuToggle={() =>
+                        setAccountMenuOpen(
+                            value => !value
+                        )
+                    }
+
+                    consentGranted={
+                        consentGranted
+                    }
+                    canAddPatient={false}
+                    onAddPatient={() => {
+                        /*
+                         * Intentionally unused on
+                         * Record Health.
+                         *
+                         * Add Patient will be removed
+                         * from this page's account menu
+                         * in the reusable header change.
+                         */
+                    }}
+
+                    onCareVRJourney={
+                        handleCareVRJourney
+                    }
+
+                    onHelp={
+                        handleHelp
+                    }
+
+                    languageSelector={
+                        <LanguageSelector />
+                    }
+
+                    onLogout={
+                        handleLogout
+                    }
+
+                    loggingOut={
+                        loggingOut
+                    }
+                />
+
+
+                <section className="record-health-content">
+
+
+{careMode === "FAMILY" && (
+
+    <PatientPanel
+        userName={
+            user.fullName
+        }
+        patients={
+            patients
+        }
+        selectedPatientId={
+            selectedPatientId
+        }
+        onPatientSelect={
+            handlePatientSelect
+        }
+        careMode={
+            careMode
+        }
+    />
+
+)}
+
+
+                    {careMode === "SELF" && (
+
+                        <section className="self-mode-card">
+
+                            <div className="self-mode-avatar">
+                                {
+                                    user.fullName
+                                        .trim()
+                                        .split(/\s+/)
+                                        .filter(Boolean)
+                                        .map(
+                                            part =>
+                                                part[0]
+                                        )
+                                        .slice(0, 2)
+                                        .join("")
+                                        .toUpperCase()
+                                }
+                            </div>
+
+                            <div className="self-mode-content">
+<span className="self-mode-label">
+    {searchParams.get("view") === "care-journey"
+        ? "Care Journey for"
+        : searchParams.get("view") === "assessment"
+            ? "Assessment for"
+            : searchParams.get("view") === "timeline"
+                ? "Health Timeline for"
+                : "Recording for"}
+</span>
+
+                                <strong>
+                                    {user.fullName}
+                                </strong>
+
+                            </div>
+
+                            <span className="self-mode-check">
+                                ✓
+                            </span>
+
+                        </section>
+
+                    )}
+
+
+                    {canRecord && (
+
+                        <section className="record-health-section">
+
+<div className="record-health-heading">
+
+{searchParams.get("view") === "timeline" ? null : (
+    <h1>
+        {searchParams.get("view") === "assessment"
+            ? "Health Assessment"
+            : searchParams.get("view") === "care-journey"
+                ? "Path to finding your timeline"
+                : "Record Health"}
+    </h1>
+)}
+
+
+</div>
+{searchParams.get("view") === "care-journey" ? (
+    user.isFounder ? (
+
+    <>
+
+{/*
+ * TEMPORARY CONFIGURATION DEBUG PANEL
+ *
+ * Remove this block after patient-specific configuration
+ * storage has been verified.
+ */}
+<div
+    style={{
+        width: "100%",
+        marginBottom: "12px",
+        padding: "10px",
+        border: "1px dashed #999",
+        borderRadius: "10px",
+        background: "#fffdf2",
+        boxSizing: "border-box",
+    }}
+>
+    <button
+        type="button"
+        onClick={() =>
+            setShowCareJourneyConfigurationDebug(
+                current => !current
+            )
+        }
+        style={{
+            border: "none",
+            background: "transparent",
+            padding: 0,
+            fontWeight: 800,
+            cursor: "pointer",
+            color: "#333",
+        }}
+    >
+        {showCareJourneyConfigurationDebug
+            ? "Hide Configuration Debug"
+            : "Show Configuration Debug"}
+    </button>
+
+    {showCareJourneyConfigurationDebug && (
+        <div
+            style={{
+                marginTop: "10px",
+                fontSize: "12px",
+                lineHeight: 1.5,
+            }}
+        >
+            <strong>
+                Current Patient
+            </strong>
+
+            <div>
+                {selectedPatient?.fullName ??
+                    "No patient selected"}
+            </div>
+
+            <div
+                style={{
+                    marginTop: "8px",
+                }}
+            >
+                <strong>
+                    Stored Patient Configurations
+                </strong>
+            </div>
+
+            {Object.entries(
+                getStoredCareJourneyConfigurations()
+            ).length === 0 ? (
+                <div>
+                    No configurations stored.
+                </div>
+            ) : (
+                Object.entries(
+                    getStoredCareJourneyConfigurations()
+                ).map(
+                    ([
+                        patientId,
+                    ]) => {
+
+                        const patient =
+                            patients.find(
+                                item =>
+                                    item.id ===
+                                    patientId
+                            );
+
+                        return (
+                            <div
+                                key={
+                                    patientId
+                                }
+                            >
+                                ✓{" "}
+                                {patient?.fullName ??
+                                    patientId}
+                            </div>
+                        );
+                    }
+                )
+            )}
+        </div>
+    )}
+</div>
+
+
+{/*
+ * CARE JOURNEY WORKSPACE HANDOFF
+ *
+ * First visit:
+ *   Upload documents
+ *        â†“
+ *   One-time configuration
+ *        â†“
+ *   Processing workspace
+ *
+ * After the configuration has been saved:
+ *   Selecting another patient must NOT show configuration again.
+ *
+ * If that patient has no uploaded documents:
+ *   Processing workspace receives an empty document list and
+ *   shows the simple "No documents uploaded" state.
+ */}
+<div className="dashboard-workspace">
+{!careJourneyConfigurationLoaded ? (
+    null
+) : careJourneyDocuments.length === 0 ? (
+    <CareJourneyUploadPanel
+        onBack={() => {
+            router.back();
+        }}
+onDocumentsSelected={(documents) => {
+
+    if (!selectedPatientId) {
+        return;
+    }
+
+    setCareJourneyDocumentWorkspaces(
+        currentWorkspaces => {
+
+            const existingItems =
+                currentWorkspaces[
+                    selectedPatientId
+                ] ?? [];
+
+            /*
+             * Keep already processed documents/results
+             * and add only the newly uploaded documents.
+             */
+            const existingFiles =
+                new Set(
+                    existingItems.map(
+                        item =>
+                            `${item.file.name}|${item.file.size}|${item.file.lastModified}`
+                    )
+                );
+
+            const newItems =
+                documents
+                    .filter(
+                        file =>
+                            !existingFiles.has(
+                                `${file.name}|${file.size}|${file.lastModified}`
+                            )
+                    )
+                    .map(
+                        file => ({
+                            file,
+                            status:
+                                "WAITING" as const,
+                        })
+                    );
+
+            return {
+                ...currentWorkspaces,
+
+                [selectedPatientId]: [
+                    ...existingItems,
+                    ...newItems,
+                ],
+            };
+        }
+    );
+}}
+    />
+) : careJourneyConfiguration === null ? (
+    <CareJourneyDisplayConfiguration
+        onContinue={
+            handleCareJourneyConfigurationContinue
+        }
+    />
+) : (
+<>
+
+
+    <CareJourneyProcessingWorkspace
+documents={
+    careJourneyDocuments.map(
+        item => item.file
+    )
+}
+
+    configuration={
+        careJourneyConfiguration
+    }
+
+    /*
+     * Restore documents and extracted results already
+     * processed for this patient.
+     *
+     * New documents are added and processed.
+     * Existing completed documents are displayed without
+     * being processed again.
+     */
+    persistedItems={
+        careJourneyDocumentWorkspaces[
+            selectedPatientId ?? "SELF"
+        ] ?? []
+    }
+
+    /*
+     * Save the latest processing state against the
+     * currently selected patient.
+     */
+onProcessingStateChange={
+    handleCareJourneyProcessingStateChange
+}
+
+    onBack={() => {
+
+        router.push(
+            "/record-health?view=care-journey"
+        );
+
+    }}
+/>
+</>
+)}
+
+</div>
+
+        </>
+
+    ) : (
+
+        <section className="record-health-coming-soon">
+
+            <div className="record-health-coming-soon-icon">
+                ✦
+            </div>
+
+            <h1>
+                Coming Soon...
+            </h1>
+
+            <p>
+                Care Journey is currently not available. It will be available very soon.
+            </p>
+
+        </section>
+
+    )
+
+) : searchParams.get("view") === "timeline" ? (
+
+    <>
+
+        {reportHandoff ? (
+
+            <>
+
+                {!reportExecutionType ? (
+                    <>
+                        <div className="timeline-report-grid">
+
+                            <button
+                                type="button"
+                                className={
+                                    selectedOption === "EXECUTIVE_SUMMARY"
+                                        ? "timeline-report-option timeline-report-option-selected"
+                                        : "timeline-report-option"
+                                }
+                                onClick={() => {
+
+                                    setSelectedOption(
+                                        "EXECUTIVE_SUMMARY"
+                                    );
+
+setReportDatePreset("");
+setReportStartDate("");
+setReportEndDate("");
+setReportDateError("");
+setReportNoDataMessage("");
+
+                                }}
+                            >
+
+                                <span className="timeline-report-icon">
+                                    ▤
+                                </span>
+
+                                <strong>
+                                    Executive Summary
+                                </strong>
+
+                            </button>
+
+
+                            <button
+                                type="button"
+                                className={
+                                    selectedOption === "CLINICAL_TRENDS"
+                                        ? "timeline-report-option timeline-report-option-selected"
+                                        : "timeline-report-option"
+                                }
+                                onClick={() => {
+
+                                    setSelectedOption(
+                                        "CLINICAL_TRENDS"
+                                    );
+
+setReportDatePreset("");
+setReportStartDate("");
+setReportEndDate("");
+setReportDateError("");
+setReportNoDataMessage("");
+
+                                }}
+                            >
+
+                                <span className="timeline-report-icon">
+                                    ↗
+                                </span>
+
+                                <strong>
+                                    Clinical Trends
+                                </strong>
+
+                            </button>
+
+                            <button
+                                type="button"
+                                className="timeline-report-option"
+onClick={() => {
+    if (careMode === "SELF") {
+        router.push("/reports/assessment/self");
+    } else if (selectedPatientId) {
+        const reportUrl =
+            "/reports/assessment/family?patientId=" +
+            encodeURIComponent(selectedPatientId);
+
+        router.push(reportUrl);
+    }
+}}
+                            >
+                                <span className="timeline-report-icon">
+                                    ✓
+                                </span>
+
+                                <strong>
+                                    Assessment Report
+                                </strong>
+                            </button>
+
+
+
+                        </div>
+
+
+                        {selectedOption !== "" && (
+
+                            <section className="workspace-section">
+
+                                <div className="report-period-row">
+
+                                    <h2>
+                                        Reporting Period
+                                    </h2>
+
+                                    <div className="report-period-options">
+
+                                        <button
+                                            type="button"
+                                            className={
+                                                reportDatePreset === "LAST_3_DAYS"
+                                                    ? "timeline-report-option timeline-report-option-selected"
+                                                    : "timeline-report-option"
+                                            }
+                                            onClick={() => {
+                                                const end = new Date();
+                                                const start = new Date();
+                                                start.setDate(end.getDate() - 2);
+setReportDatePreset("LAST_3_DAYS");
+setReportStartDate(start.toISOString().slice(0, 10));
+setReportEndDate(end.toISOString().slice(0, 10));
+setReportDateError("");
+setReportNoDataMessage("");
+                                            }}
+                                        >
+                                            <span className="report-period-radio" />
+                                            <span>Last 3 Days</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className={
+                                                reportDatePreset === "LAST_7_DAYS"
+                                                    ? "timeline-report-option timeline-report-option-selected"
+                                                    : "timeline-report-option"
+                                            }
+                                            onClick={() => {
+                                                const end = new Date();
+                                                const start = new Date();
+                                                start.setDate(end.getDate() - 6);
+                                                setReportDatePreset("LAST_7_DAYS");
+                                                setReportStartDate(start.toISOString().slice(0, 10));
+                                                setReportEndDate(end.toISOString().slice(0, 10));
+                                                setReportDateError("");
+                                                setReportNoDataMessage("");
+                                            }}
+                                        >
+                                            <span className="report-period-radio" />
+                                            <span>Last 7 Days</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className={
+                                                reportDatePreset === "LAST_10_DAYS"
+                                                    ? "timeline-report-option timeline-report-option-selected"
+                                                    : "timeline-report-option"
+                                            }
+                                            onClick={() => {
+                                                const end = new Date();
+                                                const start = new Date();
+                                                start.setDate(end.getDate() - 9);
+                                                setReportDatePreset("LAST_10_DAYS");
+                                                setReportStartDate(start.toISOString().slice(0, 10));
+                                                setReportEndDate(end.toISOString().slice(0, 10));
+                                                setReportDateError("");
+                                                setReportNoDataMessage("");
+                                            }}
+                                        >
+                                            <span className="report-period-radio" />
+                                            <span>Last 10 Days</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className={
+                                                reportDatePreset === "LAST_21_DAYS"
+                                                    ? "timeline-report-option timeline-report-option-selected"
+                                                    : "timeline-report-option"
+                                            }
+                                            onClick={() => {
+                                                const end = new Date();
+                                                const start = new Date();
+                                                start.setDate(end.getDate() - 20);
+                                                setReportDatePreset("LAST_21_DAYS");
+                                                setReportStartDate(start.toISOString().slice(0, 10));
+                                                setReportEndDate(end.toISOString().slice(0, 10));
+                                                setReportDateError("");
+                                                setReportNoDataMessage("");
+                                            }}
+                                        >
+                                            <span className="report-period-radio" />
+                                            <span>Last 21 Days</span>
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                <div className="report-period-or" aria-hidden="true">
+                                    <span>OR</span>
+                                </div>
+
+                                <div className="report-custom-period">
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+setReportDatePreset("CUSTOM");
+setReportStartDate("");
+setReportEndDate("");
+setReportDateError("");
+setReportNoDataMessage("");
+                                        }}
+                                        className={
+                                            reportDatePreset === "CUSTOM"
+                                                ? "report-custom-selector report-custom-selector-selected"
+                                                : "report-custom-selector"
+                                        }
+                                    >
+                                        <span className="report-period-radio" />
+                                        <span>Custom Period</span>
+                                    </button>
+
+                                    {reportDatePreset === "CUSTOM" && (
+                                        <div className="report-custom-fields">
+                                            <label>
+                                                <span>From Date</span>
+                                                <input
+                                                    type="date"
+                                                    value={reportStartDate}
+                                                    onChange={event => {
+                                                        setReportStartDate(event.target.value);
+                                                        setReportDateError("");
+                                                    }}
+                                                />
+                                            </label>
+
+                                            <label>
+                                                <span>To Date</span>
+                                                <input
+                                                    type="date"
+                                                    value={reportEndDate}
+                                                    onChange={event => {
+                                                        setReportEndDate(event.target.value);
+                                                        setReportDateError("");
+                                                    }}
+                                                />
+                                            </label>
+                                        </div>
+                                    )}
+
+                                </div>
+
+{reportDateError && (
+
+    <div className="report-date-error">
+        {reportDateError}
+    </div>
+
+)}
+
+{reportNoDataMessage && (
+
+    <div className="report-date-error">
+        {reportNoDataMessage}
+    </div>
+
+)}
+
+
+<button
+    type="button"
+                                    disabled={
+                                        !reportStartDate ||
+                                        !reportEndDate
+                                    }
+onClick={() => {
+
+    if (
+        selectedOption !== "EXECUTIVE_SUMMARY" &&
+        selectedOption !== "CLINICAL_TRENDS"
+    ) {
+        setReportDateError(
+            "Please select a report before generating."
+        );
+
+        return;
+    }
+
+    if (
+        !reportStartDate ||
+        !reportEndDate
+    ) {
+        setReportDateError(
+            "Please select a reporting period."
+        );
+
+        return;
+    }
+
+
+                                        const start =
+                                            new Date(
+                                                `${reportStartDate}T00:00:00`
+                                            );
+
+                                        const end =
+                                            new Date(
+                                                `${reportEndDate}T00:00:00`
+                                            );
+
+
+                                        if (
+                                            Number.isNaN(
+                                                start.getTime()
+                                            ) ||
+                                            Number.isNaN(
+                                                end.getTime()
+                                            )
+                                        ) {
+
+                                            setReportDateError(
+                                                "Please enter a valid reporting period."
+                                            );
+
+                                            return;
+
+                                        }
+
+
+                                        if (
+                                            start >
+                                            end
+                                        ) {
+
+                                            setReportDateError(
+                                                "The start date cannot be after the end date."
+                                            );
+
+                                            return;
+
+                                        }
+
+
+                                        const difference =
+                                            Math.floor(
+                                                (
+                                                    end.getTime() -
+                                                    start.getTime()
+                                                ) /
+                                                (
+                                                    1000 *
+                                                    60 *
+                                                    60 *
+                                                    24
+                                                )
+                                            );
+
+
+                                        if (
+                                            difference >
+                                            20
+                                        ) {
+
+                                            setReportDateError(
+                                                "The reporting period cannot exceed 21 calendar days."
+                                            );
+
+                                            return;
+
+                                        }
+
+
+setReportDateError("");
+
+reportExecutionHandoffStore.set({
+
+    userId:
+        reportHandoff.userId,
+
+    patientId:
+        careMode === "SELF"
+            ? null
+            : selectedPatient?.id ?? null,
+
+    patientName:
+        careMode === "SELF"
+            ? user.fullName
+            : selectedPatient?.fullName ??
+                reportHandoff.patientName,
+
+    reportType:
+        selectedOption,
+
+    startDate:
+        reportStartDate,
+
+    endDate:
+        reportEndDate,
+
+    requestedAt:
+        new Date().toISOString(),
+
+});
+
+setReportExecutionType(
+    selectedOption
+);
+
+                                    }}
+                                    style={{
+                                        width: "100%",
+                                        maxWidth: 380,
+                                        margin: "18px auto 0",
+                                        padding: "12px 16px",
+                                        border: "none",
+                                        borderRadius: 10,
+                                        background:
+                                            reportStartDate &&
+                                            reportEndDate
+                                                ? "#5630e8"
+                                                : "#d1d5db",
+                                        color: "#ffffff",
+                                        fontSize: 15,
+                                        fontWeight: 700,
+                                        cursor:
+                                            reportStartDate &&
+                                            reportEndDate
+                                                ? "pointer"
+                                                : "not-allowed",
+                                    }}
+                                >
+                                    Generate Report
+                                </button>
+
+                            </section>
+
+                        )}
+
+                    </>
+
+                ) : (
+
+                    <section className="workspace-section">
+
+                        {reportExecutionType === "EXECUTIVE_SUMMARY" && (
+
+<ExecutiveSummaryPdfGenerator
+    careMode={careMode}
+    patientId={
+        careMode === "SELF"
+            ? null
+            : selectedPatient?.id ?? null
+    }
+    patientName={
+        careMode === "SELF"
+            ? user.fullName
+            : selectedPatient?.fullName ??
+                reportHandoff.patientName
+    }
+    startDate={reportStartDate}
+    endDate={reportEndDate}
+    accessId={
+        getCareVRDashboardHandoff()?.access.id ?? null
+    }
+    selectedRole={
+        getCareVRDashboardHandoff()?.role ?? null
+    }
+    onComplete={() => {
+        setReportExecutionType(null);
+    }}
+
+onNoData={() => {
+    setReportExecutionType(null);
+    setReportNoDataMessage(
+        careMode === "SELF"
+            ? "No health records found for the selected period. Please record your health first."
+            : "No health records found for the selected patient and period. Please record health data first."
+    );
+}}
+/>
+
+                        )}
+
+
+                        {reportExecutionType === "CLINICAL_TRENDS" && (
+
+<ClinicalTrendPdfGenerator
+    careMode={careMode}
+    patientId={
+        careMode === "SELF"
+            ? null
+            : selectedPatient?.id ?? null
+    }
+    patientName={
+        careMode === "SELF"
+            ? user.fullName
+            : selectedPatient?.fullName ??
+                reportHandoff.patientName
+    }
+    startDate={
+        reportStartDate
+    }
+    endDate={
+        reportEndDate
+    }
+    accessId={
+        getCareVRDashboardHandoff()?.access.id ?? null
+    }
+    selectedRole={
+        getCareVRDashboardHandoff()?.role ?? null
+    }
+    onComplete={() => {
+        setReportExecutionType(null);
+    }}
+    onNoData={() => {
+        setReportExecutionType(null);
+
+        setReportNoDataMessage(
+            "No data available for the selected period."
+        );
+    }}
+/>
+
+                        )}
+
+                    </section>
+
+                )}
+
+            </>
+
+        ) : (
+
+            <div className="timeline-unavailable">
+
+                <div className="timeline-unavailable-icon">
+                    ⚠
+                </div>
+
+                <strong>
+                    Health Timeline context is unavailable.
+                </strong>
+
+                <p>
+                    Please return to the Dashboard and open Health Timeline
+                    again.
+                </p>
+
+            </div>
+
+        )}
+
+    </>
+
+) : searchParams.get("view") === "assessment" ? (
+
+    <div className="assessment-mobile-panel">
+
+        <button
+            type="button"
+            className="assessment-start-option"
+            onClick={async () => {
+
+                if (
+                    careMode === "SELF"
+                ) {
+
+                    router.push(
+                        "/self/page2"
+                    );
+
+                    return;
+                }
+
+if (
+    careMode === "FAMILY" &&
+    selectedPatient
+) {
+    localStorage.setItem(
+        "assessmentType",
+        "family"
+    );
+
+    localStorage.setItem(
+        "patientId",
+        selectedPatient.id
+    );
+
+    localStorage.setItem(
+        "patientName",
+        selectedPatient.fullName
+    );
+
+    if (user?.fullName) {
+        localStorage.setItem(
+            "observerName",
+            user.fullName
+        );
+    }
+
+    router.push(
+        "/family/page2"
+    );
+}
+
+            }}
+        >
+
+            <span className="assessment-start-icon">
+                &#x1FA7A;
+            </span>
+
+            <strong>
+                Start Assessment
+            </strong>
+
+            <span>
+                Answer a few questions about your current health
+            </span>
+
+        </button>
+
+    </div>
+
+) : (
+
+    <div className="record-method-grid">
+
+        <button
+            type="button"
+            className={
+                selectedOption === "VOICE"
+                    ? "record-method record-method-selected"
+                    : "record-method"
+            }
+            onClick={() => {
+                if (
+                    CareVR_Record_health_Options_Enable ||
+                    user?.isFounder
+                ) {
+                    setSelectedOption("");
+                    setRecordHealthPremiumMessage("");
+                    setSelectedOption("VOICE");
+                    return;
+                }
+
+                setSelectedOption("");
+                setRecordHealthPremiumMessage(
+                    "VOICE"
+                );
+            }}
+        >
+            <span className="record-method-icon voice-icon">
+                🎙️
+            </span>
+
+            <strong>
+                Record with
+                <br />
+                Voice
+            </strong>
+        </button>
+
+
+        <button
+            type="button"
+            className={
+                selectedOption === "UPLOAD"
+                    ? "record-method record-method-selected"
+                    : "record-method"
+            }
+            onClick={() => {
+                if (
+                    CareVR_Record_health_Options_Enable ||
+                    user?.isFounder
+                ) {
+                    setRecordHealthPremiumMessage("");
+                    setSelectedOption("");
+                    setSelectedOption("UPLOAD");
+                    return;
+                }
+
+                setSelectedOption("");
+                setRecordHealthPremiumMessage(
+                    "UPLOAD"
+                );
+            }}
+        >
+            <span className="record-method-icon upload-icon">
+                📷
+            </span>
+
+            <strong>
+                Upload
+                <br />
+                Reading
+            </strong>
+        </button>
+
+
+        <button
+            type="button"
+            className={
+                selectedOption === "MANUAL"
+                    ? "record-method record-method-selected"
+                    : "record-method"
+            }
+    onClick={() => {
+        setRecordHealthPremiumMessage("");
+        setSelectedOption("MANUAL");
+    }}
+        >
+            <span className="record-method-icon manual-icon">
+                ✎
+            </span>
+
+            <strong>
+                Enter
+                <br />
+                Manually
+            </strong>
+        </button>
+
+
+{recordHealthPremiumMessage && (
+    <div
+        style={{
+            gridColumn: "1 / -1",
+            marginTop: "16px",
+            padding: "14px 16px",
+            borderRadius: "10px",
+            background: "#FFF7ED",
+            border: "1px solid #FED7AA",
+            color: "#9A3412",
+            fontSize: "14px",
+            lineHeight: 1.5,
+            textAlign: "center",
+        }}
+    >
+        <strong>
+            {recordHealthPremiumMessage === "VOICE"
+                ? "Record with Voice"
+                : "Upload Reading"}{" "}
+            is available with the CareVR Premium Package.
+        </strong>
+
+        <br />
+
+        Please upgrade to CareVR Premium Package.
+
+        <br />
+
+        Reach out to <strong>Linearise AI Labs</strong> for upgrade and price:
+
+        <br />
+
+        <strong>
+            lineariseailabs@gmail.com
+        </strong>
+    </div>
+)}
+
+    </div>
+
+)}
+
+                        </section>
+
+                    )}
+
+
+                    {careMode === "SELF" &&
+                        selectedOption === "VOICE" && (
+
+                        <section className="workspace-section">
+
+                            <VoiceCareWorkspace
+                                mode="self"
+                                patientId={
+                                    undefined
+                                }
+                                currentUserName={
+                                    user.fullName
+                                }
+                            />
+
+                        </section>
+
+                    )}
+
+
+                    {careMode === "SELF" &&
+                        selectedOption === "UPLOAD" && (
+
+                        <section className="workspace-section">
+
+                            <UploadCareWorkspace
+                                mode="self"
+                                patientId={
+                                    undefined
+                                }
+                                currentUserName={
+                                    user.fullName
+                                }
+                            />
+
+                        </section>
+
+                    )}
+
+
+                    {careMode === "SELF" &&
+                        selectedOption === "MANUAL" && (
+
+                        <section className="workspace-section">
+
+                            <ManualCareWorkspace
+                                mode="self"
+                                context="DAILY_CARE"
+                                patientId={
+                                    undefined
+                                }
+                                currentUserName={
+                                    user.fullName
+                                }
+                            />
+
+                        </section>
+
+                    )}
+
+
+                    {careMode === "FAMILY" &&
+                        selectedPatient &&
+                        selectedOption === "VOICE" && (
+
+                        <section className="workspace-section">
+
+                            <VoiceCareWorkspace
+                                mode="family"
+                                patientId={
+                                    selectedPatient.id
+                                }
+                                currentUserName={
+                                    user.fullName
+                                }
+                            />
+
+                        </section>
+
+                    )}
+
+
+                    {careMode === "FAMILY" &&
+                        selectedPatient &&
+                        selectedOption === "UPLOAD" && (
+
+                        <section className="workspace-section">
+
+                            <UploadCareWorkspace
+                                mode="family"
+                                patientId={
+                                    selectedPatient.id
+                                }
+                                currentUserName={
+                                    user.fullName
+                                }
+                            />
+
+                        </section>
+
+                    )}
+
+
+                    {careMode === "FAMILY" &&
+                        selectedPatient &&
+                        selectedOption === "MANUAL" && (
+
+                        <section className="workspace-section">
+
+                            <ManualCareWorkspace
+                                mode="family"
+                                context="DAILY_CARE"
+                                patientId={
+                                    selectedPatient.id
+                                }
+                                currentUserName={
+                                    user.fullName
+                                }
+                            />
+
+                        </section>
+
+                    )}
+
+
+                    {error && (
+
+                        <div
+                            className="record-health-error"
+                            role="alert"
+                        >
+                            {error}
+                        </div>
+
+                    )}
+
+                </section>
+
+
+                <CareVRFooter />
+
+            </div>
+
+
+            <style jsx>{`
+
+.assessment-mobile-panel {
+    width: 100%;
+    margin-top: 4px;
+}
+
+.assessment-start-option {
+    width: 100%;
+    min-height: 150px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid #dbe7f7;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #101d45;
+    font-family: inherit;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.assessment-start-option:active {
+    transform: scale(0.99);
+}
+
+.assessment-start-icon {
+    width: 54px;
+    height: 54px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e8f3ff;
+    font-size: 28px;
+}
+
+.assessment-start-option strong {
+    font-size: 16px;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.assessment-start-option > span:last-child {
+    max-width: 280px;
+    color: #59657f;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.record-health-page {
+    min-height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
+    background: #f8f6ff;
+    color: #101d45;
+}
+
+.record-health-shell {
+    width: 100%;
+    max-width: 767px;
+    min-height: 100dvh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.record-health-content {
+    flex: 1 1 auto;
+    width: 100%;
+    padding: 6px 16px 8px;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MOBILE VIEWPORT / INPUT STABILITY
+   Keep the page fixed while allowing the content to scroll.
+   This prevents the entire Record Health page from moving
+   when the mobile keyboard opens.
+========================================================= */
+
+@media (max-width: 640px) {
+
+.record-health-page {
+    min-height: 100dvh;
+}
+
+.record-health-shell {
+    position: relative;
+    min-height: 100dvh;
+}
+
+    .record-health-content {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+}
+
+                .self-mode-card {
+                    position: relative;
+                    width: 100%;
+                    min-height: 82px;
+                    margin-bottom: 28px;
+                    padding: 12px 14px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    box-sizing: border-box;
+                    border: 2px solid #5630e8;
+                    border-radius: 18px;
+                    background: #faf8ff;
+                    box-shadow:
+                        0 3px 12px rgba(79, 32, 216, 0.08);
+                }
+
+                .self-mode-avatar {
+                    width: 52px;
+                    height: 52px;
+                    flex: 0 0 auto;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    background: #f0eaff;
+                    color: #4f20d8;
+                    font-size: 18px;
+                    font-weight: 800;
+                }
+
+                .self-mode-content {
+                    min-width: 0;
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 3px;
+                }
+
+                .self-mode-label {
+                    color: #59657f;
+                    font-size: 12px;
+                    line-height: 1.25;
+                }
+
+                .self-mode-content strong {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    color: #101d45;
+                    font-size: 15px;
+                    line-height: 1.3;
+                }
+
+                .self-mode-check {
+                    width: 30px;
+                    height: 30px;
+                    flex: 0 0 auto;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    background: #4f20d8;
+                    color: #ffffff;
+                    font-size: 17px;
+                    font-weight: 800;
+                }
+
+                .record-health-section {
+                    width: 100%;
+                }
+
+.record-health-heading {
+    margin-bottom: 11px;
+}
+
+.record-health-heading h1 {
+    margin: 5;
+    color: #101d45;
+    font-size: 15px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.record-health-heading p {
+    margin: 5px 5 0;
+    color: #59657f;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.record-method-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+}
+
+.record-method {
+    min-width: 0;
+    height: 85px;
+    padding: 8px 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 1px solid #e3e0eb;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #101d45;
+    font-family: inherit;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
+}
+
+.record-method-selected {
+    border: 2px solid #5630e8;
+    background: #faf8ff;
+    box-shadow:
+        0 2px 8px rgba(79, 32, 216, 0.07);
+}
+
+.timeline-report-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+
+.timeline-report-option {
+    min-width: 0;
+    min-height: 130px;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid #e3e0eb;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #101d45;
+    font-family: inherit;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
+}
+
+.timeline-report-option-selected {
+    border: 2px solid #5630e8;
+    background: #faf8ff;
+    box-shadow:
+        0 3px 10px rgba(79, 32, 216, 0.08);
+}
+
+/* Reporting-period controls: horizontal on desktop, compact and responsive on mobile. */
+.report-period-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 16px;
+}
+
+.report-period-row h2 {
+    flex: 0 0 auto;
+    margin: 0;
+    color: #101d45;
+    font-size: 18px;
+    line-height: 1.2;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.report-period-options {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.report-period-options .timeline-report-option {
+    min-width: 0;
+    width: 100%;
+    min-height: 48px;
+    height: 48px;
+    padding: 0 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: 1px solid #d9dce5;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #101d45;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.report-period-radio {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    border: 1.5px solid #aeb4c2;
+    border-radius: 50%;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+.report-period-options
+    .timeline-report-option-selected
+    .report-period-radio,
+.report-custom-selector-selected .report-period-radio {
+    border: 5px solid #5630e8;
+}
+
+.report-period-options
+    .timeline-report-option-selected {
+    border: 1.5px solid #5630e8;
+    background: #faf8ff;
+    box-shadow: 0 2px 8px rgba(79, 32, 216, 0.08);
+}
+
+.report-period-options .timeline-report-option:hover {
+    border-color: #a99be8;
+    background: #fbfaff;
+}
+
+.report-period-or {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0 14px;
+    color: #7b8498;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.report-period-or::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: #dfe2e9;
+}
+
+.report-custom-period {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.report-custom-selector {
+    min-width: 190px;
+    height: 48px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    flex: 0 0 auto;
+    border: 1px solid #d9dce5;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #101d45;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.report-custom-selector-selected {
+    border: 1.5px solid #5630e8;
+    background: #faf8ff;
+}
+
+.report-custom-fields {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.report-custom-fields label {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #59657f;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.report-custom-fields input {
+    min-width: 0;
+    width: 100%;
+    height: 46px;
+    padding: 0 12px;
+    border: 1px solid #d9dce5;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #101d45;
+    font: inherit;
+    box-sizing: border-box;
+}
+
+@media (max-width: 760px) {
+    .report-period-row {
+        display: block;
+    }
+
+    .report-period-row h2 {
+        margin-bottom: 10px;
+        font-size: 17px;
+    }
+
+    .report-period-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .report-period-options .timeline-report-option {
+        height: 46px;
+        min-height: 46px;
+        padding: 0 10px;
+        font-size: 13px;
+    }
+
+    .report-custom-period {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .report-custom-selector {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .report-custom-fields {
+        width: 100%;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .report-custom-fields label {
+        display: grid;
+        grid-template-columns: 78px minmax(0, 1fr);
+        gap: 8px;
+    }
+}
+
+@media (max-width: 390px) {
+    .report-period-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .report-period-options .timeline-report-option {
+        min-height: 44px;
+        height: 44px;
+        padding: 0 8px;
+        justify-content: flex-start;
+        gap: 7px;
+        font-size: 12px;
+    }
+
+    .report-period-radio {
+        width: 16px;
+        height: 16px;
+        flex-basis: 16px;
+    }
+}
+
+.report-period-options .timeline-report-option {
+    min-width: 0;
+    min-height: 52px;
+    height: 52px;
+    padding: 0 18px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    border: 1px solid #d9dce5;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #101d45;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 650;
+    text-align: left;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+
+.timeline-report-icon {
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #eef4ff;
+    font-size: 27px;
+    line-height: 1;
+}
+
+.timeline-report-option strong {
+    color: #101d45;
+    font-size: 14px;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.record-method-icon {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 21px;
+    line-height: 1;
+}
+
+                .voice-icon {
+                    background: #eef4ff;
+                }
+
+                .upload-icon {
+                    background: #eefbf4;
+                }
+
+                .manual-icon {
+                    background: #fff3e8;
+                }
+
+.record-method strong {
+    color: #101d45;
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+
+                .workspace-section {
+                    width: 100%;
+                    margin-top: 18px;
+                }
+
+                .record-health-error {
+                    margin-top: 18px;
+                    padding: 12px 14px;
+                    border-radius: 10px;
+                    background: #fef2f2;
+                    color: #b91c1c;
+                    font-size: 14px;
+                }
+
+.timeline-unavailable {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 4px;
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #dbe7f7;
+    border-radius: 18px;
+    background: #f7fbff;
+    text-align: center;
+}
+
+.timeline-unavailable-icon {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e8f3ff;
+    font-size: 24px;
+}
+
+.timeline-unavailable strong {
+    color: #101d45;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.timeline-unavailable p {
+    margin: 0;
+    max-width: 300px;
+    color: #59657f;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+
+
+                @media (max-width: 420px) {
+
+.timeline-report-grid {
+    gap: 8px;
+}
+
+.timeline-report-option {
+    min-height: 120px;
+    padding: 12px 8px;
+}
+
+.timeline-report-icon {
+    width: 46px;
+    height: 46px;
+    font-size: 24px;
+}
+
+.timeline-report-option strong {
+    font-size: 13px;
+}
+
+
+                    .record-health-content {
+                        padding-left: 12px;
+                        padding-right: 12px;
+                    }
+
+.record-health-greeting {
+    margin: 4px 0 16px;
+    color: #101d45;
+    font-size: 21px;
+    line-height: 1.25;
+    font-weight: 700;
+}
+
+.record-method-grid {
+    gap: 6px;
+}
+
+.record-method {
+    height: 68px;
+    min-height: 68px;
+    padding: 5px 4px;
+    gap: 3px;
+}
+
+.record-method-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+}
+
+.record-method strong {
+    font-size: 10.5px;
+    line-height: 1.15;
+}
+
+.record-method-description {
+    font-size: 9px;
+}
+
+                }
+
+            `}</style>
+
+        </main>
+    );
+}
+
+export default function RecordHealthPage() {
+    return (
+        <Suspense fallback={null}>
+            <RecordHealthPageContent />
+        </Suspense>
+    );
+}

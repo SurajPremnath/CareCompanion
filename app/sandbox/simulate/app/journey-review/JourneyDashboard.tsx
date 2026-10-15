@@ -1,0 +1,169 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import ClinicalTrendSummary from "./components/ClinicalTrendSummary";
+import ClinicalTrendGraphs from "./components/ClinicalTrendGraphs";
+
+import Image from "next/image";
+
+import { Sidebar } from "./components/Sidebar";
+import { ExecutiveSummary } from "./components/ExecutiveSummary";
+import { PatientHeader } from "./components/PatientHeader";
+
+import { JourneyViewModel } from "./components/types";
+
+import { buildExecutiveSummary } from "./data";
+
+interface Props {
+    journey: JourneyViewModel;
+}
+
+
+export function JourneyDashboard({ journey }: Props) {
+
+const [selectedMenu, setSelectedMenu] =
+    useState("executive-summary");
+
+
+const [executiveSummary, setExecutiveSummary] =
+    useState(
+        journey.executiveSummary
+    );
+
+
+useEffect(() => {
+
+    async function loadExecutiveSummary(){
+
+const summary =
+    await buildExecutiveSummary(
+        journey.patient.id,
+        "2026-07-10",
+        "2026-08-03"
+    );
+
+
+        setExecutiveSummary(summary);
+
+    }
+
+
+    loadExecutiveSummary();
+
+}, []);
+
+    return (
+
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+
+
+            {/* HEADER */}
+
+            <header className="mx-10 mt-8 rounded-3xl border border-white/70 bg-white/80 p-8 shadow-xl backdrop-blur">
+
+
+                <div className="flex items-start justify-between">
+
+
+                    <div className="flex items-center gap-10">
+
+
+                        <Image
+                            src="/images/carevr-logo.png"
+                            alt="CareVR"
+                            width={240}
+                            height={70}
+loading="eager"
+    style={{
+        width: "240px",
+        height: "70px"
+}}
+                        />
+
+
+                        <PatientHeader patient={journey.patient} />
+
+
+                    </div>
+
+
+
+                    <div className="flex flex-col items-center gap-4">
+
+
+                        <Image
+                            src="/images/carevr-logo-right.png"
+                            alt="CareVR"
+                            width={220}
+                            height={70}
+loading="eager"
+    style={{
+        width: "220px",
+        height: "70px"
+}}
+                        />
+
+
+                        
+
+
+                    </div>
+
+
+                </div>
+
+
+            </header>
+
+
+
+            {/* CONTENT */}
+
+            <div className="mx-10 mt-8 flex gap-8">
+
+
+                <aside className="w-80">
+
+<Sidebar
+    items={journey.navigation}
+    footer={journey.footer}
+    selectedMenu={selectedMenu}
+    onSelect={setSelectedMenu}
+    onBack={() => window.location.href = "/dashboard"}
+/>
+
+                </aside>
+
+
+<main className="flex-1">
+
+    {
+    selectedMenu === "executive-summary" && (
+
+<ExecutiveSummary
+    patient={journey.patient}
+    summary={executiveSummary}
+/>
+
+    )
+}
+
+
+{
+    selectedMenu === "clinical-trends" && (
+        <ClinicalTrendSummary
+            patient={journey.patient}
+        />
+    )
+}
+
+</main>
+
+
+            </div>
+
+
+        </div>
+
+    );
+}

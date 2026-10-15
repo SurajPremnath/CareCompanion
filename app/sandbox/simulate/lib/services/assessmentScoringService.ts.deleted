@@ -1,0 +1,228 @@
+import type { AssessmentDraft } from "@/lib/types/assessmentDraft";
+
+import type {
+  AssessmentRecommendation,
+  AssessmentStatus,
+} from "@/lib/types/assessment";
+
+import type { AssessmentScore } from "@/lib/types/assessmentScore";
+
+export class AssessmentScoringService {
+  static calculate(
+    draft: AssessmentDraft
+  ): AssessmentScore {
+
+    let rawScore = 0;
+
+    //----------------------------------------------------------
+    // Breathing
+    //----------------------------------------------------------
+
+    if (draft.breathing === "normal") {
+      rawScore += 2;
+    } else if (draft.breathing === "slightly") {
+      rawScore += 1;
+    }
+
+    //----------------------------------------------------------
+    // Cough
+    //----------------------------------------------------------
+
+    if (draft.cough === "no") {
+      rawScore += 2;
+    } else if (draft.cough === "sometimes") {
+      rawScore += 1;
+    }
+
+    //----------------------------------------------------------
+    // Fever
+    //----------------------------------------------------------
+
+    if (!draft.fever) {
+      rawScore += 2;
+    }
+
+    //----------------------------------------------------------
+    // Energy
+    //----------------------------------------------------------
+
+    if (draft.energy === "good") {
+      rawScore += 2;
+    } else if (draft.energy === "tired") {
+      rawScore += 1;
+    }
+
+    //----------------------------------------------------------
+    // Appetite
+    //----------------------------------------------------------
+
+    if (draft.appetite === "normal") {
+      rawScore += 2;
+    } else if (draft.appetite === "less") {
+      rawScore += 1;
+    }
+
+    //----------------------------------------------------------
+    // Water
+    //----------------------------------------------------------
+
+    if (draft.water === "yes") {
+      rawScore += 2;
+    } else if (draft.water === "notsure") {
+      rawScore += 1;
+    }
+
+    //----------------------------------------------------------
+    // Walking
+    //----------------------------------------------------------
+
+    if (draft.walking === "easy") {
+      rawScore += 2;
+    } else if (draft.walking === "some") {
+      rawScore += 1;
+    }
+
+    //----------------------------------------------------------
+    // Loose Motions
+    //----------------------------------------------------------
+
+    if (!draft.looseMotions) {
+      rawScore += 2;
+    }
+
+    //----------------------------------------------------------
+    // Pain / Discomfort
+    //----------------------------------------------------------
+
+    if (!draft.discomfort) {
+      rawScore += 2;
+    } else if (
+      draft.assessmentType === "SELF"
+    ) {
+      rawScore += 1;
+    }
+
+    //----------------------------------------------------------
+    // Family Only
+    //----------------------------------------------------------
+
+    if (
+      draft.assessmentType === "FAMILY"
+    ) {
+      if (!draft.confusion) {
+        rawScore += 2;
+      }
+    }
+
+    //----------------------------------------------------------
+    // Normalize
+    //----------------------------------------------------------
+
+    const normalizedScore =
+      draft.assessmentType === "SELF"
+        ? Math.round(
+            (rawScore / 18) * 20
+          )
+        : rawScore;
+
+    //----------------------------------------------------------
+    // Status
+    //----------------------------------------------------------
+
+    let status: AssessmentStatus;
+
+    if (normalizedScore >= 18) {
+      status = "EXCELLENT";
+    } else if (
+      normalizedScore >= 14
+    ) {
+      status = "GOOD";
+    } else if (
+      normalizedScore >= 10
+    ) {
+      status = "NEEDS_ATTENTION";
+    } else if (
+      normalizedScore >= 5
+    ) {
+      status = "HEALTH_CONCERN";
+    } else {
+      status =
+        "IMMEDIATE_ATTENTION";
+    }
+
+    //----------------------------------------------------------
+    // Recommendation
+    //----------------------------------------------------------
+
+    let recommendation: AssessmentRecommendation;
+
+    switch (status) {
+      case "EXCELLENT":
+        recommendation =
+          "CONTINUE_CURRENT_CARE";
+        break;
+
+      case "GOOD":
+        recommendation =
+          "CONTINUE_MONITORING";
+        break;
+
+      case "NEEDS_ATTENTION":
+        recommendation =
+          "INCREASE_MONITORING";
+        break;
+
+      case "HEALTH_CONCERN":
+        recommendation =
+          "CONTACT_HEALTHCARE_PROVIDER";
+        break;
+
+      default:
+        recommendation =
+          "SEEK_IMMEDIATE_MEDICAL_ATTENTION";
+    }
+
+    //----------------------------------------------------------
+    // Red Flag Overrides
+    //----------------------------------------------------------
+
+    if (draft.bloodInCough) {
+
+      status =
+        "IMMEDIATE_ATTENTION";
+
+      recommendation =
+        "SEEK_IMMEDIATE_MEDICAL_ATTENTION";
+
+    }
+
+    if (
+      draft.breathing ===
+      "difficult"
+    ) {
+
+      status =
+        "IMMEDIATE_ATTENTION";
+
+      recommendation =
+        "SEEK_IMMEDIATE_MEDICAL_ATTENTION";
+
+    }
+
+    return {
+
+      rawScore,
+
+      normalizedScore,
+
+      status,
+
+      recommendation,
+
+    };
+
+  }
+}
+
+export const assessmentScoringService =
+  AssessmentScoringService;

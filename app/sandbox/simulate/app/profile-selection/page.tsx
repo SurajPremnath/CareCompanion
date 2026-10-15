@@ -1,0 +1,1198 @@
+"use client";
+
+import React, {
+    useEffect,
+    useState,
+    useRef,
+} from "react";
+
+import { useRouter } from "next/navigation";
+
+import Image from "next/image";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
+
+import { authService } from "@/lib/auth/authService";
+
+import { supabase } from "@/lib/supabase";
+
+
+import {
+    carevrContextResolver,
+    type CareVRAvailableContext,
+} from "@/lib/auth/carevrContextResolver";
+
+/*
+import {
+    validateInvitedUserLogin,
+} from "@/lib/invitations/invitedUserLoginValidation";
+*/
+
+import {
+    resolveCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
+
+import {
+    carevrAuthorizationHandoff,
+} from "@/lib/authorization/carevrAuthorizationHandoff";
+
+import {
+    authSessionService,
+} from "@/lib/analytics/authSessionService";
+
+import CareVRDashboardHandoffAnimation from "@/Components/common/CareVRDashboardHandoffAnimation";
+
+export default function ProfileSelectionPage() {
+
+    const router = useRouter();
+
+const authenticatedUserRef =
+    useRef<{
+        id: string;
+    } | null>(null);
+
+    const [
+        availableContexts,
+        setAvailableContexts,
+    ] = useState<
+        CareVRAvailableContext[]
+    >([]);
+
+type DigitalHealthProfile = {
+    id: string;
+    family_id: string | null;
+    invitation_status: string | null;
+    consent_status: string | null;
+    digital_health_flag: boolean;
+    role_status: string | null;
+    carevr_access_id: string;
+    role: string;
+    is_default_profile: boolean;
+};
+
+const [
+    digitalHealthProfiles,
+    setDigitalHealthProfiles,
+] = useState<
+    DigitalHealthProfile[]
+>([]);
+
+const [
+    activeAccessRecords,
+    setActiveAccessRecords,
+] = useState<any[]>([]);
+
+    const [
+        selectedContextId,
+        setSelectedContextId,
+    ] = useState<string | null>(null);
+
+    const [
+        loading,
+        setLoading,
+    ] = useState(true);
+
+    const [
+        continuing,
+        setContinuing,
+    ] = useState(false);
+
+const [
+    showDashboardHandoff,
+    setShowDashboardHandoff,
+] = useState(false);
+
+const [dashboardHandoffReady, setDashboardHandoffReady] =
+    useState(false);
+
+const [dashboardAnimationComplete, setDashboardAnimationComplete] =
+    useState(false);
+
+    const [
+        error,
+        setError,
+    ] = useState("");
+
+    useEffect(() => {
+
+        let cancelled = false;
+
+        const loadContexts = async () => {
+
+            try {
+
+                setLoading(true);
+                setError("");
+
+const user =
+    await authService.getCurrentUser();
+
+if (!user) {
+
+    router.replace("/login");
+
+    return;
+}
+
+authenticatedUserRef.current = {
+    id: user.id,
+};
+
+const {
+    data: profiles,
+    error: digitalHealthProfileError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .select(`
+            id,
+            family_id,
+            invitation_status,
+            consent_status,
+            digital_health_flag,
+            role_status,
+            carevr_access_id,
+            role,
+            is_default_profile
+        `)
+        .eq(
+            "user_id",
+            user.id
+        )
+        .eq(
+            "digital_health_flag",
+            true
+        );
+
+if (digitalHealthProfileError) {
+    throw digitalHealthProfileError;
+}
+
+if (cancelled) {
+    return;
+}
+
+const loadedProfiles =
+    profiles ?? [];
+
+if (
+    loadedProfiles.length === 0
+) {
+    setError(
+        "No active CareVR profiles are available for this account."
+    );
+
+    return;
+}
+
+/*
+ * The existing dashboard handoff requires the
+ * complete CareVR access record.
+ *
+ * Resolve active access records ONCE here.
+ * Nothing below re-queries them.
+ */
+const {
+    activeAccessRecords:
+        loadedAccessRecords,
+} =
+    await carevrContextResolver
+        .getAvailableContexts(
+            user.id
+        );
+
+if (cancelled) {
+    return;
+}
+
+
+setDigitalHealthProfiles(
+    loadedProfiles
+);
+
+
+setActiveAccessRecords(
+    loadedAccessRecords
+);
+            } catch (err) {
+
+                if (cancelled) {
+                    return;
+                }
+
+                console.error(
+                    "Unable to load CareVR profiles.",
+                    err
+                );
+
+                setError(
+                    "Unable to load your CareVR profiles."
+                );
+
+            } finally {
+
+                if (!cancelled) {
+                    setLoading(false);
+                }
+
+            }
+        };
+
+        void loadContexts();
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, [router]);
+
+
+useEffect(() => {
+
+    if (
+        !dashboardHandoffReady ||
+        !dashboardAnimationComplete
+    ) {
+        return;
+    }
+
+    router.replace(
+        "/dashboard"
+    );
+
+}, [
+    dashboardHandoffReady,
+    dashboardAnimationComplete,
+    router,
+]);
+
+
+const getRoleIcon = (
+    role: string
+) => {
+
+        switch (role) {
+
+            case "SELF":
+                return "👤";
+
+            case "DOCTOR":
+                return "🩺";
+
+            case "CARETAKER":
+                return "♡";
+
+            case "FAMILY":
+                return "👥";
+
+            default:
+                return "👤";
+        }
+    };
+
+
+    /*
+     * The selected context is handed back to Login.
+     *
+     * The Login page will re-resolve the user's
+     * active CareVR contexts before continuing.
+     */
+const handleSelectedContext = async () => {
+
+    if (
+        continuing ||
+        !selectedContextId
+    ) {
+        return;
+    }
+
+    try {
+
+        setContinuing(true);
+        setError("");
+
+const user =
+    authenticatedUserRef.current;
+
+if (!user) {
+
+    router.replace("/login");
+
+    return;
+}
+
+
+const selectedProfile =
+    digitalHealthProfiles.find(
+        (profile) =>
+            profile.id ===
+            selectedContextId
+    );
+
+if (!selectedProfile) {
+    throw new Error(
+        "The selected CareVR digital health profile could not be found."
+    );
+}
+
+const selectedRole =
+    selectedProfile.role === "PRIMARY"
+        ? "SELF"
+        : selectedProfile.role === "SECONDARY_FAMILY_MEMBER"
+            ? "FAMILY"
+            : selectedProfile.role === "CARETAKER"
+                ? "CARETAKER"
+                : "DOCTOR";
+
+
+const familyId =
+    selectedProfile.family_id;
+
+const accessId =
+    selectedProfile.carevr_access_id;
+
+
+/*
+ * The dashboard handoff requires the complete
+ * CareVR access record.
+ *
+ * This record was loaded once during page initialization.
+ */
+const access =
+    activeAccessRecords.find(
+        (record) =>
+            record.id === accessId
+    );
+
+if (!access) {
+    throw new Error(
+        "Selected CareVR access is no longer active."
+    );
+}
+
+/*
+ * =========================================================
+ * DEFAULT PROFILE PREFERENCE
+ * =========================================================
+ *
+ * Default profile is a user preference only.
+ * carevr_access remains the authorization source.
+ *
+ * Zero selected  → all profiles false
+ * One selected   → selected profile true, all others false
+ */
+
+const selectedDefaultProfile =
+    digitalHealthProfiles.find(
+        (profile) =>
+            profile.is_default_profile === true
+    );
+
+const { error: clearDefaultProfileError } =
+    await supabase
+        .from("digital_health_profile")
+        .update({
+            is_default_profile: false,
+        })
+        .eq(
+            "user_id",
+            user.id
+        );
+
+if (clearDefaultProfileError) {
+    throw clearDefaultProfileError;
+}
+
+if (selectedDefaultProfile) {
+    const { error: setDefaultProfileError } =
+        await supabase
+            .from("digital_health_profile")
+            .update({
+                is_default_profile: true,
+            })
+            .eq(
+                "id",
+                selectedDefaultProfile.id
+            )
+            .eq(
+                "user_id",
+                user.id
+            );
+
+    if (setDefaultProfileError) {
+        throw setDefaultProfileError;
+    }
+}
+
+        /*
+         * Start the visual handoff immediately after
+         * the user selects the CareVR role/profile.
+         *
+         * All existing validation, encryption,
+         * authorization and dashboard handoff checks
+         * continue underneath the animation.
+         */
+        setDashboardHandoffReady(false);
+        setDashboardAnimationComplete(false);
+        setShowDashboardHandoff(true);
+
+        /*
+         * =========================================================
+         * RETURNING USER — DIGITAL HEALTH PROFILE
+         * =========================================================
+         *
+         * The user has already authenticated with their CareVR PIN.
+         *
+         * Profile selection is therefore resolved from the user's
+         * established digital_health_profile records.
+         *
+         * Invitation validation is NOT performed here.
+         */
+
+/*
+ * =========================================================
+ * DIGITAL HEALTH PROFILE — CONSENT STATE
+ * =========================================================
+ *
+ * Consent is now read from the established digital health
+ * profile instead of re-running invitation validation.
+ */
+
+if (
+    selectedProfile.consent_status !==
+    "ACCEPTED"
+) {
+
+    /*
+     * Fallback only:
+     * if consent has not actually been completed,
+     * stop the animation and return to Consent.
+     */
+
+            setShowDashboardHandoff(false);
+            setDashboardHandoffReady(false);
+
+carevrAuthorizationHandoff.set({
+    userId:
+        user.id,
+    carevrRole:
+        selectedRole,
+    familyId:
+        selectedProfile.family_id,
+    patientId:
+        null,
+    consentStage:
+        "POST_LOGIN",
+    governanceId:
+        null,
+    governanceVersion:
+        null,
+});
+
+            router.replace(
+                "/consent"
+            );
+
+            return;
+        }
+
+/*
+ * =========================================================
+ * DIGITAL HEALTH PROFILE — COMPLETED
+ * =========================================================
+ *
+ * The remainder of the existing sequence is unchanged:
+ *
+ *   Authorization handoff
+ *   → Encryption
+ *   → Dashboard handoff
+ *   → Analytics
+ *   → Animation completion
+ *   → Dashboard
+ */
+
+carevrAuthorizationHandoff.set({
+    userId:
+        user.id,
+    carevrRole:
+        selectedRole,
+    familyId:
+        selectedProfile.family_id,
+    patientId:
+        null,
+    consentStage:
+        "POST_LOGIN",
+    governanceId:
+        null,
+    governanceVersion:
+        null,
+});
+
+const encryptionResponse =
+    await fetch(
+        "/api/security/legacy-patient-encryption",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+
+body: JSON.stringify({
+    accessId:
+        accessId,
+    selectedRole:
+        selectedRole,
+}),
+        }
+    );
+
+const encryptionResult =
+    await encryptionResponse.json();
+
+if (
+    !encryptionResponse.ok ||
+    !encryptionResult?.success
+) {
+    throw new Error(
+        encryptionResult?.error ||
+            "Unable to secure patient data."
+    );
+}
+
+await resolveCareVRDashboardHandoff(
+    user.id,
+    selectedRole,
+    access
+);
+
+void authSessionService
+    .start()
+    .catch(() => {
+        // Analytics must never block navigation.
+    });
+
+setDashboardHandoffReady(true);
+
+return;
+
+
+    } catch (err) {
+
+        console.error(
+            "Unable to continue with the selected CareVR profile.",
+            err
+        );
+
+        setError(
+            err instanceof Error
+                ? err.message
+                : "Unable to continue with the selected CareVR profile."
+        );
+
+        setContinuing(false);
+    }
+};
+
+if (showDashboardHandoff) {
+    return (
+        <CareVRDashboardHandoffAnimation
+            readyToContinue={
+                dashboardHandoffReady
+            }
+            onComplete={() => {
+                setDashboardAnimationComplete(true);
+            }}
+        />
+    );
+}
+
+return (
+    <main className="profile-selection-page">
+
+        <div className="profile-selection-shell">
+
+                <header className="profile-selection-header">
+
+{/* Home navigation intentionally removed.
+    User must choose a CareVR profile/context. */}
+
+                    <div className="profile-selection-brand">
+
+                        <Image
+                            src="/images/CareVR v1.0.png"
+                            alt="CareVR"
+                            width={180}
+                            height={60}
+                            priority
+                            className="carevr-logo"
+                        />
+
+                    </div>
+
+                    <div
+                        className="header-spacer"
+                        aria-hidden="true"
+                    />
+
+                </header>
+
+                <section className="profile-selection-content">
+
+                    <div className="profile-selection-heading">
+
+                        <p className="eyebrow">
+                            CareVR
+                        </p>
+
+                        <h1>
+                            Continue as...
+                        </h1>
+
+                        <p className="subtitle">
+                            Choose the profile you want
+                            to use for this session.
+                        </p>
+
+                    </div>
+
+                    {loading && (
+
+                        <div className="state-message">
+                            Loading your profiles...
+                        </div>
+
+                    )}
+
+                    {!loading &&
+                        error && (
+
+                            <div
+                                className="error-message"
+                                role="alert"
+                            >
+                                {error}
+                            </div>
+
+                        )}
+
+{!loading &&
+    !error &&
+    digitalHealthProfiles.length > 0 && (
+
+        <>
+
+<div className="default-profile-section">
+
+    <div className="default-profile-title">
+        Choose Profile to set default
+    </div>
+
+    <div className="default-profile-options">
+
+        {digitalHealthProfiles.map(
+            (profile) => {
+
+                const defaultProfileLabel =
+                    profile.role === "PRIMARY"
+                        ? "Self"
+                        : profile.role ===
+                            "SECONDARY_FAMILY_MEMBER"
+                            ? "Family"
+                            : profile.role ===
+                                "CARETAKER"
+                                ? "Caretaker"
+                                : "Doctor";
+
+                return (
+                    <label
+                        key={`default-${profile.id}`}
+                        className="default-profile-option"
+                    >
+
+                        <input
+                            type="checkbox"
+                            checked={
+                                profile.is_default_profile
+                            }
+                            onChange={() => {
+                                setDigitalHealthProfiles(
+                                    (currentProfiles) =>
+                                        currentProfiles.map(
+                                            (currentProfile) => ({
+                                                ...currentProfile,
+                                                is_default_profile:
+                                                    currentProfile.id ===
+                                                    profile.id
+                                                        ? !currentProfile.is_default_profile
+                                                        : false,
+                                            })
+                                        )
+                                );
+                            }}
+                            disabled={continuing}
+                        />
+
+                        <span>
+                            {defaultProfileLabel}
+                        </span>
+
+                    </label>
+                );
+            }
+        )}
+
+    </div>
+
+</div>
+
+<div className="profile-grid">
+
+    {digitalHealthProfiles.map(
+        (profile) => {
+
+                        const selected =
+                            selectedContextId ===
+                            profile.id;
+
+const profileRole =
+    profile.role === "PRIMARY"
+        ? "SELF"
+        : profile.role === "SECONDARY_FAMILY_MEMBER"
+            ? "FAMILY"
+            : profile.role === "CARETAKER"
+                ? "CARETAKER"
+                : "DOCTOR";
+
+const profileLabel =
+    profile.role === "PRIMARY"
+        ? "Self"
+        : profile.role === "SECONDARY_FAMILY_MEMBER"
+            ? "Family"
+            : profile.role === "CARETAKER"
+                ? "Caretaker"
+                : "Doctor";
+
+                                            return (
+                                                <button
+                                                    key={
+                                                        profile.id
+                                                    }
+                                                    type="button"
+                                                    className={`profile-card ${
+                                                        selected
+                                                            ? "profile-card-selected"
+                                                            : ""
+                                                    }`}
+onClick={() => {
+    setSelectedContextId(profile.id);
+
+    setDigitalHealthProfiles(
+        (currentProfiles) =>
+            currentProfiles.map(
+                (currentProfile) => ({
+                    ...currentProfile,
+                    is_default_profile:
+                        currentProfile.id ===
+                        profile.id,
+                })
+            )
+    );
+}}
+                                                    disabled={
+                                                        continuing
+                                                    }
+                                                    aria-pressed={
+                                                        selected
+                                                    }
+                                                >
+
+                                                    <span
+                                                        className="profile-icon"
+                                                        aria-hidden="true"
+                                                    >
+                                                        {
+                                                            getRoleIcon(
+                                                                profileRole
+                                                            )
+                                                        }
+                                                    </span>
+
+                                                    <span className="profile-label">
+                                                        {
+                                                             profileLabel
+                                                        }
+                                                    </span>
+
+                                                    <span className="profile-description">
+
+                                                        {profileRole ===
+                                                            "SELF" &&
+                                                            "Your personal CareVR profile"}
+
+                                                        {profileRole ===
+                                                            "DOCTOR" &&
+                                                            "Access your assigned doctor context"}
+
+                                                        {profileRole ===
+                                                            "CARETAKER" &&
+                                                            "Care for the people assigned to you"}
+
+                                                        {profileRole ===
+                                                            "FAMILY" &&
+                                                            "Access your family care context"}
+
+                                                    </span>
+
+                                                    {selected && (
+
+                                                        <span
+                                                            className="profile-selected-indicator"
+                                                            aria-hidden="true"
+                                                        >
+                                                            ✓
+                                                        </span>
+
+                                                    )}
+
+                                                </button>
+                                            );
+                                        }
+                                    )}
+
+                                </div>
+
+                                <button
+                                    type="button"
+                                    className="continue-button"
+                                    onClick={
+                                        handleSelectedContext
+                                    }
+                                    disabled={
+                                        !selectedContextId ||
+                                        continuing
+                                    }
+                                >
+                                    {continuing
+                                        ? "Continuing..."
+                                        : "Continue"}
+                                </button>
+
+                            </>
+
+                        )}
+
+                    <CareVRFooter />
+
+                </section>
+
+            </div>
+
+            <style jsx>{`
+
+                .profile-selection-page {
+                    min-height: 100vh;
+                    background: #ffffff;
+                    color: #172033;
+                    display: flex;
+                    justify-content: center;
+                    box-sizing: border-box;
+                }
+
+                .profile-selection-shell {
+                    width: 100%;
+                    max-width: 960px;
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    padding: 0 24px;
+                    box-sizing: border-box;
+                }
+
+                .profile-selection-header {
+                    width: 100%;
+                    min-height: 84px;
+                    display: grid;
+                    grid-template-columns: 1fr auto 1fr;
+                    align-items: center;
+                    border-bottom: 1px solid #eef0f4;
+                }
+
+                .profile-selection-brand {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                .carevr-logo {
+                    width: auto;
+                    height: 46px;
+                    object-fit: contain;
+                }
+
+                .header-spacer {
+                    width: 1px;
+                }
+
+                .profile-selection-content {
+                    width: 100%;
+                    max-width: 760px;
+                    margin: 0 auto;
+                    padding: 58px 0 30px;
+                    box-sizing: border-box;
+                }
+
+                .profile-selection-heading {
+                    text-align: center;
+                    margin-bottom: 34px;
+                }
+
+                .eyebrow {
+                    margin: 0 0 8px;
+                    color: #7b8799;
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                }
+
+                h1 {
+                    margin: 0;
+                    color: #172033;
+                    font-size: 30px;
+                    line-height: 1.2;
+                    font-weight: 700;
+                    letter-spacing: -0.02em;
+                }
+
+                .subtitle {
+                    margin: 10px auto 0;
+                    max-width: 500px;
+                    color: #7a8597;
+                    font-size: 14px;
+                    line-height: 1.55;
+                }
+
+.default-profile-section {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto 28px;
+    text-align: center;
+}
+
+.default-profile-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #15203d;
+    margin-bottom: 14px;
+}
+
+.default-profile-options {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+
+.default-profile-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #15203d;
+    cursor: pointer;
+}
+
+.default-profile-option input {
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: #15203d;
+}
+
+.default-profile-option input:disabled {
+    cursor: not-allowed;
+}
+
+                .profile-grid {
+                    display: grid;
+                    grid-template-columns:
+                        repeat(
+                            auto-fit,
+                            minmax(210px, 1fr)
+                        );
+                    gap: 16px;
+                }
+
+                .profile-card {
+                    position: relative;
+                    min-height: 190px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 28px 20px;
+                    border: 1px solid #e6e9ef;
+                    border-radius: 18px;
+                    background: #ffffff;
+                    box-shadow:
+                        0 4px 18px
+                        rgba(23, 32, 51, 0.04);
+                    cursor: pointer;
+                    transition:
+                        border-color 0.18s ease,
+                        box-shadow 0.18s ease,
+                        transform 0.18s ease;
+                    box-sizing: border-box;
+                    text-align: center;
+                }
+
+                .profile-card:hover {
+                    border-color: #cfd5df;
+                    box-shadow:
+                        0 8px 24px
+                        rgba(23, 32, 51, 0.08);
+                    transform: translateY(-2px);
+                }
+
+                .profile-card-selected {
+                    border-color: #172033;
+                    box-shadow:
+                        0 8px 28px
+                        rgba(23, 32, 51, 0.11);
+                }
+
+                .profile-icon {
+                    width: 64px;
+                    height: 64px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 16px;
+                    border-radius: 50%;
+                    background: #f5f7fa;
+                    font-size: 28px;
+                    line-height: 1;
+                }
+
+                .profile-label {
+                    color: #172033;
+                    font-size: 17px;
+                    line-height: 1.3;
+                    font-weight: 700;
+                }
+
+                .profile-description {
+                    margin-top: 7px;
+                    max-width: 190px;
+                    color: #8a94a8;
+                    font-size: 11px;
+                    line-height: 1.45;
+                }
+
+                .profile-selected-indicator {
+                    position: absolute;
+                    top: 12px;
+                    right: 12px;
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    background: #172033;
+                    color: #ffffff;
+                    font-size: 13px;
+                    font-weight: 700;
+                }
+
+                .continue-button {
+                    width: 100%;
+                    height: 48px;
+                    margin-top: 24px;
+                    border: 0;
+                    border-radius: 10px;
+                    background: #172033;
+                    color: #ffffff;
+                    font-size: 14px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition:
+                        opacity 0.18s ease,
+                        transform 0.18s ease;
+                }
+
+                .continue-button:hover:not(:disabled) {
+                    transform: translateY(-1px);
+                }
+
+                .continue-button:disabled {
+                    opacity: 0.42;
+                    cursor: not-allowed;
+                }
+
+                .state-message {
+                    padding: 40px 20px;
+                    text-align: center;
+                    color: #7a8597;
+                    font-size: 14px;
+                }
+
+                .error-message {
+                    padding: 14px 16px;
+                    border: 1px solid #ead7d7;
+                    border-radius: 10px;
+                    background: #fff8f8;
+                    color: #9a4545;
+                    font-size: 13px;
+                    line-height: 1.5;
+                    text-align: center;
+                }
+
+                @media (max-width: 640px) {
+
+                    .profile-selection-shell {
+                        padding: 0 16px;
+                    }
+
+                    .profile-selection-header {
+                        min-height: 72px;
+                    }
+
+                    .carevr-logo {
+                        height: 38px;
+                        width: auto;
+                    }
+
+
+                    .profile-selection-content {
+                        padding-top: 42px;
+                    }
+
+                    h1 {
+                        font-size: 26px;
+                    }
+
+                    .subtitle {
+                        font-size: 13px;
+                    }
+
+                    .profile-grid {
+                        grid-template-columns: 1fr;
+                        gap: 12px;
+                    }
+
+                    .profile-card {
+                        min-height: 150px;
+                    }
+
+                }
+
+            `}</style>
+
+        </main>
+    );
+}

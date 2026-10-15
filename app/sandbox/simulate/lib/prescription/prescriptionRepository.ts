@@ -1,0 +1,1855 @@
+import {
+    supabase,
+} from "@/lib/supabase";
+
+import {
+    savePrescriptionAudit,
+} from "@/lib/prescription/prescriptionAudit";
+
+import type {
+    CompletePrescriptionRecord,
+    PrescriptionMedicineRecord,
+    PrescriptionRecord,
+    PrescriptionSaveInput,
+} from "@/lib/prescription/prescriptionTypes";
+
+//------------------------------------------------------------
+// Database Row Types
+//------------------------------------------------------------
+
+interface PrescriptionRow {
+
+    id: string;
+
+    user_id: string;
+
+    patient_id: string | null;
+
+    family_id: string | null;
+
+    record_context: "SELF" | "FAMILY";
+
+    doctor_name: string | null;
+
+    consultation_date: string | null;
+
+    consultation_mode:
+        | "IN_PERSON"
+        | "VIDEO"
+        | "PHONE"
+        | "WHATSAPP"
+        | "EMAIL"
+        | "HOME_VISIT"
+        | "HOSPITAL_ADMISSION"
+        | "HOSPITAL_DISCHARGE"
+        | "OTHER"
+        | null;
+
+    hospital_or_clinic: string | null;
+
+    diagnosis_or_assessment: string | null;
+
+    additional_instructions: string | null;
+
+    reviewed_at: string;
+
+    created_at: string;
+
+    updated_at: string;
+
+}
+
+interface PrescriptionMedicineRow {
+
+    id: string;
+
+    prescription_id: string;
+
+    ocr_medicine_name: string | null;
+
+    medicine_name: string;
+
+    medicine_master_id: string | null;
+
+    strength: string | null;
+
+    form: string | null;
+
+    dose: string | null;
+
+    frequency: string | null;
+
+    timings: string[];
+
+    duration: string | null;
+
+    instructions: string | null;
+
+    validation_status: string | null;
+
+    validated_by: string | null;
+
+    validated_at: string | null;
+
+    validation_notes: string | null;
+
+    display_order: number;
+
+    created_at: string;
+
+    updated_at: string;
+
+}
+
+interface PrescriptionHistoryRow {
+
+    id: string;
+
+    patient_id: string | null;
+
+    doctor_name: string | null;
+
+    consultation_date: string | null;
+
+    consultation_mode: string | null;
+
+    hospital_or_clinic: string | null;
+
+    diagnosis_or_assessment: string | null;
+
+    created_at: string;
+
+    prescription_medicines: {
+
+        id: string;
+
+    }[];
+
+}
+
+interface PrescriptionVitalRow {
+
+    id: string;
+
+    prescription_id: string;
+
+    weight: string | null;
+
+    height: string | null;
+
+    bmi: string | null;
+
+    blood_pressure: string |null;
+
+    pulse: string | null;
+
+    respiratory_rate: string | null;
+
+    spo2: string | null;
+
+    temperature: string | null;
+
+    created_at: string;
+
+    updated_at: string;
+
+}
+
+interface PrescriptionSymptomRow {
+
+    id: string;
+
+    prescription_id: string;
+
+    symptom: string;
+
+    duration: string | null;
+
+    display_order: number;
+
+    created_at: string;
+
+    updated_at: string;
+
+}
+
+//------------------------------------------------------------
+// Database Mappers
+//------------------------------------------------------------
+
+function mapPrescriptionRow(
+    row: PrescriptionRow
+): PrescriptionRecord {
+
+    return {
+
+        id: row.id,
+
+        userId: row.user_id,
+
+        patientId: row.patient_id,
+
+        familyId: row.family_id,
+
+        recordContext: row.record_context,
+
+        doctorName: row.doctor_name,
+
+        consultationDate: row.consultation_date,
+
+        consultationMode: row.consultation_mode,
+
+        hospitalOrClinic: row.hospital_or_clinic,
+
+        diagnosisOrAssessment: row.diagnosis_or_assessment,
+
+        additionalNotes: row.additional_instructions,
+
+        reviewedAt: row.reviewed_at,
+
+        createdAt: row.created_at,
+
+        updatedAt: row.updated_at,
+
+    };
+
+}
+
+function mapMedicineRow(
+    row: PrescriptionMedicineRow
+): PrescriptionMedicineRecord {
+
+    return {
+
+        id: row.id,
+
+        prescriptionId: row.prescription_id,
+
+    ocrMedicineName:
+        row.ocr_medicine_name,
+
+        medicineName: row.medicine_name,
+
+    medicineMasterId:
+        row.medicine_master_id,
+
+        strength: row.strength,
+
+        form: row.form,
+
+        dose: row.dose,
+
+        frequency: row.frequency,
+
+        timings: row.timings,
+
+        duration: row.duration,
+
+instructions: row.instructions,
+
+validationStatus:
+    (
+        row.validation_status ?? "PENDING"
+    ) as "PENDING" | "VALIDATED",
+
+validatedBy:
+    row.validated_by,
+
+validatedAt:
+    row.validated_at,
+
+validationNotes:
+    row.validation_notes,
+
+displayOrder: row.display_order,
+
+createdAt: row.created_at,
+
+updatedAt: row.updated_at,
+
+    };
+
+}
+
+//------------------------------------------------------------
+// Child Table Helpers
+//------------------------------------------------------------
+
+async function saveVitals(
+
+    prescriptionId: string,
+
+    input: PrescriptionSaveInput
+
+): Promise<void> {
+
+    if (!input.vitals) {
+
+        return;
+
+    }
+
+    const { error } = await supabase
+
+        .from("prescription_vitals")
+
+        .insert({
+
+            prescription_id: prescriptionId,
+
+            weight: input.vitals.weight,
+
+            height: input.vitals.height,
+
+            bmi: input.vitals.bmi,
+
+            blood_pressure: input.vitals.bloodPressure,
+
+            pulse: input.vitals.pulse,
+
+            respiratory_rate: input.vitals.respiratoryRate,
+
+            spo2: input.vitals.spo2,
+
+            temperature: input.vitals.temperature,
+
+        });
+
+    if (error) {
+
+        throw new Error(
+            error.message ??
+            "Unable to save prescription vitals."
+        );
+
+    }
+
+}
+
+async function saveSymptoms(
+
+    prescriptionId: string,
+
+    input: PrescriptionSaveInput
+
+): Promise<void> {
+
+    if (
+        input.symptoms.length === 0
+    ) {
+
+        return;
+
+    }
+
+    const rows =
+        input.symptoms.map(
+            symptom => ({
+
+                prescription_id:
+                    prescriptionId,
+
+                symptom:
+                    symptom.symptom,
+
+                duration:
+                    symptom.duration,
+
+                display_order:
+                    symptom.displayOrder,
+
+            })
+        );
+
+    const { error } =
+        await supabase
+
+            .from(
+                "prescription_symptoms"
+            )
+
+            .insert(
+                rows
+            );
+
+    if (error) {
+
+        throw new Error(
+            error.message ??
+            "Unable to save prescription symptoms."
+        );
+
+    }
+
+}
+
+
+//------------------------------------------------------------
+// Save Prescription History
+//------------------------------------------------------------
+
+async function saveHistory(
+
+    prescriptionId: string,
+
+    input: PrescriptionSaveInput
+
+): Promise<void> {
+
+    if (
+
+        input.history.length === 0
+
+    ) {
+
+        return;
+
+    }
+
+    const rows =
+
+        input.history.map(
+
+            history => ({
+
+                prescription_id:
+
+                    prescriptionId,
+
+                category:
+
+                    history.category,
+
+                value:
+
+                    history.value,
+
+                display_order:
+
+                    history.displayOrder,
+
+            })
+
+        );
+
+    const { error } =
+
+        await supabase
+
+            .from(
+
+                "prescription_history"
+
+            )
+
+            .insert(
+
+                rows
+
+            );
+
+    if (error) {
+
+        throw new Error(
+
+            error.message ??
+
+            "Unable to save prescription history."
+
+        );
+
+    }
+
+}
+
+//------------------------------------------------------------
+// Save Prescription Assessments
+//------------------------------------------------------------
+
+async function saveAssessments(
+
+    prescriptionId: string,
+
+    input: PrescriptionSaveInput
+
+): Promise<void> {
+
+    if (
+
+        input.assessments.length === 0
+
+    ) {
+
+        return;
+
+    }
+
+    const rows =
+
+        input.assessments.map(
+
+            assessment => ({
+
+                prescription_id:
+
+                    prescriptionId,
+
+                assessment_type:
+
+                    assessment.assessmentType,
+
+                value:
+
+                    assessment.value,
+
+                display_order:
+
+                    assessment.displayOrder,
+
+            })
+
+        );
+
+    const { error } =
+
+        await supabase
+
+            .from(
+
+                "prescription_assessments"
+
+            )
+
+            .insert(
+
+                rows
+
+            );
+
+    if (error) {
+
+        throw new Error(
+
+            error.message ??
+
+            "Unable to save prescription assessments."
+
+        );
+
+    }
+
+}
+
+//------------------------------------------------------------
+// Save Prescription Investigations
+//------------------------------------------------------------
+
+async function saveInvestigations(
+    prescriptionId: string,
+    input: PrescriptionSaveInput
+): Promise<void> {
+
+    if (input.investigations.length === 0) {
+        return;
+    }
+
+    const rows = input.investigations.map(investigation => ({
+        prescription_id: prescriptionId,
+        investigation: investigation.investigation,
+        display_order: investigation.displayOrder,
+    }));
+
+    const { error } = await supabase
+        .from("prescription_investigations")
+        .insert(rows);
+
+    if (error) {
+        throw new Error(
+            error.message ??
+            "Unable to save prescription investigations."
+        );
+    }
+
+}
+
+//------------------------------------------------------------
+// Save Prescription Instructions
+//------------------------------------------------------------
+
+async function saveInstructions(
+    prescriptionId: string,
+    input: PrescriptionSaveInput
+): Promise<void> {
+
+    if (input.instructions.length === 0) {
+        return;
+    }
+
+    const rows = input.instructions.map(instruction => ({
+        prescription_id: prescriptionId,
+        instruction: instruction.instruction,
+        display_order: instruction.displayOrder,
+    }));
+
+    const { error } = await supabase
+        .from("prescription_instructions")
+        .insert(rows);
+
+    if (error) {
+        throw new Error(
+            error.message ??
+            "Unable to save prescription instructions."
+        );
+    }
+
+}
+
+//------------------------------------------------------------
+// Save Prescription Notes
+//------------------------------------------------------------
+
+async function saveNotes(
+    prescriptionId: string,
+    input: PrescriptionSaveInput
+): Promise<void> {
+
+    if (input.notes.length === 0) {
+        return;
+    }
+
+    const rows = input.notes.map(note => ({
+        prescription_id: prescriptionId,
+        note: note.note,
+        display_order: note.displayOrder,
+    }));
+
+    const { error } = await supabase
+        .from("prescription_notes")
+        .insert(rows);
+
+    if (error) {
+        throw new Error(
+            error.message ??
+            "Unable to save prescription notes."
+        );
+    }
+
+}
+
+async function getPrescriptionSummary(
+
+    userId: string,
+
+    recordContext: "SELF" | "FAMILY",
+
+    patientId: string | null
+
+): Promise<{
+
+    total: number;
+
+    earliestDate: string | null;
+
+}> {
+
+    let query =
+        supabase
+
+            .from("prescriptions")
+
+            .select(
+                "consultation_date"
+            )
+
+            .eq(
+                "user_id",
+                userId
+            )
+
+            .eq(
+                "record_context",
+                recordContext
+            );
+
+    if (
+
+        recordContext === "FAMILY"
+
+    ) {
+
+        if (!patientId) {
+
+            throw new Error(
+                "Patient is required."
+            );
+
+        }
+
+        query =
+            query.eq(
+                "patient_id",
+                patientId
+            );
+
+    }
+
+    const {
+
+        data,
+
+        error,
+
+    } =
+        await query.order(
+            "consultation_date",
+            {
+                ascending: true,
+            }
+        );
+
+    if (
+
+        error
+
+    ) {
+
+        throw new Error(
+            error.message
+        );
+
+    }
+
+    return {
+
+        total:
+            data?.length ?? 0,
+
+        earliestDate:
+
+            data &&
+            data.length > 0
+
+                ? data[0].consultation_date
+
+                : null,
+
+    };
+
+}
+
+//------------------------------------------------------------
+// Repository
+//------------------------------------------------------------
+
+export const prescriptionRepository = {
+
+    async create(
+
+        input: PrescriptionSaveInput
+
+    ): Promise<CompletePrescriptionRecord> {
+
+//----------------------------------------------------
+// Previous Prescription
+//----------------------------------------------------
+
+let previousPrescription: CompletePrescriptionRecord | null = null;
+
+try {
+
+    const previousPrescriptions =
+        await this.getPatientPrescriptions(
+
+            input.userId,
+
+            input.recordContext,
+
+            input.patientId
+
+        );
+
+    if (previousPrescriptions.length > 0) {
+
+        previousPrescription =
+            previousPrescriptions[0];
+
+    }
+
+}
+catch {
+
+    previousPrescription = null;
+
+}
+
+        //----------------------------------------------------
+        // Insert Parent Prescription
+        //----------------------------------------------------
+
+        const {
+
+            data: prescriptionData,
+
+            error: prescriptionError,
+
+        } = await supabase
+
+            .from("prescriptions")
+
+            .insert({
+
+                user_id:
+                    input.userId,
+
+                patient_id:
+                    input.patientId,
+
+                family_id:
+                    input.familyId,
+
+                record_context:
+                    input.recordContext,
+
+                doctor_name:
+                    input.doctorName,
+
+                consultation_date:
+                    input.consultationDate,
+
+                consultation_mode:
+                    input.consultationMode,
+
+                hospital_or_clinic:
+                    input.hospitalOrClinic,
+
+                diagnosis_or_assessment:
+                    input.diagnosisOrAssessment,
+
+                additional_instructions:
+                    input.additionalNotes,
+
+            })
+
+            .select()
+
+            .single();
+
+        if (
+
+            prescriptionError ||
+
+            !prescriptionData
+
+        ) {
+
+            throw new Error(
+
+                prescriptionError?.message ??
+
+                "Unable to save prescription."
+
+            );
+
+        }
+
+        const prescriptionRow =
+            prescriptionData as PrescriptionRow;
+
+        //----------------------------------------------------
+        // Save Child Tables
+        //----------------------------------------------------
+
+        try {
+
+            await saveVitals(
+
+                prescriptionRow.id,
+
+                input
+
+            );
+
+            await saveSymptoms(
+
+                prescriptionRow.id,
+
+                input
+
+            );
+
+//----------------------------------------------------
+// Save History
+//----------------------------------------------------
+
+await saveHistory(
+
+    prescriptionRow.id,
+
+    input
+
+);
+
+//----------------------------------------------------
+// Save Assessments
+//----------------------------------------------------
+
+await saveAssessments(
+
+    prescriptionRow.id,
+
+    input
+
+);
+
+//----------------------------------------------------
+// Save Investigations
+//----------------------------------------------------
+
+await saveInvestigations(
+
+    prescriptionRow.id,
+
+    input
+
+);
+
+//----------------------------------------------------
+// Save Instructions
+//----------------------------------------------------
+
+await saveInstructions(
+    prescriptionRow.id,
+    input
+);
+
+//----------------------------------------------------
+// Save Notes
+//----------------------------------------------------
+
+await saveNotes(
+    prescriptionRow.id,
+    input
+);
+
+}
+        catch (error) {
+
+            //------------------------------------------------
+            // Rollback Parent
+            //------------------------------------------------
+
+            await supabase
+
+                .from("prescriptions")
+
+                .delete()
+
+                .eq(
+
+                    "id",
+
+                    prescriptionRow.id
+
+                );
+
+            throw error;
+
+        }
+
+        //----------------------------------------------------
+        // Save Medicines
+        //----------------------------------------------------
+
+if (input.medicines.length === 0) {
+
+    const savedPrescription: CompletePrescriptionRecord = {
+
+        prescription:
+            mapPrescriptionRow(
+                prescriptionRow
+            ),
+
+        medicines: [],
+
+        vitals: input.vitals,
+
+        symptoms: input.symptoms,
+
+        history: input.history,
+
+        assessments: input.assessments,
+
+        investigations: input.investigations,
+
+        instructions: input.instructions,
+
+        notes: input.notes,
+
+    };
+
+    try {
+
+        await savePrescriptionAudit(
+
+            previousPrescription,
+
+            savedPrescription
+
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+
+            "Prescription audit failed",
+
+            error
+
+        );
+
+    }
+
+    return savedPrescription;
+
+}
+
+const medicineRows =
+
+    input.medicines
+
+        .filter(
+
+            medicine =>
+
+                medicine.validationStatus !== "EXCLUDE"
+
+        )
+
+        .map(
+
+            medicine => ({
+
+                prescription_id:
+                    prescriptionRow.id,
+
+                ocr_medicine_name:
+                    medicine.ocrMedicineName,
+
+                medicine_name:
+                    medicine.medicineName,
+
+                medicine_master_id:
+                    medicine.medicineMasterId,
+
+                strength:
+                    medicine.strength,
+
+                form:
+                    medicine.form,
+
+                dose:
+                    medicine.dose,
+
+                frequency:
+                    medicine.frequency,
+
+                timings:
+                    medicine.timings,
+
+                duration:
+                    medicine.duration,
+
+                instructions:
+                    medicine.instructions,
+
+                validation_status:
+                    medicine.validationStatus,
+
+                validated_by:
+                    medicine.validatedBy,
+
+                validated_at:
+                    medicine.validatedAt,
+
+                validation_notes:
+                    medicine.validationNotes,
+
+                display_order:
+                    medicine.displayOrder,
+
+            })
+
+        );
+
+        const {
+
+            data: medicinesData,
+
+            error: medicinesError,
+
+        } = await supabase
+
+            .from(
+
+                "prescription_medicines"
+
+            )
+
+            .insert(
+
+                medicineRows
+
+            )
+
+            .select();
+
+        if (
+
+            medicinesError ||
+
+            !medicinesData
+
+        ) {
+
+            //------------------------------------------------
+            // Rollback Entire Prescription
+            //------------------------------------------------
+
+            await supabase
+
+                .from("prescriptions")
+
+                .delete()
+
+                .eq(
+
+                    "id",
+
+                    prescriptionRow.id
+
+                );
+
+            throw new Error(
+
+                medicinesError?.message ??
+
+                "Unable to save prescription medicines."
+
+            );
+
+        }
+
+
+
+
+
+        //----------------------------------------------------
+        // Return Complete Record
+        //----------------------------------------------------
+
+const savedPrescription: CompletePrescriptionRecord = {
+
+    prescription:
+        mapPrescriptionRow(
+            prescriptionRow
+        ),
+
+    medicines:
+        (
+            medicinesData as
+            PrescriptionMedicineRow[]
+        ).map(
+            mapMedicineRow
+        ),
+
+    vitals: input.vitals,
+
+    symptoms: input.symptoms,
+
+    history: input.history,
+
+    assessments: input.assessments,
+
+    investigations: input.investigations,
+
+    instructions: input.instructions,
+
+    notes: input.notes,
+
+};
+
+try {
+
+    await savePrescriptionAudit(
+
+        previousPrescription,
+
+        savedPrescription
+
+    );
+
+}
+catch (error) {
+
+    console.error(
+
+        "Prescription audit failed",
+
+        error
+
+    );
+
+}
+
+return savedPrescription;
+
+    },
+
+async getPrescriptionHistory(
+
+    userId: string,
+
+    recordContext: "SELF" | "FAMILY",
+
+    patientId: string | null,
+
+    fromDate?: string,
+
+    toDate?: string
+
+) {
+
+    let query =
+        supabase
+
+            .from("prescriptions")
+
+            .select(`
+                id,
+                patient_id,
+                doctor_name,
+                consultation_date,
+                consultation_mode,
+                hospital_or_clinic,
+                diagnosis_or_assessment,
+                created_at,
+                prescription_medicines(id)
+            `)
+
+            .eq(
+                "user_id",
+                userId
+            )
+
+            .eq(
+                "record_context",
+                recordContext
+            );
+
+    if (
+        recordContext === "FAMILY"
+    ) {
+
+if (!patientId) {
+
+        throw new Error(
+            "Patient is required."
+        );
+
+    }
+
+        query =
+            query.eq(
+                "patient_id",
+                patientId
+            );
+
+    }
+
+    if (
+        fromDate
+    ) {
+
+        query =
+            query.gte(
+                "consultation_date",
+                fromDate
+            );
+
+    }
+
+    if (
+        toDate
+    ) {
+
+        query =
+            query.lte(
+                "consultation_date",
+                toDate
+            );
+
+    }
+
+    const {
+
+        data,
+
+        error,
+
+    } =
+        await query.order(
+            "consultation_date",
+            {
+                ascending: false,
+            }
+        )
+        .order(
+            "created_at",
+            {
+                ascending: false,
+            }
+        );
+
+    if (
+        error
+    ) {
+
+        throw new Error(
+            error.message
+        );
+
+    }
+
+const rows =
+    (data ?? []) as PrescriptionHistoryRow[];
+
+return rows.map(row => ({
+
+            id:
+                row.id,
+
+            consultationDate:
+                row.consultation_date,
+
+            doctorName:
+                row.doctor_name,
+
+            hospitalOrClinic:
+                row.hospital_or_clinic,
+
+            diagnosisOrAssessment:
+                row.diagnosis_or_assessment,
+
+            consultationMode:
+                row.consultation_mode,
+
+            createdAt:
+                row.created_at,
+
+            medicineCount:
+                row.prescription_medicines
+                    ?.length ?? 0,
+
+        })
+    );
+
+},
+
+async getPrescriptionDetails(
+
+    prescriptionId: string
+
+): Promise<CompletePrescriptionRecord> {
+
+    const {
+
+        data: prescriptionData,
+
+        error: prescriptionError,
+
+    } = await supabase
+
+        .from("prescriptions")
+
+.select(`
+    id,
+    user_id,
+    patient_id,
+    family_id,
+    record_context,
+    doctor_name,
+    consultation_date,
+    consultation_mode,
+    hospital_or_clinic,
+    diagnosis_or_assessment,
+    additional_instructions,
+    reviewed_at,
+    created_at,
+    updated_at
+`)
+
+        .eq("id", prescriptionId)
+
+        .single();
+
+    if (
+
+        prescriptionError ||
+
+        !prescriptionData
+
+    ) {
+
+        throw new Error(
+
+            prescriptionError?.message ??
+
+            "Unable to load prescription."
+
+        );
+
+    }
+
+    const {
+
+        data: medicinesData,
+
+        error: medicinesError,
+
+    } = await supabase
+
+        .from("prescription_medicines")
+
+        .select("*")
+
+        .eq(
+            "prescription_id",
+            prescriptionId
+        )
+
+        .order(
+            "display_order",
+            {
+                ascending: true,
+            }
+        );
+
+    if (
+
+        medicinesError
+
+    ) {
+
+        throw new Error(
+
+            medicinesError.message
+
+        );
+
+    }
+
+const {
+
+    data: vitalsData,
+
+} = await supabase
+
+    .from("prescription_vitals")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .maybeSingle();
+
+const {
+
+    data: symptomsData,
+
+} = await supabase
+
+    .from("prescription_symptoms")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+const {
+
+    data: historyData,
+
+} = await supabase
+
+    .from("prescription_history")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+const {
+
+    data: assessmentsData,
+
+} = await supabase
+
+    .from("prescription_assessments")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+const {
+
+    data: investigationsData,
+
+} = await supabase
+
+    .from("prescription_investigations")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+const {
+
+    data: instructionsData,
+
+} = await supabase
+
+    .from("prescription_instructions")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+const {
+
+    data: notesData,
+
+} = await supabase
+
+    .from("prescription_notes")
+
+    .select("*")
+
+    .eq(
+        "prescription_id",
+        prescriptionId
+    )
+
+    .order(
+        "display_order",
+        {
+            ascending: true,
+        }
+    );
+
+return {
+
+    prescription:
+
+        mapPrescriptionRow(
+
+            prescriptionData as PrescriptionRow
+
+        ),
+
+    medicines:
+
+        (
+
+            medicinesData ??
+
+            []
+
+        ).map(
+
+            row =>
+
+                mapMedicineRow(
+
+                    row as PrescriptionMedicineRow
+
+                )
+
+        ),
+
+vitals:
+
+    vitalsData
+        ? {
+
+            weight:
+                vitalsData.weight,
+
+            height:
+                vitalsData.height,
+
+            bmi:
+                vitalsData.bmi,
+
+            bloodPressure:
+                vitalsData.blood_pressure,
+
+            pulse:
+                vitalsData.pulse,
+
+            respiratoryRate:
+                vitalsData.respiratory_rate,
+
+            spo2:
+                vitalsData.spo2,
+
+            temperature:
+                vitalsData.temperature,
+
+        }
+
+        : null,
+
+symptoms:
+
+    (symptomsData ?? []).map(
+
+        row => ({
+
+            symptom:
+                row.symptom,
+
+            duration:
+                row.duration,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+history:
+
+    (historyData ?? []).map(
+
+        row => ({
+
+            category:
+                row.category,
+
+            value:
+                row.value,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+assessments:
+
+    (assessmentsData ?? []).map(
+
+        row => ({
+
+            assessmentType:
+                row.assessment_type,
+
+            value:
+                row.value,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+investigations:
+
+    (investigationsData ?? []).map(
+
+        row => ({
+
+            investigation:
+                row.investigation,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+instructions:
+
+    (instructionsData ?? []).map(
+
+        row => ({
+
+            instruction:
+                row.instruction,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+notes:
+
+    (notesData ?? []).map(
+
+        row => ({
+
+            note:
+                row.note,
+
+            displayOrder:
+                row.display_order,
+
+        })
+
+    ),
+
+};
+
+},
+
+    async getPatientPrescriptions(
+        userId: string,
+        recordContext: "SELF" | "FAMILY",
+        patientId: string | null
+    ): Promise<CompletePrescriptionRecord[]> {
+
+        const history =
+            await this.getPrescriptionHistory(
+                userId,
+                recordContext,
+                patientId
+            );
+
+        const prescriptions =
+            await Promise.all(
+                history.map(item =>
+                    this.getPrescriptionDetails(item.id)
+                )
+            );
+
+        return prescriptions;
+    },
+
+
+//------------------------------------------------------------
+// Update Pending Medicines
+//------------------------------------------------------------
+
+async updatePendingMedicines(
+    prescriptionId: string,
+    medicines: PrescriptionMedicineRecord[]
+): Promise<void> {
+
+    for (const medicine of medicines) {
+
+        const { error } = await supabase
+            .from("prescription_medicines")
+            .update({
+
+                medicine_name: medicine.medicineName,
+
+                strength: medicine.strength,
+
+                dose: medicine.dose,
+
+                frequency: medicine.frequency,
+
+                timings: medicine.timings,
+
+                duration: medicine.duration,
+
+                instructions: medicine.instructions,
+
+                validation_status: medicine.validationStatus,
+
+                validated_by: medicine.validatedBy,
+
+                validated_at: medicine.validatedAt,
+
+                validation_notes: medicine.validationNotes,
+
+                updated_at: new Date().toISOString(),
+
+            })
+            .eq("id", medicine.id)
+            .eq("prescription_id", prescriptionId);
+
+        if (error) {
+
+            throw new Error(
+                error.message ??
+                "Unable to update pending medicine."
+            );
+
+        }
+
+    }
+
+},
+
+getPrescriptionSummary,
+
+};

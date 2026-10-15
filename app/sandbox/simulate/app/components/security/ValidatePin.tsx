@@ -1,0 +1,2115 @@
+"use client";
+
+import {
+    useEffect,
+    useState,
+} from "react";
+
+import {
+    useRouter,
+} from "next/navigation";
+
+import {
+    authService,
+} from "@/lib/auth/authService";
+
+import { supabase } from "@/lib/supabase";
+
+import MobileHeader, {
+    type MobileCareMode,
+} from "@/Components/common/MobileHeader";
+
+import CareVRFooter from "@/Components/common/CareVRFooter";
+
+import CareVRDashboardHandoffAnimation from "@/Components/common/CareVRDashboardHandoffAnimation";
+
+/*
+import {
+    validateInvitedUserLogin,
+} from "@/lib/invitations/invitedUserLoginValidation";
+*/
+
+import {
+    resolveCareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
+
+import {
+    carevrAuthorizationHandoff,
+} from "@/lib/authorization/carevrAuthorizationHandoff";
+
+import {
+    carevrContextResolver,
+} from "@/lib/auth/carevrContextResolver";
+
+import {
+    profileRepository,
+} from "@/lib/repositories/profileRepository";
+
+import PinLockoutScreen from "./PinLockoutScreen";
+
+type LockState = {
+    lockedUntil: string;
+    lockoutLevel: number;
+};
+
+
+type ValidatePinProps = {
+    userId: string;
+    email: string;
+};
+
+export default function ValidatePin({
+    userId,
+    email,
+}: ValidatePinProps) {
+
+    const router = useRouter();
+
+
+    const [pin, setPin] =
+        useState("");
+
+const [showPin, setShowPin] =
+    useState(false);
+
+    const [error, setError] =
+        useState("");
+
+
+    const [saving, setSaving] =
+        useState(false);
+
+const [loggingOut, setLoggingOut] =
+    useState(false);
+
+const [showDashboardHandoff, setShowDashboardHandoff] =
+    useState(false);
+
+
+const [dashboardHandoffReady, setDashboardHandoffReady] =
+    useState(false);
+
+const [dashboardAnimationComplete, setDashboardAnimationComplete] =
+    useState(false);
+
+
+    const [attemptsRemaining, setAttemptsRemaining] =
+        useState<number | null>(null);
+
+
+    const [lockState, setLockState] =
+        useState<LockState | null>(null);
+
+
+    const [escalationRequired, setEscalationRequired] =
+        useState(false);
+
+
+// No lockout countdown state.
+// Countdown is owned by PinLockoutScreen.
+
+
+    const [accountMenuOpen, setAccountMenuOpen] =
+        useState(false);
+
+
+    const [careMode, setCareMode] =
+        useState<MobileCareMode>("SELF");
+
+const [userName, setUserName] =
+    useState("CareVR");
+
+    /*
+     * =========================================================
+     * PIN INPUT
+     * =========================================================
+     */
+
+    const handlePinChange = (
+        value: string
+    ) => {
+
+        const digitsOnly =
+            value
+                .replace(/\D/g, "")
+                .slice(0, 6);
+
+        setPin(digitsOnly);
+        setError("");
+        setAttemptsRemaining(null);
+    };
+
+
+useEffect(() => {
+    let cancelled = false;
+
+    const loadProfileName = async () => {
+        try {
+            const profile =
+                await profileRepository
+                    .getCurrentProfile();
+
+            if (cancelled) {
+                return;
+            }
+
+            setUserName(
+                profile?.fullName?.trim() || ""
+            );
+        } catch (error) {
+            console.error(
+                "Unable to load profile name for Verify PIN header.",
+                error
+            );
+        }
+    };
+
+    void loadProfileName();
+
+    return () => {
+        cancelled = true;
+    };
+}, []);
+
+
+useEffect(() => {
+
+    if (
+        !dashboardHandoffReady ||
+        !dashboardAnimationComplete
+    ) {
+        return;
+    }
+
+    router.replace(
+        "/dashboard"
+    );
+
+}, [
+    dashboardHandoffReady,
+    dashboardAnimationComplete,
+    router,
+]);
+
+
+    /*
+     * =========================================================
+     * VERIFY PIN
+     * =========================================================
+     */
+
+const handleVerify = async () => {
+
+    setError("");
+
+
+
+    if (pin.length !== 6) {
+
+        setError(
+            "Please enter your 6-digit CareVR PIN."
+        );
+
+        return;
+    }
+
+
+
+if (
+    saving ||
+    lockState ||
+    escalationRequired
+) {
+    return;
+}
+
+
+
+const verifyStartedAt =
+    performance.now();
+
+setSaving(true);
+
+
+
+try {
+
+        const validatePinStartedAt =
+            performance.now();
+
+        const response =
+            await fetch(
+                "/api/security/validate-pin",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+
+                    body: JSON.stringify({
+                        pin,
+                    }),
+                }
+            );
+
+        const validatePinCompletedAt =
+            performance.now();
+
+
+        const jsonStartedAt =
+            performance.now();
+
+        const result =
+            await response.json();
+
+        const jsonCompletedAt =
+            performance.now();
+
+
+        if (!response.ok) {
+
+            if (
+                result?.escalationRequired ===
+                true
+            ) {
+
+                setEscalationRequired(
+                    true
+                );
+
+                setPin("");
+
+                setAttemptsRemaining(
+                    null
+                );
+
+                return;
+            }
+
+
+
+            if (
+                result?.locked === true &&
+                result?.lockedUntil
+            ) {
+
+                setLockState({
+                    lockedUntil:
+                        result.lockedUntil,
+
+                    lockoutLevel:
+                        Number(
+                            result.lockoutLevel ??
+                            0
+                        ),
+                });
+
+                setPin("");
+
+                setAttemptsRemaining(
+                    null
+                );
+
+                setError("");
+
+                return;
+            }
+
+
+
+            if (
+                typeof result?.attemptsRemaining ===
+                "number"
+            ) {
+
+                setAttemptsRemaining(
+                    result.attemptsRemaining
+                );
+            }
+
+
+
+            throw new Error(
+                result?.error ||
+                "Incorrect CareVR PIN."
+            );
+        }
+
+
+
+setAttemptsRemaining(null);
+setPin("");
+
+if (result?.pinExpired === true) {
+    router.replace("/secure-access/create-pin?mode=recreate&reason=expired");
+    return;
+}
+
+/*
+ * =========================================================
+ * DIGITAL HEALTH PROFILE + CAREVR ACCESS
+ * =========================================================
+ */
+
+/*
+ * Query the Digital Health Profile first.
+ *
+ * Do not filter by digital_health_flag here.
+ * A profile with consent pending legitimately has:
+ *
+ *     invitation_status = ACCEPTED
+ *     consent_status    = PENDING
+ *     digital_health_flag = false
+ *
+ * That profile must still be found so the user can
+ * resume the Consent flow.
+ */
+
+const {
+    data: digitalHealthProfiles,
+    error: digitalHealthProfileError,
+} =
+    await supabase
+        .from("digital_health_profile")
+        .select(`
+            id,
+            family_id,
+            invitation_status,
+            consent_status,
+            digital_health_flag,
+            role_status,
+            role,
+            is_default_profile,
+            carevr_access_id,
+            carevr_access:carevr_access_id (
+                id,
+                user_id,
+                family_id,
+                access_type,
+                access_status
+            )
+        `)
+        .eq(
+            "user_id",
+            userId
+        );
+
+
+    if (
+        digitalHealthProfileError
+    ) {
+
+        throw digitalHealthProfileError;
+
+    }
+
+
+if (
+    !digitalHealthProfiles ||
+    digitalHealthProfiles.length === 0
+) {
+
+    throw new Error(
+        "CareVR digital health profile could not be found."
+    );
+
+}
+
+/*
+ * =========================================================
+ * INVITATION STATUS
+ * =========================================================
+ */
+
+const invitationPendingProfile =
+    digitalHealthProfiles.find(
+        (profile) =>
+            profile.invitation_status !== "ACCEPTED"
+    );
+
+if (invitationPendingProfile) {
+
+    throw new Error(
+        "Your CareVR invitation has not been accepted."
+    );
+}
+
+
+/*
+ * =========================================================
+ * DIGITAL HEALTH PROFILE LIFECYCLE CHECK
+ * =========================================================
+ *
+ * Digital Health Profile is checked before Dashboard
+ * handoff begins.
+ *
+ * The number of records determines SINGLE / DUAL.
+ * Lifecycle state determines whether the user may proceed.
+ */
+
+
+const consentPendingProfile =
+    digitalHealthProfiles.find(
+        (profile) =>
+            profile.consent_status !== "ACCEPTED"
+    );
+
+if (consentPendingProfile) {
+
+    setShowDashboardHandoff(false);
+
+    setDashboardHandoffReady(false);
+
+    setDashboardAnimationComplete(false);
+
+    /*
+     * Re-establish the authorization handoff
+     * before returning the user to Consent.
+     *
+     * The original Create PIN flow establishes
+     * this handoff before entering Consent.
+     *
+     * Returning users reach Consent from Validate PIN,
+     * so the handoff must be reconstructed here.
+     */
+
+    const carevrRole =
+        consentPendingProfile.role ===
+        "DOCTOR"
+            ? "DOCTOR"
+            : consentPendingProfile.role ===
+                "CARETAKER"
+                ? "CARETAKER"
+                : consentPendingProfile.role ===
+                    "SECONDARY_FAMILY_MEMBER"
+                    ? "SECONDARY_FAMILY_MEMBER"
+                    : "PRIMARY";
+
+const registrationContext =
+    carevrRole === "PRIMARY"
+        ? "PRODUCT"
+        : "INVITATION";
+
+
+    carevrAuthorizationHandoff.set({
+
+        userId:
+            userId,
+
+        carevrRole,
+
+        familyId:
+            consentPendingProfile.family_id ??
+            null,
+
+        patientId:
+            null,
+
+        consentStage:
+            "POST_LOGIN",
+
+        governanceId:
+            null,
+
+        governanceVersion:
+            null,
+
+    });
+
+router.replace(
+    `/consent?registrationContext=${encodeURIComponent(
+        registrationContext
+    )}`
+);
+
+    return;
+}
+
+
+/*
+ * =========================================================
+ * START DASHBOARD HANDOFF ANIMATION
+ * =========================================================
+ *
+ * Invitation, Consent and Digital Health lifecycle checks
+ * have now passed.
+ */
+
+setDashboardHandoffReady(false);
+
+setDashboardAnimationComplete(false);
+
+setShowDashboardHandoff(true);
+
+
+    /*
+     * =========================================================
+     * DUAL ROLE
+     * =========================================================
+     *
+     * Two digital health profile records means the user has
+     * two CareVR role/access contexts.
+     *
+     * Profile selection must happen before Dashboard handoff.
+     */
+
+if (
+    digitalHealthProfiles.length > 1
+) {
+
+    /*
+     * =========================================================
+     * DUAL ROLE — DEFAULT PROFILE
+     * =========================================================
+     *
+     * is_default_profile is only a user preference.
+     * carevr_access remains the authorization source.
+     *
+     * No default → existing Profile Selection flow.
+     * Default inactive/invalid → existing Profile Selection flow.
+     * Valid default → continue directly to Dashboard.
+     */
+
+    const defaultProfile =
+        digitalHealthProfiles.find(
+            (profile) =>
+                profile.is_default_profile === true
+        );
+
+    if (!defaultProfile) {
+
+        setShowDashboardHandoff(false);
+
+        router.replace(
+            "/profile-selection"
+        );
+
+        return;
+    }
+
+const defaultRole =
+    defaultProfile.role === "PRIMARY"
+        ? "SELF"
+        : defaultProfile.role ===
+            "SECONDARY_FAMILY_MEMBER"
+            ? "FAMILY"
+            : defaultProfile.role ===
+                "CARETAKER"
+                ? "CARETAKER"
+                : defaultProfile.role ===
+                    "DOCTOR"
+                    ? "DOCTOR"
+                    : "";
+
+    const defaultJoinedAccess =
+        Array.isArray(
+            defaultProfile.carevr_access
+        )
+            ? defaultProfile.carevr_access[0]
+            : defaultProfile.carevr_access;
+
+    if (
+        !defaultRole ||
+        !defaultJoinedAccess
+    ) {
+
+        setShowDashboardHandoff(false);
+
+        router.replace(
+            "/profile-selection"
+        );
+
+        return;
+    }
+
+    if (
+        defaultJoinedAccess.id !==
+        defaultProfile.carevr_access_id
+    ) {
+
+        setShowDashboardHandoff(false);
+
+        router.replace(
+            "/profile-selection"
+        );
+
+        return;
+    }
+
+    if (
+        defaultJoinedAccess.user_id !==
+        userId
+    ) {
+
+        setShowDashboardHandoff(false);
+
+        router.replace(
+            "/profile-selection"
+        );
+
+        return;
+    }
+
+    if (
+        defaultJoinedAccess.access_status !==
+        "ACTIVE"
+    ) {
+
+        setShowDashboardHandoff(false);
+
+        router.replace(
+            "/profile-selection"
+        );
+
+        return;
+    }
+
+    /*
+     * The selected default profile has passed the
+     * same CareVR access validation required for
+     * normal Dashboard entry.
+     */
+
+    const defaultAccess = {
+        id:
+            defaultJoinedAccess.id,
+
+        userId:
+            defaultJoinedAccess.user_id,
+
+        familyId:
+            defaultJoinedAccess.family_id,
+
+        patientId:
+            null,
+
+        accessType:
+            defaultJoinedAccess.access_type,
+
+        accessStatus:
+            defaultJoinedAccess.access_status,
+    };
+
+    await resolveCareVRDashboardHandoff(
+        userId,
+        defaultRole,
+        defaultAccess
+    );
+
+    setDashboardHandoffReady(true);
+
+    return;
+}
+
+
+    /*
+     * =========================================================
+     * SINGLE ROLE
+     * =========================================================
+     *
+     * Exactly one digital health profile exists.
+     *
+     * The joined CareVR access record is already available from
+     * the same query.
+     */
+
+    const digitalHealthProfile =
+        digitalHealthProfiles[0];
+
+
+    if (
+        digitalHealthProfile.role_status !==
+        "SINGLE"
+    ) {
+
+        throw new Error(
+            "The CareVR role state could not be determined."
+        );
+
+    }
+
+
+const dashboardRole =
+    digitalHealthProfile.role ===
+    "SECONDARY_FAMILY_MEMBER"
+        ? "FAMILY"
+        : digitalHealthProfile.role;
+
+
+/*
+ * =========================================================
+ * RESOLVE JOINED CAREVR ACCESS
+ * =========================================================
+ */
+
+const joinedAccess =
+    Array.isArray(
+        digitalHealthProfile.carevr_access
+    )
+        ? digitalHealthProfile.carevr_access[0]
+        : digitalHealthProfile.carevr_access;
+
+
+if (
+    !dashboardRole ||
+    !joinedAccess
+) {
+
+    throw new Error(
+        "CareVR access information is incomplete."
+    );
+
+}
+
+
+/*
+ * =========================================================
+ * VERIFY THE JOINED ACCESS RELATIONSHIP
+ * =========================================================
+ */
+
+if (
+    joinedAccess.id !==
+    digitalHealthProfile.carevr_access_id
+) {
+
+    throw new Error(
+        "CareVR access relationship is invalid."
+    );
+
+}
+
+
+if (
+    joinedAccess.user_id !==
+    userId
+) {
+
+    throw new Error(
+        "CareVR access does not belong to the authenticated user."
+    );
+
+}
+
+
+if (
+    joinedAccess.access_status !==
+    "ACTIVE"
+) {
+
+    throw new Error(
+        "Selected CareVR access is no longer active."
+    );
+
+}
+
+
+/*
+ * =========================================================
+ * MAP DATABASE SHAPE TO EXISTING
+ * ACTIVE CAREVR ACCESS SHAPE
+ * =========================================================
+ */
+
+const access = {
+
+    id:
+        joinedAccess.id,
+
+    userId:
+        joinedAccess.user_id,
+
+    familyId:
+        joinedAccess.family_id,
+
+    patientId:
+        null,
+
+    accessType:
+        joinedAccess.access_type,
+
+    accessStatus:
+        joinedAccess.access_status,
+
+};
+
+    /*
+     * =========================================================
+     * EXISTING DASHBOARD AUTHORIZATION HANDOFF
+     * =========================================================
+     *
+     * Existing authorization logic remains unchanged.
+     */
+
+    const handoffStartedAt =
+        performance.now();
+
+
+
+
+    await resolveCareVRDashboardHandoff(
+        userId,
+        dashboardRole,
+        access
+    );
+
+
+
+    const handoffCompletedAt =
+        performance.now();
+
+
+
+    /*
+     * Only after the real authorization handoff succeeds
+     * can the animation complete and navigation continue.
+     */
+
+    setDashboardHandoffReady(true);
+
+    return;
+
+
+} catch (err) {
+
+    /*
+     * The existing verification flow failed.
+     *
+     * Stop the visual handoff and return to the
+     * normal PIN error state.
+     */
+    setShowDashboardHandoff(false);
+    setDashboardHandoffReady(false);
+
+    setError(
+        err instanceof Error
+            ? err.message
+            : "Unable to verify your CareVR PIN."
+    );
+
+} finally {
+
+    setSaving(false);
+}
+};
+
+
+    /*
+     * =========================================================
+     * HEADER
+     * =========================================================
+     */
+
+    const renderHeader = () => (
+
+<MobileHeader
+    careMode={careMode}
+    onCareModeChange={setCareMode}
+    userName={userName}
+    showCareModeToggle={false}
+    showSelfToggle={false}
+    showFamilyToggle={false}
+    showHomeButton={false}
+    showSwitchProfile={false}
+    restrictAccountMenu={true}
+    accountMenuOpen={accountMenuOpen}
+    onAccountMenuToggle={() =>
+        setAccountMenuOpen(
+            (current) => !current
+        )
+    }
+    consentGranted={false}
+    canAddPatient={false}
+    onAddPatient={() => {}}
+    onCareVRJourney={() => {}}
+    onHelp={() => {}}
+    loggingOut={loggingOut}
+    onLogout={async () => {
+        if (loggingOut) {
+            return;
+        }
+
+        setLoggingOut(true);
+
+        try {
+            await authService.logout();
+            router.replace("/login");
+        } catch (error) {
+            console.error(
+                "Unable to log out from Verify PIN page.",
+                error
+            );
+
+            setLoggingOut(false);
+            setError(
+                "Unable to log out. Please try again."
+            );
+        }
+    }}
+/>
+    );
+
+
+    /*
+     * =========================================================
+     * FINAL RECOVERY
+     * =========================================================
+     */
+
+    if (escalationRequired) {
+
+        return (
+
+            <main className="pin-page">
+
+                {renderHeader()}
+
+
+                <section className="pin-content">
+
+                    <div className="pin-card">
+
+                        <div
+                            className="security-icon recovery-icon"
+                            aria-hidden="true"
+                        >
+                            <svg
+                                width="30"
+                                height="30"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <rect
+                                    x="3"
+                                    y="11"
+                                    width="18"
+                                    height="10"
+                                    rx="2"
+                                />
+
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+
+                                <path d="M12 15v2" />
+                            </svg>
+                        </div>
+
+
+                        <div className="eyebrow">
+                            ACCOUNT PROTECTION
+                        </div>
+
+
+                        <h1>
+                            PIN Access Requires Recovery
+                        </h1>
+
+
+                        <p className="intro">
+                            Your CareVR PIN access has
+                            been locked after multiple
+                            unsuccessful attempts.
+                        </p>
+
+
+                        <div
+                            className="recovery-panel"
+                            role="alert"
+                        >
+
+                            <div className="recovery-symbol">
+                                !
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    Your account remains protected.
+                                </strong>
+
+<p>
+    Please contact Linearise AI Labs - lineariseailabs@gmail.com
+    to regain access to your
+    CareVR account.
+</p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <CareVRFooter />
+
+            </main>
+        );
+    }
+
+
+    /*
+     * =========================================================
+     * TEMPORARY PIN LOCKOUT
+     * =========================================================
+     */
+
+if (lockState) {
+    return (
+        <main className="pin-page pin-lockout-page">
+
+            {renderHeader()}
+
+            <PinLockoutScreen
+                lockedUntil={lockState.lockedUntil}
+                lockoutLevel={lockState.lockoutLevel}
+                onLockExpired={() => {
+                    setLockState(null);
+                    setPin("");
+                    setError("");
+                    setAttemptsRemaining(null);
+                }}
+            />
+
+            <CareVRFooter />
+
+        </main>
+    );
+}
+
+
+
+
+/*
+ * =========================================================
+ * DASHBOARD HANDOFF ANIMATION
+ * =========================================================
+ */
+
+if (showDashboardHandoff) {
+    return (
+        <main className="pin-page">
+            <CareVRDashboardHandoffAnimation
+                readyToContinue={
+                    dashboardHandoffReady
+                }
+                onComplete={() => {
+                    setDashboardAnimationComplete(true);
+                }}
+            />
+        </main>
+    );
+}
+
+
+/*
+ * =========================================================
+ * NORMAL VERIFY PIN SCREEN
+ * =========================================================
+ */
+
+return (
+
+    <main className="pin-page">
+
+            {renderHeader()}
+
+
+            <section className="pin-content">
+
+                <div
+                    className="pin-card"
+                    aria-labelledby="carevr-pin-title"
+                >
+
+                    <div
+                        className="security-icon"
+                        aria-hidden="true"
+                    >
+                        <svg
+                            width="30"
+                            height="30"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <rect
+                                x="3"
+                                y="11"
+                                width="18"
+                                height="10"
+                                rx="2"
+                            />
+
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+
+                            <path d="M12 15v2" />
+                        </svg>
+                    </div>
+
+
+                    <div className="eyebrow">
+                        SECURE ACCESS
+                    </div>
+
+
+                    <h1 id="carevr-pin-title">
+                        Enter Your CareVR PIN
+                    </h1>
+
+
+                    <p className="intro">
+                        Enter your 6-digit PIN to
+                        continue securely to CareVR.
+                    </p>
+
+
+<div className="pin-field">
+
+    <label
+        htmlFor="carevr-pin"
+    >
+        CareVR PIN
+    </label>
+
+
+    <div className="pin-input-wrapper">
+
+        <input
+            id="carevr-pin"
+            type={
+                showPin
+                    ? "text"
+                    : "password"
+            }
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="one-time-code"
+            maxLength={6}
+            value={pin}
+            onChange={(event) =>
+                handlePinChange(
+                    event.target.value
+                )
+            }
+            onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    void handleVerify();
+                }
+            }}
+            disabled={saving}
+            autoFocus
+            aria-label="Enter your 6-digit CareVR PIN"
+        />
+
+
+        <button
+            type="button"
+            className="pin-visibility-button"
+            onClick={() =>
+                setShowPin(
+                    current => !current
+                )
+            }
+            disabled={saving}
+            aria-label={
+                showPin
+                    ? "Hide PIN"
+                    : "Show PIN"
+            }
+            title={
+                showPin
+                    ? "Hide PIN"
+                    : "Show PIN"
+            }
+        >
+            {showPin ? (
+                <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                    <circle
+                        cx="12"
+                        cy="12"
+                        r="3"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                    />
+                </svg>
+            ) : (
+                <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M3 3l18 18"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                    />
+                    <path
+                        d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18.5 18.5 0 0 1-3.1 4.1M6.2 6.2C3.4 8.1 2 12 2 12s3.5 7 10 7c1.4 0 2.7-.3 3.8-.8"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                    <path
+                        d="M9.9 9.9a3 3 0 1 0 4.2 4.2"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                </svg>
+            )}
+        </button>
+
+    </div>
+
+</div>
+
+
+
+
+
+                    {error && (
+
+                        <div
+                            className="error-message"
+                            role="alert"
+                            aria-live="polite"
+                        >
+
+                            <span className="error-icon">
+                                !
+                            </span>
+
+                            <span>
+                                {error}
+                            </span>
+
+                        </div>
+                    )}
+
+
+                    {attemptsRemaining !== null && (
+
+                            <div
+                                className="attempt-message"
+                                role="status"
+                                aria-live="polite"
+                            >
+                                {attemptsRemaining === 1
+                                    ? "1 attempt remaining."
+                                    : `${attemptsRemaining} attempts remaining.`}
+                            </div>
+                        )}
+
+
+                    <button
+                        type="button"
+                        className="verify-button"
+                        onClick={
+                            handleVerify
+                        }
+                        disabled={
+                            saving ||
+                            pin.length !== 6
+                        }
+                    >
+
+                        <span>
+                            {saving
+                                ? "Verifying..."
+                                : "Verify PIN"}
+                        </span>
+
+                        {!saving && (
+                            <span className="arrow">
+                                →
+                            </span>
+                        )}
+
+                    </button>
+
+
+                    <div className="security-note">
+
+                        <svg
+                            width="21"
+                            height="21"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M12 3 5 6v5c0 4.5 2.8 7.8 7 10 4.2-2.2 7-5.5 7-10V6l-7-3Z" />
+
+                            <path d="m9 12 2 2 4-4" />
+                        </svg>
+
+                        <span>
+                            Your CareVR PIN protects your
+                            account and health information
+                            across your devices.
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <CareVRFooter />
+
+
+            <style jsx>{`
+
+.pin-page {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+
+    background:
+        radial-gradient(
+            circle at 8% 12%,
+            rgba(
+                99,
+                55,
+                210,
+                0.07
+            ),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 92% 82%,
+            rgba(
+                81,
+                107,
+                218,
+                0.07
+            ),
+            transparent 28%
+        ),
+        #f8f9fc;
+
+    color: #15203d;
+}
+
+
+.pin-lockout-page {
+    background:
+        radial-gradient(
+            circle at 10% 18%,
+            rgba(
+                124,
+                72,
+                220,
+                0.12
+            ),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 90% 72%,
+            rgba(
+                155,
+                113,
+                235,
+                0.14
+            ),
+            transparent 34%
+        ),
+        linear-gradient(
+            180deg,
+            #f3ebff 0%,
+            #faf7ff 48%,
+            #eee5ff 100%
+        );
+}
+
+
+                .pin-content {
+                    flex: 1;
+                    width: 100%;
+
+                    box-sizing: border-box;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    padding:
+                        24px
+                        20px
+                        30px;
+                }
+
+
+                .pin-card {
+                    width: min(
+                        100%,
+                        480px
+                    );
+
+                    box-sizing: border-box;
+
+                    padding:
+                        38px
+                        40px
+                        34px;
+
+                    border:
+                        1px solid
+                        rgba(
+                            31,
+                            41,
+                            71,
+                            0.07
+                        );
+
+                    border-radius: 24px;
+
+                    background: #ffffff;
+
+                    box-shadow:
+                        0 20px 60px
+                        rgba(
+                            24,
+                            20,
+                            64,
+                            0.10
+                        );
+
+                    text-align: center;
+                }
+
+
+                .security-icon {
+                    width: 62px;
+                    height: 62px;
+
+                    margin:
+                        0 auto 17px;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    border-radius: 50%;
+
+                    color: #6337d2;
+
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #f1edff,
+                            #e7e1ff
+                        );
+                }
+
+
+                .recovery-icon {
+                    color: #6337d2;
+                }
+
+
+                .eyebrow {
+                    margin-bottom: 8px;
+
+                    color: #7043d8;
+
+                    font-size: 10px;
+                    line-height: 1.2;
+
+                    letter-spacing: 1.5px;
+                    font-weight: 800;
+                }
+
+
+                h1 {
+                    margin: 0;
+
+                    color: #15203d;
+
+                    font-size: 30px;
+                    line-height: 1.18;
+
+                    letter-spacing: -0.4px;
+
+                    font-weight: 760;
+                }
+
+
+                .intro {
+                    max-width: 390px;
+
+                    margin:
+                        13px auto 26px;
+
+                    color: #68728a;
+
+                    font-size: 14px;
+                    line-height: 1.55;
+                }
+
+
+                .pin-field {
+                    text-align: left;
+                }
+
+
+                .pin-field label {
+                    display: block;
+
+                    margin-bottom: 8px;
+
+                    color: #293552;
+
+                    font-size: 13px;
+                    font-weight: 700;
+                }
+
+
+                .pin-input-wrapper {
+                    position: relative;
+                    width: 100%;
+                }
+
+
+                .pin-field input {
+                    width: 100%;
+                    height: 58px;
+
+                    box-sizing: border-box;
+
+                    border:
+                        1px solid
+                        #d8dcea;
+
+                    border-radius: 13px;
+
+                    background: #fbfcff;
+
+                    color: #17224a;
+
+                    padding:
+                        0 56px 0 18px;
+
+                    font-size: 24px;
+                    font-weight: 700;
+
+                    letter-spacing: 9px;
+
+                    text-align: center;
+
+                    outline: none;
+
+                    transition:
+                        border-color .16s ease,
+                        box-shadow .16s ease;
+                }
+
+
+                .pin-field input:focus {
+                    border-color:
+                        #7043d8;
+
+                    background: #ffffff;
+
+                    box-shadow:
+                        0 0 0 4px
+                        rgba(
+                            112,
+                            67,
+                            216,
+                            0.10
+                        );
+                }
+
+
+                .pin-field input:disabled {
+                    opacity: .65;
+                }
+
+
+                .pin-visibility-button {
+                    position: absolute;
+
+                    top: 50%;
+                    right: 14px;
+
+                    transform:
+                        translateY(-50%);
+
+                    width: 34px;
+                    height: 34px;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    padding: 0;
+                    margin: 0;
+
+                    border: 0;
+                    border-radius: 8px;
+
+                    background: transparent;
+
+                    color: #68738b;
+
+                    cursor: pointer;
+                }
+
+
+                .pin-visibility-button:hover:not(:disabled) {
+                    background: #f1eff8;
+
+                    color: #6337d2;
+                }
+
+
+                .pin-visibility-button:disabled {
+                    opacity: .5;
+
+                    cursor: not-allowed;
+                }
+
+
+                .pin-visibility-button svg {
+                    width: 18px;
+                    height: 18px;
+
+                    display: block;
+                }
+
+
+
+                .error-message {
+                    margin-top: 14px;
+
+                    padding:
+                        10px
+                        12px;
+
+                    display: flex;
+                    align-items: center;
+
+                    gap: 9px;
+
+                    border:
+                        1px solid
+                        #f1cece;
+
+                    border-radius: 10px;
+
+                    background: #fff6f6;
+
+                    color: #9d3030;
+
+                    font-size: 13px;
+                    line-height: 1.4;
+
+                    text-align: left;
+                }
+
+
+                .error-icon {
+                    width: 20px;
+                    height: 20px;
+
+                    flex: 0 0 20px;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    border-radius: 50%;
+
+                    background: #c94444;
+
+                    color: #ffffff;
+
+                    font-size: 12px;
+                    font-weight: 800;
+                }
+
+
+                .attempt-message {
+                    margin-top: 12px;
+
+                    color: #7043d8;
+
+                    font-size: 12px;
+                    font-weight: 700;
+                }
+
+
+                .verify-button {
+                    width: 100%;
+
+                    min-height: 54px;
+
+                    margin-top: 21px;
+
+                    padding:
+                        0 20px;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    gap: 10px;
+
+                    border: 0;
+                    border-radius: 13px;
+
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #6337d2,
+                            #7545df
+                        );
+
+                    color: #ffffff;
+
+                    font-size: 16px;
+                    font-weight: 750;
+
+                    cursor: pointer;
+
+                    box-shadow:
+                        0 10px 24px
+                        rgba(
+                            99,
+                            55,
+                            210,
+                            0.20
+                        );
+
+                    transition:
+                        transform .15s ease,
+                        box-shadow .15s ease,
+                        opacity .15s ease;
+                }
+
+
+                .verify-button:hover:not(:disabled) {
+                    transform:
+                        translateY(-1px);
+
+                    box-shadow:
+                        0 13px 28px
+                        rgba(
+                            99,
+                            55,
+                            210,
+                            0.25
+                        );
+                }
+
+
+                .verify-button:disabled {
+                    opacity: .48;
+
+                    cursor: not-allowed;
+
+                    box-shadow: none;
+                }
+
+
+                .arrow {
+                    font-size: 20px;
+                    line-height: 1;
+                }
+
+
+                .security-note {
+                    margin-top: 19px;
+
+                    padding:
+                        13px
+                        14px;
+
+                    display: flex;
+                    align-items: flex-start;
+
+                    gap: 10px;
+
+                    border-radius: 12px;
+
+                    background: #f5f8fd;
+
+                    color: #68738b;
+
+                    font-size: 11.5px;
+                    line-height: 1.45;
+
+                    text-align: left;
+                }
+
+
+                .security-note svg {
+                    flex:
+                        0 0 auto;
+
+                    color: #416ed8;
+                }
+
+
+                .timer-panel {
+                    margin:
+                        20px 0 22px;
+
+                    padding:
+                        18px;
+
+                    border:
+                        1px solid
+                        #e2daf8;
+
+                    border-radius: 17px;
+
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #f5f1ff,
+                            #ede8ff
+                        );
+                }
+
+
+                .timer-panel span {
+                    display: block;
+
+                    margin-bottom: 4px;
+
+                    color: #777f98;
+
+                    font-size: 9px;
+                    font-weight: 800;
+
+                    letter-spacing: 1.7px;
+                }
+
+
+                .timer-panel strong {
+                    color: #6337d2;
+
+                    font-size: 38px;
+                    line-height: 1.1;
+
+                    letter-spacing: 2px;
+                }
+
+
+                .lock-progress {
+                    margin-bottom: 18px;
+                }
+
+
+                .lock-progress-heading {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+
+                    margin-bottom: 8px;
+
+                    color: #737b91;
+
+                    font-size: 11px;
+                }
+
+
+                .lock-progress-heading strong {
+                    color: #4e5673;
+                }
+
+
+                .lock-track {
+                    display: grid;
+
+                    grid-template-columns:
+                        repeat(3, 1fr);
+
+                    gap: 6px;
+                }
+
+
+                .lock-step {
+                    height: 6px;
+
+                    border-radius: 8px;
+
+                    background: #e6e2ef;
+                }
+
+
+                .lock-step.active {
+                    background:
+                        linear-gradient(
+                            90deg,
+                            #6337d2,
+                            #8060e2
+                        );
+                }
+
+
+                .lock-description {
+                    margin:
+                        0 0 18px;
+
+                    color: #69728a;
+
+                    font-size: 13px;
+                    line-height: 1.5;
+                }
+
+
+                .recovery-panel {
+                    display: flex;
+                    align-items: flex-start;
+
+                    gap: 12px;
+
+                    padding:
+                        15px;
+
+                    border:
+                        1px solid
+                        #e2daf8;
+
+                    border-radius: 14px;
+
+                    background: #f7f4ff;
+
+                    text-align: left;
+                }
+
+
+                .recovery-symbol {
+                    width: 28px;
+                    height: 28px;
+
+                    flex:
+                        0 0 28px;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    border-radius: 50%;
+
+                    background: #6337d2;
+
+                    color: #ffffff;
+
+                    font-size: 14px;
+                    font-weight: 800;
+                }
+
+
+                .recovery-panel strong {
+                    display: block;
+
+                    margin-bottom: 3px;
+
+                    color: #29345b;
+
+                    font-size: 13px;
+                }
+
+
+                .recovery-panel p {
+                    margin: 0;
+
+                    color: #68718d;
+
+                    font-size: 12px;
+                    line-height: 1.45;
+                }
+
+
+                @media (max-width: 600px) {
+
+                    .pin-content {
+                        align-items: flex-start;
+
+                        padding:
+                            20px
+                            14px
+                            24px;
+                    }
+
+
+                    .pin-card {
+                        width: 100%;
+
+                        padding:
+                            30px
+                            20px
+                            26px;
+
+                        border-radius: 20px;
+                    }
+
+
+                    h1 {
+                        font-size: 27px;
+                    }
+
+
+                    .intro {
+                        font-size: 13.5px;
+                    }
+
+
+                    .pin-field input {
+                        height: 54px;
+
+                        font-size: 22px;
+
+                        letter-spacing: 8px;
+                    }
+
+
+                    .verify-button {
+                        min-height: 52px;
+                    }
+                }
+
+            `}</style>
+
+        </main>
+    );
+}

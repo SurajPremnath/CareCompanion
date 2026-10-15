@@ -1,0 +1,840 @@
+import { supabase } from "@/lib/supabase";
+import { selfDailyCareRepository } from "@/lib/repositories/SelfDailyCareRepository";
+
+
+export interface ClinicalTrendSummary {
+
+    parameter:string;
+
+    current:string;
+
+    minimum:string;
+
+    maximum:string;
+
+    average:string;
+
+    history:number[];
+
+}
+
+
+
+export async function buildClinicalTrends(
+    patientId: string | null,
+    startDate: string,
+    endDate: string
+):
+Promise<ClinicalTrendSummary[]> {
+
+
+
+let records: {
+    temperature: number | null;
+    pulse: number | null;
+    spo2: number | null;
+    systolic: number | null;
+    diastolic: number | null;
+    weight_kg: number | null;
+}[] = [];
+
+if (patientId) {
+    const { data, error } = await supabase
+        .from("daily_care")
+        .select(
+            `
+            temperature,
+            pulse,
+            spo2,
+            systolic,
+            diastolic,
+            weight_kg
+            `
+        )
+        .eq(
+            "patient_id",
+            patientId
+        )
+        .gte(
+            "recorded_at",
+            `${startDate} 00:00:00`
+        )
+        .lte(
+            "recorded_at",
+            `${endDate} 23:59:59`
+        )
+        .order(
+            "recorded_at",
+            {
+                ascending: true
+            }
+        );
+
+    if (error) {
+        throw error;
+    }
+
+    records = data ?? [];
+} else {
+    const selfRecords =
+        await selfDailyCareRepository.getByUserId();
+
+    records = selfRecords
+        .filter(record => {
+            const recordedDate =
+                record.recordedAt.slice(0, 10);
+
+            return (
+                recordedDate >= startDate &&
+                recordedDate <= endDate
+            );
+        })
+        .sort(
+            (a, b) =>
+                a.recordedAt.localeCompare(
+                    b.recordedAt
+                )
+        )
+        .map(record => ({
+            temperature:
+                record.temperature ?? null,
+
+            pulse:
+                record.pulse ?? null,
+
+            spo2:
+                record.spo2 ?? null,
+
+            systolic:
+                record.systolic ?? null,
+
+            diastolic:
+                record.diastolic ?? null,
+
+            weight_kg:
+                record.weightKg ?? null,
+        }));
+}
+
+if (records.length === 0) {
+    return [];
+}
+
+
+const numericValues = (
+    values: (number | null | undefined)[]
+): number[] => {
+    return values.filter(
+        (value): value is number =>
+            value !== null &&
+            value !== undefined
+    );
+};
+
+
+const calculate = (
+    values:number[]
+)=>{
+
+    if(values.length===0){
+
+        return {
+
+            current:"-",
+
+            min:"-",
+
+            max:"-",
+
+            avg:"-",
+
+            history:[]
+
+        };
+
+    }
+
+
+
+    return {
+
+
+        current:
+            values[
+                values.length-1
+            ].toString(),
+
+
+        min:
+            Math.min(...values)
+            .toString(),
+
+
+        max:
+            Math.max(...values)
+            .toString(),
+
+
+        avg:
+            (
+                values.reduce(
+                    (a,b)=>a+b,
+                    0
+                )
+                /
+                values.length
+            )
+            .toFixed(1),
+
+
+        history:values
+
+
+    };
+
+
+}
+
+
+
+const temperature =
+calculate(
+    numericValues(
+        records.map(r => r.temperature)
+    )
+);
+
+
+const pulse =
+calculate(
+    numericValues(
+        records.map(r => r.pulse)
+    )
+);
+
+const spo2 =
+calculate(
+    numericValues(
+        records.map(r => r.spo2)
+    )
+);
+
+const systolic =
+calculate(
+    numericValues(
+        records.map(r => r.systolic)
+    )
+);
+
+const diastolic =
+calculate(
+    numericValues(
+        records.map(r => r.diastolic)
+    )
+);
+
+const weight =
+calculate(
+    numericValues(
+        records.map(r => r.weight_kg)
+    )
+);
+
+
+
+
+return [
+
+
+
+{
+
+parameter:"Temperature",
+
+current:
+`${temperature.current}°F`,
+
+minimum:
+`${temperature.min}°F`,
+
+maximum:
+`${temperature.max}°F`,
+
+average:
+`${temperature.avg}°F`,
+
+history:
+temperature.history
+
+},
+
+
+
+{
+
+parameter:"Pulse",
+
+current:
+`${pulse.current} bpm`,
+
+minimum:
+`${pulse.min} bpm`,
+
+maximum:
+`${pulse.max} bpm`,
+
+average:
+`${pulse.avg} bpm`,
+
+history:
+pulse.history
+
+},
+
+
+
+{
+
+parameter:"SpO₂",
+
+current:
+`${spo2.current}%`,
+
+minimum:
+`${spo2.min}%`,
+
+maximum:
+`${spo2.max}%`,
+
+average:
+`${spo2.avg}%`,
+
+history:
+spo2.history
+
+},
+
+
+
+{
+
+parameter:"Blood Pressure",
+
+current:
+`${systolic.current}/${diastolic.current}`,
+
+minimum:
+`${systolic.min}/${diastolic.min}`,
+
+maximum:
+`${systolic.max}/${diastolic.max}`,
+
+average:
+`${systolic.avg}/${diastolic.avg}`,
+
+history:
+systolic.history
+
+},
+
+
+
+{
+
+parameter:"Weight",
+
+current:
+`${weight.current} kg`,
+
+minimum:
+`${weight.min} kg`,
+
+maximum:
+`${weight.max} kg`,
+
+average:
+`${weight.avg} kg`,
+
+history:
+weight.history
+
+}
+
+
+
+];
+
+
+}
+
+
+export interface ClinicalTrendDailyReading {
+    date: string;
+    temperature: number | null;
+    pulse: number | null;
+    spo2: number | null;
+    systolic: number | null;
+    diastolic: number | null;
+    weightKg: number | null;
+}
+
+export async function buildClinicalTrendDailyReadings(
+    patientId: string | null,
+    startDate: string,
+    endDate: string
+): Promise<ClinicalTrendDailyReading[]> {
+    if (patientId) {
+        const { data, error } = await supabase
+            .from("daily_care")
+            .select(`
+                recorded_at,
+                temperature,
+                pulse,
+                spo2,
+                systolic,
+                diastolic,
+                weight_kg
+            `)
+            .eq("patient_id", patientId)
+            .gte("recorded_at", `${startDate} 00:00:00`)
+            .lte("recorded_at", `${endDate} 23:59:59`)
+            .order("recorded_at", { ascending: true });
+
+        if (error) {
+            throw error;
+        }
+
+        return (data ?? []).map(record => ({
+            date: String(record.recorded_at).slice(0, 10),
+            temperature: record.temperature ?? null,
+            pulse: record.pulse ?? null,
+            spo2: record.spo2 ?? null,
+            systolic: record.systolic ?? null,
+            diastolic: record.diastolic ?? null,
+            weightKg: record.weight_kg ?? null,
+        }));
+    }
+
+    const selfRecords =
+        await selfDailyCareRepository.getByUserId();
+
+    return selfRecords
+        .filter(record => {
+            const date = record.recordedAt.slice(0, 10);
+            return date >= startDate && date <= endDate;
+        })
+        .sort((a, b) =>
+            a.recordedAt.localeCompare(b.recordedAt)
+        )
+        .map(record => ({
+            date: record.recordedAt.slice(0, 10),
+            temperature: record.temperature ?? null,
+            pulse: record.pulse ?? null,
+            spo2: record.spo2 ?? null,
+            systolic: record.systolic ?? null,
+            diastolic: record.diastolic ?? null,
+            weightKg: record.weightKg ?? null,
+        }));
+}
+
+
+export interface ClinicalTrendGraphPoint {
+    date: string;
+    value: number;
+}
+
+export interface ClinicalTrendGraphData {
+    parameter: string;
+
+    current: string;
+
+    minimum: string;
+
+    maximum: string;
+
+    average: string;
+
+    points:
+        ClinicalTrendGraphPoint[];
+
+    systolicPoints?:
+        ClinicalTrendGraphPoint[];
+
+    diastolicPoints?:
+        ClinicalTrendGraphPoint[];
+}
+
+export async function buildClinicalTrendGraphData(
+    patientId: string,
+    startDate: string,
+    endDate: string
+):
+Promise<ClinicalTrendGraphData[]> {
+
+const { data, error } =
+    await supabase
+
+        .from("daily_care")
+
+        .select(
+            `
+            recorded_at,
+            temperature,
+            pulse,
+            spo2,
+            systolic,
+            diastolic,
+            weight_kg
+            `
+        )
+
+        .eq(
+            "patient_id",
+            patientId
+        )
+
+        .gte(
+            "recorded_at",
+            `${startDate} 00:00:00`
+        )
+
+        .lte(
+            "recorded_at",
+            `${endDate} 23:59:59`
+        )
+
+        .order(
+            "recorded_at",
+            {
+                ascending: true
+            }
+        );
+
+    if (error) {
+        throw error;
+    }
+
+    const records =
+        data ?? [];
+
+    const buildPoints = (
+        field:
+            | "temperature"
+            | "pulse"
+            | "spo2"
+            | "systolic"
+            | "diastolic"
+            | "weight_kg"
+    ): ClinicalTrendGraphPoint[] => {
+
+        return records
+            .filter(
+                record =>
+                    record[field] !== null &&
+                    record[field] !== undefined
+            )
+            .map(
+                record => ({
+                    date:
+                        record.recorded_at,
+
+                    value:
+                        Number(
+                            record[field]
+                        )
+                })
+            );
+    };
+
+return [
+
+    {
+        parameter:
+            "Temperature",
+
+        current:
+            records.length > 0
+                ? String(
+                    records[
+                        records.length - 1
+                    ].temperature ?? "-"
+                )
+                : "-",
+
+        minimum:
+            records.length > 0
+                ? String(
+                    Math.min(
+                        ...buildPoints(
+                            "temperature"
+                        ).map(
+                            point => point.value
+                        )
+                    )
+                )
+                : "-",
+
+        maximum:
+            records.length > 0
+                ? String(
+                    Math.max(
+                        ...buildPoints(
+                            "temperature"
+                        ).map(
+                            point => point.value
+                        )
+                    )
+                )
+                : "-",
+
+        average:
+            records.length > 0
+                ? (
+                    buildPoints(
+                        "temperature"
+                    )
+                        .reduce(
+                            (sum, point) =>
+                                sum + point.value,
+                            0
+                        )
+                    /
+                    buildPoints(
+                        "temperature"
+                    ).length
+                ).toFixed(1)
+                : "-",
+
+        points:
+            buildPoints(
+                "temperature"
+            )
+    },
+
+    {
+        parameter:
+            "Pulse",
+
+        current:
+            records.length > 0
+                ? String(
+                    records[
+                        records.length - 1
+                    ].pulse ?? "-"
+                )
+                : "-",
+
+        minimum:
+            records.length > 0
+                ? String(
+                    Math.min(
+                        ...buildPoints(
+                            "pulse"
+                        ).map(
+                            point => point.value
+                        )
+                    )
+                )
+                : "-",
+
+        maximum:
+            records.length > 0
+                ? String(
+                    Math.max(
+                        ...buildPoints(
+                            "pulse"
+                        ).map(
+                            point => point.value
+                        )
+                    )
+                )
+                : "-",
+
+        average:
+            records.length > 0
+                ? (
+                    buildPoints(
+                        "pulse"
+                    )
+                        .reduce(
+                            (sum, point) =>
+                                sum + point.value,
+                            0
+                        )
+                    /
+                    buildPoints(
+                        "pulse"
+                    ).length
+                ).toFixed(1)
+                : "-",
+
+        points:
+            buildPoints(
+                "pulse"
+            )
+    },
+
+    {
+        parameter:
+            "SpO₂",
+
+        current:
+            records.length > 0
+                ? String(
+                    records[
+                        records.length - 1
+                    ].spo2 ?? "-"
+                )
+                : "-",
+
+        minimum:
+            records.length > 0
+                ? String(
+                    Math.min(
+                        ...buildPoints(
+                            "spo2"
+                        ).map(
+                            point => point.value
+                        )
+                    )
+                )
+                : "-",
+
+        maximum:
+            records.length > 0
+                ? String(
+                    Math.max(
+                        ...buildPoints(
+                            "spo2"
+                        ).map(
+                            point => point.value
+                        )
+                    )
+                )
+                : "-",
+
+        average:
+            records.length > 0
+                ? (
+                    buildPoints(
+                        "spo2"
+                    )
+                        .reduce(
+                            (sum, point) =>
+                                sum + point.value,
+                            0
+                        )
+                    /
+                    buildPoints(
+                        "spo2"
+                    ).length
+                ).toFixed(1)
+                : "-",
+
+        points:
+            buildPoints(
+                "spo2"
+            )
+    },
+
+    {
+        parameter:
+            "Blood Pressure",
+
+        current:
+            records.length > 0
+                ? `${records[
+                    records.length - 1
+                ].systolic ?? "-"}/${records[
+                    records.length - 1
+                ].diastolic ?? "-"}`
+                : "-",
+
+        minimum:
+            "-",
+
+        maximum:
+            "-",
+
+        average:
+            "-",
+
+        points:
+            [],
+
+        systolicPoints:
+            buildPoints(
+                "systolic"
+            ),
+
+        diastolicPoints:
+            buildPoints(
+                "diastolic"
+            )
+    },
+
+    {
+        parameter:
+            "Weight",
+
+        current:
+            records.length > 0
+                ? String(
+                    records[
+                        records.length - 1
+                    ].weight_kg ?? "-"
+                )
+                : "-",
+
+        minimum:
+            records.length > 0
+                ? String(
+                    Math.min(
+                        ...buildPoints(
+                            "weight_kg"
+                        ).map(
+                            point => point.value
+                        )
+                    )
+                )
+                : "-",
+
+        maximum:
+            records.length > 0
+                ? String(
+                    Math.max(
+                        ...buildPoints(
+                            "weight_kg"
+                        ).map(
+                            point => point.value
+                        )
+                    )
+                )
+                : "-",
+
+        average:
+            records.length > 0
+                ? (
+                    buildPoints(
+                        "weight_kg"
+                    )
+                        .reduce(
+                            (sum, point) =>
+                                sum + point.value,
+                            0
+                        )
+                    /
+                    buildPoints(
+                        "weight_kg"
+                    ).length
+                ).toFixed(1)
+                : "-",
+
+        points:
+            buildPoints(
+                "weight_kg"
+            )
+    }
+
+];
+}
