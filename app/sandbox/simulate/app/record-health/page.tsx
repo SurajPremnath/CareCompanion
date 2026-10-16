@@ -1554,7 +1554,7 @@ if (loading) {
 
                     onHomeClick={() =>
                         router.push(
-                            "/dashboard"
+                            "/sandbox/simulate/app/dashboard"
                         )
                     }
 

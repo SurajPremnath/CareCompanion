@@ -431,25 +431,47 @@ setClarificationError(null);
                         .replace("{name}", recordingName)}
             </h3>
 
-            <div className="sandbox-voice-instructions">
-                <strong>Try a sample health update</strong>
+<div className="sandbox-voice-instructions">
+    <div className="sandbox-voice-instructions-header">
+        <span className="sandbox-voice-demo-label">
+            VOICE DEMONSTRATION
+        </span>
 
-                <p>
-                    Read the following example aloud to try the
-                    voice-recording experience:
-                </p>
+        <h4>Try a sample health update</h4>
 
-                <blockquote>
-                    I am feeling slightly tired today. My temperature
-                    is 98.6 degrees Fahrenheit, my pulse is 72 beats
-                    per minute, and I have no other symptoms.
-                </blockquote>
+        <p>
+            Read the example below aloud at your natural pace.
+        </p>
+    </div>
 
-                <small>
-                    This is a demonstration. You may use fictional
-                    details. No actual health record will be saved.
-                </small>
-            </div>
+    <blockquote className="sandbox-voice-sample">
+        <span className="sandbox-voice-quote-mark" aria-hidden="true">
+            “
+        </span>
+
+        <p>
+            I am feeling slightly tired today.
+        </p>
+
+        <p>
+            My temperature is 98.6 degrees Fahrenheit,
+            and my pulse is 72 beats per minute.
+        </p>
+
+        <p>
+            I have no other symptoms.
+        </p>
+    </blockquote>
+
+    <div className="sandbox-voice-disclaimer">
+        <span aria-hidden="true">ⓘ</span>
+
+        <p>
+            This is a demonstration. You may use fictional
+            details. No actual health record will be saved.
+        </p>
+    </div>
+</div>
 
             <VoiceRecorder
                 onRecordingReady={processVoiceRecording}
@@ -738,70 +760,185 @@ setClarificationError(null);
 
 <style jsx>{`
     .voice-progress-indicator {
-        animation:
-            voiceProgress 1.4s ease-in-out infinite;
+        animation: voiceProgress 1.4s ease-in-out infinite;
     }
 
     @keyframes voiceProgress {
-
         0% {
-            transform:
-                translateX(-120%);
+            transform: translateX(-120%);
         }
 
         100% {
-            transform:
-                translateX(320%);
+            transform: translateX(320%);
+        }
+    }
+
+    .voice-care-heading {
+        margin: 0 0 8px;
+        font-size: 16px;
+        line-height: 1.5;
+        font-weight: 600;
+    }
+
+    /* Sandbox voice sample instructions */
+    .sandbox-voice-instructions {
+        box-sizing: border-box;
+        width: 100%;
+        margin: 20px 0 24px;
+        padding: 22px;
+        border: 1px solid #dce8e3;
+        border-radius: 16px;
+        background: #f7faf8;
+        color: #243b32;
+    }
+
+    .sandbox-voice-instructions-header {
+        margin-bottom: 18px;
+    }
+
+    .sandbox-voice-demo-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        color: #39745b;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.1px;
+    }
+
+    .sandbox-voice-instructions-header h4 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        font-weight: 650;
+        line-height: 1.4;
+    }
+
+    .sandbox-voice-instructions-header p {
+        margin: 0;
+        color: #5c6f66;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .sandbox-voice-sample {
+        box-sizing: border-box;
+        width: 100%;
+        margin: 0;
+        padding: 20px;
+        border-left: 3px solid #61977e;
+        border-radius: 0 12px 12px 0;
+        background: #ffffff;
+    }
+
+    .sandbox-voice-quote-mark {
+        display: block;
+        height: 30px;
+        color: #61977e;
+        font-size: 42px;
+        font-weight: 600;
+        line-height: 1;
+    }
+
+    .sandbox-voice-sample p {
+        margin: 0 0 14px;
+        font-size: 16px;
+        line-height: 1.8;
+        overflow-wrap: anywhere;
+    }
+
+    .sandbox-voice-sample p:last-child {
+        margin-bottom: 0;
+    }
+
+    .sandbox-voice-disclaimer {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-top: 16px;
+        color: #596b63;
+    }
+
+    .sandbox-voice-disclaimer > span {
+        flex-shrink: 0;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    .sandbox-voice-disclaimer p {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    @media (max-width: 640px) {
+        .voice-care-heading {
+            margin-bottom: 6px;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
+        .sandbox-voice-instructions {
+            margin: 16px 0 20px;
+            padding: 16px;
+            border-radius: 14px;
+        }
+
+        .sandbox-voice-instructions-header {
+            margin-bottom: 14px;
+        }
+
+        .sandbox-voice-instructions-header h4 {
+            font-size: 16px;
+        }
+
+        .sandbox-voice-instructions-header p {
+            font-size: 13px;
+        }
+
+        .sandbox-voice-sample {
+            padding: 16px;
+        }
+
+        .sandbox-voice-sample p {
+            font-size: 15px;
+            line-height: 1.75;
+        }
+
+        .sandbox-voice-disclaimer p {
+            font-size: 12px;
+        }
+
+        .voice-review-actions {
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .voice-review-secondary-actions {
+            display: flex;
+            width: 100%;
+            gap: 8px;
+        }
+
+        .voice-review-secondary-actions button {
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+            min-height: 42px !important;
+            padding: 9px 8px !important;
+            font-size: 12px !important;
+            border-radius: 10px !important;
+            white-space: nowrap;
+        }
+
+        .voice-review-actions > button {
+            width: 100%;
+            min-width: 0 !important;
+            min-height: 42px !important;
+            padding: 9px 10px !important;
+            font-size: 13px !important;
+            border-radius: 10px !important;
+            flex: none !important;
+        }
     }
-
-.voice-care-heading {
-    margin: 0 0 8px;
-    font-size: 16px;
-    line-height: 1.2;
-    font-weight: 600;
-}
-
-@media (max-width: 640px) {
-    .voice-care-heading {
-        margin-bottom: 6px;
-        font-size: 14px;
-        line-height: 1.2;
-    }
-
-.voice-review-actions {
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 12px;
-}
-
-.voice-review-secondary-actions {
-    display: flex;
-    width: 100%;
-    gap: 8px;
-}
-
-.voice-review-secondary-actions button {
-    flex: 1 1 0 !important;
-    min-width: 0 !important;
-    min-height: 42px !important;
-    padding: 9px 8px !important;
-    font-size: 12px !important;
-    border-radius: 10px !important;
-    white-space: nowrap;
-}
-
-.voice-review-actions > button {
-    width: 100%;
-    min-width: 0 !important;
-    min-height: 42px !important;
-    padding: 9px 10px !important;
-    font-size: 13px !important;
-    border-radius: 10px !important;
-    flex: none !important;
-}
-}
 `}</style>
 
         </section>
