@@ -754,11 +754,11 @@ const openMobileFeature = (
         feature === "RECORD_HEALTH"
     ) {
 
-        router.push(
-            mobileCareMode === "SELF"
-                ? "/record-health?mode=self"
-                : "/record-health"
-        );
+router.push(
+    mobileCareMode === "SELF"
+        ? "/sandbox/simulate/app/record-health?mode=self"
+        : "/sandbox/simulate/app/record-health"
+);
 
         return;
     }
@@ -787,8 +787,8 @@ patientName:
 
 router.push(
     mobileCareMode === "SELF"
-        ? "/record-health?view=timeline&mode=self"
-        : "/record-health?view=timeline"
+? "/sandbox/simulate/app/record-health?view=timeline&mode=self"
+: "/sandbox/simulate/app/record-health?view=timeline"
 );
 
 return;
@@ -800,8 +800,8 @@ if (
 
     router.push(
         mobileCareMode === "SELF"
-            ? "/record-health?view=assessment&mode=self"
-            : "/record-health?view=assessment"
+? "/sandbox/simulate/app/record-health?view=assessment&mode=self"
+: "/sandbox/simulate/app/record-health?view=assessment"
     );
 
     return;
@@ -813,8 +813,8 @@ if (
 
     router.push(
         mobileCareMode === "SELF"
-            ? "/record-health?view=care-journey&mode=self"
-            : "/record-health?view=care-journey"
+? "/sandbox/simulate/app/record-health?view=care-journey&mode=self"
+: "/sandbox/simulate/app/record-health?view=care-journey"
     );
 
     return;
@@ -1765,8 +1765,8 @@ headerAccessory={<LanguageSelector />}
 
         router.push(
             personSelection.mode === "SELF"
-                ? "/record-health?mode=self"
-                : "/record-health"
+? "/sandbox/simulate/app/record-health?mode=self"
+: "/sandbox/simulate/app/record-health"
         );
 
     }}
@@ -1833,8 +1833,8 @@ headerAccessory={<LanguageSelector />}
 
         router.push(
             personSelection.mode === "SELF"
-                ? "/record-health?view=care-journey&mode=self"
-                : "/record-health?view=care-journey"
+? "/sandbox/simulate/app/record-health?view=care-journey&mode=self"
+: "/sandbox/simulate/app/record-health?view=care-journey"
         );
 
     }}
@@ -1903,8 +1903,8 @@ headerAccessory={<LanguageSelector />}
 
             router.push(
                 personSelection.mode === "SELF"
-                    ? "/record-health?view=assessment&mode=self"
-                    : "/record-health?view=assessment"
+? "/sandbox/simulate/app/record-health?view=assessment&mode=self"
+: "/sandbox/simulate/app/record-health?view=assessment"
             );
 
         }}
