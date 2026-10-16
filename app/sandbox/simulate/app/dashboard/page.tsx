@@ -531,7 +531,77 @@ setUser({
     setMobilePatients(demoPatients);
     setFamilyModeAvailable(true);
     setMobileSelectedPatientId(demoPatients[0].id);
-    setMobileSnapshots({});
+setMobileSnapshots({
+    SELF: {
+dailyCare: {
+    id: "sandbox-self-reading",
+    userId: "sandbox-demo-user",
+    patientId: "",
+    recordedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    overallStatus: "NO_CONCERNS_REPORTED",
+    temperature: 36.7,
+    temperatureUnit: "C",
+    weightKg: 72,
+    systolic: 118,
+    diastolic: 76,
+    pulse: 72,
+    spo2: 98,
+    symptoms: [],
+    painLocations: [],
+    otherSymptom: null,
+} as SelfDailyCare,
+        needsAttention: false,
+        monitoringItems: ["No symptoms reported"],
+    },
+    "sandbox-patient-mr-x": {
+dailyCare: {
+    id: "sandbox-mr-x-reading",
+    userId: "sandbox-demo-user",
+    patientId: "sandbox-patient-mr-x",
+    recordedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    overallStatus: "NO_CONCERNS_REPORTED",
+            temperature: 36.8,
+            temperatureUnit: "C",
+            weightKg: 78,
+            systolic: 126,
+            diastolic: 82,
+            pulse: 76,
+            spo2: 97,
+    symptoms: [],
+    painLocations: [],
+    otherSymptom: null,
+} as DailyCare,
+        needsAttention: false,
+        monitoringItems: ["No symptoms reported"],
+    },
+    "sandbox-patient-mrs-y": {
+        dailyCare: {
+            id: "sandbox-mrs-y-reading",
+            userId: "sandbox-demo-user",
+            patientId: "sandbox-patient-mrs-y",
+            recordedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+            overallStatus: "NO_CONCERNS_REPORTED",
+            temperature: 36.6,
+            temperatureUnit: "C",
+            weightKg: 64,
+            systolic: 120,
+            diastolic: 78,
+            pulse: 74,
+            spo2: 98,
+            symptoms: [],
+    painLocations: [],
+            otherSymptom: null,
+        } as DailyCare,
+        needsAttention: false,
+        monitoringItems: ["No symptoms reported"],
+    },
+});
 
     setCareVRHandoff({
         userId: "sandbox-demo-user",
@@ -1095,11 +1165,7 @@ showFamilyToggle={true}
 
 {mobileCareMode === "SELF" && (
     <section className="mobile-health-card">
-        <div className="mobile-health-card-heading">
-            <h2>My Profile</h2>
-        </div>
-
-        <div style={{ padding: "12px 16px" }}>
+       <div style={{ padding: "8px 16px" }}>
             <strong>{user.fullName}</strong>
             <p style={{ margin: "6px 0 0" }}>
                 Age 27 · Male
@@ -1191,19 +1257,44 @@ showFamilyToggle={true}
 
                 <div className="mobile-vital">
                     <div className="mobile-vital-icon mobile-vital-temp">
-                        ♨
+                        🌡️
                     </div>
                     <strong>
-                        {mobileSnapshots[
-                            mobileSnapshotKey
-                        ]?.dailyCare?.temperature != null
+                        {mobileSnapshots[mobileSnapshotKey]?.dailyCare?.temperature != null
                             ? `${mobileSnapshots[mobileSnapshotKey].dailyCare!.temperature}°${mobileSnapshots[mobileSnapshotKey].dailyCare!.temperatureUnit}`
                             : "—"}
                     </strong>
                     <label>Temperature</label>
                 </div>
 
+                <div className="mobile-vital">
+                    <div className="mobile-vital-icon">
+                        ⚖️
+                    </div>
+                    <strong>
+                        {mobileSnapshots[mobileSnapshotKey]?.dailyCare?.weightKg != null
+                            ? `${mobileSnapshots[mobileSnapshotKey].dailyCare!.weightKg} kg`
+                            : "—"}
+                    </strong>
+                    <label>Weight</label>
+                </div>
+
+                <div className="mobile-vital">
+                    <div className="mobile-vital-icon">
+                        🩺
+                    </div>
+                    <strong>
+                        {(
+                            mobileSnapshots[mobileSnapshotKey]?.dailyCare?.symptoms?.length ?? 0
+                        ) > 0
+                            ? mobileSnapshots[mobileSnapshotKey].dailyCare!.symptoms.join(", ")
+                            : "None"}
+                    </strong>
+                    <label>Symptoms</label>
+                </div>
+
             </div>
+
 
 
 {mobileSnapshots[
