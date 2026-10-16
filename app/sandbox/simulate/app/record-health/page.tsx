@@ -1121,353 +1121,97 @@ data: {
     );
 
 
-    /*
-     * Load authenticated user,
-     * consent and active patients.
-     */
-    useEffect(() => {
-
-        let cancelled = false;
-
-
-        async function loadPage() {
-
-
-            try {
-
-                const authUser =
-                    await authService
-                        .getCurrentUser();
-
-
-                if (!authUser) {
-
-                    router.replace(
-                        "/login"
-                    );
-
-                    return;
-                }
-
-
-const incomingReportHandoff =
-    reportHandoffStore.get();
-
-if (
-    incomingReportHandoff &&
-    incomingReportHandoff.userId !== authUser.id
-) {
-    throw new Error(
-        "Report handoff does not match the authenticated user."
-    );
-}
-
-setReportHandoff(
-    incomingReportHandoff
-);
-
-
-
-
-                const profile =
-                    await profileRepository
-                        .getCurrentProfile();
-
-
-                if (!profile) {
-
-                    await authService.logout();
-
-                    router.replace(
-                        "/login"
-                    );
-
-                    return;
-                }
-
-
-                const consent =
-                    await consentStorage
-                        .hasAcceptedCurrentConsent();
-
-
-                if (cancelled) {
-                    return;
-                }
-
-
-                if (!consent) {
-
-                    router.replace(
-                        "/consent"
-                    );
-
-                    return;
-                }
-
-
-setUser({
-    id:
-        profile.id,
-
-    fullName:
-        profile.fullName,
-
-    email:
-        profile.email,
-
-    role:
-        profile.role,
-
-    isFounder:
-        profile.isFounder,
-});
-
-
-                setConsentGranted(
-                    true
-                );
-
-
-const dashboardHandoff =
-    getCareVRDashboardHandoff();
-
-
-if (!dashboardHandoff) {
-
-    throw new Error(
-        "CareVR Dashboard handoff is required."
-    );
-
-}
-
 
 /*
- * The Dashboard handoff contains the patients
- * already resolved for the authenticated user's
- * selected CareVR role and active CareVR access.
+ * SANDBOX DEMO INITIALIZATION
  *
- * Use those patient IDs as the scope for Record Health.
- *
- * Retrieve the complete Patient domain objects
- * through the protected patient API rather than
- * constructing incomplete Patient objects from
- * the lightweight Dashboard handoff.
+ * Synthetic user and patients only.
+ * No authentication, consent, dashboard handoff,
+ * Supabase, or protected patient-storage requests.
  */
+useEffect(() => {
+    let cancelled = false;
 
-/*
-const scopedPatientIds =
-    dashboardHandoff.patients.map(
-        patient => patient.id
-    );
+    const initializeSandbox = () => {
+        const demoPatients: Patient[] = [
+            {
+                id: "sandbox-patient-mr-x",
+                userId: "sandbox-demo-user",
+                fullName: "Mr X",
+                dateOfBirth: null,
+                gender: "Male",
+                relationship: "Father",
+                status: "ACTIVE",
+                createdAt: "",
+                updatedAt: "",
+            },
+            {
+                id: "sandbox-patient-mrs-y",
+                userId: "sandbox-demo-user",
+                fullName: "Mrs Y",
+                dateOfBirth: null,
+                gender: "Female",
+                relationship: "Mother",
+                status: "ACTIVE",
+                createdAt: "",
+                updatedAt: "",
+            },
+        ];
 
-
-const loadedPatients =
-    (
-        await Promise.all(
-            scopedPatientIds.map(
-                async (patientId) => {
-
-                    const result =
-                        await patientStorage
-                            .getProtectedPatient(
-                                patientId
-                            );
-
-                    if (!result.success) {
-                        return null;
-                    }
-
-                    return result.data ?? null;
-
-                }
-            )
-        )
-    ).filter(
-        (
-            patient
-        ): patient is Patient =>
-            patient !== null
-    );
-
-
-if (cancelled) {
-    return;
-}
-
-
-setPatients(
-    loadedPatients
-);
-
-*/
-
-/*
- * Family mode defaults to
- * the first authorized patient.
- */
-
-/*
-if (
-    loadedPatients.length > 0
-) {
-
-    setSelectedPatientId(
-        loadedPatients[0].id
-    );
-
-}
-
-*/
-
-const scopedPatientIds =
-    dashboardHandoff.patients.map(
-        patient => patient.id
-    );
-
-const authorizedFamilyId =
-    dashboardHandoff.access.familyId;
-
-if (!authorizedFamilyId) {
-    throw new Error(
-        "Authorized CareVR Family could not be resolved."
-    );
-}
-
-const {
-    data: digitalHealthProfile,
-    error: digitalHealthProfileError,
-} =
-    await supabase
-        .from("digital_health_profile")
-        .select(`
-            patients,
-            carevr_access:carevr_access_id!inner (
-                access_type,
-                access_status
-            )
-        `)
-        .eq("family_id", authorizedFamilyId)
-        .eq("digital_health_flag", true)
-        .eq("carevr_access.access_type", "PRIMARY")
-        .eq("carevr_access.access_status", "ACTIVE")
-        .maybeSingle();
-
-if (digitalHealthProfileError) {
-    throw digitalHealthProfileError;
-}
-
-const dhpPatients =
-    Array.isArray(
-        digitalHealthProfile?.patients
-    )
-        ? digitalHealthProfile.patients
-        : [];
-
-const loadedPatients: Patient[] =
-    dhpPatients
-        .filter(
-            patient =>
-                patient &&
-                typeof patient.id === "string" &&
-                scopedPatientIds.includes(
-                    patient.id
-                )
-        )
-        .map(
-            patient => ({
-                id: patient.id,
-                userId:
-                    patient.user_id ??
-                    authUser.id,
-                fullName:
-                    patient.full_name,
-                dateOfBirth:
-                    patient.date_of_birth ??
-                    null,
-                gender:
-                    patient.gender ??
-                    null,
-                relationship:
-                    patient.relationship ??
-                    null,
-                status:
-                    patient.status ??
-                    "ACTIVE",
-                createdAt:
-                    patient.created_at ??
-                    "",
-                updatedAt:
-                    patient.updated_at ??
-                    "",
-            })
-        );
-
-if (cancelled) {
-    return;
-}
-
-setPatients(
-    loadedPatients
-);
-
-/*
- * Family mode defaults to
- * the first authorized patient.
- */
-if (
-    loadedPatients.length > 0
-) {
-
-    setSelectedPatientId(
-        loadedPatients[0].id
-    );
-
-}
-
-            }
-            catch (loadError) {
-
-                console.error(
-                    "Unable to load Record Health page.",
-                    loadError
-                );
-
-
-                if (!cancelled) {
-
-                    setError(
-                        "Unable to load Record Health."
-                    );
-
-                }
-
-            }
-            finally {
-
-                if (!cancelled) {
-
-                    setLoading(
-                        false
-                    );
-
-                }
-
-            }
-
+        if (cancelled) {
+            return;
         }
 
+        setUser({
+            id: "sandbox-demo-user",
+            fullName: "Mr S",
+            email: "demo@carevr.in",
+            role: "PRIMARY",
+            isFounder: false,
+        });
 
-        void loadPage();
+        setPatients(demoPatients);
+        setConsentGranted(true);
 
+        const requestedMode =
+            searchParams.get("mode")?.toLowerCase();
 
-        return () => {
+        const initialMode: MobileCareMode =
+            requestedMode === "self" ? "SELF" : "FAMILY";
 
-            cancelled = true;
+        setCareMode(initialMode);
 
-        };
+        setSelectedPatientId(demoPatients[0].id);
 
-    }, [router]);
+        // Reports require a real report handoff.
+        // Do not fabricate one for the public Sandbox.
+        setReportHandoff(null);
+
+        setError(null);
+    };
+
+    try {
+        initializeSandbox();
+    } catch (initializationError) {
+        console.error(
+            "Unable to initialize Sandbox Record Health.",
+            initializationError
+        );
+
+        setError(
+            "Unable to initialize the Sandbox demonstration."
+        );
+    } finally {
+        if (!cancelled) {
+            setLoading(false);
+        }
+    }
+
+    return () => {
+        cancelled = true;
+    };
+}, [searchParams]);
+
 
 
 const selectedPatient =
