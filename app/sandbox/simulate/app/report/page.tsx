@@ -9,20 +9,10 @@ import AppBrand from "@/app/components/AppBrand";
 
 import MobileHeader from "@/Components/common/MobileHeader";
 import CareVRFooter from "@/Components/common/CareVRFooter";
-import { authService } from "@/lib/auth/authService";
-import { profileRepository } from "@/lib/repositories/profileRepository";
 
 import { assessmentStorage } from "@/lib/storage/assessmentStorage";
 import type { AssessmentInput } from "@/lib/types/assessment";
 
-import {
-  patientStorage,
-} from "@/lib/storage/patientStorage";
-
-import {
-  hasAssessmentBeenSaved,
-  markAssessmentSaved,
-} from "@/lib/reportStorage";
 
 // import {
 //   analyticsService,
@@ -51,51 +41,20 @@ const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 const [loggingOut, setLoggingOut] = useState(false);
 
 useEffect(() => {
-  let active = true;
+  const type = localStorage.getItem("assessmentType") || "self";
+  const storedPatientName = localStorage.getItem("patientName") || "";
+  const demoName = storedPatientName || "Sandbox Visitor";
 
-  const loadProfile = async () => {
-    try {
-      const profile = await profileRepository.getCurrentProfile();
+  setUserName(demoName);
 
-      if (!active) return;
-
-      const name = profile?.fullName ?? "";
-      setUserName(name);
-
-      const type = localStorage.getItem("assessmentType") || "self";
-
-      if (type !== "family") {
-        setPatientName(
-          localStorage.getItem("patientName") || name
-        );
-      }
-    } catch (error) {
-      console.error(
-        "Failed to load assessment report header profile:",
-        error
-      );
-    }
-  };
-
-  void loadProfile();
-
-  return () => {
-    active = false;
-  };
+  if (type !== "family") {
+    setPatientName(demoName);
+  }
 }, []);
 
-const handleLogout = async () => {
-  if (loggingOut) return;
-
+const handleLogout = () => {
   setLoggingOut(true);
-
-  try {
-    await authService.logout();
-    router.replace("/login");
-  } catch (error) {
-    console.error("Assessment report logout failed:", error);
-    setLoggingOut(false);
-  }
+  router.replace("/sandbox");
 };
 
   const [loaded, setLoaded] = useState(false);
@@ -118,8 +77,6 @@ const handleLogout = async () => {
 
   const reportRef = useRef<HTMLDivElement>(null);
 
-const assessmentProcessingRef =
-  useRef(false);
 
   useEffect(() => {
     const type =
@@ -127,85 +84,25 @@ const assessmentProcessingRef =
 
     setAssessmentType(type);
 
-if (type === "family") {
-  const patientId =
-    localStorage.getItem("patientId");
+    // Sandbox-only participant details.
+    // Do not look up real patients or require a patient ID.
+    setPatientName(
+      localStorage.getItem("patientName") || "Sandbox Participant"
+    );
 
-  if (patientId) {
-    patientStorage
-      .getProtectedPatient(patientId)
-      .then((result) => {
-        if (
-          result.success &&
-          result.data
-        ) {
-          setPatientName(
-            result.data.fullName || ""
-          );
+    setPatientAge(
+      localStorage.getItem("patientAge") || ""
+    );
 
-          if (result.data.dateOfBirth) {
-            const birthDate =
-              new Date(
-                result.data.dateOfBirth
-              );
+    // Sandbox-only participant details.
+    // Do not look up real patients or require a patient ID.
+    setPatientName(
+      localStorage.getItem("patientName") || "Sandbox Participant"
+    );
 
-            const today =
-              new Date();
-
-            let age =
-              today.getFullYear() -
-              birthDate.getFullYear();
-
-            const monthDifference =
-              today.getMonth() -
-              birthDate.getMonth();
-
-            if (
-              monthDifference < 0 ||
-              (
-                monthDifference === 0 &&
-                today.getDate() <
-                  birthDate.getDate()
-              )
-            ) {
-              age--;
-            }
-
-            setPatientAge(
-              String(age)
-            );
-          } else {
-            setPatientAge("");
-          }
-
-          return;
-        }
-
-        setPatientName("");
-        setPatientAge("");
-      })
-      .catch((error) => {
-        console.error(
-          "Unable to load protected patient:",
-          error
-        );
-
-        setPatientName("");
-        setPatientAge("");
-      });
-  } else {
-    setPatientName("");
-    setPatientAge("");
-  }
-} else {
-  setPatientName(
-    localStorage.getItem("patientName") || ""
-  );
-
-  setPatientAge(
-    localStorage.getItem("patientAge") || ""
-  );
-}
+    setPatientAge(
+      localStorage.getItem("patientAge") || ""
+    );
 
     setAssessmentDate(
       localStorage.getItem("assessmentDate") ||
@@ -777,210 +674,17 @@ reportSummary.push(
     }
 
 
-const assessmentDate = new Date().toISOString();
 
-const assessmentType =
-  type === "family" ? "FAMILY" : "SELF";
-
-const patientId =
-  type === "family"
-    ? localStorage.getItem("patientId")
-    : null;
-
-// Preserve the existing scoring calculations.
-// Only map the resulting score to the database enums.
-const dbStatus =
-  finalScore >= 19
-    ? "EXCELLENT"
-    : finalScore >= 16
-      ? "GOOD"
-      : finalScore >= 12
-        ? "NEEDS_ATTENTION"
-        : "IMMEDIATE_ATTENTION";
-
-const dbRecommendation =
-  finalScore >= 19
-    ? "CONTINUE_CURRENT_ROUTINE"
-    : finalScore >= 16
-      ? "MONITOR_CLOSELY"
-      : finalScore >= 12
-        ? "CONSULT_DOCTOR"
-        : "SEEK_IMMEDIATE_MEDICAL_ATTENTION";
-
-// Preserve the original answers as entered.
-// Do not replace unanswered or optional fields with
-// invented clinical values.
-const assessmentPayload = {
-  schemaVersion: 1,
-
-  subject: {
-    assessmentType,
-    patientId,
-    patientName: localStorage.getItem("patientName"),
-    patientAge: localStorage.getItem("patientAge"),
-    assessmentDate:
-      localStorage.getItem("assessmentDate") ??
-      assessmentDate,
-  },
-
-  observer: {
-    name: localStorage.getItem("observerName"),
-    relationship:
-      localStorage.getItem("observerRelationship"),
-    relationshipOther:
-      localStorage.getItem("observerRelationshipOther"),
-  },
-
-  answers: {
-    breathing:
-      localStorage.getItem("breathing"),
-
-    cough:
-      localStorage.getItem("cough"),
-
-    bloodInCough:
-      localStorage.getItem("bloodInCough"),
-
-    fever:
-      localStorage.getItem("fever"),
-
-    temperature: {
-      reading:
-        localStorage.getItem("temperatureReading"),
-      unit:
-        localStorage.getItem("temperatureUnit") ?? "F",
-    },
-
-    energy:
-      localStorage.getItem("energy"),
-
-    appetite:
-      localStorage.getItem("appetite"),
-
-    waterIntake:
-      localStorage.getItem("water"),
-
-    waterGlasses:
-      localStorage.getItem("waterGlasses"),
-
-    discomfort:
-      localStorage.getItem("discomfort"),
-
-    discomfortAreas: (() => {
-      const raw = localStorage.getItem("discomfortAreas");
-
-      if (!raw) return [];
-
-      try {
-        const parsed: unknown = JSON.parse(raw);
-
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
-      }
-    })(),
-
-    walking:
-      localStorage.getItem("walking"),
-
-    walkingHelp:
-      localStorage.getItem("walkingHelp"),
-
-    looseMotions:
-      localStorage.getItem("looseMotions"),
-
-    looseMotionType:
-      localStorage.getItem("looseMotionType"),
-
-    confusion:
-      localStorage.getItem("confusion"),
-  },
-
-  results: {
-    rawScore: total,
-    normalizedScore: finalScore,
-    status: finalStatus,
-    recommendation: dbRecommendation,
-    observations: observationList,
-    suggestions: suggestionList,
-    summaryRows: reportSummary,
-  },
-};
-
-void (async () => {
-  if (
-    assessmentProcessingRef.current ||
-    hasAssessmentBeenSaved()
-  ) {
-    return;
-  }
-
-  assessmentProcessingRef.current = true;
-
-  try {
-    if (assessmentType === "FAMILY" && !patientId) {
-      throw new Error(
-        "The selected patient is missing. The assessment was not saved."
-      );
-    }
-
-    const response = await fetch(
-      "/api/assessments/encrypted",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          assessmentType,
-          patientId,
-          assessmentDate,
-          rawScore: total,
-          normalizedScore: finalScore,
-          status: dbStatus,
-          recommendation: dbRecommendation,
-          assessmentVersion: 1,
-          dailyCareId: null,
-          payload: assessmentPayload,
-        }),
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(
-        result.error ??
-          "Unable to save the encrypted assessment."
-      );
-    }
-
-    if (
-      result.data?.record_classification !==
-        "ENCRYPTED_V1" ||
-      result.data?.report_format_version !== 1
-    ) {
-      throw new Error(
-        "The saved assessment did not confirm the expected encrypted format."
-      );
-    }
-
-    markAssessmentSaved();
-  } catch (error) {
-    console.error(
-      "Encrypted assessment save failed:",
-      error
-    );
-  } finally {
-    assessmentProcessingRef.current = false;
-  }
-})();
+    // Sandbox-only assessment report.
+    // Keep the existing scoring, observations, suggestions,
+    // and report presentation. Do not save to production APIs.
 
     setSummaryRows(reportSummary);
     setObservations(observationList);
     setSuggestions(suggestionList);
 
     setLoaded(true);
+
   }, []);
 
 const handleDownloadReport = async () => {
@@ -1115,7 +819,7 @@ const handleNewAssessment = () => {
 */
 
   router.push(
-    "/dashboard"
+   "/sandbox/simulate/app/dashboard"
   );
 
 };
@@ -1141,7 +845,9 @@ return (
         showSelfToggle={false}
         showFamilyToggle={false}
         showHomeButton
-        onHomeClick={() => router.push("/dashboard")}
+         onHomeClick={() =>
+          router.push("/sandbox/simulate/app/dashboard")
+        }
         showSwitchProfile={false}
         accountMenuOpen={accountMenuOpen}
         onAccountMenuToggle={() =>
@@ -1150,8 +856,12 @@ return (
         consentGranted={false}
         canAddPatient={false}
         onAddPatient={() => {}}
-        onCareVRJourney={() => router.push("/carevr-journey")}
-        onHelp={() => router.push("/help")}
+        onCareVRJourney={() =>
+          router.push("/sandbox/simulate/app/carevr-journey")
+        }
+        onHelp={() =>
+          router.push("/sandbox/simulate/app/help")
+        }
         onLogout={handleLogout}
         loggingOut={loggingOut}
       />
