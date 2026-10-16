@@ -112,9 +112,7 @@ void analyticsService
   });
 */
 
-router.push(
-  "/family/page5"
-);
+router.push("/sandbox/simulate/app/family/page5");
   };
 
   return (
@@ -321,9 +319,7 @@ router.push(
         >
           <button
             onClick={() =>
-              router.push(
-                "/family/page3"
-              )
+              router.push("/sandbox/simulate/app/family/page3")
             }
             style={{
               flex: 1,

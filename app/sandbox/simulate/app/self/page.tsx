@@ -67,7 +67,7 @@ await analyticsService.track({
     localStorage.setItem("patientAge", age);
     localStorage.setItem("assessmentType", "self");
 
-    router.push("/self/page2");
+    router.push("/sandbox/simulate/app/self/page2");
   };
 
   return (

@@ -1,15 +1,13 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/Components/Header";
-import MobileHeader, {
-  type MobileCareMode,
-} from "@/Components/common/MobileHeader";
+import { useState } from "react";
 import CareVRFooter from "@/Components/common/CareVRFooter";
-import { authService } from "@/lib/auth/authService";
-import { profileRepository } from "@/lib/repositories/profileRepository";
-
+import SandboxMobileHeader, {
+  type SandboxCareMode,
+  type SandboxRole,
+} from "@/app/sandbox/simulate/Components/common/SandboxMobileHeader";
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/Components/language/LanguageProvider";
 
 type Props = {
@@ -23,63 +21,15 @@ export default function AssessmentLayout({
   currentPage,
   assessmentType,
   children,
-  useMobileHeader = false,
 }: Props) {
-const {
-  t,
-} = useLanguage();
+  const { t } = useLanguage();
+  const router = useRouter();
 
-const router = useRouter();
+  const [careMode, setCareMode] = useState<SandboxCareMode>(
+    assessmentType === "family" ? "FAMILY" : "SELF"
+  );
 
-const [userName, setUserName] = useState("");
-const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-const [loggingOut, setLoggingOut] = useState(false);
-
-useEffect(() => {
-  if (!useMobileHeader) return;
-
-  let active = true;
-
-  const loadProfile = async () => {
-    try {
-      const profile = await profileRepository.getCurrentProfile();
-
-      if (active) {
-        setUserName(profile?.fullName ?? "");
-      }
-    } catch (error) {
-      console.error("Failed to load assessment header profile:", error);
-    }
-  };
-
-  void loadProfile();
-
-  return () => {
-    active = false;
-  };
-}, [useMobileHeader]);
-
-const handleLogout = async () => {
-  if (loggingOut) return;
-
-  setLoggingOut(true);
-
-  try {
-    await authService.logout();
-    router.replace("/login");
-  } catch (error) {
-    console.error("Assessment logout failed:", error);
-    setLoggingOut(false);
-  }
-};
-
-const handleHelp = () => {
-  router.push("/help");
-};
-
-const handleCareVRJourney = () => {
-  router.push("/carevr-journey");
-};
+  const [role, setRole] = useState<SandboxRole>("PRIMARY");
 
   const safePage = currentPage ?? 1;
   const progress = (safePage / 5) * 100;
@@ -90,48 +40,35 @@ const handleCareVRJourney = () => {
         minHeight: "100vh",
         backgroundColor: "#f8fafc",
         padding: "15px",
-        fontFamily: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto",
+        fontFamily:
+          "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto",
       }}
     >
       <div style={{ maxWidth: "700px", margin: "0 auto" }}>
-        
-        {/* HEADER (NOW CORRECTLY PASSED) */}
+        <SandboxMobileHeader
+          careMode={careMode}
+          onCareModeChange={setCareMode}
+          userName="Sandbox Participant"
+          role={role}
+          onRoleChange={setRole}
+        />
 
-{useMobileHeader ? (
-  <div className="assessment-mobile-header">
-    <MobileHeader
-    careMode={assessmentType === "family" ? "FAMILY" : "SELF"}
-    onCareModeChange={() => {}}
-    userName={userName}
-    pageTitle={
-      assessmentType === "family"
-        ? t("assessment.familyAssessment")
-        : t("assessment.selfAssessment")
-    }
-    showCareModeToggle={false}
-    showSelfToggle={false}
-    showFamilyToggle={false}
-    showHomeButton
-    onHomeClick={() => router.push("/dashboard")}
-    showSwitchProfile={false}
-    accountMenuOpen={accountMenuOpen}
-    onAccountMenuToggle={() =>
-      setAccountMenuOpen((current) => !current)
-    }
-    consentGranted={false}
-    canAddPatient={false}
-    onAddPatient={() => {}}
-    onCareVRJourney={handleCareVRJourney}
-    onHelp={handleHelp}
-    onLogout={handleLogout}
-    loggingOut={loggingOut}
-  />
-  </div>
-) : (
-  <Header assessmentType={assessmentType} />
-)}
+        <div
+          style={{
+            marginTop: "10px",
+            padding: "10px 12px",
+            border: "1px solid #bfdbfe",
+            borderRadius: "10px",
+            backgroundColor: "#eff6ff",
+            color: "#1e40af",
+            fontSize: "13px",
+            lineHeight: 1.5,
+          }}
+        >
+          <strong>Simulation only.</strong> Your assessment answers are used
+          to demonstrate CareVR. They are not saved to the CareVR database.
+        </div>
 
-        {/* PROGRESS BAR (COMMON & FIXED) */}
         <div
           style={{
             width: "100%",
@@ -139,7 +76,7 @@ const handleCareVRJourney = () => {
             backgroundColor: "#e5e7eb",
             borderRadius: "10px",
             overflow: "hidden",
-            marginTop: "10px",
+            marginTop: "16px",
           }}
         >
           <div
@@ -152,7 +89,6 @@ const handleCareVRJourney = () => {
           />
         </div>
 
-        {/* PAGE INDICATOR */}
         <div
           style={{
             textAlign: "center",
@@ -164,11 +100,9 @@ const handleCareVRJourney = () => {
           {t("assessment.page")} {safePage} {t("assessment.of")} 5
         </div>
 
-        {/* CONTENT */}
-        <div style={{ marginTop: "15px" }}>
-          {children}
-        </div>
-{useMobileHeader && <CareVRFooter />}
+        <div style={{ marginTop: "15px" }}>{children}</div>
+
+        <CareVRFooter />
       </div>
     </main>
   );

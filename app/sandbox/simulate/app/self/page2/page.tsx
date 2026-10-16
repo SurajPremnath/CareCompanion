@@ -68,7 +68,7 @@ const handleBackToDashboard = () => {
 */
 
   router.push(
-    "/dashboard"
+    "/sandbox/simulate/app/dashboard"
   );
 
 };
@@ -144,7 +144,7 @@ void analyticsService
 */
 
 router.push(
-  "/self/page3"
+  "/sandbox/simulate/app/self/page3"
 );
   };
 

@@ -146,9 +146,7 @@ void analyticsService
   });
 */
 
-router.push(
-  "/family/page4"
-);
+router.push("/sandbox/simulate/app/family/page4");
   };
 
   return (
@@ -434,9 +432,7 @@ router.push(
         >
           <button
             onClick={() =>
-              router.push(
-                "/family/page2"
-              )
+              router.push("/sandbox/simulate/app/family/page2")
             }
             style={{
               flex: 1,

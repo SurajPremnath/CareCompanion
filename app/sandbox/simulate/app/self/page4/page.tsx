@@ -123,7 +123,7 @@ void analyticsService
 */
 
 router.push(
-  "/self/page5"
+  "/sandbox/simulate/app/self/page5"
 );
   };
 
@@ -206,7 +206,7 @@ router.push(
   }}
 >
   <button
-    onClick={() => router.push("/self/page3")}
+    onClick={() => router.push("/sandbox/simulate/app/self/page3")}
     style={{
       flex: 1,
       padding: "12px",

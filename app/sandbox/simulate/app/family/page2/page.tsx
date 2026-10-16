@@ -93,9 +93,7 @@ void analyticsService
   });
 */
 
-router.push(
-  "/family/page3"
-);
+router.push("/sandbox/simulate/app/family/page3");
   };
 
   return (
@@ -192,7 +190,10 @@ router.push(
 
         <div style={{ display: "flex", gap: "10px", marginTop: "18px" }}>
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() =>
+                router.push(
+    "/sandbox/simulate/app/dashboard")
+    }
             style={{
               flex: 1,
               padding: "12px",

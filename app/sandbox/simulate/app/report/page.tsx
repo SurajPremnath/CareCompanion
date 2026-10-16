@@ -94,16 +94,6 @@ const handleLogout = () => {
       localStorage.getItem("patientAge") || ""
     );
 
-    // Sandbox-only participant details.
-    // Do not look up real patients or require a patient ID.
-    setPatientName(
-      localStorage.getItem("patientName") || "Sandbox Participant"
-    );
-
-    setPatientAge(
-      localStorage.getItem("patientAge") || ""
-    );
-
     setAssessmentDate(
       localStorage.getItem("assessmentDate") ||
         new Date().toLocaleString("en-IN", {

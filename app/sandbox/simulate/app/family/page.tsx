@@ -6,22 +6,12 @@ import { useRouter } from "next/navigation";
 import { clearAssessmentData } from "@/lib/assessmentStorage";
 import { beginAssessmentAttempt } from "@/lib/reportStorage";
 
-import { authService } from "@/lib/auth/authService";
-import { profileRepository } from "@/lib/repositories/profileRepository";
-
-import {
-  getCareVRDashboardHandoff,
-} from "@/lib/auth/carevrDashboardHandoff";
 import AppHeader from "@/app/components/AppHeader";
 import type { Patient } from "@/lib/types/patient";
 
 import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
-
-import {
-    supabase,
-} from "@/lib/supabase";
 
 
 /*
@@ -48,8 +38,6 @@ type UserProfile = {
 export default function FamilyPage() {
   const router = useRouter();
 
-  const dashboardHandoff =
-    getCareVRDashboardHandoff();
 
 const {
   t,
@@ -73,240 +61,48 @@ const {
 //------------------------------------------------------------
 
 const handleBackToDashboard = () => {
-
-/*
-  performanceTracker.start({
-
-    fromPath:
-      "/family",
-
-    toPath:
-      "/dashboard",
-
-    feature:
-      "FAMILY_ASSESSMENT_TO_DASHBOARD",
-
-    context:
-      "FAMILY",
-
-  });
-*/
-
-  router.push(
-    "/dashboard"
-  );
-
+  router.push("/sandbox/simulate/app/dashboard");
 };
 
-  useEffect(() => {
-    let mounted = true;
+useEffect(() => {
+  // Public Sandbox: use fictional demo participants only.
+  // Do not authenticate, query Supabase, or load real patients.
 
-    const loadPage = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const user =
-          await authService.getCurrentUser();
-
-        if (!user) {
-          router.replace("/login");
-          return;
-        }
-
-        const profile =
-          await profileRepository.getCurrentProfile();
-
-        if (!mounted) return;
-
-        if (!profile) {
-          setError(
-             t("assessment.profileLoadError")
-          );
-          return;
-        }
-
-        setCurrentUser({
-          id: profile.id,
-          fullName: profile.fullName,
-        });
-
-/*
-const response =
-  await fetch(
-    "/api/patients/scope",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
+    const demoPatients: Patient[] = [
+      {
+        id: "sandbox-demo-family-member-1",
+        userId: "sandbox-demo-user",
+        fullName: "Demo Family Member A",
+        dateOfBirth: "1970-01-01",
+        gender: "Male",
+        relationship: "Parent",
+        status: "ACTIVE",
+        createdAt: "",
+        updatedAt: "",
       },
-      body: JSON.stringify({
-        accessId:
-          dashboardHandoff?.access.id,
-        selectedRole:
-          dashboardHandoff?.role,
-      }),
-    }
-  );
+      {
+        id: "sandbox-demo-family-member-2",
+        userId: "sandbox-demo-user",
+        fullName: "Demo Family Member B",
+        dateOfBirth: "1975-01-01",
+        gender: "Female",
+        relationship: "Parent",
+        status: "ACTIVE",
+        createdAt: "",
+        updatedAt: "",
+      },
+    ];
 
-const result =
-  await response.json();
+    setCurrentUser({
+      id: "sandbox-demo-observer",
+      fullName: "Sandbox Visitor",
+    });
 
-if (!mounted) return;
-
-if (!response.ok) {
-  console.error(
-    "Unable to load patients:",
-    result?.error
-  );
-
-  setError(
-    t("assessment.patientLoadError")
-  );
-
-  return;
-}
-
-const loadedPatients =
-  result?.data?.patients ?? [];
-
-setPatients(loadedPatients);
-
-if (loadedPatients.length > 0) {
-  setSelectedPatientId(
-    loadedPatients[0].id
-  );
-}
-*/
-
-const authorizedFamilyId =
-  dashboardHandoff?.access.familyId;
-
-if (!authorizedFamilyId) {
-  throw new Error(
-    "Authorized CareVR Family could not be resolved."
-  );
-}
-
-const scopedPatientIds =
-  dashboardHandoff.patients.map(
-    patient => patient.id
-  );
-
-const {
-  data: digitalHealthProfile,
-  error: digitalHealthProfileError,
-} =
-  await supabase
-    .from("digital_health_profile")
-    .select(`
-      patients,
-      carevr_access:carevr_access_id!inner (
-        access_type,
-        access_status
-      )
-    `)
-    .eq(
-      "family_id",
-      authorizedFamilyId
-    )
-    .eq(
-      "digital_health_flag",
-      true
-    )
-    .eq(
-      "carevr_access.access_type",
-      "PRIMARY"
-    )
-    .eq(
-      "carevr_access.access_status",
-      "ACTIVE"
-    )
-    .maybeSingle();
-
-if (!mounted) return;
-
-if (digitalHealthProfileError) {
-  console.error(
-    "Unable to load patients:",
-    digitalHealthProfileError
-  );
-
-  setError(
-    t("assessment.patientLoadError")
-  );
-
-  return;
-}
-
-const dhpPatients =
-  Array.isArray(
-    digitalHealthProfile?.patients
-  )
-    ? digitalHealthProfile.patients
-    : [];
-
-const loadedPatients: Patient[] =
-  dhpPatients
-    .filter(
-      (patient: any) =>
-        patient?.status === "ACTIVE" &&
-        scopedPatientIds.includes(
-          patient?.id
-        )
-    )
-    .map(
-      (patient: any) => ({
-        id: patient.id,
-        userId:
-          patient.user_id ?? null,
-        fullName:
-          patient.full_name,
-        dateOfBirth:
-          patient.date_of_birth ?? null,
-        gender:
-          patient.gender ?? null,
-        relationship:
-          patient.relationship ?? null,
-        status:
-          patient.status,
-        createdAt:
-          patient.created_at ?? "",
-        updatedAt:
-          patient.updated_at ?? "",
-      })
-    );
-
-setPatients(loadedPatients);
-
-if (loadedPatients.length > 0) {
-  setSelectedPatientId(
-    loadedPatients[0].id
-  );
-}
-
-      } catch (err) {
-        console.error(err);
-
-        if (!mounted) return;
-
-        setError(
-          t("assessment.pageLoadError")
-        );
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadPage();
-
-    return () => {
-      mounted = false;
-    };
-  }, [router, t]);
+    setPatients(demoPatients);
+    setSelectedPatientId(demoPatients[0].id);
+    setError(null);
+    setLoading(false);
+  }, []);
 
   const selectedPatient = useMemo(() => {
     return (
@@ -491,7 +287,7 @@ localStorage.setItem(
       })
     );
 
-    router.push("/family/page2");
+    router.push("/sandbox/simulate/app/family/page2");
   };
 
   return (
