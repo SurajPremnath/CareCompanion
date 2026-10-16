@@ -832,7 +832,7 @@ async function handleSave() {
 
         AppAlert.success(
             t(
-                "Simulation only: Health information captured. No health record was saved."
+                "This is just a simulation. Record not saved into database."
             )
         );
 
@@ -919,7 +919,7 @@ async function handleSaveDoctorNote() {
          */
 
         AppAlert.success(
-            "Doctor's note captured."
+            "This is just a simulation. Record not saved into database."
         );
 
         setDoctorNote(

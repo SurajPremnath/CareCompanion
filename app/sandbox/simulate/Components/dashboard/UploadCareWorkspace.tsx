@@ -524,302 +524,132 @@ setProcessingImage(
     true
 );
 
-    try {
 
-let readings;
+try {
+    // Sandbox simulation only: no AI or external image service.
+    let readings = {
+        temperature: files.length > 1 ? null : 98.6,
+        temperatureUnit: "F" as TemperatureUnit,
+        weightKg: files.length > 1 ? null : 68.4,
+        systolic: files.length > 1 ? null : 120,
+        diastolic: files.length > 1 ? null : 80,
+        pulse: files.length > 1 ? null : 72,
+        spo2: files.length > 1 ? null : 98,
+    };
 
-let temperatureValues: number[] = [];
+    let temperatureValues: number[] = [];
+    let weightValues: number[] = [];
+    let systolicValues: number[] = [];
+    let diastolicValues: number[] = [];
+    let pulseValues: number[] = [];
+    let spo2Values: number[] = [];
 
-let weightValues: number[] = [];
+    if (files.length > 1) {
+        // Demonstrate choosing between multiple detected readings.
+        temperatureValues = [98.6, 99.1];
+        weightValues = [68.4, 68.2];
+        systolicValues = [120, 122];
+        diastolicValues = [80, 81];
+        pulseValues = [72, 74];
+        spo2Values = [98, 97];
 
-let systolicValues: number[] = [];
+        setTemperatureOptions(temperatureValues);
+        setWeightOptions(weightValues);
+        setSystolicOptions(systolicValues);
+        setDiastolicOptions(diastolicValues);
+        setPulseOptions(pulseValues);
+        setSpo2Options(spo2Values);
+    } else {
+        setTemperatureOptions([]);
+        setWeightOptions([]);
+        setSystolicOptions([]);
+        setDiastolicOptions([]);
+        setPulseOptions([]);
+        setSpo2Options([]);
+    }
 
-let diastolicValues: number[] = [];
+    const hasReading =
+        readings.temperature !== null ||
+        readings.weightKg !== null ||
+        readings.systolic !== null ||
+        readings.diastolic !== null ||
+        readings.pulse !== null ||
+        readings.spo2 !== null ||
+        pulseValues.length > 0 ||
+        spo2Values.length > 0;
 
-let pulseValues: number[] = [];
-
-let spo2Values: number[] = [];
-
-if (files.length > 1) {
-
-    // --------------------------------------------------------
-    // Record Health - Multiple Image Reading Selection
-    // Keep the existing multi-image processing path.
-    // --------------------------------------------------------
-
-const result =
-    await medicalImageService
-        .processImages(
-            files
-        );
-
-if (
-    !result.success ||
-    !result.data
-) {
-
-    setError(
-        result.error ??
-        t(
-            "dailyCare.unableToReadImage"
-        )
-    );
-
-    return;
-}
-
-readings =
-    result.data;
-
-temperatureValues =
-    result.data.temperatureValues ?? [];
-
-weightValues =
-    result.data.weightValues ?? [];
-
-systolicValues =
-    result.data.systolicValues ?? [];
-
-diastolicValues =
-    result.data.diastolicValues ?? [];
-
-pulseValues =
-    result.data.pulseValues ?? [];
-
-spo2Values =
-    result.data.spo2Values ?? [];
-
-setTemperatureOptions(
-    temperatureValues
-);
-
-setWeightOptions(
-    weightValues
-);
-
-setSystolicOptions(
-    systolicValues
-);
-
-setDiastolicOptions(
-    diastolicValues
-);
-
-setPulseOptions(pulseValues);
-setSpo2Options(spo2Values);
-
-
-} else {
-
-    // --------------------------------------------------------
-    // Existing single-image flow.
-    // Do not change existing behaviour.
-    // --------------------------------------------------------
-
-    const result =
-        await medicalImageService
-            .processImages(
-                files
-            );
-
-    if (
-        !result.success ||
-        !result.data
-    ) {
-
-        setError(
-            result.error ??
-            t(
-                "dailyCare.unableToReadImage"
-            )
-        );
-
+    if (!hasReading) {
+        setError(t("dailyCare.noReadingDetected"));
         return;
     }
 
-    readings =
-        result.data;
+    setReading(previous => ({
+        ...previous,
+        temperature:
+            temperatureValues.length > 1
+                ? ""
+                : readings.temperature !== null
+                    ? String(readings.temperature)
+                    : previous.temperature,
+        temperatureUnit:
+            readings.temperatureUnit ?? previous.temperatureUnit,
+        weightKg:
+            weightValues.length > 1
+                ? ""
+                : readings.weightKg !== null
+                    ? String(readings.weightKg)
+                    : previous.weightKg,
+        systolic:
+            systolicValues.length > 1
+                ? ""
+                : readings.systolic !== null
+                    ? String(readings.systolic)
+                    : previous.systolic,
+        diastolic:
+            diastolicValues.length > 1
+                ? ""
+                : readings.diastolic !== null
+                    ? String(readings.diastolic)
+                    : previous.diastolic,
+        pulse:
+            pulseValues.length > 1
+                ? ""
+                : readings.pulse !== null
+                    ? String(readings.pulse)
+                    : previous.pulse,
+        spo2:
+            spo2Values.length > 1
+                ? ""
+                : readings.spo2 !== null
+                    ? String(readings.spo2)
+                    : previous.spo2,
+    }));
 
-setTemperatureOptions([]);
-
-setWeightOptions([]);
-
-setSystolicOptions([]);
-
-setDiastolicOptions([]);
-
-    setPulseOptions([]);
-
-    setSpo2Options([]);
-}
-
-const hasReading =
-
-    readings.temperature !==
-        null ||
-
-    readings.weightKg !==
-        null ||
-
-    readings.systolic !==
-        null ||
-
-    readings.diastolic !==
-        null ||
-
-    readings.pulse !==
-        null ||
-
-    readings.spo2 !==
-        null ||
-
-    // --------------------------------------------------------
-    // Record Health - Multiple Image Reading Selection
-    // Use the values returned by this upload immediately.
-    // --------------------------------------------------------
-    pulseValues.length > 0 ||
-
-    spo2Values.length > 0;
-
-        if (!hasReading) {
-
-            setError(
-                t(
-                    "dailyCare.noReadingDetected"
-                )
-            );
-
-            return;
-
-        }
-
-        setReading(
-            previous => ({
-
-                ...previous,
-
-temperature:
-    temperatureValues.length > 1
-        ? ""
-        : readings.temperature !==
-            null
-            ? String(
-                readings.temperature
-            )
-            : previous.temperature,
-
-                temperatureUnit:
-                    readings.temperatureUnit ??
-                    previous.temperatureUnit,
-
-weightKg:
-    weightValues.length > 1
-        ? ""
-        : readings.weightKg !==
-            null
-            ? String(
-                readings.weightKg
-            )
-            : previous.weightKg,
-
-systolic:
-    systolicValues.length > 1
-        ? ""
-        : readings.systolic !==
-            null
-            ? String(
-                readings.systolic
-            )
-            : previous.systolic,
-
-diastolic:
-    diastolicValues.length > 1
-        ? ""
-        : readings.diastolic !==
-            null
-            ? String(
-                readings.diastolic
-            )
-            : previous.diastolic,
-
-// --------------------------------------------------------
-// Record Health - Pulse
-// If multiple Pulse readings were detected, wait for the
-// user to choose one instead of using the singular value.
-// --------------------------------------------------------
-pulse:
-    pulseValues.length > 1
-        ? ""
-        : readings.pulse !==
-            null
-            ? String(
-                readings.pulse
-            )
-            : previous.pulse,
-
-// --------------------------------------------------------
-// Record Health - SpO₂
-// If multiple SpO₂ readings were detected, wait for the
-// user to choose one instead of using the singular value.
-// --------------------------------------------------------
-spo2:
-    spo2Values.length > 1
-        ? ""
-        : readings.spo2 !==
-            null
-            ? String(
-                readings.spo2
-            )
-            : previous.spo2,
-
-            })
-        );
-
-        setImageReadSuccessful(
-            true
-        );
-
-    }
-    catch (
+    setImageReadSuccessful(true);
+} catch (processingError) {
+    console.error(
+        "Sandbox Image Simulation Error:",
         processingError
-    ) {
+    );
 
-        console.error(
-            "Upload Care Image Processing Error:",
-            processingError
-        );
-
-        setError(
-            processingError instanceof Error
-                ? processingError.message
-                : t(
-                    "dailyCare.unableToProcessImage"
-                )
-        );
-
-    }
-    finally {
-
-        setProcessingImage(
-            false
-        );
-
-        setActiveImageSource(
-            null
-        );
-
-    }
+    setError(
+        processingError instanceof Error
+            ? processingError.message
+            : "Unable to simulate image processing."
+    );
+} finally {
+    setProcessingImage(false);
+    setActiveImageSource(null);
+}
 
 }
 
 
+//--------------------------------------------------------
+// Save
+//--------------------------------------------------------
 
-
-    //--------------------------------------------------------
-    // Save
-    //--------------------------------------------------------
-
-    async function saveReading() {
+async function saveReading() {
 
         if (saving) {
 
@@ -883,190 +713,63 @@ setSuccessMessage(
 
 try {
 
-    //--------------------------------------------------------
-    // Validate Current Session Before Save
-    //--------------------------------------------------------
+    // Sandbox simulation only.
+    // No authentication refresh or health-record persistence.
 
-    let {
-        data: {
-            session,
-        },
-        error: sessionError,
-    } =
-        await supabase.auth.getSession();
+    const simulatedReading = {
+        recordedAt: `${reading.date}T${reading.time}:00`,
+        overallStatus: null,
 
+        temperature: reading.temperature.trim()
+            ? Number(reading.temperature)
+            : null,
 
-    //--------------------------------------------------------
-    // Refresh Session If Required
-    //--------------------------------------------------------
+        temperatureUnit: reading.temperatureUnit,
 
-    if (
-        sessionError ||
-        !session?.access_token
-    ) {
+        weightKg: reading.weightKg.trim()
+            ? Number(reading.weightKg)
+            : null,
 
-        const {
-            data: {
-                session: refreshedSession,
-            },
-            error: refreshError,
-        } =
-            await supabase.auth.refreshSession();
+        systolic: reading.systolic.trim()
+            ? Number(reading.systolic)
+            : null,
 
-        if (
-            refreshError ||
-            !refreshedSession?.access_token
-        ) {
+        diastolic: reading.diastolic.trim()
+            ? Number(reading.diastolic)
+            : null,
 
-            setError(
-                "Your session has expired. Please sign in again."
-            );
+        pulse: reading.pulse.trim()
+            ? Number(reading.pulse)
+            : null,
 
-            return;
-        }
+        spo2: reading.spo2.trim()
+            ? Number(reading.spo2)
+            : null,
 
-        session =
-            refreshedSession;
-    }
+        symptoms: reading.symptoms,
 
+        otherSymptom: reading.otherSymptom.trim() || null,
 
-    const commonReading = {
+        painLocations: reading.painLocations,
 
-    recordedAt:
-        `${reading.date}T${reading.time}:00`,
+        otherPainLocation:
+            reading.otherPainLocation.trim() || null,
+    };
 
-                overallStatus:
-                    null,
+    // Build the sample for demonstration without saving it.
+    void simulatedReading;
 
-                temperature:
+    setSuccessMessage(
+        "This is just a simulation. Record not saved into database."
+    );
 
-                    reading.temperature.trim()
+    setReading(
+        createEmptyReading()
+    );
 
-                        ? Number(
-                            reading.temperature
-                        )
+    setImageReadSuccessful(false);
 
-                        : null,
-
-                temperatureUnit:
-                    reading.temperatureUnit,
-
-weightKg:
-
-    reading.weightKg.trim()
-
-        ? Number(reading.weightKg)
-
-        : null,
-
-                systolic:
-
-                    reading.systolic.trim()
-
-                        ? Number(
-                            reading.systolic
-                        )
-
-                        : null,
-
-                diastolic:
-
-                    reading.diastolic.trim()
-
-                        ? Number(
-                            reading.diastolic
-                        )
-
-                        : null,
-
-                pulse:
-
-                    reading.pulse.trim()
-
-                        ? Number(
-                            reading.pulse
-                        )
-
-                        : null,
-
-                spo2:
-
-                    reading.spo2.trim()
-
-                        ? Number(
-                            reading.spo2
-                        )
-
-                        : null,
-
-                symptoms:
-                    reading.symptoms,
-
-                otherSymptom:
-                    reading.otherSymptom.trim()
-                        ? reading.otherSymptom.trim()
-                        : null,
-
-painLocations:
-    reading.painLocations,
-
-otherPainLocation:
-    reading.otherPainLocation.trim()
-        ? reading.otherPainLocation.trim()
-        : null,
-
-            };
-
-
-            const result =
-
-                mode === "self"
-
-                    ? await selfDailyCareStorage
-                        .save(
-                            commonReading
-                        )
-
-                    : await dailyCareStorage
-                        .save({
-
-                            ...commonReading,
-
-                            patientId:
-                                patientId!,
-
-                        });
-
-
-            if (!result.success) {
-
-                setError(
-
-                    result.error ??
-
-                    t("dailyCare.unableToSaveReading")
-
-                );
-
-                return;
-
-            }
-
-
-            setSuccessMessage(
-                t("dailyCare.healthReadingSaved")
-            );
-
-
-            setReading(
-                createEmptyReading()
-            );
-
-            setImageReadSuccessful(
-                false
-            );
-
-        }
+}
         catch (saveError) {
 
             console.error(

@@ -18,6 +18,10 @@ import {
     useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import {
+    AppAlert,
+} from "@/lib/utils/appAlert";
+
 
 interface VoiceCareWorkspaceProps {
 
@@ -380,8 +384,11 @@ setClarificationError(null);
         // but do not persist the resulting health record.
         void commonReading;
 
-
         resetVoiceSession();
+
+        AppAlert.success(
+            "This is just a simulation. Record not saved into database."
+        );
 
     }
     catch (error) {
@@ -416,32 +423,40 @@ setClarificationError(null);
 
 {!voiceDraft &&
     !processingVoice && (
+        <>
+            <h3 className="voice-care-heading">
+                {mode === "self"
+                    ? t("dailyCare.tellUsHowYouFeel")
+                    : t("dailyCare.tellUsHowPatientFeels")
+                        .replace("{name}", recordingName)}
+            </h3>
 
-    <h3 className="voice-care-heading">
-        {
-            mode === "self"
-                ? t("dailyCare.tellUsHowYouFeel")
-                : t("dailyCare.tellUsHowPatientFeels")
-                    .replace("{name}", recordingName)
-        }
-    </h3>
+            <div className="sandbox-voice-instructions">
+                <strong>Try a sample health update</strong>
 
-)}
+                <p>
+                    Read the following example aloud to try the
+                    voice-recording experience:
+                </p>
 
-{!voiceDraft &&
-    !processingVoice &&
-    !voiceError && (
+                <blockquote>
+                    I am feeling slightly tired today. My temperature
+                    is 98.6 degrees Fahrenheit, my pulse is 72 beats
+                    per minute, and I have no other symptoms.
+                </blockquote>
 
-    <VoiceRecorder
-        onRecordingReady={
-            processVoiceRecording
-        }
-        disabled={
-            processingVoice
-        }
-    />
+                <small>
+                    This is a demonstration. You may use fictional
+                    details. No actual health record will be saved.
+                </small>
+            </div>
 
-)}
+            <VoiceRecorder
+                onRecordingReady={processVoiceRecording}
+                disabled={processingVoice}
+            />
+        </>
+    )}
 
 
 {processingVoice && (
