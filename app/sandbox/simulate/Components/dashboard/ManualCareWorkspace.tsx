@@ -822,39 +822,9 @@ async function handleSave() {
         };
 
 
-        const result =
-
-            mode === "self"
-
-                ? await selfDailyCareStorage
-                    .save(
-                        commonReading
-                    )
-
-                : await dailyCareStorage
-                    .save({
-
-                        ...commonReading,
-
-                        patientId:
-                            patientId!,
-
-                    });
-
-
-        if (!result.success) {
-
-            throw new Error(
-
-                result.error ??
-
-                t(
-                    "dailyCare.unableToSaveHealthInformation"
-                )
-
-            );
-
-        }
+        // Simulation Sandbox: validate and demonstrate the
+        // workflow without persisting a health record.
+        void commonReading;
 
 
         resetForm();
@@ -862,7 +832,7 @@ async function handleSave() {
 
         AppAlert.success(
             t(
-                "dailyCare.healthInformationSaved"
+                "Simulation only: Health information captured. No health record was saved."
             )
         );
 

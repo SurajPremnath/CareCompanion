@@ -8,21 +8,11 @@ import {
     useState,
 } from "react";
 
-import {
-    medicalVoiceService,
-} from "@/lib/medical-voice/medicalVoiceService";
 
 import type {
     MedicalVoiceDailyCareDraft,
 } from "@/lib/medical-voice/medicalVoiceTypes";
 
-import {
-    dailyCareStorage,
-} from "@/lib/storage/DailyCareStorage";
-
-import {
-    selfDailyCareStorage,
-} from "@/lib/storage/SelfDailyCareStorage";
 
 import {
     useLanguage,
@@ -196,71 +186,48 @@ function resetVoiceSession() {
 
 }
 
-async function processVoiceRecording(
-    audio: File
-) {
-
+async function processVoiceRecording(audio: File) {
     setProcessingVoice(true);
-
     setVoiceError(null);
-
     setVoiceTranscript(null);
-
     setVoiceDraft(null);
+    setShowTranscript(false);
 
-setShowTranscript(false);
-
-
-if (audioPlaybackUrl) {
-
-    URL.revokeObjectURL(
-        audioPlaybackUrl
-    );
-
-}
-
-
-const playbackUrl =
-    URL.createObjectURL(
-        audio
-    );
-
-
-setAudioPlaybackUrl(
-    playbackUrl
-);
-
-    const result =
-        await medicalVoiceService.processVoice(
-            audio,
-            "care_recording"
-        );
-
-
-    if (!result.success) {
-
-        setVoiceError(
-            result.error ??
-            t("dailyCare.unableToComplete")
-        );
-
-        setProcessingVoice(false);
-
-        return;
-
+    if (audioPlaybackUrl) {
+        URL.revokeObjectURL(audioPlaybackUrl);
     }
 
+    const playbackUrl = URL.createObjectURL(audio);
+    setAudioPlaybackUrl(playbackUrl);
 
-    setVoiceTranscript(
-        result.data.transcript
-    );
+    try {
+        // Sandbox simulation: do not send audio to an AI service.
+        // Keep the selected audio available for the existing playback UI.
+        const simulatedTranscript =
+            "I have been feeling slightly tired today. My temperature is 98.6 degrees Fahrenheit. My pulse is 72 beats per minute.";
 
-    setVoiceDraft(
-        result.data.draft
-    );
+        const simulatedDraft: MedicalVoiceDailyCareDraft = {
+            overallObservation: "CONCERNS_REPORTED",
+            temperature: 98.6,
+            temperatureUnit: "F",
+            weightKg: null,
+            systolic: null,
+            diastolic: null,
+            pulse: 72,
+            spo2: null,
+            symptoms: [],
+            otherSymptom: "Slight tiredness",
+            painLocations: [],
+            otherPainLocation: null,
+        };
 
-    setProcessingVoice(false);
-
+        setVoiceTranscript(simulatedTranscript);
+        setVoiceDraft(simulatedDraft);
+    } catch {
+        setVoiceError("Unable to load the simulated voice example. Please try again.");
+    } finally {
+        setProcessingVoice(false);
+    }
 }
 
 
@@ -409,34 +376,9 @@ setClarificationError(null);
         };
 
 
-        const result =
-
-            mode === "self"
-
-                ? await selfDailyCareStorage.save(
-                    commonReading
-                )
-
-                : await dailyCareStorage.save({
-
-                    ...commonReading,
-
-                    patientId:
-                        patientId!,
-
-                });
-
-
-        if (!result.success) {
-
-            setVoiceError(
-                result.error ??
-                t("dailyCare.unableToComplete")
-            );
-
-            return;
-
-        }
+        // Simulation Sandbox: preserve the voice workflow,
+        // but do not persist the resulting health record.
+        void commonReading;
 
 
         resetVoiceSession();

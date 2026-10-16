@@ -55,14 +55,13 @@ import LanguageSelector
     from "@/Components/language/LanguageSelector";
 
 import ManualCareWorkspace
-    from "@/Components/dashboard/ManualCareWorkspace";
+    from "@/app/sandbox/simulate/Components/dashboard/ManualCareWorkspace";
 
 import VoiceCareWorkspace
-    from "@/Components/dashboard/VoiceCareWorkspace";
+    from "@/app/sandbox/simulate/Components/dashboard/VoiceCareWorkspace";
 
 import UploadCareWorkspace
-    from "@/Components/dashboard/UploadCareWorkspace";
-
+    from "@/app/sandbox/simulate/Components/dashboard/UploadCareWorkspace";
 
 import CareJourneyDisplayConfiguration
     from "@/Components/dashboard/CareJourneyDisplayConfiguration";
@@ -156,7 +155,8 @@ type RecordHealthOption =
     | "";
 
 
-const CareVR_Record_health_Options_Enable = false;
+// Simulation Sandbox only: make Voice and Image available to all demo visitors.
+const CareVR_Record_health_Options_Enable = true;
 
 
 function RecordHealthPageContent() {
