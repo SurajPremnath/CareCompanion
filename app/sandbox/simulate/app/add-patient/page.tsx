@@ -13,6 +13,10 @@ import { AppAlert } from "@/lib/utils/appAlert";
 
 import CareVRFooter from "@/app/sandbox/simulate/Components/common/CareVRFooter";
 
+import SandboxMobileHeader, {
+  type SandboxCareMode,
+  type SandboxRole,
+} from "@/app/sandbox/simulate/Components/common/SandboxMobileHeader";
 
 import {
   useLanguage,
@@ -45,6 +49,12 @@ const [accountMenuOpen, setAccountMenuOpen] =
 
 const [loggingOut, setLoggingOut] =
   useState(false);
+
+const [careMode, setCareMode] =
+  useState<SandboxCareMode>("FAMILY");
+
+const [role, setRole] =
+  useState<SandboxRole>("PRIMARY");
 
   //------------------------------------------------------------
   // Patient Details
@@ -412,6 +422,14 @@ const handleLogout = () => {
     );
 
   }
+
+<SandboxMobileHeader
+  careMode={careMode}
+  onCareModeChange={setCareMode}
+  userName={currentUserName || "Sandbox User"}
+  role={role}
+  onRoleChange={setRole}
+/>
 
   //------------------------------------------------------------
   // JSX Continues In Part 2

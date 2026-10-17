@@ -42,7 +42,7 @@ import HelpWorkspace from "@/app/components/dashboard/HelpWorkspace";
 
 import PersonSelector, {
     type PersonSelection,
-} from "@/Components/patient/PersonSelector";
+} from "@/app/sandbox/simulate/Components/patient/PersonSelector";
 
 import {
     reportHandoffStore,
