@@ -1084,32 +1084,6 @@ const mobileSnapshotKey =
                     <label>Temperature</label>
                 </div>
 
-                <div className="mobile-vital">
-                    <div className="mobile-vital-icon">
-                        ⚖️
-                    </div>
-                    <strong>
-                        {mobileSnapshots[mobileSnapshotKey]?.dailyCare?.weightKg != null
-                            ? `${mobileSnapshots[mobileSnapshotKey].dailyCare!.weightKg} kg`
-                            : "—"}
-                    </strong>
-                    <label>Weight</label>
-                </div>
-
-                <div className="mobile-vital">
-                    <div className="mobile-vital-icon">
-                        🩺
-                    </div>
-                    <strong>
-                        {(
-                            mobileSnapshots[mobileSnapshotKey]?.dailyCare?.symptoms?.length ?? 0
-                        ) > 0
-                            ? mobileSnapshots[mobileSnapshotKey].dailyCare!.symptoms.join(", ")
-                            : "None"}
-                    </strong>
-                    <label>Symptoms</label>
-                </div>
-
             </div>
 
 
