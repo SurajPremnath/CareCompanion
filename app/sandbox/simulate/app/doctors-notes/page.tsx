@@ -2,19 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import MobileHeader, {
-  type MobileCareMode,
-} from "@/Components/common/MobileHeader";
-import CareVRFooter from "@/Components/common/CareVRFooter";
-import {
-  getCareVRDashboardHandoff,
-  type CareVRDashboardHandoff,
-} from "@/lib/auth/carevrDashboardHandoff";
 
-import { authService } from "@/lib/auth/authService";
-import { profileRepository } from "@/lib/repositories/profileRepository";
-import { supabase } from "@/lib/supabase";
-import { AppAlert } from "@/lib/utils/appAlert";
+import SandboxMobileHeader, {
+  type SandboxCareMode,
+  type SandboxRole,
+} from "@/app/sandbox/simulate/Components/common/SandboxMobileHeader";
+
+import CareVRFooter from "@/app/sandbox/simulate/Components/common/CareVRFooter";
 
 interface DoctorsNoteDoctorOption {
   providerId: string;
@@ -27,26 +21,13 @@ interface DoctorsNoteDoctorOption {
 export default function DoctorsNotesPage() {
   const router = useRouter();
 
-  const [dashboardHandoff, setDashboardHandoff] =
-    useState<CareVRDashboardHandoff | null>(null);
+const [userName] = useState("Sandbox User");
 
-const [userName, setUserName] =
-  useState("");
+const [careMode, setCareMode] =
+  useState<SandboxCareMode>("FAMILY");
 
-  const [careMode, setCareMode] =
-    useState<MobileCareMode>("FAMILY");
-
-  const [accountMenuOpen, setAccountMenuOpen] =
-    useState(false);
-
-const [loggingOut, setLoggingOut] =
-  useState(false);
-
-/*
-  const [selectedPatient, setSelectedPatient] =
-    useState<string>("");
-*/
-
+const [role, setRole] =
+  useState<SandboxRole>("PRIMARY");
 
 const [selectedPatient, setSelectedPatient] =
   useState<string>("");
@@ -116,6 +97,20 @@ const [saveError, setSaveError] =
 const [saveSuccess, setSaveSuccess] =
   useState("");
 
+const [previewData, setPreviewData] = useState<{
+  doctorName: string;
+  hospital: string;
+  speciality: string;
+  date: string;
+  time: string;
+  note: string;
+  treatments: Array<{
+    medication: string;
+    dosage: string;
+    duration: string;
+  }>;
+} | null>(null);
+
 const selectedDoctor = useMemo(
   () =>
     doctorOptions.find(
@@ -124,28 +119,6 @@ const selectedDoctor = useMemo(
     ) ?? null,
   [doctorOptions, selectedDoctorId],
 );
-
-const matchedDoctorForSave = useMemo(() => {
-  const normalizedName = doctorName.trim().toLowerCase();
-
-  if (!normalizedName) {
-    return null;
-  }
-
-  return (
-    doctorSuggestions.find(
-      (doctor) =>
-        doctor.doctorName.trim().toLowerCase() ===
-        normalizedName,
-    ) ??
-    doctorOptions.find(
-      (doctor) =>
-        doctor.doctorName.trim().toLowerCase() ===
-        normalizedName,
-    ) ??
-    null
-  );
-}, [doctorSuggestions, doctorOptions, doctorName]);
 
 const calculateAge = (dateOfBirth: string | null) => {
   if (!dateOfBirth) {
@@ -183,227 +156,30 @@ useEffect(() => {
 }, [selectedPatient]);
 
 useEffect(() => {
-const handoff =
-  getCareVRDashboardHandoff();
+  const samplePatients = [
+    {
+      id: "sandbox-patient-1",
+      name: "Alex Morgan",
+      dateOfBirth: "1960-05-12",
+      sex: "Male",
+    },
+    {
+      id: "sandbox-patient-2",
+      name: "Jamie Morgan",
+      dateOfBirth: "1964-09-23",
+      sex: "Female",
+    },
+  ];
 
-if (!handoff) {
-  router.replace("/dashboard");
-  return;
-}
+  setPatients(samplePatients);
+  setSelectedPatient(samplePatients[0].id);
 
-const currentHandoff = handoff;
-
-setDashboardHandoff(currentHandoff);
-
-let cancelled = false;
-
-async function loadPatientsFromDHP() {
-  try {
-    const authUser =
-      await authService.getCurrentUser();
-
-    if (!authUser) {
-      router.replace("/sandbox/simulate/app/dashboard");
-      return;
-    }
-
-const authorizedPatientIds =
-  currentHandoff.patients.map(
-    patient => patient.id
-  );
-
-const authorizedFamilyId =
-  currentHandoff.access.familyId;
-
-    if (!authorizedFamilyId) {
-      throw new Error(
-        "Authorized CareVR Family could not be resolved."
-      );
-    }
-
-    const {
-      data: digitalHealthProfile,
-      error: digitalHealthProfileError,
-    } =
-      await supabase
-        .from("digital_health_profile")
-        .select("patients")
-        .eq("user_id", authUser.id)
-        .eq("family_id", authorizedFamilyId)
-        .eq("digital_health_flag", true)
-        .maybeSingle();
-
-    if (digitalHealthProfileError) {
-      throw digitalHealthProfileError;
-    }
-
-    const dhpPatients =
-      Array.isArray(
-        digitalHealthProfile?.patients
-      )
-        ? digitalHealthProfile.patients
-        : [];
-
-    const authorizedPatients =
-      dhpPatients.filter(
-        patient =>
-          patient &&
-          typeof patient.id === "string" &&
-          authorizedPatientIds.includes(
-            patient.id
-          )
-      );
-
-    if (cancelled) {
-      return;
-    }
-
-setPatients(
-  authorizedPatients.map(
-    patient => ({
-      id: patient.id,
-      name: patient.full_name,
-      dateOfBirth: patient.date_of_birth ?? null,
-      sex: patient.gender ?? null,
-    })
-  )
-);
-
-
-
-
-if (authorizedPatients.length > 0) {
-  setSelectedPatient(
-    authorizedPatients[0].id
-  );
-}
-  } catch (error) {
-    console.error(
-      "Unable to retrieve patients from Digital Health Profile.",
-      error
-    );
-  }
-}
-
-void loadPatientsFromDHP();
-
-  async function loadUserProfile() {
-    try {
-      const profile =
-        await profileRepository.getCurrentProfile();
-
-      if (cancelled) {
-        return;
-      }
-
-      setUserName(profile?.fullName ?? "");
-    } catch (error) {
-      console.error(
-        "Unable to retrieve current profile for Doctors Notes.",
-        error,
-      );
-    }
-  }
-
-  void loadUserProfile();
-
-  return () => {
-    cancelled = true;
-  };
-}, [router]);
-
-// ADD THE NEW EFFECT HERE
-useEffect(() => {
-if (!selectedPatient) {
   setDoctorOptions([]);
   setDoctorSuggestions([]);
   setHospitalSuggestions([]);
   setSpecialitySuggestions([]);
   setSelectedDoctorId("");
-  return;
-}
-
-  let cancelled = false;
-
-  async function loadDoctorOptions() {
-    try {
-      const response = await fetch(
-        "/api/doctors-notes/options",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            patientId: selectedPatient,
-          }),
-        },
-      );
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(
-          result.error ||
-            "Unable to retrieve doctors.",
-        );
-      }
-
-      if (cancelled) {
-        return;
-      }
-
-const options =
-  result.data as DoctorsNoteDoctorOption[];
-
-setDoctorOptions(options);
-
-const suggestions = result.suggestions;
-
-setDoctorSuggestions(
-  Array.isArray(suggestions?.doctors)
-    ? suggestions.doctors as DoctorsNoteDoctorOption[]
-    : [],
-);
-
-setHospitalSuggestions(
-  Array.isArray(suggestions?.hospitals)
-    ? suggestions.hospitals as string[]
-    : [],
-);
-
-setSpecialitySuggestions(
-  Array.isArray(suggestions?.specialities)
-    ? suggestions.specialities as string[]
-    : [],
-);
-
-setSelectedDoctorId(
-  options[0]?.providerId ?? "",
-);
-    } catch (error) {
-      console.error(
-        "Doctors Notes doctor options retrieval failed:",
-        error,
-      );
-
-if (!cancelled) {
-  setDoctorOptions([]);
-  setDoctorSuggestions([]);
-  setHospitalSuggestions([]);
-  setSpecialitySuggestions([]);
-  setSelectedDoctorId("");
-}
-    }
-  }
-
-  loadDoctorOptions();
-
-  return () => {
-    cancelled = true;
-  };
-}, [selectedPatient]);
+}, []);
 
 /*
 const patients =
@@ -412,45 +188,6 @@ const patients =
 // Removed.
 // Patients now come from DHP.
 
-
-const handleAccountMenuToggle = () => {
-  setAccountMenuOpen(
-    (current) => !current
-  );
-};
-
-const handleCareVRJourney = () => {
-  setAccountMenuOpen(false);
-  router.push("/carevr-journey");
-};
-
-const handleHelp = () => {
-  setAccountMenuOpen(false);
-  router.push("/help");
-};
-
-const handleLogout = async () => {
-  if (loggingOut) {
-    return;
-  }
-
-  setLoggingOut(true);
-  setAccountMenuOpen(false);
-
-  try {
-    await authService.logout();
-
-    router.replace("/sandbox/simulate/app/dashboard");
-  }
-  catch (error) {
-    console.error(
-      "Unable to log out.",
-      error
-    );
-
-    setLoggingOut(false);
-  }
-};
 
 
 const handleTreatmentChange = (
@@ -496,171 +233,66 @@ const [selectedTime, setSelectedTime] = useState(
   now.toTimeString().slice(0, 5)
 );
 
-const handleSave = async () => {
-  if (saving) {
-    return;
-  }
-
+const handleSave = () => {
   setSaveError("");
   setSaveSuccess("");
-
-  const hasNote = note.trim().length > 0;
+  setPreviewData(null);
 
   const completedTreatments = treatments
-    .filter(
-      (treatment) =>
-        treatment.medication.trim().length > 0
-    )
+    .filter((treatment) => treatment.medication.trim())
     .map((treatment) => ({
       medication: treatment.medication.trim(),
       dosage: treatment.dosage.trim(),
       duration: treatment.duration.trim(),
     }));
 
-  const hasTreatments = completedTreatments.length > 0;
+  if (!doctorName.trim()) {
+    setSaveError("Please enter the doctor's name.");
+    return;
+  }
 
-  if (!hasNote && !hasTreatments) {
+  if (!selectedDate || !selectedTime) {
+    setSaveError("Please select the date and time.");
+    return;
+  }
+
+  if (!note.trim() && completedTreatments.length === 0) {
     setSaveError(
-      "Please enter a doctor's note or at least one treatment."
+      "Please enter treatment details or clinical notes."
     );
     return;
   }
 
-  if (careMode === "FAMILY" && !selectedPatient) {
-    setSaveError("Please select a patient.");
+  const noteDateTime = new Date(
+    `${selectedDate}T${selectedTime}`
+  );
+
+  if (Number.isNaN(noteDateTime.getTime())) {
+    setSaveError("The selected date and time are invalid.");
     return;
   }
 
-  if (hasNote && !doctorName.trim()) {
-    setSaveError("Please enter or select a doctor name.");
-    return;
-  }
-
-  let noteDateTime: Date | null = null;
-
-  if (hasNote) {
-    if (!selectedDate || !selectedTime) {
-      setSaveError("Please select the date and time.");
-      return;
-    }
-
-    noteDateTime = new Date(
-      `${selectedDate}T${selectedTime}`
-    );
-
-    if (Number.isNaN(noteDateTime.getTime())) {
-      setSaveError(
-        "The selected date and time are invalid."
-      );
-      return;
-    }
-  }
-
-  setSaving(true);
-
-  try {
-
-const response = await fetch(
-  "/api/doctors-notes",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      careMode,
-      patientId:
-        careMode === "FAMILY" ? selectedPatient : null,
-      providerId:
-        hasNote &&
-        matchedDoctorForSave &&
-        doctorName.trim().toLowerCase() ===
-          matchedDoctorForSave.doctorName.trim().toLowerCase()
-          ? matchedDoctorForSave.providerId
-          : null,
-      doctorName: hasNote ? doctorName.trim() : null,
-      doctorProfileId: null,
-      facilityId:
-        hasNote &&
-        matchedDoctorForSave &&
-        facilityName.trim().toLowerCase() ===
-          (matchedDoctorForSave.facilityName ?? "").trim().toLowerCase()
-          ? matchedDoctorForSave.facilityId
-          : null,
-      facilityName: hasNote ? facilityName.trim() || null : null,
-      specialisation: hasNote ? specialisation.trim() || null : null,
-      noteAt: noteDateTime?.toISOString() ?? null,
-      note: hasNote ? note.trim() : null,
-      treatments: completedTreatments,
-    }),
-  }
-);
-
-
-    const result =
-      await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(
-        result.error ||
-          "Unable to save Doctors Note."
-      );
-    }
-
-AppAlert.success("Doctors Note saved successfully.");
-
-    setNote("");
-
-setTreatments([
-  {
-    id: nextTreatmentId,
-    medication: "",
-    dosage: "",
-    duration: "",
-  },
-]);
-
-setNextTreatmentId((current) => current + 1);
-setSaveError("");
-setSaveSuccess("");
-
-  } catch (error) {
-    console.error(
-      "Doctors Note save failed:",
-      error
-    );
-
-    setSaveError(
-      error instanceof Error
-        ? error.message
-        : "Unable to save Doctors Note."
-    );
-  } finally {
-    setSaving(false);
-  }
+  setPreviewData({
+    doctorName: doctorName.trim(),
+    hospital: facilityName.trim(),
+    speciality: specialisation.trim(),
+    date: selectedDate,
+    time: selectedTime,
+    note: note.trim(),
+    treatments: completedTreatments,
+  });
 };
 
 return (
     <main className="doctors-notes-page">
-<MobileHeader
-    careMode={careMode}
-    onCareModeChange={setCareMode}
-    userName={userName}
-        showCareModeToggle={true}
-        showSelfToggle={false}
-        showFamilyToggle={true}
-        showHomeButton={true}
-        onHomeClick={() => router.push("/dashboard")}
-accountMenuOpen={accountMenuOpen}
-onAccountMenuToggle={handleAccountMenuToggle}
-consentGranted={false}
-canAddPatient={false}
-onAddPatient={() => {}}
-onCareVRJourney={handleCareVRJourney}
-onHelp={handleHelp}
-onLogout={handleLogout}
-loggingOut={loggingOut}
-      />
+
+<SandboxMobileHeader
+  careMode={careMode}
+  onCareModeChange={setCareMode}
+  userName={userName}
+  role={role}
+  onRoleChange={setRole}
+/>
 
 <section className="page-content">
     <section className="card patient-section">
@@ -708,14 +340,14 @@ loggingOut={loggingOut}
             <div>
               <h2>Doctor Information</h2>
 <p>
-  {dashboardHandoff?.role === "DOCTOR"
+  {role === "DOCTOR"
     ? "Your professional details will be attached to this note."
     : "Select the doctor associated with this note."}
 </p>
             </div>
           </div>
 
-          {dashboardHandoff?.role === "DOCTOR" ? (
+          {role === "DOCTOR" ? (
             <div className="doctor-profile">
               <div className="doctor-avatar">
   {selectedDoctor?.doctorName
@@ -1055,8 +687,9 @@ loggingOut={loggingOut}
   <button
     type="button"
     className="secondary-button"
-    onClick={() => router.push("/dashboard")}
-    disabled={saving}
+    onClick={() =>
+      router.push("/sandbox/simulate/app/dashboard")
+    }
   >
     Cancel
   </button>
@@ -1065,29 +698,109 @@ loggingOut={loggingOut}
     type="button"
     className="primary-button"
     onClick={handleSave}
-disabled={
-  saving ||
-  (
-    !note.trim() &&
-    !treatments.some(
-      (treatment) => treatment.medication.trim().length > 0
-    )
-  ) ||
-  (
-    careMode === "FAMILY" &&
-    !selectedPatient
-  ) ||
-  (
-    note.trim().length > 0 &&
-    !doctorName.trim()
-  )
-}
+    disabled={
+      !doctorName.trim() ||
+      !selectedDate ||
+      !selectedTime ||
+      (
+        !note.trim() &&
+        !treatments.some(
+          (treatment) =>
+            treatment.medication.trim().length > 0
+        )
+      )
+    }
   >
-    {saving
-      ? "Saving..."
-      : "Confirm & Save"}
+    Preview Executive Summary
   </button>
 </div>
+
+{previewData && (
+  <section
+    aria-live="polite"
+    style={{
+      marginTop: "24px",
+      padding: "20px",
+      border: "1px solid #dbe4f0",
+      borderRadius: "14px",
+      background: "#ffffff",
+      color: "#172554",
+    }}
+  >
+    <h2 style={{ margin: "0 0 6px", fontSize: "20px" }}>
+      Executive Summary Preview
+    </h2>
+
+    <p
+      style={{
+        margin: "0 0 20px",
+        color: "#64748b",
+        fontSize: "13px",
+      }}
+    >
+      Simulation only — nothing has been saved.
+    </p>
+
+    <h3 style={{ margin: "0 0 10px", fontSize: "16px" }}>
+      Treatment
+    </h3>
+
+    <p>
+      <strong>Doctor:</strong> {previewData.doctorName}
+    </p>
+
+    {previewData.hospital && (
+      <p>
+        <strong>Hospital:</strong> {previewData.hospital}
+      </p>
+    )}
+
+    {previewData.speciality && (
+      <p>
+        <strong>Speciality:</strong> {previewData.speciality}
+      </p>
+    )}
+
+    <p>
+      <strong>Date and time:</strong>{" "}
+      {previewData.date} at {previewData.time}
+    </p>
+
+    {previewData.treatments.length > 0 ? (
+      <ul>
+        {previewData.treatments.map((treatment, index) => (
+          <li key={`${treatment.medication}-${index}`}>
+            <strong>{treatment.medication}</strong>
+            {treatment.dosage && ` — ${treatment.dosage}`}
+            {treatment.duration && ` — ${treatment.duration}`}
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p>No treatment details entered.</p>
+    )}
+
+    <div
+      style={{
+        height: "1px",
+        background: "#e2e8f0",
+        margin: "20px 0",
+      }}
+    />
+
+    <h3 style={{ margin: "0 0 10px", fontSize: "16px" }}>
+      Clinical Notes
+    </h3>
+
+    {previewData.note ? (
+      <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+        {previewData.note}
+      </p>
+    ) : (
+      <p>No clinical notes entered.</p>
+    )}
+  </section>
+)}
 
 {saveError && (
   <p
