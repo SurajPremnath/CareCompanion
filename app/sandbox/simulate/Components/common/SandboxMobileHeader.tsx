@@ -130,15 +130,24 @@ const initials = userName.trim().split(/\s+/).filter(Boolean).map((p) => p[0]).s
       </div>
       <style jsx>{`
 .sb-home-button {
+  width: 34px;
   height: 34px;
-  padding: 0 10px;
-  border: 1px solid #dfe3ea;
+  flex: 0 0 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #e5e7eb;
   border-radius: 9px;
   background: #fff;
   color: #243b67;
-  font-size: 13px;
-  font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.sb-home-button:hover {
+  background: #f5f7ff;
+  transform: translateY(-1px);
 }
         .sb-mobile-header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:74px;padding:2px 0;z-index:20}
         .sb-brand{display:flex;align-items:center;min-width:0;padding:0;border:0;background:transparent;cursor:pointer}
