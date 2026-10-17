@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import CareVRFooter from "@/app/sandbox/simulate/Components/common/CareVRFooter";
-import SandboxMobileHeader from "@/app/sandbox/simulate/app/components/SandboxMobileHeader";
+
+import SandboxMobileHeader from "@/app/sandbox/simulate/Components/common/SandboxMobileHeader";
+import type {
+    SandboxCareMode,
+    SandboxRole,
+} from "@/app/sandbox/simulate/Components/common/SandboxMobileHeader";
 
 import {
     inviteeSecondaryFamilyMemberInvitationTemplate,
@@ -30,6 +35,12 @@ const roleLabels: Record<InviteRole, string> = {
 
 export default function SandboxAccessManagementPage() {
     const router = useRouter();
+
+const [mobileCareMode, setMobileCareMode] =
+    useState<SandboxCareMode>("FAMILY");
+
+const [sandboxRole, setSandboxRole] =
+    useState<SandboxRole>("PRIMARY");
 
     const [inviteeName, setInviteeName] = useState("");
     const [inviteeEmail, setInviteeEmail] = useState("");
@@ -71,7 +82,13 @@ const simulatedEmailBody = invitationTemplate.body
         "Access permissions are determined through CareVR's authorization and consent process."
     );
 
-
+<SandboxMobileHeader
+    careMode={mobileCareMode}
+    onCareModeChange={setMobileCareMode}
+    userName="Sandbox User"
+    role={sandboxRole}
+    onRoleChange={setSandboxRole}
+/>
 
 function handlePreview() {
     if (!canPreview) return;
@@ -101,11 +118,7 @@ function handlePreview() {
     return (
         <main className="sandbox-access-page">
             <div className="sandbox-access-shell">
-<SandboxMobileHeader
-    onHomeClick={() =>
-        router.push("/sandbox/simulate/app/dashboard")
-    }
-/>
+
 
                 <section className="sandbox-access-content">
                     <div className="page-icon" aria-hidden="true">
