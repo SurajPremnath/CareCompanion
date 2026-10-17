@@ -118,16 +118,6 @@ function handlePreview() {
     onRoleChange={setSandboxRole}
 />
 
-<div className="sandbox-access-home">
-    <button
-        type="button"
-        className="home-button"
-        onClick={() => router.push("/sandbox/simulate/app/dashboard")}
-    >
-        ← Home
-    </button>
-</div>
-
 <main className="sandbox-access-page">
             <div className="sandbox-access-shell">
 

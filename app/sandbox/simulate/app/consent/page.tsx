@@ -288,9 +288,16 @@ await consentStorage.acceptConsent({
 
 }, registrationContext);
 
-await markDigitalHealthConsentAccepted();
+const consentResult = await markDigitalHealthConsentAccepted();
 
-// CareVR post-consent continuation returns to the Create PIN flow.
+if (!consentResult.success) {
+    throw new Error(
+        consentResult.message ||
+        "Consent could not be persisted in the public Sandbox."
+    );
+}
+
+// Continue only when consent persistence succeeds.
 router.replace(
     "/secure-access/create-pin?consentAccepted=true"
 );

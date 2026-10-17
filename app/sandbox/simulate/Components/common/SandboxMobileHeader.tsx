@@ -41,6 +41,13 @@ const initials = userName.trim().split(/\s+/).filter(Boolean).map((p) => p[0]).s
           <button type="button" className={careMode === "FAMILY" ? "active" : ""} onClick={() => onCareModeChange("FAMILY")}>Family</button>
           <button type="button" className={careMode === "SELF" ? "active" : ""} onClick={() => onCareModeChange("SELF")}>Self</button>
         </div>
+<button
+  type="button"
+  className="sb-home-button"
+  onClick={() => router.push("/sandbox/simulate/app/dashboard")}
+>
+  Home
+</button>
         <button type="button" className="sb-avatar" aria-label="Sandbox options" aria-expanded={menuOpen} onClick={() => setMenuOpen((v) => !v)}>{initials}</button>
         {menuOpen && (
           <div className="sb-account-menu">
@@ -101,6 +108,16 @@ const initials = userName.trim().split(/\s+/).filter(Boolean).map((p) => p[0]).s
   </div>
 )}
 
+<button
+  type="button"
+  onClick={() => {
+    setMenuOpen(false);
+    router.push("/sandbox/simulate/app/add-patient");
+  }}
+>
+  ➕ Add Patient
+</button>
+
 <p>Fictional demo environment. No real account is connected.</p>
 <button
   type="button"
@@ -112,6 +129,17 @@ const initials = userName.trim().split(/\s+/).filter(Boolean).map((p) => p[0]).s
         )}
       </div>
       <style jsx>{`
+.sb-home-button {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid #dfe3ea;
+  border-radius: 9px;
+  background: #fff;
+  color: #243b67;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
         .sb-mobile-header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:74px;padding:2px 0;z-index:20}
         .sb-brand{display:flex;align-items:center;min-width:0;padding:0;border:0;background:transparent;cursor:pointer}
         .sb-brand img{display:block;width:170px;height:70px;max-width:100%;object-fit:contain;object-position:left center}
