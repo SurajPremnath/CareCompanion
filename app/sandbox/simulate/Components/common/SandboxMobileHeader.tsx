@@ -41,13 +41,46 @@ const initials = userName.trim().split(/\s+/).filter(Boolean).map((p) => p[0]).s
           <button type="button" className={careMode === "FAMILY" ? "active" : ""} onClick={() => onCareModeChange("FAMILY")}>Family</button>
           <button type="button" className={careMode === "SELF" ? "active" : ""} onClick={() => onCareModeChange("SELF")}>Self</button>
         </div>
+
 <button
   type="button"
   className="sb-home-button"
+  aria-label="Go to Dashboard"
+  title="Home"
   onClick={() => router.push("/sandbox/simulate/app/dashboard")}
 >
-  Home
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <path
+      d="M3 10.5L12 3L21 10.5"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M5.5 9.5V20H18.5V9.5"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M9.5 20V14H14.5V20"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
 </button>
+
         <button type="button" className="sb-avatar" aria-label="Sandbox options" aria-expanded={menuOpen} onClick={() => setMenuOpen((v) => !v)}>{initials}</button>
         {menuOpen && (
           <div className="sb-account-menu">
