@@ -24,9 +24,12 @@ const roles: { value: SandboxRole; label: string }[] = [
 export default function SandboxMobileHeader({
   careMode, onCareModeChange, userName, role, onRoleChange,
 }: SandboxMobileHeaderProps) {
-  const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const initials = userName.trim().split(/\s+/).filter(Boolean).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "CV";
+
+const router = useRouter();
+const [menuOpen, setMenuOpen] = useState(false);
+const [switchProfileOpen, setSwitchProfileOpen] = useState(false);
+
+const initials = userName.trim().split(/\s+/).filter(Boolean).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "CV";
 
   return (
     <header className="sb-mobile-header">
@@ -42,12 +45,69 @@ export default function SandboxMobileHeader({
         {menuOpen && (
           <div className="sb-account-menu">
             <strong>Simulation settings</strong>
-            <label htmlFor="sb-role">Explore as</label>
-            <select id="sb-role" value={role} onChange={(e) => onRoleChange(e.target.value as SandboxRole)}>
-              {roles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-            </select>
-            <p>Fictional demo environment. No real account is connected.</p>
-            <button type="button" onClick={() => router.push("/sandbox")}>Exit Sandbox</button>
+<label htmlFor="sb-role">Explore as</label>
+<select
+  id="sb-role"
+  value={role}
+  onChange={(e) => {
+    onRoleChange(e.target.value as SandboxRole);
+    setSwitchProfileOpen(false);
+  }}
+>
+  {roles.map((item) => (
+    <option key={item.value} value={item.value}>
+      {item.label}
+    </option>
+  ))}
+</select>
+
+{role !== "PRIMARY" && (
+  <div className="sb-switch-profile">
+    <button
+      type="button"
+      onClick={() => setSwitchProfileOpen((previous) => !previous)}
+      aria-expanded={switchProfileOpen}
+    >
+      Switch Profile
+    </button>
+
+    {switchProfileOpen && (
+      <div className="sb-switch-profile-options">
+        <p>Choose a profile</p>
+
+        {roles
+          .filter(
+            (item) =>
+              item.value === "PRIMARY" ||
+              item.value === role
+          )
+          .map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              onClick={() => {
+                onRoleChange(item.value);
+                setSwitchProfileOpen(false);
+                setMenuOpen(false);
+                router.push("/sandbox/simulate/app/dashboard");
+              }}
+            >
+              {item.label}
+              {item.value === role ? " (Selected)" : ""}
+            </button>
+          ))}
+      </div>
+    )}
+  </div>
+)}
+
+<p>Fictional demo environment. No real account is connected.</p>
+<button
+  type="button"
+  onClick={() => router.push("/sandbox")}
+>
+  Exit Sandbox
+</button>
           </div>
         )}
       </div>

@@ -82,13 +82,6 @@ const simulatedEmailBody = invitationTemplate.body
         "Access permissions are determined through CareVR's authorization and consent process."
     );
 
-<SandboxMobileHeader
-    careMode={mobileCareMode}
-    onCareModeChange={setMobileCareMode}
-    userName="Sandbox User"
-    role={sandboxRole}
-    onRoleChange={setSandboxRole}
-/>
 
 function handlePreview() {
     if (!canPreview) return;
@@ -116,6 +109,17 @@ function handlePreview() {
 }
 
     return (
+<>
+<SandboxMobileHeader
+    careMode={mobileCareMode}
+    onCareModeChange={setMobileCareMode}
+    userName="Sandbox User"
+    role={sandboxRole}
+    onRoleChange={setSandboxRole}
+/>
+
+
+
         <main className="sandbox-access-page">
             <div className="sandbox-access-shell">
 
@@ -872,6 +876,8 @@ function handlePreview() {
                     }
                 }
             `}</style>
+ <CareVRFooter />
         </main>
+</>
     );
 }

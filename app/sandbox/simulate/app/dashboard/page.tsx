@@ -331,13 +331,42 @@ const [
     null
 );
 
+
 const hasDashboardModule = (
     moduleName: string
-): boolean =>
-    careVRHandoff?.modules.some(
-        (module) =>
-            module.module === moduleName
-    ) ?? false;
+): boolean => {
+    const activeRole = user?.role ?? "PRIMARY";
+
+    const roleModules: Record<string, string[]> = {
+        PRIMARY: [
+            "RECORD_HEALTH",
+            "CARE_JOURNEY",
+            "ASSESSMENT",
+            "HEALTH_TIMELINE",
+            "ACCESS_MANAGEMENT",
+            "DOCTORS_NOTES",
+        ],
+        SECONDARY_FAMILY_MEMBER: [
+            "RECORD_HEALTH",
+            "CARE_JOURNEY",
+            "ASSESSMENT",
+            "HEALTH_TIMELINE",
+            "DOCTORS_NOTES",
+        ],
+        DOCTOR: [
+            "HEALTH_TIMELINE",
+            "DOCTORS_NOTES",
+        ],
+        CARETAKER: [
+            "RECORD_HEALTH",
+            "ASSESSMENT",
+            "DOCTORS_NOTES",
+        ],
+    };
+
+    return roleModules[activeRole]?.includes(moduleName) ?? false;
+};
+
 
 const [
     careVRToggle,
@@ -478,11 +507,31 @@ try {
         "ACCESS_MANAGEMENT",
     ];
 
+const storedSandboxRole =
+    window.sessionStorage.getItem("carevr_sandbox_active_role");
+
+const validSandboxRoles = [
+    "PRIMARY",
+    "SECONDARY_FAMILY_MEMBER",
+    "DOCTOR",
+    "CARETAKER",
+] as const;
+
+type DashboardSandboxRole =
+    (typeof validSandboxRoles)[number];
+
+const activeSandboxRole: DashboardSandboxRole =
+    validSandboxRoles.includes(
+        storedSandboxRole as DashboardSandboxRole
+    )
+        ? (storedSandboxRole as DashboardSandboxRole)
+        : "PRIMARY";
+
 setUser({
     id: "sandbox-demo-user",
     fullName: "Mr S",
     email: "demo@carevr.in",
-    role: "PRIMARY",
+    role: activeSandboxRole,
     isFounder: false,
 });
 
@@ -1303,26 +1352,29 @@ onClick={() => {
     </button>
 )}
 
-{/* Doctors Notes is available to all CareVR roles. */}
-<button
-    type="button"
-    onClick={() =>
-        router.push("/sandbox/simulate/app/doctors-notes")
-    }
-    disabled={!consentGranted}
->
-    <span className="mobile-action-icon mobile-action-purple">
-        📝
-    </span>
 
-    <strong>
-        Doctors Notes
-    </strong>
+{hasDashboardModule("DOCTORS_NOTES") && (
+    <button
+        type="button"
+        onClick={() =>
+            router.push("/sandbox/simulate/app/doctors-notes")
+        }
+        disabled={!consentGranted}
+    >
+        <span className="mobile-action-icon mobile-action-purple">
+            📝
+        </span>
 
-    <span>
-        Doctor notes & care updates
-    </span>
-</button>
+        <strong>
+            Doctors Notes
+        </strong>
+
+        <span>
+            Doctor notes & care updates
+        </span>
+    </button>
+)}
+
 
 
 {hasDashboardModule("ACCESS_MANAGEMENT") && (
@@ -1772,51 +1824,49 @@ headerAccessory={<LanguageSelector />}
     </button>
 )}
 
-{/* Desktop - Doctors Notes is available to all CareVR roles. */}
-<button
-    type="button"
-    disabled={!consentGranted}
-    onClick={() => {
 
-        if (!consentGranted) {
-            return;
-        }
+{hasDashboardModule("DOCTORS_NOTES") && (
+    <button
+        type="button"
+        disabled={!consentGranted}
+        onClick={() => {
 
-        router.push(
-            "/sandbox/simulate/app/doctors-notes"
-        );
+            if (!consentGranted) {
+                return;
+            }
 
-    }}
-    style={{
-        ...mainActionButton,
+            router.push(
+                "/sandbox/simulate/app/doctors-notes"
+            );
 
-        opacity:
-            consentGranted
-                ? 1
-                : 0.55,
-
-        cursor:
-            consentGranted
-                ? "pointer"
-                : "not-allowed",
-    }}
->
-    <span
+        }}
         style={{
-            ...mainActionCircle,
+            ...mainActionButton,
+
+            opacity:
+                consentGranted
+                    ? 1
+                    : 0.55,
         }}
     >
-        📝
-    </span>
+        <span
+            style={{
+                ...actionIcon,
+            }}
+        >
+            📝
+        </span>
 
-    <span
-        style={{
-            ...mainActionLabel,
-        }}
-    >
-        Doctors Notes
-    </span>
-</button>
+        <span
+            style={{
+                ...mainActionLabel,
+            }}
+        >
+            Doctors Notes
+        </span>
+    </button>
+)}
+
 
 
 {hasDashboardModule("ACCESS_MANAGEMENT") && (

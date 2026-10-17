@@ -108,18 +108,46 @@ const [dashboardHandoffReady, setDashboardHandoffReady] =
 const [dashboardAnimationComplete, setDashboardAnimationComplete] =
     useState(false);
 
-    const [
-        error,
-        setError,
-    ] = useState("");
+const [
+    error,
+    setError,
+] = useState("");
 
-    useEffect(() => {
+type SandboxProfileRole =
+    | "SECONDARY_FAMILY_MEMBER"
+    | "DOCTOR"
+    | "CARETAKER";
 
-        let cancelled = false;
+const [sandboxRole, setSandboxRole] =
+    useState<SandboxProfileRole | null>(null);
 
-        const loadContexts = async () => {
+useEffect(() => {
 
-            try {
+    let cancelled = false;
+
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get("source");
+    const requestedRole = params.get("role");
+
+    if (
+        source === "sandbox" &&
+        (
+            requestedRole === "SECONDARY_FAMILY_MEMBER" ||
+            requestedRole === "DOCTOR" ||
+            requestedRole === "CARETAKER"
+        )
+    ) {
+        setSandboxRole(requestedRole);
+        setLoading(false);
+
+        return () => {
+            cancelled = true;
+        };
+    }
+
+    const loadContexts = async () => {
+
+        try {
 
                 setLoading(true);
                 setError("");
@@ -604,6 +632,78 @@ if (showDashboardHandoff) {
                 setDashboardAnimationComplete(true);
             }}
         />
+    );
+}
+
+if (sandboxRole) {
+    const roleLabels: Record<SandboxProfileRole, string> = {
+        SECONDARY_FAMILY_MEMBER: "Secondary",
+        DOCTOR: "Doctor",
+        CARETAKER: "Caretaker",
+    };
+
+    const chooseSandboxProfile = (role: "PRIMARY" | SandboxProfileRole) => {
+        sessionStorage.setItem(
+            "carevr_sandbox_active_role",
+            role
+        );
+
+        router.replace("/sandbox/simulate/app/dashboard");
+    };
+
+    return (
+        <main className="profile-selection-page">
+            <div className="profile-selection-shell">
+                <header className="profile-selection-header">
+                    <div className="profile-selection-brand">
+                        <Image
+                            src="/images/CareVR v1.0.png"
+                            alt="CareVR"
+                            width={180}
+                            height={60}
+                            priority
+                            className="carevr-logo"
+                        />
+                    </div>
+                </header>
+
+                <section className="profile-selection-content">
+                    <div className="profile-selection-heading">
+                        <p className="eyebrow">Sandbox</p>
+                        <h1>Switch Profile</h1>
+                        <p className="subtitle">
+                            Choose the profile you want to use.
+                        </p>
+                    </div>
+
+                    <div className="profile-grid">
+                        <button
+                            type="button"
+                            className="profile-card"
+                            onClick={() => chooseSandboxProfile("PRIMARY")}
+                        >
+                            <span className="profile-icon">👤</span>
+                            <strong>Primary</strong>
+                        </button>
+
+                        <button
+                            type="button"
+                            className="profile-card"
+                            onClick={() => chooseSandboxProfile(sandboxRole)}
+                        >
+                            <span className="profile-icon">
+                                {sandboxRole === "DOCTOR"
+                                    ? "🩺"
+                                    : sandboxRole === "CARETAKER"
+                                        ? "♡"
+                                        : "👥"}
+                            </span>
+                            <strong>{roleLabels[sandboxRole]}</strong>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
     );
 }
 

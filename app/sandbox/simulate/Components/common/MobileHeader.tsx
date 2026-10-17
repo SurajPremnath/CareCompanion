@@ -425,13 +425,15 @@ return (
                         {getUserInitials(userName)}
                     </button>
 
-                    {accountMenuOpen && (
+{accountMenuOpen && (
 
 <div className="carevr-mobile-account-menu">
-<details
-    className="carevr-mobile-account-menu-group"
-    open={false}
->
+    {restrictAccountMenu ? null : (
+        <>
+            <details
+                className="carevr-mobile-account-menu-group"
+                open={false}
+            >
 
 <summary
         className="carevr-mobile-account-menu-trigger"
@@ -665,15 +667,8 @@ return (
 </button>
         </div>
     </details>
-
-    {/*
-     * Language selection is temporarily hidden during
-     * the CareVR soft launch.
-     *
-     * Localization infrastructure remains active.
-     *
-     * Keep the language selector hidden during soft launch.
-     */}
+        </>
+    )}
 
     <button
         type="button"
