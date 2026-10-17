@@ -717,10 +717,11 @@ return (
 
 {previewData && (
   <section
+    className="executive-summary-preview"
     aria-live="polite"
     style={{
-      marginTop: "24px",
-      padding: "20px",
+      marginTop: "16px",
+      padding: "16px",
       border: "1px solid #dbe4f0",
       borderRadius: "14px",
       background: "#ffffff",
@@ -927,6 +928,42 @@ return (
         .note-section {
           margin-top: 18px;
         }
+
+        .executive-summary-preview {
+          max-height: 420px;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 700px) {
+          .executive-summary-preview {
+            max-height: 38vh;
+            padding: 12px !important;
+            margin-top: 12px !important;
+            border-radius: 12px;
+          }
+
+          .executive-summary-preview h2 {
+            font-size: 17px !important;
+          }
+
+          .executive-summary-preview h3 {
+            font-size: 14px !important;
+          }
+
+          .executive-summary-preview p,
+          .executive-summary-preview li {
+            font-size: 13px;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+          }
+
+          .executive-summary-preview ul {
+            padding-left: 18px;
+          }
+        }
+
 
         .section-heading {
           margin-bottom: 18px;
