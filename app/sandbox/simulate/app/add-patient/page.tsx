@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation";
 
 import { AppAlert } from "@/lib/utils/appAlert";
 
-import SandboxMobileHeader from "@/app/sandbox/simulate/app/components/SandboxMobileHeader";
 import CareVRFooter from "@/app/sandbox/simulate/Components/common/CareVRFooter";
 
 
@@ -437,9 +436,6 @@ const handleLogout = () => {
     }}
   >
 
-<SandboxMobileHeader
-  onHomeClick={handleBackToDashboard}
-/>
 
 <section
   className="carevr-add-patient-hero"
