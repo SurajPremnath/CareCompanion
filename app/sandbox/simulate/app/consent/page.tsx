@@ -227,7 +227,7 @@ const INFORMATION_SECTION_COUNT =
 
             await authService.logout();
 
-            router.replace("/login");
+            router.replace("/sandbox/simulate/app/dashboard");
 
         } catch (error) {
 

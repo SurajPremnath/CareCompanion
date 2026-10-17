@@ -115,7 +115,7 @@ useEffect(() => {
 
       if (!user) {
 
-        router.replace("/login");
+        router.replace("/sandbox/simulate/app/dashboard");
 
         return;
 
@@ -155,7 +155,7 @@ if (profileResult.success && profileResult.data) {
     }
     catch {
 
-      router.replace("/login");
+      router.replace("/sandbox/simulate/app/dashboard");
 
       return;
 

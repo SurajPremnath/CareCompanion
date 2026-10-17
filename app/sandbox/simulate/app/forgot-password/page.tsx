@@ -57,7 +57,7 @@ const renderHeader = () => (
     onHelp={() => {}}
     onLogout={async () => {
       await authService.logout();
-      router.replace("/login");
+      router.replace("/sandbox/simulate/app/dashboard");
     }}
   />
 );
@@ -286,7 +286,7 @@ return (
           <button
             type="button"
             onClick={() =>
-              router.replace("/login")
+              router.replace("/sandbox/simulate/app/dashboard")
             }
             disabled={loading}
             style={secondaryButtonStyle}

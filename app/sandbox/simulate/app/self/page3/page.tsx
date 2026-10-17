@@ -8,17 +8,7 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
-/*
-import {
-  analyticsService,
-} from "@/lib/analytics/analyticsService";
-
-import {
-  ANALYTICS_MODULES,
-  ANALYTICS_EVENTS,
-  ANALYTICS_CONTEXTS,
-} from "@/lib/analytics/analyticsEvents";
-*/
+import LanguageSelector from "@/Components/language/LanguageSelector";
 
 export default function Page3() {
   const router = useRouter();

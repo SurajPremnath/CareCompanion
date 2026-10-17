@@ -9,37 +9,17 @@ import {
 
 import { useRouter } from "next/navigation";
 
-import { authService } from "@/lib/auth/authService";
-import { patientStorage } from "@/lib/storage/patientStorage";
-import { familyStorage } from "@/lib/storage/familyStorage";
 import { AppAlert } from "@/lib/utils/appAlert";
 
-import MobileHeader from "@/Components/common/MobileHeader";
-import CareVRFooter from "@/Components/common/CareVRFooter";
+import SandboxMobileHeader from "@/app/sandbox/simulate/app/components/SandboxMobileHeader";
+import CareVRFooter from "@/app/sandbox/simulate/Components/common/CareVRFooter";
+
 
 import {
   useLanguage,
-} from "@/Components/language/LanguageProvider";
+} from "@/app/sandbox/simulate/app/components/language/LanguageProvider";
 
-import LanguageSelector from "@/Components/language/LanguageSelector";
-
-// ------------------------------------------------------------
-// ANALYTICS — COMMENTED OUT FOR DEMO START
-// ------------------------------------------------------------
-
-// import {
-//   performanceTracker,
-// } from "@/lib/performance/performanceTracker";
-
-// ------------------------------------------------------------
-// ANALYTICS — COMMENTED OUT FOR DEMO END
-// ------------------------------------------------------------
-
-
-import {
-  getCareVRDashboardHandoff,
-  resolveCareVRDashboardHandoff,
-} from "@/lib/auth/carevrDashboardHandoff";
+import LanguageSelector from "@/app/sandbox/simulate/app/components/language/LanguageSelector";
 
 export default function AddPatientPage() {
 
@@ -84,51 +64,13 @@ const [loggingOut, setLoggingOut] =
     useState("");
 
   //------------------------------------------------------------
-  // Authentication
+  // Sandbox identity — no production authentication
   //------------------------------------------------------------
 
   useEffect(() => {
-
-    const loadUser = async () => {
-
-      try {
-
-        const user =
-          await authService.getCurrentUser();
-
-        if (!user) {
-
-          router.replace("/login");
-
-          return;
-
-        }
-
-        setCurrentUserName(
-          user.user_metadata?.full_name ??
-          user.email ??
-          "User"
-        );
-
-      }
-      catch (error) {
-
-        router.replace("/login");
-
-        return;
-
-      }
-      finally {
-
-        setLoading(false);
-
-      }
-
-    };
-
-    loadUser();
-
-  }, [router]);
+    setCurrentUserName("Sandbox User");
+    setLoading(false);
+  }, []);
 
   //------------------------------------------------------------
   // Age Calculation
@@ -312,6 +254,18 @@ const handleSavePatient =
         }
 
         //------------------------------------------------------------
+        // Confirm this is a Sandbox simulation
+        //------------------------------------------------------------
+
+        const confirmed = window.confirm(
+          "This is a simulation. Your patient details will be used only for this demo and will NOT be saved to the actual CareVR database.\n\nDo you want to continue?"
+        );
+
+        if (!confirmed) {
+          return;
+        }
+
+        //------------------------------------------------------------
         // Create the simulated patient
         //------------------------------------------------------------
 
@@ -405,7 +359,7 @@ const handleCareVRJourney = () => {
   setAccountMenuOpen(false);
 
   router.push(
-    "/dashboard"
+    "/sandbox/simulate/app/dashboard"
   );
 
 };
@@ -416,13 +370,13 @@ const handleHelp = () => {
   setAccountMenuOpen(false);
 
   router.push(
-    "/help"
+    "/sandbox/simulate/app/help"
   );
 
 };
 
 
-const handleLogout = async () => {
+const handleLogout = () => {
 
   if (loggingOut) {
     return;
@@ -430,25 +384,9 @@ const handleLogout = async () => {
 
   setLoggingOut(true);
 
-  try {
-
-    await authService.logout();
-
-    router.replace(
-      "/login"
-    );
-
-  }
-  catch (error) {
-
-    console.error(
-      "Unable to log out.",
-      error
-    );
-
-    setLoggingOut(false);
-
-  }
+  router.replace(
+    "/sandbox/simulate/app/dashboard"
+  );
 
 };
 
@@ -499,61 +437,8 @@ const handleLogout = async () => {
     }}
   >
 
-<MobileHeader
-
-  careMode="FAMILY"
-
-  onCareModeChange={() => {
-    // Add Patient is always a Family workflow.
-  }}
-
-  userName={
-    currentUserName
-  }
-
-  showCareModeToggle={false}
-
-  showHomeButton={true}
-
-  onHomeClick={
-    handleBackToDashboard
-  }
-
-  accountMenuOpen={
-    accountMenuOpen
-  }
-
-  onAccountMenuToggle={
-    handleAccountMenuToggle
-  }
-
-  consentGranted={true}
-  canAddPatient={false}
-
-  onAddPatient={
-    handleAddPatient
-  }
-
-  onCareVRJourney={
-    handleCareVRJourney
-  }
-
-  onHelp={
-    handleHelp
-  }
-
-  languageSelector={
-    <LanguageSelector />
-  }
-
-  onLogout={
-    handleLogout
-  }
-
-  loggingOut={
-    loggingOut
-  }
-
+<SandboxMobileHeader
+  onHomeClick={handleBackToDashboard}
 />
 
 <section

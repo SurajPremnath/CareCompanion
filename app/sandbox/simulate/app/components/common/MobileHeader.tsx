@@ -178,7 +178,7 @@ const handleSwitchProfile = async () => {
             await authService.getCurrentUser();
 
         if (!user) {
-            router.replace("/login");
+            router.replace("/sandbox/simulate/app/dashboard");
             return;
         }
 
@@ -585,7 +585,7 @@ return (
                 return;
             }
 
-            router.push("/add-patient");
+            router.push("/sandbox/simulate/app/add-patient");
         } catch {
             AppAlert.error(
                 "Unable to verify the patient limit. Please try again."

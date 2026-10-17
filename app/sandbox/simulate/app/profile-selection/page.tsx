@@ -129,7 +129,7 @@ const user =
 
 if (!user) {
 
-    router.replace("/login");
+    router.replace("/sandbox/simulate/app/dashboard");
 
     return;
 }
@@ -316,7 +316,7 @@ const user =
 
 if (!user) {
 
-    router.replace("/login");
+    router.replace("/sandbox/simulate/app/dashboard");
 
     return;
 }

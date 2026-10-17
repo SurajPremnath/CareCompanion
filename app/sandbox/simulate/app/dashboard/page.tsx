@@ -17,7 +17,7 @@ import type {
 
 import AppHeader from "@/app/components/AppHeader";
 
-import MobileHeader from "@/Components/common/MobileHeader";
+import SandboxMobileHeader from "@/app/sandbox/simulate/Components/common/SandboxMobileHeader";
 
 import type { DailyCare } from "@/lib/types/dailyCare";
 import type { SelfDailyCare } from "@/lib/types/selfDailyCare";
@@ -31,20 +31,6 @@ import PatientPanel
 
 import CareVRFooter from "@/Components/common/CareVRFooter";
 
-import LanguageSelector from "@/Components/language/LanguageSelector";
-
-import {
-    useLanguage,
-} from "@/Components/language/LanguageProvider";
-
-import {
-    getCareVRToggle,
-} from "@/lib/auth/carevrToggle";
-
-import {
-    resolveCareVRDashboardHandoff,
-    getCareVRDashboardHandoff,
-} from "@/lib/auth/carevrDashboardHandoff";
 
 
 import type {
@@ -62,7 +48,11 @@ import {
     reportHandoffStore,
 } from "@/lib/authorization/reportHandoff";
 
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
 
+import LanguageSelector from "@/Components/language/LanguageSelector";
 
 type DashboardUser = {
 
@@ -72,7 +62,7 @@ type DashboardUser = {
 
     email: string;
 
-    role: string;
+    role: "PRIMARY" | "SECONDARY_FAMILY_MEMBER" | "CARETAKER" | "DOCTOR";
 
     isFounder: boolean;
 
@@ -411,19 +401,74 @@ const [
     //------------------------------------------------------------
 
 useEffect(() => {
-const demoPatients: Patient[] = [
-    {
-        id: "sandbox-patient-mr-x",
-        userId: "sandbox-demo-user",
-        fullName: "Mr X",
-        dateOfBirth: null,
-        gender: "Male",
-        relationship: "Father",
-        status: "ACTIVE",
-        createdAt: "",
-        updatedAt: "",
-    },
+const SANDBOX_PATIENTS_STORAGE_KEY =
+    "carevr-sandbox-patients";
+
+const defaultSandboxPatient: Patient = {
+    id: "sandbox-patient-mr-x",
+    userId: "sandbox-demo-user",
+    fullName: "Mr X",
+    dateOfBirth: null,
+    gender: "Male",
+    relationship: "Father",
+    status: "ACTIVE",
+    createdAt: "",
+    updatedAt: "",
+};
+
+let demoPatients: Patient[] = [
+    defaultSandboxPatient,
 ];
+
+try {
+    const storedPatients = window.localStorage.getItem(
+        SANDBOX_PATIENTS_STORAGE_KEY
+    );
+
+    if (storedPatients) {
+        const parsedPatients: unknown =
+            JSON.parse(storedPatients);
+
+        if (Array.isArray(parsedPatients)) {
+            const validPatients = parsedPatients.filter(
+                (item): item is Patient => {
+                    if (
+                        typeof item !== "object" ||
+                        item === null
+                    ) {
+                        return false;
+                    }
+
+                    const patient = item as Partial<Patient>;
+
+                    return (
+                        typeof patient.id === "string" &&
+                        typeof patient.userId === "string" &&
+                        typeof patient.fullName === "string" &&
+                        typeof patient.gender === "string" &&
+                        typeof patient.relationship === "string" &&
+                        typeof patient.status === "string"
+                    );
+                }
+            );
+
+            if (validPatients.length > 0) {
+                demoPatients = validPatients.slice(0, 2);
+            }
+        }
+    }
+} catch {
+    // Keep the default fictional patient if storage cannot be read.
+}
+
+try {
+    window.localStorage.setItem(
+        SANDBOX_PATIENTS_STORAGE_KEY,
+        JSON.stringify(demoPatients)
+    );
+} catch {
+    // Keep the dashboard usable if browser storage is unavailable.
+}
 
     const demoModules = [
         "RECORD_HEALTH",
@@ -721,8 +766,6 @@ if (
 
     router.push("/sandbox/simulate/app/access-management");
     return;
-
-    return;
 }
 
 setSelectedAction(
@@ -747,12 +790,6 @@ setSelectedAction(
         }
 
 
-//        void performanceTracker.complete({
-//
-//            toPath:
-//                "/dashboard",
-//
-//        });
 
     }, [
         loading,
@@ -760,63 +797,11 @@ setSelectedAction(
     ]);
 
 
-    //------------------------------------------------------------
-    // Analytics
-    //------------------------------------------------------------
-
-// ------------------------------------------------------------
-// ANALYTICS — COMMENTED OUT FOR DEMO START
-// ------------------------------------------------------------
-//     const trackFeatureClick =
-//         (
-//             feature: HomeFeature
-//         ): void => {
-//
-//            void analyticsService
-//                .track({
-//
-//                    module:
-//                        ANALYTICS_MODULES
-//                            .DASHBOARD,
-//
-//                    eventName:
-//                        ANALYTICS_EVENTS
-//                            .FEATURE_CLICKED,
-//
-//                    pagePath:
-//                        "/dashboard",
-//
-//                    metadata: {
-//
-//                        feature,
-//
-//                    },
-//
-//                })
-//                .catch(() => {
-//
-// Analytics must not block navigation
-//
-//                });
-// 
-//         };
-
-// ------------------------------------------------------------
-// ANALYTICS — COMMENTED OUT FOR DEMO END
-// ------------------------------------------------------------
-
-
 
     const openHelp = () => {
 
-//        trackFeatureClick(
-//            "HELP"
-//        );
-
-
-        router.push(
-            "/help"
-        );
+        
+            router.push("/sandbox/simulate/app/help");
 
     };
 
@@ -888,7 +873,7 @@ const mobileSnapshotKey =
 
 <div className="mobile-dashboard-shell">
 
-<MobileHeader
+<SandboxMobileHeader
     careMode={mobileCareMode}
     onCareModeChange={(mode) => {
         setMobileCareMode(mode);
@@ -911,54 +896,12 @@ const mobileSnapshotKey =
         }
     }}
     userName={user.fullName}
-showCareModeToggle={true}
-showSelfToggle={true}
-showFamilyToggle={true}
-    showHomeButton={true}
-    onHomeClick={() =>
-        router.replace("/dashboard")
-    }
-    accountMenuOpen={mobileAccountMenuOpen}
-    onAccountMenuToggle={() =>
-        setMobileAccountMenuOpen(
-            previous => !previous
-        )
-    }
-    consentGranted={consentGranted}
-    canAddPatient={hasDashboardModule("ADD_PATIENT")}
-onAddPatient={() => {
-    setMobileAccountMenuOpen(false);
-
-    if (mobilePatients.length >= 2) {
-        window.alert(
-            "Patient limit reached. You have already added the maximum of 2 patients. You cannot add another patient."
+    role={user.role}
+    onRoleChange={(role) => {
+        setUser((previous) =>
+            previous ? { ...previous, role } : previous
         );
-        return;
-    }
-
-    router.push("/sandbox/simulate/app/add-patient");
-}}
-    onCareVRJourney={() => {
-        setMobileAccountMenuOpen(false);
-    if (!user.isFounder) {
-        alert("Coming Soon...");
-        return;
-    }
-
-
-
-        router.push("/carevr-journey");
     }}
-    onHelp={() => {
-        setMobileAccountMenuOpen(false);
-        openHelp();
-    }}
-    languageSelector={<LanguageSelector />}
-    onLogout={() => {
-        setMobileAccountMenuOpen(false);
-        void logout();
-    }}
-    loggingOut={loggingOut}
 />
 
 
@@ -977,7 +920,7 @@ onAddPatient={() => {
             <button
                 type="button"
                 onClick={() =>
-                    router.push("/consent")
+                    router.push("/sandbox/simulate/app/dashboard")
                 }
             >
                 Review & Accept
@@ -1364,7 +1307,7 @@ onClick={() => {
 <button
     type="button"
     onClick={() =>
-        router.push("/doctors-notes")
+        router.push("/sandbox/simulate/app/doctors-notes")
     }
     disabled={!consentGranted}
 >
@@ -1431,17 +1374,7 @@ headerAccessory={<LanguageSelector />}
         return;
     }
 
-//        performanceTracker.start({
-//
-//            fromPath: "/dashboard",
-//
-//            toPath: "/carevr-journey",
-//
-//            feature: "DASHBOARD_TO_CAREVR_JOURNEY",
-//
-//        });
-
-        router.push("/carevr-journey");
+        router.push("/sandbox/simulate/app/carevr-journey");
 
     }}
 />
@@ -1485,7 +1418,7 @@ headerAccessory={<LanguageSelector />}
         <button
             type="button"
             onClick={() =>
-                router.push("/consent")
+                router.push("/sandbox/simulate/app/dashboard")
             }
             style={{
 
@@ -1850,7 +1783,7 @@ headerAccessory={<LanguageSelector />}
         }
 
         router.push(
-            "/doctors-notes"
+            "/sandbox/simulate/app/doctors-notes"
         );
 
     }}
@@ -1978,8 +1911,7 @@ headerAccessory={<LanguageSelector />}
 <CareVRFooter />
 
                 <div className="desktop-dashboard-footer">
-                {user.role === "ADMIN" && 
-		 SHOW_PERFORMANCE_DIAGNOSTICS && (
+                {SHOW_PERFORMANCE_DIAGNOSTICS && (
                     <button
                         type="button"
                         onClick={() =>

@@ -6,13 +6,10 @@ import type { ReactNode } from "react";
 
 import { authService } from "@/lib/auth/authService";
 
-
-/*
-import { hasPrimaryAccess } from "@/lib/carevr/hasPrimaryAccess";
-*/
-import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 import { supabase } from "@/lib/supabase";
 import { patientStorage } from "@/lib/storage/patientStorage";
+
+import { inviteeToPrimaryHandoff } from "@/lib/authorization/inviteeToPrimaryHandoff";
 import { AppAlert } from "@/lib/utils/appAlert";
 
 
@@ -178,7 +175,7 @@ const handleSwitchProfile = async () => {
             await authService.getCurrentUser();
 
         if (!user) {
-            router.replace("/login");
+            router.replace("/sandbox/simulate/app/dashboard");
             return;
         }
 
@@ -474,7 +471,7 @@ return (
             <button
                 type="button"
                 className="carevr-mobile-account-menu-primary"
-                onClick={() => router.push("/forgot-password")}
+                onClick={() => router.push("/sandbox/simulate/app/forgot-password")}
             >
                 Forgot Password
             </button>
@@ -482,7 +479,7 @@ return (
             <button
                 type="button"
                 className="carevr-mobile-account-menu-primary"
-                onClick={() => router.push("/reset-password")}
+                onClick={() => router.push("/sandbox/simulate/app/reset-password")}
             >
                 Reset Password
             </button>
@@ -491,7 +488,7 @@ return (
                 type="button"
                 className="carevr-mobile-account-menu-primary"
                 onClick={() =>
-                    router.push("/secure-access/create-pin?mode=recreate")
+                    router.push("/sandbox/simulate/app/secure-access/create-pin?mode=recreate")
                 }
             >
                 Reset PIN
@@ -585,7 +582,7 @@ return (
                 return;
             }
 
-            router.push("/add-patient");
+            router.push("/sandbox/simulate/app/add-patient");
         } catch {
             AppAlert.error(
                 "Unable to verify the patient limit. Please try again."
@@ -600,7 +597,7 @@ return (
             <button
                 type="button"
                 className="carevr-mobile-account-menu-primary"
-                onClick={() => router.push("/carevr-journey")}
+                onClick={() => router.push("/sandbox/simulate/app/carevr-journey")}
             >
                 CareVR Journey
             </button>
@@ -654,7 +651,7 @@ return (
             <button
                 type="button"
                 className="carevr-mobile-account-menu-primary"
-                onClick={() => router.push("/help")}
+                onClick={() => router.push("/sandbox/simulate/app/help")}
             >
                 Help
             </button>
@@ -662,7 +659,7 @@ return (
 <button
     type="button"
     className="carevr-mobile-account-menu-primary"
-    onClick={() => router.push("/contact-support")}
+    onClick={() => router.push("/sandbox/simulate/app/contact-support")}
 >
     Contact Support
 </button>

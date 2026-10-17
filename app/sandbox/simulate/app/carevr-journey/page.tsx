@@ -84,7 +84,7 @@ const [active,setActive] = useState(0);
 
 <button
     type="button"
-    onClick={() => router.push("/dashboard")}
+    onClick={() => router.push("/sandbox/simulate/app/dashboard")}
     className="
         inline-flex
         items-center

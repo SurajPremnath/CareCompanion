@@ -334,7 +334,7 @@ const response = await fetch(endpoint, {
     };
 
     const handleLogin = () => {
-        router.replace("/login");
+        router.replace("/sandbox/simulate/app/dashboard");
     };
 
     if (loading) {

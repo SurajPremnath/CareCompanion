@@ -154,7 +154,7 @@ const [
 
                 if (!user) {
 
-                    router.replace("/login");
+                    router.replace("/sandbox/simulate/app/dashboard");
 
                     return;
 
@@ -169,7 +169,7 @@ const [
             }
             catch {
 
-                router.replace("/login");
+                router.replace("/sandbox/simulate/app/dashboard");
 
                 return;
 

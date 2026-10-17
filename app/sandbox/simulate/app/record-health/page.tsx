@@ -13,9 +13,6 @@ import {
     useSearchParams,
 } from "next/navigation";
 
-import {
-    authService,
-} from "@/lib/auth/authService";
 
 import {
     getCareVRDashboardHandoff,
@@ -35,8 +32,6 @@ import PatientPanel
 import CareVRFooter
     from "@/Components/common/CareVRFooter";
 
-import LanguageSelector
-    from "@/Components/language/LanguageSelector";
 
 import ManualCareWorkspace
     from "@/app/sandbox/simulate/Components/dashboard/ManualCareWorkspace";
@@ -72,28 +67,15 @@ import ExecutiveSummaryPdfGenerator
 import ClinicalTrendPdfGenerator
     from "@/app/journey-review/mobile/ClinicalTrendPdfGenerator";
 
-// AUDIT TEMPORARILY DISABLED — DO NOT REMOVE
-//
-// import {
-//     startAuditCoordinator,
-//     syncAuditCoordinatorObservations,
-//     markAuditCoordinatorRendered,
-//     completeAuditCoordinator,
-//     recordAuditCoordinatorEvaluation,
-//     type AuditCoordinator,
-// } from "@/CareVRTestAuditAgent/runtime/auditCoordinator";
-
-// import {
-//     observeStrataparse,
-// } from "@/CareVRTestAuditAgent/runtime/auditObserver";
-
-// import {
-//     recordAuditEvaluation,
-//     buildAuditAccuracyComparisons,
-// } from "@/CareVRTestAuditAgent/runtime/auditEvaluation";
 
 import careVRGoldStandard
     from "@/benchmarks/consultation-v1/expected-output.json";
+
+import {
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
+
+import LanguageSelector from "@/Components/language/LanguageSelector";
 
 type DashboardUser = {
     id: string;
@@ -1294,65 +1276,40 @@ const handlePatientSelect =
     };
 
 
-    const handleLogout =
-        async () => {
+const handleLogout = () => {
 
-            if (loggingOut) {
-                return;
-            }
+    if (loggingOut) {
+        return;
+    }
 
-
-            setLoggingOut(
-                true
-            );
-
-
-try {
-
-    await authService.logout();
+    setLoggingOut(true);
 
     /*
-     * Care Journey configuration is session-scoped.
-     *
-     * It must not survive logout because the next login
-     * may belong to a different user.
+     * Clear Sandbox-only Care Journey configuration.
      */
     try {
         window.sessionStorage.removeItem(
             "carevr-care-journey-configurations"
         );
     } catch {
-        /*
-         * Storage cleanup failure must not prevent logout.
-         */
+        // Continue to the Sandbox dashboard.
     }
 
     /*
-     * Clear the in-memory Care Journey state as well.
+     * Clear the in-memory Care Journey state.
      */
     setCareJourneyConfigurations({});
     setCareJourneyDocumentWorkspaces({});
 
+    /*
+     * Return to the Sandbox dashboard.
+     * Do not invoke production authentication.
+     */
     router.replace(
-        "/login"
+        "/sandbox/simulate/app/dashboard"
     );
 
-}
-            catch (logoutError) {
-
-                console.error(
-                    "Unable to log out.",
-                    logoutError
-                );
-
-
-                setLoggingOut(
-                    false
-                );
-
-            }
-
-        };
+};
 
 const handleCareJourneyProcessingStateChange =
     useCallback(
@@ -1405,7 +1362,7 @@ const handleCareJourneyProcessingStateChange =
             );
 
             router.push(
-                "/dashboard"
+                "/sandbox/simulate/app/dashboard"
             );
 
         };

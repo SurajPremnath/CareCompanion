@@ -2,20 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import CareVRFooter from "../components/common/CareVRFooter";
-import SandboxMobileHeader from "../components/SandboxMobileHeader";
+import CareVRFooter from "@/app/sandbox/simulate/Components/common/CareVRFooter";
+import SandboxMobileHeader from "@/app/sandbox/simulate/app/components/SandboxMobileHeader";
 
 import {
     inviteeSecondaryFamilyMemberInvitationTemplate,
-} from "@/lib/invitations/templates/inviteeSecondaryFamilyMemberInvitation";
+} from "@/app/sandbox/simulate/lib/invitations/templates/inviteeSecondaryFamilyMemberInvitation";
 
 import {
     inviteeCaretakerInvitationTemplate,
-} from "@/lib/invitations/templates/inviteeCaretakerInvitation";
+} from "@/app/sandbox/simulate/lib/invitations/templates/inviteeCaretakerInvitation";
 
 import {
     inviteeDoctorInvitationTemplate,
-} from "@/lib/invitations/templates/inviteeDoctorInvitation";
+} from "@/app/sandbox/simulate/lib/invitations/templates/inviteeDoctorInvitation";
 
 type InviteRole =
     | "SECONDARY_FAMILY_MEMBER"

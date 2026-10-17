@@ -4,9 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AppHeader from "@/app/components/AppHeader";
 
-import {
-  useLanguage,
-} from "@/Components/language/LanguageProvider";
 
 import {
   clearAssessmentData,
@@ -14,17 +11,11 @@ import {
 
 import { beginAssessmentAttempt } from "@/lib/reportStorage";
 
-/*
 import {
-  analyticsService,
-} from "@/lib/analytics/analyticsService";
+  useLanguage,
+} from "@/Components/language/LanguageProvider";
 
-import {
-  ANALYTICS_MODULES,
-  ANALYTICS_EVENTS,
-  ANALYTICS_CONTEXTS,
-} from "@/lib/analytics/analyticsEvents";
-*/
+import LanguageSelector from "@/Components/language/LanguageSelector";
 
 export default function SelfPage() {
   const router = useRouter();

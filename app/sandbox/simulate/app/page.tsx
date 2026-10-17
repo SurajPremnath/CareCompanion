@@ -11,9 +11,9 @@ export default function HomePage() {
       localStorage.getItem("loggedInUser");
 
     if (loggedInUser) {
-      router.replace("/dashboard");
+      router.replace("sandbox/simulate/app/dashboard");
     } else {
-      router.replace("/login");
+      router.replace("sandbox/simulate/app/dashboard");
     }
   }, [router]);
 

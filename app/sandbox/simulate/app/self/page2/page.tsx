@@ -8,21 +8,7 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
-/*
-import {
-  analyticsService,
-} from "@/lib/analytics/analyticsService";
-
-import {
-  ANALYTICS_MODULES,
-  ANALYTICS_EVENTS,
-  ANALYTICS_CONTEXTS,
-} from "@/lib/analytics/analyticsEvents";
-
-import {
-  performanceTracker,
-} from "@/lib/performance/performanceTracker";
-*/
+import LanguageSelector from "@/Components/language/LanguageSelector";
 
 export default function SelfPage2() {
   const router = useRouter();

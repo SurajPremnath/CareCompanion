@@ -13,22 +13,8 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
+import LanguageSelector from "@/Components/language/LanguageSelector";
 
-/*
-import {
-  analyticsService,
-} from "@/lib/analytics/analyticsService";
-
-import {
-  ANALYTICS_MODULES,
-  ANALYTICS_EVENTS,
-  ANALYTICS_CONTEXTS,
-} from "@/lib/analytics/analyticsEvents";
-
-import {
-  performanceTracker,
-} from "@/lib/performance/performanceTracker";
-*/
 
 type UserProfile = {
   id: string;

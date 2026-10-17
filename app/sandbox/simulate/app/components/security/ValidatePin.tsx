@@ -935,7 +935,7 @@ const access = {
 
         try {
             await authService.logout();
-            router.replace("/login");
+            router.replace("/sandbox/simulate/app/dashboard");
         } catch (error) {
             console.error(
                 "Unable to log out from Verify PIN page.",

@@ -1,32 +1,14 @@
-import "./globals.css";
-import {
-  LanguageProvider,
-} from "@/Components/language/LanguageProvider";
+import type { ReactNode } from "react";
+import { LanguageProvider } from "@/app/sandbox/simulate/app/components/language/LanguageProvider";
 
-import SessionManager from "@/Components/auth/SessionManager";
-
-export default function RootLayout({
-  children,
+export default function SandboxLayout({
+    children,
 }: {
-  children: React.ReactNode;
+    children: ReactNode;
 }) {
-  return (
-    <html lang="en">
-      <body
-        style={{
-          margin: 0,
-          padding: 0,
-          backgroundColor: "#f8fafc",
-          fontFamily:
-            "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial, sans-serif",
-          color: "#111827",
-        }}
-      >
-<LanguageProvider>
-  <SessionManager />
-  {children}
-</LanguageProvider>
-      </body>
-    </html>
-  );
+    return (
+        <LanguageProvider>
+            {children}
+        </LanguageProvider>
+    );
 }

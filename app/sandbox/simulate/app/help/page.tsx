@@ -12,7 +12,7 @@ export default function HelpPage() {
 /*
     performanceTracker.start({
       fromPath: "/help",
-      toPath: "/dashboard",
+      toPath: "/sandbox/simulate/app/dashboard",
       feature: "HELP_TO_DASHBOARD",
     });
 */
@@ -22,7 +22,7 @@ export default function HelpPage() {
   return (
     <>
       <Link
-        href="/dashboard"
+        href="/sandbox/simulate/app/dashboard"
         onClick={handleBackToDashboard}
         style={{
           textDecoration: "none",

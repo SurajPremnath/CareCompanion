@@ -203,7 +203,7 @@ async function loadPatientsFromDHP() {
       await authService.getCurrentUser();
 
     if (!authUser) {
-      router.replace("/login");
+      router.replace("/sandbox/simulate/app/dashboard");
       return;
     }
 
@@ -440,7 +440,7 @@ const handleLogout = async () => {
   try {
     await authService.logout();
 
-    router.replace("/login");
+    router.replace("/sandbox/simulate/app/dashboard");
   }
   catch (error) {
     console.error(

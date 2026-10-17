@@ -1202,7 +1202,7 @@ return;
          */
         await authService.logout();
 
-        router.replace("/login");
+        router.replace("/sandbox/simulate/app/dashboard");
     } catch (err) {
         setError(
             err instanceof Error
@@ -1476,7 +1476,7 @@ onAccountMenuToggle={() => {
 
     onLogout={async () => {
         await authService.logout();
-        router.replace("/login");
+        router.replace("/sandbox/simulate/app/dashboard");
     }}
 />
 

@@ -225,7 +225,7 @@ onChange({
             return;
         }
 
-        window.location.href = "/add-patient";
+        window.location.href = "/sandbox/simulate/app/add-patient";
     }}
 >
     ➕ Add New Patient

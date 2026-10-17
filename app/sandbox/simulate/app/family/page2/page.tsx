@@ -8,17 +8,8 @@ import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
-/*
-import {
-  analyticsService,
-} from "@/lib/analytics/analyticsService";
+import LanguageSelector from "@/Components/language/LanguageSelector";
 
-import {
-  ANALYTICS_MODULES,
-  ANALYTICS_EVENTS,
-  ANALYTICS_CONTEXTS,
-} from "@/lib/analytics/analyticsEvents";
-*/
 
 export default function FamilyPage2() {
   const router = useRouter();

@@ -302,7 +302,7 @@ if (mode === "expired") {
       showSelfToggle={false}
       showFamilyToggle={false}
       showHomeButton={true}
-      onHomeClick={() => router.replace("/login")}
+      onHomeClick={() => router.replace("/sandbox/simulate/app/dashboard")}
       accountMenuOpen={accountMenuOpen}
       onAccountMenuToggle={() =>
   setAccountMenuOpen((previous) => !previous)
@@ -314,7 +314,7 @@ if (mode === "expired") {
       onHelp={() => {}}
       onLogout={async () => {
         await authService.logout();
-        router.replace("/login");
+        router.replace("/sandbox/simulate/app/dashboard");
       }}
     />
   );
@@ -363,7 +363,7 @@ if (mode === "expired") {
 
             <button
               type="button"
-              onClick={() => router.replace("/forgot-password")}
+              onClick={() => router.replace("/sandbox/simulate/app/forgot-password")}
               style={primaryButtonStyle}
             >
               Request New Reset Link
@@ -371,7 +371,7 @@ if (mode === "expired") {
 
             <button
               type="button"
-              onClick={() => router.replace("/login")}
+              onClick={() => router.replace("/sandbox/simulate/app/dashboard")}
               style={secondaryButtonStyle}
             >
               Back to Login
@@ -412,7 +412,7 @@ if (mode === "expired") {
 
               <button
                 type="button"
-                onClick={() => router.replace("/login")}
+                onClick={() => router.replace("/sandbox/simulate/app/dashboard")}
                 style={primaryButtonStyle}
               >
                 Back to Login

@@ -8,21 +8,12 @@ import {
 import { useRouter } from "next/navigation";
 
 import AssessmentLayout from "@/Components/AssessmentLayout";
+
 import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
 
-/*
-import {
-  analyticsService,
-} from "@/lib/analytics/analyticsService";
-
-import {
-  ANALYTICS_MODULES,
-  ANALYTICS_EVENTS,
-  ANALYTICS_CONTEXTS,
-} from "@/lib/analytics/analyticsEvents";
-*/
+import LanguageSelector from "@/Components/language/LanguageSelector";
 
 export default function FamilyPage5() {
   const router = useRouter();

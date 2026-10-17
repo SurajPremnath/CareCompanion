@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { authService } from "@/lib/auth/authService";
 import { selfProfileStorage } from "@/lib/storage/SelfProfileStorage";
 import { AppAlert } from "@/lib/utils/appAlert";
 
@@ -14,28 +13,6 @@ import AppHeader from "@/app/components/AppHeader";
 import {
   useLanguage,
 } from "@/Components/language/LanguageProvider";
-
-// ------------------------------------------------------------
-// ANALYTICS — COMMENTED OUT FOR DEMO START
-// ------------------------------------------------------------
-
-// import {
-//   analyticsService,
-// } from "@/lib/analytics/analyticsService";
-
-// import {
-//   ANALYTICS_MODULES,
-//   ANALYTICS_EVENTS,
-//   ANALYTICS_CONTEXTS,
-// } from "@/lib/analytics/analyticsEvents";
-
-// import {
-//   performanceTracker,
-// } from "@/lib/performance/performanceTracker";
-
-// ------------------------------------------------------------
-// ANALYTICS — COMMENTED OUT FOR DEMO END
-// ------------------------------------------------------------
 
 export default function DailyCarePage() {
 
@@ -71,8 +48,7 @@ const handleSelfCare = async () => {
 
     if (!profileExists) {
 
-      router.push("/self-profile");
-
+      router.push("/sandbox/simulate/app/self-profile");
       return;
 
     }
@@ -98,24 +74,6 @@ const handleFamilyCare = async () => {
 
   setCareMode("family");
 
-  // await analyticsService.track({
-
-  //   module:
-  //     ANALYTICS_MODULES.DAILY_CARE,
-
-  //   eventName:
-  //     ANALYTICS_EVENTS.STARTED,
-
-  //   context:
-  //     ANALYTICS_CONTEXTS.FAMILY,
-
-  //   pagePath:
-  //     "/daily-care",
-
-  // });
-
-  setCareMode("family");
-
 };
 
 //------------------------------------------------------------
@@ -124,22 +82,7 @@ const handleFamilyCare = async () => {
 
 const handleBackToDashboard = () => {
 
-  // performanceTracker.start({
-
-  //   fromPath:
-  //     "/daily-care",
-
-  //   toPath:
-  //     "/dashboard",
-
-  //   feature:
-  //     "DAILY_CARE_TO_DASHBOARD",
-
-  // });
-
-  router.push(
-    "/dashboard"
-  );
+  router.push("/sandbox/simulate/app/dashboard");
 
 };
 
@@ -147,52 +90,10 @@ const handleBackToDashboard = () => {
   // Authentication
   //------------------------------------------------------------
 
-  useEffect(() => {
-
-    const loadUser = async () => {
-
-      try {
-
-        const user =
-          await authService.getCurrentUser();
-
-        if (!user) {
-
-          router.replace("/login");
-
-          return;
-
-        }
-
-        setCurrentUserName(
-
-          user.user_metadata?.full_name ??
-
-          user.email ??
-
-          "User"
-
-        );
-
-      }
-      catch {
-
-        router.replace("/login");
-
-        return;
-
-      }
-      finally {
-
-        setLoading(false);
-
-      }
-
-    };
-
-    loadUser();
-
-  }, [router]);
+useEffect(() => {
+  setCurrentUserName("Sandbox User");
+  setLoading(false);
+}, []);
 
   //------------------------------------------------------------
   // Loading Screen

@@ -123,7 +123,7 @@ const [ticketNumber, setTicketNumber] = useState("");
                 const authUser = await authService.getCurrentUser();
 
                 if (!authUser) {
-                    router.replace("/login");
+                    router.replace("/sandbox/simulate/app/dashboard");
                     return;
                 }
 
@@ -132,7 +132,7 @@ const [ticketNumber, setTicketNumber] = useState("");
 
                 if (!profile) {
                     await authService.logout();
-                    router.replace("/login");
+                    router.replace("/sandbox/simulate/app/dashboard");
                     return;
                 }
 
@@ -145,7 +145,7 @@ const [ticketNumber, setTicketNumber] = useState("");
                 }
             } catch {
                 if (!cancelled) {
-                    router.replace("/login");
+                    router.replace("/sandbox/simulate/app/dashboard");
                 }
             }
         }
@@ -165,7 +165,7 @@ const [ticketNumber, setTicketNumber] = useState("");
 
         try {
             await authService.logout();
-            router.replace("/login");
+            router.replace("/sandbox/simulate/app/dashboard");
         } catch {
             setError("Unable to log out. Please try again.");
             setLoggingOut(false);

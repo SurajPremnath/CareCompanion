@@ -725,7 +725,7 @@ router.replace(secureAccessUrl);
                     <button
                         type="button"
                         className="carevr-brand"
-                        onClick={() => router.replace("/login")}
+                        onClick={() => router.replace("/sandbox/simulate/app/dashboard")}
                         aria-label="CareVR"
                     >
                         <img
@@ -837,7 +837,7 @@ router.replace(secureAccessUrl);
             inviteeToPrimaryHandoff.clear();
         }
 
-        router.replace("/login");
+        router.replace("/sandbox/simulate/app/dashboard");
     }}
     disabled={
     registrationCompleted ||
@@ -1073,7 +1073,7 @@ router.replace(secureAccessUrl);
             <button
                 type="button"
                 onClick={() =>
-                    router.replace("/login")
+                    router.replace("/sandbox/simulate/app/dashboard")
                 }
                 disabled={loading}
                 className="login-link-button"
@@ -1111,7 +1111,7 @@ router.replace(secureAccessUrl);
             type="button"
             className="create-account-button"
             onClick={() =>
-                router.replace("/login")
+                router.replace("/sandbox/simulate/app/dashboard")
             }
         >
             Continue to Login
@@ -1480,7 +1480,7 @@ try {
                         className="login-link-button"
 onClick={async () => {
     await authService.logout();
-    router.replace("/login");
+    router.replace("/sandbox/simulate/app/dashboard");
 }}
                     >
                         Click Back to Login
