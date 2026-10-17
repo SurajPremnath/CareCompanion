@@ -179,13 +179,29 @@ const [loggingOut, setLoggingOut] =
   // Save Patient
   //------------------------------------------------------------
 
+
 const handleSavePatient =
     async () => {
 
       if (saving) {
+        return;
+      }
+
+      //------------------------------------------------------------
+      // Validate required fields
+      //------------------------------------------------------------
+
+      if (
+        !fullName.trim() ||
+        !dateOfBirth ||
+        !gender ||
+        !relationship
+      ) {
+        AppAlert.error(
+          "Please complete all required patient fields."
+        );
 
         return;
-
       }
 
       //------------------------------------------------------------
@@ -212,154 +228,145 @@ const handleSavePatient =
         gender === "Male" &&
         femaleRelationships.includes(relationship)
       ) {
-
         AppAlert.error(
           "The selected relationship does not match the patient's gender."
         );
 
         return;
-
       }
 
       if (
         gender === "Female" &&
         maleRelationships.includes(relationship)
       ) {
-
         AppAlert.error(
           "The selected relationship does not match the patient's gender."
         );
 
         return;
-
       }
 
       setSaving(true);
 
       try {
+        const STORAGE_KEY = "carevr-sandbox-patients";
 
-        const result =
-          await patientStorage.savePatient({
+        type SimulatedPatient = {
+          id: string;
+          userId: string;
+          fullName: string;
+          dateOfBirth: string | null;
+          gender: string;
+          relationship: string;
+          status: string;
+          createdAt: string;
+          updatedAt: string;
+        };
 
-            fullName:
-              fullName.trim(),
+        //------------------------------------------------------------
+        // Read existing Sandbox patients
+        //------------------------------------------------------------
 
-            dateOfBirth,
+        const storedPatients =
+          localStorage.getItem(STORAGE_KEY);
 
-            gender:
-              gender as
-                | "Male"
-                | "Female"
-                | "Other"
-                | "Prefer not to say",
+        let patients: SimulatedPatient[] =
+          storedPatients
+            ? JSON.parse(storedPatients)
+            : [];
 
-            relationship,
+        if (!Array.isArray(patients)) {
+          throw new Error(
+            "Invalid Sandbox patient data."
+          );
+        }
 
-            status: "ACTIVE"
+        //------------------------------------------------------------
+        // Initialise the first patient as Mr X
+        //------------------------------------------------------------
 
+        if (patients.length === 0) {
+          patients.push({
+            id: "sandbox-patient-mr-x",
+            userId: "sandbox-demo-user",
+            fullName: "Mr X",
+            dateOfBirth: null,
+            gender: "Male",
+            relationship: "Father",
+            status: "ACTIVE",
+            createdAt: "",
+            updatedAt: "",
           });
+        }
 
- if (!result.success) {
+        //------------------------------------------------------------
+        // Enforce maximum of two patients
+        //------------------------------------------------------------
 
-  AppAlert.error(
+        if (patients.length >= 2) {
+          AppAlert.error(
+            "Patient limit reached. You have already added the maximum of 2 patients. You cannot add another patient."
+          );
 
-  result.error ??
+          return;
+        }
 
-  t("addPatient.saveFailed")
+        //------------------------------------------------------------
+        // Create the simulated patient
+        //------------------------------------------------------------
 
-);
+        const now = new Date().toISOString();
 
-  return;
+        const newPatient: SimulatedPatient = {
+          id: `sandbox-patient-${crypto.randomUUID()}`,
+          userId: "sandbox-demo-user",
+          fullName: fullName.trim(),
+          dateOfBirth,
+          gender,
+          relationship,
+          status: "ACTIVE",
+          createdAt: now,
+          updatedAt: now,
+        };
 
-}
+        patients.push(newPatient);
 
-if (!result.data) {
+        //------------------------------------------------------------
+        // Save locally — no database or API call
+        //------------------------------------------------------------
 
-  AppAlert.error(
-    t("addPatient.saveFailed")
-  );
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(patients)
+        );
 
-  return;
+        AppAlert.success(
+          t("addPatient.saveSuccess")
+        );
 
-}
+        //------------------------------------------------------------
+        // Return to the Sandbox dashboard
+        //------------------------------------------------------------
 
-const familyResult =
-  await familyStorage.savePatientToFamily(
-    result.data.id,
-    relationship
-  );
-
-if (!familyResult.success) {
-
-  AppAlert.error(
-    familyResult.error ??
-    t("addPatient.saveFailed")
-  );
-
-  return;
-
-}
-
-const existingDashboardHandoff =
-    getCareVRDashboardHandoff();
-
-if (!existingDashboardHandoff) {
-
-    throw new Error(
-        "CareVR Dashboard handoff is required."
-    );
-
-}
-
-await resolveCareVRDashboardHandoff(
-    existingDashboardHandoff.userId,
-    existingDashboardHandoff.role,
-    {
-        id:
-            existingDashboardHandoff.access.id,
-
-        userId:
-            existingDashboardHandoff.userId,
-
-        familyId:
-            existingDashboardHandoff.access.familyId,
-
-        patientId:
-            existingDashboardHandoff.access.patientId,
-
-        accessType:
-            existingDashboardHandoff.access.accessType,
-
-        accessStatus:
-            "ACTIVE",
-    }
-);
-
-AppAlert.success(
-    t("addPatient.saveSuccess")
-);
-
-router.replace(
-    "/dashboard"
-);
-
+        router.replace(
+          "/sandbox/simulate/app/dashboard"
+        );
       }
-      catch {
+      catch (error) {
+        console.error(
+          "Unable to save simulated patient.",
+          error
+        );
 
         AppAlert.error(
-
-  t("addPatient.unexpectedError")
-
-);
-
+          "Unable to save the simulated patient. Please try again."
+        );
       }
       finally {
-
         setSaving(false);
-
       }
-
     };
+
 
 //------------------------------------------------------------
 // Back To Dashboard
@@ -367,21 +374,8 @@ router.replace(
 
 const handleBackToDashboard = () => {
 
-// performanceTracker.start({
-//
-//   fromPath:
-//     "/add-patient",
-//
-//   toPath:
-//     "/dashboard",
-//
-//   feature:
-//     "ADD_PATIENT_TO_DASHBOARD",
-//
-// });
-
   router.push(
-    "/dashboard"
+    "/sandbox/simulate/app/dashboard"
   );
 
 };

@@ -18,28 +18,12 @@ import {
 } from "@/lib/auth/authService";
 
 import {
-    supabase,
-} from "@/lib/supabase";
-
-import {
-    profileRepository,
-} from "@/lib/repositories/profileRepository";
-
-import {
-    patientStorage,
-} from "@/lib/storage/patientStorage";
-
-import {
     getCareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
 
 import type {
     Patient,
 } from "@/lib/types/patient";
-
-import {
-    consentStorage,
-} from "@/lib/consent/storage/consentStorage";
 
 import MobileHeader, {
     type MobileCareMode,
@@ -65,15 +49,6 @@ import UploadCareWorkspace
 
 import CareJourneyDisplayConfiguration
     from "@/Components/dashboard/CareJourneyDisplayConfiguration";
-
-/*
-import CareJourneyProcessingWorkspace
-    from "@/Components/dashboard/CareJourneyProcessingWorkspace";
-
-
-import CareJourneyProcessingWorkspace
-    from "@/Components/dashboard/CareJourneyProcessingWorkspaceStrataparseTest";
-*/
 
 import CareJourneyProcessingWorkspace
     from "@/Components/dashboard/CareJourneyProcessingWorkspaceWOW";
@@ -2043,15 +2018,7 @@ setReportNoDataMessage("");
                                 type="button"
                                 className="timeline-report-option"
 onClick={() => {
-    if (careMode === "SELF") {
-        router.push("/reports/assessment/self");
-    } else if (selectedPatientId) {
-        const reportUrl =
-            "/reports/assessment/family?patientId=" +
-            encodeURIComponent(selectedPatientId);
-
-        router.push(reportUrl);
-    }
+    router.push("/sandbox/simulate/app/report");
 }}
                             >
                                 <span className="timeline-report-icon">
@@ -2543,7 +2510,7 @@ onNoData={() => {
                 ) {
 
                     router.push(
-                        "/self/page2"
+                        "/sandbox/simulate/app/self/page2"
                     );
 
                     return;
@@ -2576,7 +2543,7 @@ if (
     }
 
     router.push(
-        "/family/page2"
+        "/sandbox/simulate/app/family/page2"
     );
 }
 

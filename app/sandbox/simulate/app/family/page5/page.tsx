@@ -228,7 +228,7 @@ void analyticsService
   });
 */
 
-router.push("/sandbox/simulate/app/family");
+router.push("/sandbox/simulate/app/report");
   };
 
   return (

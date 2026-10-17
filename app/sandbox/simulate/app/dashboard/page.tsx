@@ -11,45 +11,20 @@ import {
     useRouter,
 } from "next/navigation";
 
-import {
-    authService,
-} from "@/lib/auth/authService";
-
-import {
-    supabase,
-} from "@/lib/supabase";
-
-import {
-    profileRepository,
-} from "@/lib/repositories/profileRepository";
-
-import {
-    patientStorage,
-} from "@/lib/storage/patientStorage";
-
 import type {
     Patient,
 } from "@/lib/types/patient";
 
-import {
-    dailyCareRepository
-} from "@/lib/repositories/DailyCareRepository";
-
-import {
-    selfDailyCareStorage
-} from "@/lib/storage/SelfDailyCareStorage";
-
-import type {
-    DailyCare
-} from "@/lib/types/dailyCare";
-
-import type {
-    SelfDailyCare
-} from "@/lib/types/selfDailyCare";
-
 import AppHeader from "@/app/components/AppHeader";
 
 import MobileHeader from "@/Components/common/MobileHeader";
+
+import type { DailyCare } from "@/lib/types/dailyCare";
+import type { SelfDailyCare } from "@/lib/types/selfDailyCare";
+
+import type {
+    CareVRDashboardHandoff,
+} from "@/lib/auth/carevrDashboardHandoff";
 
 import PatientPanel
     from "@/Components/common/PatientPanel";
@@ -62,33 +37,6 @@ import {
     useLanguage,
 } from "@/Components/language/LanguageProvider";
 
-// ------------------------------------------------------------
-// ANALYTICS — COMMENTED OUT FOR DEMO START
-// ------------------------------------------------------------
-
-// import {
-//     analyticsService,
-// } from "@/lib/analytics/analyticsService";
-
-// import {
-//     ANALYTICS_MODULES,
-//     ANALYTICS_EVENTS,
-// } from "@/lib/analytics/analyticsEvents";
-
-// import {
-//     authSessionService,
-// } from "@/lib/analytics/authSessionService";
-
-
-// import {
-//     performanceTracker,
-// } from "@/lib/performance/performanceTracker";
-
-// ------------------------------------------------------------
-// ANALYTICS — COMMENTED OUT FOR DEMO END
-// ------------------------------------------------------------
-
-
 import {
     getCareVRToggle,
 } from "@/lib/auth/carevrToggle";
@@ -98,9 +46,6 @@ import {
     getCareVRDashboardHandoff,
 } from "@/lib/auth/carevrDashboardHandoff";
 
-import type {
-    CareVRDashboardHandoff,
-} from "@/lib/auth/carevrDashboardHandoff";
 
 import type {
     CareVRToggleConfiguration,
@@ -112,11 +57,6 @@ import HelpWorkspace from "@/app/components/dashboard/HelpWorkspace";
 import PersonSelector, {
     type PersonSelection,
 } from "@/Components/patient/PersonSelector";
-
-import {
-    consentStorage,
-} from "@/lib/consent/storage/consentStorage";
-
 
 import {
     reportHandoffStore,
@@ -436,17 +376,6 @@ const [
         createdAt: "",
         updatedAt: "",
     },
-    {
-        id: "sandbox-patient-mrs-y",
-        userId: "sandbox-demo-user",
-        fullName: "Mrs Y",
-        dateOfBirth: null,
-        gender: "Female",
-        relationship: "Mother",
-        status: "ACTIVE",
-        createdAt: "",
-        updatedAt: "",
-    },
 ]);
 
 const [
@@ -482,30 +411,19 @@ const [
     //------------------------------------------------------------
 
 useEffect(() => {
-    const demoPatients: Patient[] = [
-        {
-            id: "sandbox-patient-mr-x",
-            userId: "sandbox-demo-user",
-            fullName: "Mr X",
-            dateOfBirth: null,
-            gender: "Male",
-            relationship: "Father",
-            status: "ACTIVE",
-            createdAt: "",
-            updatedAt: "",
-        },
-        {
-            id: "sandbox-patient-mrs-y",
-            userId: "sandbox-demo-user",
-            fullName: "Mrs Y",
-            dateOfBirth: null,
-            gender: "Female",
-            relationship: "Mother",
-            status: "ACTIVE",
-            createdAt: "",
-            updatedAt: "",
-        },
-    ];
+const demoPatients: Patient[] = [
+    {
+        id: "sandbox-patient-mr-x",
+        userId: "sandbox-demo-user",
+        fullName: "Mr X",
+        dateOfBirth: null,
+        gender: "Male",
+        relationship: "Father",
+        status: "ACTIVE",
+        createdAt: "",
+        updatedAt: "",
+    },
+];
 
     const demoModules = [
         "RECORD_HEALTH",
@@ -543,7 +461,7 @@ dailyCare: {
     overallStatus: "NO_CONCERNS_REPORTED",
     temperature: 36.7,
     temperatureUnit: "C",
-    weightKg: 72,
+    weightKg: null,
     systolic: 118,
     diastolic: 76,
     pulse: 72,
@@ -564,40 +482,17 @@ dailyCare: {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     overallStatus: "NO_CONCERNS_REPORTED",
-            temperature: 36.8,
-            temperatureUnit: "C",
-            weightKg: 78,
-            systolic: 126,
-            diastolic: 82,
-            pulse: 76,
-            spo2: 97,
+    temperature: 36.8,
+    temperatureUnit: "C",
+    weightKg: null,
+    systolic: 126,
+    diastolic: 82,
+    pulse: 76,
+    spo2: 97,
     symptoms: [],
     painLocations: [],
     otherSymptom: null,
 } as DailyCare,
-        needsAttention: false,
-        monitoringItems: ["No symptoms reported"],
-    },
-    "sandbox-patient-mrs-y": {
-        dailyCare: {
-            id: "sandbox-mrs-y-reading",
-            userId: "sandbox-demo-user",
-            patientId: "sandbox-patient-mrs-y",
-            recordedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-            overallStatus: "NO_CONCERNS_REPORTED",
-            temperature: 36.6,
-            temperatureUnit: "C",
-            weightKg: 64,
-            systolic: 120,
-            diastolic: 78,
-            pulse: 74,
-            spo2: 98,
-            symptoms: [],
-    painLocations: [],
-            otherSymptom: null,
-        } as DailyCare,
         needsAttention: false,
         monitoringItems: ["No symptoms reported"],
     },
@@ -824,7 +719,8 @@ if (
     feature === "ACCESS_MANAGEMENT"
 ) {
 
-    router.push("/access-management")
+    router.push("/sandbox/simulate/app/access-management");
+    return;
 
     return;
 }
@@ -929,93 +825,14 @@ setSelectedAction(
     // Logout
     //------------------------------------------------------------
 
-    const logout = async () => {
+const logout = () => {
+    if (loggingOut) {
+        return;
+    }
 
-        if (loggingOut) {
-
-            return;
-
-        }
-
-
-        setLoggingOut(true);
-
-
-//        performanceTracker.start({
-//
-//           fromPath:
-//                "/dashboard",
-//
-//            toPath:
-//                "/login",
-//
-//            feature:
-//                "LOGOUT_TO_LOGIN",
-//
-//        });
-
-
-// TEMPORARY LOGOUT PERFORMANCE DIAGNOSTICS — COMMENTED OUT FOR DEMO
-// const logoutStartedAt = performance.now();
-
-// ANALYTICS AUTH-SESSION CLOSURE — COMMENTED OUT FOR DEMO
-// try {
-//
-//     await authSessionService.end();
-//
-// }
-// catch (error) {
-//
-//     console.error(
-//         "Unable to close analytics auth session.",
-//         error
-//     );
-//
-// }
-
-try {
-
-    // const authLogoutStartedAt = performance.now();
-
-    await authService.logout();
-
-    // console.log(
-    //     `[LOGOUT-PERF] authService.logout: ${Math.round(
-    //         performance.now() - authLogoutStartedAt
-    //     )} ms`
-    // );
-
-    // const routerStartedAt = performance.now();
-
-    router.replace("/login");
-
-    // console.log(
-    //     `[LOGOUT-PERF] router.replace: ${Math.round(
-    //         performance.now() - routerStartedAt
-    //     )} ms`
-    // );
-
-    // console.log(
-    //     `[LOGOUT-PERF] total logout: ${Math.round(
-    //         performance.now() - logoutStartedAt
-    //     )} ms`
-    // );
-
-}
-catch (error) {
-
-    console.error(
-        "Unable to complete logout.",
-        error
-    );
-
-//    performanceTracker.cancel();
-
-    setLoggingOut(false);
-
-}
-
-    };
+    setLoggingOut(true);
+    router.replace("/sandbox");
+};
 
 
 
@@ -1109,10 +926,18 @@ showFamilyToggle={true}
     }
     consentGranted={consentGranted}
     canAddPatient={hasDashboardModule("ADD_PATIENT")}
-    onAddPatient={() => {
-        setMobileAccountMenuOpen(false);
-        router.push("/add-patient");
-    }}
+onAddPatient={() => {
+    setMobileAccountMenuOpen(false);
+
+    if (mobilePatients.length >= 2) {
+        window.alert(
+            "Patient limit reached. You have already added the maximum of 2 patients. You cannot add another patient."
+        );
+        return;
+    }
+
+    router.push("/sandbox/simulate/app/add-patient");
+}}
     onCareVRJourney={() => {
         setMobileAccountMenuOpen(false);
     if (!user.isFounder) {
@@ -1561,7 +1386,7 @@ onClick={() => {
     <button
         type="button"
         onClick={() =>
-            router.push("/access-management")
+            router.push("/sandbox/simulate/app/access-management")
         }
     disabled={!consentGranted}
     >
@@ -2076,7 +1901,7 @@ headerAccessory={<LanguageSelector />}
 //            );
 
             router.push(
-                "/access-management"
+                "/sandbox/simulate/app/access-management"
             );
 
         }}

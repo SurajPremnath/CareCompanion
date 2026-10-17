@@ -347,7 +347,7 @@ localStorage.setItem(
 
               <button
                 onClick={() =>
-                  router.push("/add-patient")
+                  router.push("/sandbox/simulate/app/add-patient")
                 }
                 style={primaryButton}
               >
@@ -439,7 +439,7 @@ localStorage.setItem(
 
               <button
                 onClick={() =>
-                  router.push("/add-patient")
+                  router.push("/sandbox/simulate/app/add-patient")
                 }
                 style={secondaryButton}
               >
